@@ -27,7 +27,7 @@ Instalar la actualización sobre la app existente, sin desinstalar ni borrar alm
 - Metro/Hermes Android: 594 módulos; iOS: 596 módulos, exports aprobados.
 - Las pruebas comparan el coste y redondeo con el motor API, y comprueban USDT disponible con cero metal, coma decimal, 1050 g y formatos inválidos.
 - La comprobación visual del scroll y del resumen actualizado en el teléfono sigue pendiente.
-- Compilación nativa Android 0.1.1: pendiente de solicitar y registrar el resultado. El APK 0.1.0 no incluye estas correcciones.
+- Compilación nativa Android 0.1.1 / versión de compilación 2: EAS `FINISHED`, sin error. [Build 41fb0e8f](https://expo.dev/accounts/chipirips-team/projects/openminerals-demo/builds/41fb0e8f-ee7c-4439-a5a5-20305647065a), fuente `608120d9c8a73aee58100db9d91aef5a7baad02e`. El APK 0.1.0 no incluye estas correcciones.
 - No se solicitó un nuevo build iOS físico; sigue bloqueado por firma Apple. El export iOS de esta revisión no sustituye un instalador ni una prueba en iPhone.
 
 ## Recorrido al recibir el APK actualizado
@@ -39,4 +39,24 @@ Instalar la actualización sobre la app existente, sin desinstalar ni borrar alm
 5. Probar `0,5` y `0.5`: ambas entradas deben indicar 0,5 gramos. `1050` debe indicar 1050 gramos y bloquear compra cuando no haya saldo.
 6. Si se desea repetir la compraventa ficticia, comprobar descuento, portafolio y abono; revisar que el historial anterior no se borró.
 
-No se contrataron servicios de pruebas ni suscripciones adicionales. La comprobación nativa de UI mediante Maestro en EAS no está incluida en el plan Free consultado, y este equipo no dispone de un emulador Android local preparado. Se entregarán las comprobaciones realmente ejecutadas y el APK para validación física.
+No se contrataron servicios de pruebas ni suscripciones adicionales. Este equipo no dispone de un emulador Android local preparado; se intentó la comprobación nativa mediante Maestro CLI en un runner estándar de GitHub Actions. El resultado se registra abajo y se entrega el APK para validación física.
+
+## APK 0.1.1 generado
+
+[Descargar actualización Android](https://expo.dev/artifacts/eas/aO-xj5vXxzQE7PiFcZDMaFq6Izjb-l5w9i27deWmgl8.apk). Copia local: `artifacts/openminerals-android-0.1.1-41fb0e8f.apk`, 68.522.537 bytes, SHA-256 `0512BF8414BD30D8F0E674A348ADAAC4B0E928A54B226F9CBED9D1C333253E36`. Se comprobó dentro del bundle la URL HTTPS de Railway, el relato y la etiqueta de USDT disponible. `apksigner verify` aprobó ambos APK y confirmó el mismo certificado SHA-256 público: `3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c`. Esto verifica la firma compatible, pero no sustituye probar la actualización y la conservación del historial. No se borraron los artefactos 0.1.0.
+
+Cambios publicados en [PR #1](https://github.com/Blaister9/Openminerals/pull/1), rama `codex/mobile-overview-scroll-20261028`. La validación de código pasó con 17 pruebas móviles, TypeScript, dependencias Expo y pruebas API/PostgreSQL. El resultado del nuevo emulador se registra por separado y no se infiere de esos controles.
+
+## Prueba nativa en GitHub Actions
+
+Se preparó un job de runner estándar para el repositorio público, con Maestro CLI open source fijado a versión y hash, sin servicios Cloud adicionales. El flujo usa únicamente una sesión ficticia nueva del emulador: resumen inicial, cuatro escenas, reducción de movimiento, conversión de 20 USD, compra/venta de 0,5 g y reapertura. Los artefactos de diagnóstico tienen retención de un día; las copias descargadas se conservarán localmente.
+
+El primer intento [40733749112](https://github.com/Blaister9/Openminerals/actions/runs/40733749112) no llegó a iniciar un job: GitHub rechazó el contexto `runner.temp` en variables de nivel job. Se corrigió en `4c13140`, inicializando la ruta durante el primer paso del runner. El error era de la configuración de CI y no se registra como una prueba de la app ejecutada.
+
+Los siguientes intentos tampoco ejecutaron la app:
+
+- [40734370350](https://github.com/Blaister9/Openminerals/actions/runs/40734370350): el parser de salida de `apksigner` esperaba otro prefijo. La verificación criptográfica de ambos APK sí pasó. Se corrigió el parser y se fijó el certificado público de referencia en `2c62ab5`.
+- [40734937660](https://github.com/Blaister9/Openminerals/actions/runs/40734937660): el commit seleccionado de la acción de emulador no incluía sus módulos distribuidos. Se fijó el release empaquetado v2.38.0 por SHA en `b6c8bf0`.
+- [40735474446](https://github.com/Blaister9/Openminerals/actions/runs/40735474446): el runner no exponía `/dev/kvm`. Se añadió detección y el modo de emulación por software documentado por la acción en `e07d959`, con `emulator-boot-timeout: 600` y un límite total de job de veinticinco minutos.
+
+El intento [40736047181](https://github.com/Blaister9/Openminerals/actions/runs/40736047181) pasó descarga, firma y preparación de Maestro. El emulador informó `Boot completed in 759602 ms` y empezó `mobile/e2e/run.sh`, que alcanzó la API. Estado del recorrido nativo: pendiente de comprobar sus resultados. No se afirma todavía que el scroll haya pasado la prueba en emulador ni en el teléfono del propietario.

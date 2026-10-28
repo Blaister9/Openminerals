@@ -4,7 +4,7 @@ Estado comprobado el **28 de octubre de 2026**. Todas las cifras, transacciones,
 
 El código ya está publicado en el [repositorio oficial](https://github.com/Blaister9/Openminerals), con el commit inicial [`877ca777b66d40363732f9a6286c4d6f097a28ea`](https://github.com/Blaister9/Openminerals/commit/877ca777b66d40363732f9a6286c4d6f097a28ea). No es necesario crear otro repositorio ni volver a importar el ZIP sobre este clon.
 
-La API está disponible en [openminerals-api-demo.up.railway.app](https://openminerals-api-demo.up.railway.app). Se comprobó `/health` con `ok: true`, `demoOnly: true` y `mode: "postgres-demo"`, y pasó el smoke HTTPS de conversión, compra de 2 g, venta, reservas e idempotencia. Al redactar este documento faltaban la prueba de persistencia tras reiniciar y las pruebas ampliadas de concurrencia; el informe de validación registra sus resultados posteriores.
+La API está disponible en [openminerals-api-demo.up.railway.app](https://openminerals-api-demo.up.railway.app). Se comprobó `/health` con `ok: true`, `demoOnly: true` y `mode: "postgres-demo"`, y pasó el smoke HTTPS de conversión, compra de 2 g, venta, reservas e idempotencia. También se aprobaron la persistencia tras reiniciar el servicio y las pruebas ampliadas PostgreSQL; [el informe](07-verificacion-2026-10-28.md) registra la evidencia.
 
 ## Recursos de Railway
 
@@ -89,7 +89,9 @@ El perfil opcional `development` declara `developmentClient: true`, pero falta `
 
 ## Android: compilar e instalar
 
-Build de esta entrega: [APK Android completado](https://expo.dev/accounts/chipirips-team/projects/openminerals-demo/builds/265f4e3b-c6a6-4d26-b7b3-8805cd2332e4) y [descarga directa](https://expo.dev/artifacts/eas/Ic5ZX_B-ZrIwRQIXekpWrYE1T9nJ0DYIJRPwJsGFais.apk). Copia local `artifacts/openminerals-android-265f4e3b.apk`. Se verificó la compilación y la URL API integrada; falta instalar y ejecutar en el teléfono.
+Build actualizado **0.1.1 / versionCode 2**: [EAS completado](https://expo.dev/accounts/chipirips-team/projects/openminerals-demo/builds/41fb0e8f-ee7c-4439-a5a5-20305647065a) y [descarga directa del APK](https://expo.dev/artifacts/eas/aO-xj5vXxzQE7PiFcZDMaFq6Izjb-l5w9i27deWmgl8.apk). Copia local `artifacts/openminerals-android-0.1.1-41fb0e8f.apk`. Se verificaron la URL API integrada y la firma Android, que coincide con la del APK anterior. Instalar sobre **Openminerals Demo**, sin desinstalar ni borrar almacenamiento, para conservar el identificador de sesión; comprobar después saldo e historial. Esa actualización en teléfono todavía necesita confirmación del propietario.
+
+El APK 0.1.0 anterior fue instalado y parcialmente probado por el propietario: conversión, compra de 0,5 g, rechazo por saldo insuficiente y venta. Su enlace se conserva en el informe original. La revisión 0.1.1 añade el resumen con USDT disponible, las comisiones y el recorrido por scroll descritos en [el informe de revisión](08-revision-usabilidad-2026-10-28.md).
 
 Con EAS autenticado, proyecto enlazado y API verificada:
 
