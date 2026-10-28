@@ -99,14 +99,17 @@ jobs:
           test "$new_digest" = "$expected_digest"
           echo 'PASS: APK signature verifies and its certificate matches the verified 0.1.0 baseline. Existing user data preservation still requires a device/update test.' | tee "$RESULTS/signature-status.txt"
 
-      - name: Enable KVM for the ephemeral Android emulator
+      - name: Detect available emulator acceleration
+        id: acceleration
         shell: bash
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-          test -r /dev/kvm
-          test -w /dev/kvm
+          if test -r /dev/kvm && test -w /dev/kvm; then
+            echo 'disabled=false' >> "$GITHUB_OUTPUT"
+            echo 'Hardware acceleration available.' | tee "$RESULTS/acceleration.txt"
+          else
+            echo 'disabled=true' >> "$GITHUB_OUTPUT"
+            echo 'KVM is not exposed to this runner. Use the emulator software-acceleration fallback.' | tee "$RESULTS/acceleration.txt"
+          fi
 
       - name: Run the native UI smoke test
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0 release
@@ -117,7 +120,8 @@ jobs:
           profile: pixel_6
           cores: 2
           ram-size: 2048M
-          emulator-boot-timeout: 300
+          emulator-boot-timeout: 600
+          disable-linux-hw-accel: ${{ steps.acceleration.outputs.disabled }}
           emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim
           disable-animations: false
           script: bash mobile/e2e/run.sh
