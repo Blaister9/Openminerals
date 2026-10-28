@@ -82,6 +82,8 @@ El operador de la mina principal ya está creado. El archivo con su alias y clav
 %LOCALAPPDATA%\Openminerals\access\operador-mina-demo-20261028.json
 ```
 
+Tras informar el propietario de que el enlace no abría, se comprobó que ese archivo sí existía y se creó una copia más accesible en `%USERPROFILE%\Downloads\Openminerals-acceso-operador-PRIVADO.json`. Para localizarla, usar Win+R → `%USERPROFILE%\Downloads`; abrir el JSON con un editor de texto. La copia está restringida al usuario actual e incluye la clave de recuperación de un [respaldo cifrado publicado en GitHub](../secure-backups/README.md). Se comprobó la restauración de ese respaldo. La contraseña legible y la clave permanecen fuera de Git.
+
 Antes de dejar ese equipo, conservarlo mediante un gestor de contraseñas o un medio privado cifrado. **No añadirlo a Git, al release, a un issue ni al chat.** Clonar el repositorio no recupera esas credenciales. PostgreSQL conserva un hash y no permite recuperar la clave original en claro.
 
 Si ese archivo ya no está disponible, la administración autenticada en Railway puede provisionar **otro operador** mediante `POST /api/demo/admin/accounts`, con `role:operator` y la mina `openminerals-demo-v1`. Usar el `DEMO_ADMIN_TOKEN` existente únicamente dentro del entorno autorizado y guardar la nueva clave de forma privada. No reiniciar la mina, la base de datos ni los compradores para recuperar acceso. La API no implementa recuperación de contraseña de las cuentas.
