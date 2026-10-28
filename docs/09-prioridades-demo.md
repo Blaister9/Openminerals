@@ -2,6 +2,8 @@
 
 Revisión del código y del feedback del propietario, 28 de octubre de 2026. Este documento es un plan de trabajo; no declara implementadas las funciones propuestas. Se mantiene React Native/Expo y toda operación, identidad, cotización, lote y documento deberá ser ficticio.
 
+Avance posterior autorizado: el bloque 0.1.2 implementa vistas previas de conversión/venta, comprobantes detallados y consulta paginada del historial. Pasaron pruebas de código, UI web local y lógica PostgreSQL Railway aislada; la activación de la API pública está detenida por una pausa de despliegues y la instalación Android nueva todavía no está validada. Ver [informe 0.1.2](10-comprobantes-y-operaciones-0.1.2.md). Los criterios siguientes siguen sirviendo para aceptar el resultado completo.
+
 ## Punto de partida comprobado
 
 El propietario instaló Android 0.1.0 y comunicó conversión, compra de 0,5 g, rechazo por saldo insuficiente y venta. Después confirmó que actualizó a 0.1.1 sin desinstalar, conservó el histórico y ya aparecen valores. No comunicó importes para contrastar pantallas, modelo ni versión Android.
@@ -23,7 +25,7 @@ La API usa PostgreSQL y tiene pruebas de operaciones, concurrencia y persistenci
 
 Fuentes de la revisión: `mobile/App.tsx` (conversión, venta, alerta de comprobante, historial y operador), `mobile/components/MetalStory.tsx`, `api/src/domain.js` (acciones permitidas, ofertas, reservas y entregas), `api/src/server.js` y el diseño maestro. No se añadió ninguna de estas funciones mediante este cambio documental.
 
-El historial merece un cambio específico: la pantalla enseña veinte movimientos y el motor conserva cien movimientos recientes. No se debe presentar ese registro como un archivo histórico completo. El próximo diseño deberá permitir consultar operaciones antiguas sin eliminarlas al superar ese límite, con paginación y detalle por comprobante.
+En 0.1.1 la pantalla enseñaba veinte movimientos y el motor conservaba cien movimientos recientes. La revisión 0.1.2 consulta los comprobantes persistidos mediante paginación y detalle, recuperables más allá de esos cien movimientos. Sigue siendo un historial de demostración en JSONB; no es un archivo contable de producción. La activación y la aceptación física de esta ampliación se registran por separado.
 
 La prioridad 2 requiere ampliar el modelo de datos: sumar los resúmenes actuales no genera un inventario global coherente, porque cada sesión parte de existencias propias. Debe existir una fuente de inventario demo compartida y pruebas de actualización concurrente. Ese problema justifica evolucionar el backend; no requiere reemplazar Expo ni reestructurar la app entera.
 

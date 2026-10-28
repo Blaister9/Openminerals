@@ -7,11 +7,6 @@ on:
         description: HTTPS Expo artifact URL of the APK to verify
         type: string
         required: true
-  push:
-    branches: [codex/mobile-overview-scroll-20261028]
-    paths:
-      - .github/workflows/android-ui.yml
-      - mobile/e2e/**
 
 permissions:
   contents: read
@@ -41,7 +36,7 @@ jobs:
           import os, pathlib, re, urllib.parse
           candidate = os.environ.get('APK_INPUT_URL', '').strip()
           if not candidate:
-              candidate = pathlib.Path('mobile/e2e/apk-url.txt').read_text(encoding='utf-8-sig').strip()
+              raise SystemExit('Provide the verified APK 0.1.2 URL explicitly')
           url = urllib.parse.urlsplit(candidate)
           if not (url.scheme == 'https' and url.netloc == 'expo.dev'
                   and re.fullmatch(r'/artifacts/eas/[A-Za-z0-9_-]+\.apk', url.path)
@@ -56,6 +51,20 @@ jobs:
           sha256sum "$RUNNER_TEMP/android-ui/app.apk" > "$RESULTS/apk-sha256.txt"
           printf 'Commit: %s\nRun: %s\nApp: com.openminerals.demo.mobile\n' \
             "$GITHUB_SHA" "$GITHUB_RUN_ID" > "$RESULTS/run.txt"
+
+      - name: Require the receipt backend before starting an emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --max-time 20 --proto '=https' \
+            -H "x-demo-session: ui-preflight-${GITHUB_RUN_ID}" \
+            'https://openminerals-api-demo.up.railway.app/api/demo/history?limit=1' \
+            > "$RESULTS/history-preflight.json"
+          python3 - <<'PY'
+          import json, os, pathlib
+          page = json.loads(pathlib.Path(os.environ['RESULTS'], 'history-preflight.json').read_text())
+          assert page['demoOnly'] is True and isinstance(page['items'], list)
+          PY
 
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
@@ -113,11 +122,14 @@ jobs:
 
       - name: Run the native UI smoke test
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0 release
+        timeout-minutes: 20
+        env:
+          MAESTRO_FLOW: mobile/e2e/trades.yaml
         with:
-          api-level: 34
+          api-level: 29
           target: google_apis
           arch: x86_64
-          profile: pixel_6
+          profile: pixel_2
           cores: 2
           ram-size: 2048M
           emulator-boot-timeout: 600

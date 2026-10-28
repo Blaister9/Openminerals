@@ -1,0 +1,179 @@
+appId: com.openminerals.demo.mobile
+name: Simulated trades and persistent receipts 0.1.2
+---
+# APK 0.1.2 only. Run ONLY in a disposable Android emulator: clearState removes
+# this emulator's local session, never a Railway session or the owner's data.
+# Do not run this reset flow on the owner's physical phone.
+# No story traversal, deposits, paid testing service or real funds are involved.
+# Commands were checked against the official Maestro cli-2.12.0 YAML models.
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: '^USDT 250,00$'
+    timeout: 30000
+- assertVisible: '^USDT 0,00$'
+- takeScreenshot: trades-01-initial
+
+# Cancel one conversion first: leaving confirmation must not send a command.
+- tapOn: '^Billetera$'
+- scrollUntilVisible:
+    element:
+      text: 'Cantidad de dinero para convertir'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Cantidad de dinero para convertir'
+- eraseText
+- inputText: '20'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: '^Convertir en demo$'
+    direction: DOWN
+    centerElement: true
+- tapOn: '^Convertir en demo$'
+- assertVisible: '^Convertir USD a USDT$'
+- tapOn: '^Cancelar$'
+- tapOn: '^Inicio$'
+- assertVisible: '^USDT 250,00$'
+- takeScreenshot: trades-02-cancel-preserves-balance
+
+# Conversion uses the common native confirmation modal, then a receipt modal.
+- tapOn: '^Billetera$'
+- scrollUntilVisible:
+    element:
+      text: '^Convertir en demo$'
+    direction: DOWN
+    centerElement: true
+- tapOn: '^Convertir en demo$'
+- tapOn: '^Confirmar demo$'
+- extendedWaitUntil:
+    visible: '^Comprobante$'
+    timeout: 20000
+- assertVisible: '^SIMULACIÓN · SIN FONDOS NI METALES REALES$'
+- assertVisible: '^Conversión USD → USDT$'
+- scrollUntilVisible:
+    element:
+      text: '^USDT 270,00$'
+    direction: DOWN
+    centerElement: true
+- assertVisible: '^Saldo USDT después$'
+- takeScreenshot: trades-03-conversion-receipt
+- tapOn: 'Cerrar comprobante'
+- tapOn: '^Inicio$'
+- assertVisible: '^USDT 270,00$'
+
+# Buy 0.5 fictitious grams: base 72.50 + fee 0.73 = debit 73.23.
+- tapOn: '^Mercado$'
+- scrollUntilVisible:
+    element:
+      text: 'Cantidad de metal en gramos'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Cantidad de metal en gramos'
+- eraseText
+- inputText: '0.5'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: '^USDT 73,23$'
+    direction: DOWN
+    centerElement: true
+- assertVisible: '^USDT 0,73$'
+- takeScreenshot: trades-04-buy-preview
+- scrollUntilVisible:
+    element:
+      text: '^Confirmar compra simulada$'
+    direction: DOWN
+    centerElement: true
+- tapOn: '^Confirmar compra simulada$'
+- assertVisible: '^Comprar 0,500 g de Oro$'
+- tapOn: '^Confirmar demo$'
+- extendedWaitUntil:
+    visible: '^Comprobante$'
+    timeout: 20000
+- assertVisible: '(?i)^Compra de oro$'
+- scrollUntilVisible:
+    element:
+      text: '^USDT 196,77$'
+    direction: DOWN
+    centerElement: true
+- assertVisible: '^Saldo USDT después$'
+- takeScreenshot: trades-05-buy-receipt
+- tapOn: 'Cerrar comprobante'
+
+# Sell the same grams: base 72.50 - fee 0.87 = credit 71.63.
+- tapOn: '^Metales$'
+- scrollUntilVisible:
+    element:
+      text: 'Gramos para operación'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Gramos para operación'
+- eraseText
+- inputText: '0.5'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: '^USDT 71,63$'
+    direction: DOWN
+    centerElement: true
+- assertVisible: '^USDT 0,87$'
+- takeScreenshot: trades-06-sell-preview
+- scrollUntilVisible:
+    element:
+      text: '^Simular venta$'
+    direction: DOWN
+    centerElement: true
+- tapOn: '^Simular venta$'
+- assertVisible: '^Confirmar venta simulada$'
+- tapOn: '^Confirmar demo$'
+- extendedWaitUntil:
+    visible: '^Comprobante$'
+    timeout: 20000
+- assertVisible: '(?i)^Venta de oro$'
+- scrollUntilVisible:
+    element:
+      text: '^USDT 268,40$'
+    direction: DOWN
+    centerElement: true
+- assertVisible: '^Saldo USDT después$'
+- takeScreenshot: trades-07-sell-receipt
+- tapOn: 'Cerrar comprobante'
+- tapOn: '^Inicio$'
+- assertVisible: '^USDT 268,40$'
+- assertVisible: '^USDT 0,00$'
+
+# A relaunch keeps the session. The older buy receipt must retain 196.77,
+# even though the current wallet holds 268.40 after selling.
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: '^USDT 268,40$'
+    timeout: 30000
+- assertVisible: '^USDT 0,00$'
+- takeScreenshot: trades-08-relaunched-overview
+- tapOn: '^Actividad$'
+- scrollUntilVisible:
+    element:
+      text: '(?i)^Ver comprobante: Compra de oro,.*'
+    direction: DOWN
+    centerElement: true
+- tapOn: '(?i)^Ver comprobante: Compra de oro,.*'
+- extendedWaitUntil:
+    visible: '^Comprobante$'
+    timeout: 20000
+- assertVisible: '(?i)^Compra de oro$'
+- scrollUntilVisible:
+    element:
+      text: '^USDT 196,77$'
+    direction: DOWN
+    centerElement: true
+- assertVisible: '^Saldo USDT después$'
+- takeScreenshot: trades-09-historical-buy-snapshot
+- tapOn: '^Ver historial$'
+- scrollUntilVisible:
+    element:
+      text: '^Mostrando\s+3\s+de\s+3\s+operaciones registradas\.$'
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: trades-10-history-three-operations

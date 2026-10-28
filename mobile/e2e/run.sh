@@ -25,4 +25,4 @@ adb install -r "$RUNNER_TEMP/android-ui/app.apk"
 adb shell pm path com.openminerals.demo.mobile | grep '^package:'
 maestro --no-ansi test --format JUNIT --output "$RESULTS/report.xml" \
   --debug-output "$RESULTS/debug" --test-output-dir "$RESULTS/screenshots" \
-  mobile/e2e/demo.yaml 2>&1 | tee "$RESULTS/maestro-console.txt"
+  "${MAESTRO_FLOW:-mobile/e2e/demo.yaml}" 2>&1 | tee "$RESULTS/maestro-console.txt"
