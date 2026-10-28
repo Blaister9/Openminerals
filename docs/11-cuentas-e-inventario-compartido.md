@@ -122,18 +122,41 @@ La fuente de esta revisión es `fb1f590f665fc5e7bb3dcc11217c7481446c7183`. La ta
 | Pruebas móviles y TypeScript | `npm test`: 45/45 aprobadas; `npm run check` aprobado |
 | Dependencias Expo y exports Android/iOS | `expo install --check` aprobado; Expo Doctor 21/21; exports Hermes Android/iOS aprobados en `artifacts/native-exports-0.1.3/` |
 | UI local con compradores y operador | API aislada en memoria: dos compradores, importación del historial, ingreso de metal/comprobante de operador y cierre de sesión con retorno al origen anterior comprobados; capturas locales descritas abajo |
-| Activación 0.1.3 en Railway | Pendiente; el dominio existente es `https://openminerals-api-demo.up.railway.app`, y su funcionamiento anterior no acredita la revisión nueva |
-| Prueba HTTPS y persistencia tras reinicio | Pendiente de registrar para cuentas/mina de esta revisión |
-| Aprovisionamiento de operador | Pendiente de confirmar; credenciales solo en archivo privado fuera de Git |
-| APK Android 0.1.3 | Build EAS `269f285b-f16b-4c82-9c9a-35a3a5082bc5` en cola desde `fb1f590`, versión 0.1.3 y código 4. Todavía sin APK ni inspección de firma/hash; enlace de instalación pendiente |
+| Activación 0.1.3 en Railway | Deployment final `9d5af81f-ba92-411b-a695-4fff1c7ea780` SUCCESS, commit GitHub `b5e17a2`; 11 hashes API/scripts idénticos a `fb1f590`. [Health HTTPS](https://openminerals-api-demo.up.railway.app/health) responde `postgres-demo`, `demoOnly:true` |
+| Prueba HTTPS y persistencia tras reinicio | Tres smokes aprobados: anterior, comprobantes y cuentas. Tras `railway restart`, verificadas cuentas, tokens, claves, estados, historiales, inventario, reserva y cuatro reintentos sin duplicados; también el snapshot legacy preparado antes del despliegue. Evidencia de arranque del proceso se registra por separado |
+| Aprovisionamiento de operador | Cuenta de operador de la mina principal creada; login/summary conciliado/logout HTTPS aprobados. Credenciales en archivo privado de `%LOCALAPPDATA%/Openminerals/access/`, fuera de Git y con ACL del usuario actual; ningún secreto en la app |
+| APK Android 0.1.3 | [Descargar APK](https://expo.dev/artifacts/eas/MG34boaq4KCKSOqvkDsUIj_q8J_rp-xADGup1B9M2hs.apk), EAS `269f285b-f16b-4c82-9c9a-35a3a5082bc5` FINISHED, fuente `fb1f590`, versión 0.1.3/código 4. [Inspección 40770949478](https://github.com/Blaister9/Openminerals/actions/runs/40770949478) SUCCESS: firma/certificado anterior, paquete, versión, rutas/API HTTPS y SHA256 concordantes con copia local |
 | Instalación y recorrido Android 0.1.3 | Pendiente de prueba nativa y confirmación del propietario |
 | Instalador/recorrido iPhone | Sin evidencia nueva en este informe; el bloqueo de firma Apple sigue documentado en la revisión anterior |
 
-El último APK entregado y sus resultados pertenecen a [0.1.2](10-comprobantes-y-operaciones-0.1.2.md). No usar ese enlace para afirmar que cuentas y mina ya están instaladas en el teléfono.
+La aceptación física anterior corresponde a [0.1.2](10-comprobantes-y-operaciones-0.1.2.md). La compilación e inspección de 0.1.3 no demuestran por sí solas instalación, acceso a SecureStore o recorrido nativo en un teléfono.
 
-La ejecución PostgreSQL copió las fuentes a un directorio temporal fuera de `/app`, verificó el archivo transferido y ejecutó las suites de cuentas y compatibilidad anterior. El log identifica las fuentes por SHA-256; los siete archivos de dominio/store/autenticación/historial y tests coinciden con la fuente local de esta revisión. Creó y eliminó únicamente esquemas aleatorios de prueba; no sustituyó las fuentes del servicio ni activó endpoints HTTP nuevos. Por tanto, esas 14 comprobaciones no acreditan todavía el despliegue 0.1.3 ni la persistencia tras reiniciar la API nueva.
+APK local ignorado: `artifacts/openminerals-android-0.1.3-269f285b.apk`, 68.772.781 bytes; SHA256 `fda0953d11a6035100bef9f9c04d070053edc2ae47c31852803a020d89e6b7c7`. Certificado SHA256 `3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c`, paquete `com.openminerals.demo.mobile`; permite actualizar sobre la instalación anterior. Evidencia descargada en `artifacts/apk-inspection-run-40770949478/`.
+
+La ejecución PostgreSQL copió las fuentes a un directorio temporal fuera de `/app`, verificó el archivo transferido y ejecutó las suites de cuentas y compatibilidad anterior. El log identifica las fuentes por SHA-256; los siete archivos de dominio/store/autenticación/historial y tests coinciden con la fuente local de esta revisión. Creó y eliminó únicamente esquemas aleatorios de prueba; no sustituyó las fuentes del servicio. El despliegue posterior y su prueba de reinicio son verificaciones separadas.
+
+GitHub CI aprobó la fuente `fb1f590`: [ejecución 40768504226](https://github.com/Blaister9/Openminerals/actions/runs/40768504226), incluyendo PostgreSQL y validación móvil. Registros locales: `artifacts/railway-{original,receipts,accounts}-smoke-accounts-20261028.log` y `artifacts/accounts-acceptance-20261028.txt`. Los snapshots de autenticación y pruebas de reinicio se guardan fuera de Git; no publicarlos.
+
+El primer intento de despliegue `f9cfe02f-fcad-43a5-9b3a-ae00d081e440` falló durante build porque el paquete no conservaba el subdirectorio `api/` esperado por Root Directory `/api`. La revisión anterior permaneció activa. Se corrigió el empaquetado del mismo commit y el deployment final indicado arriba fue satisfactorio; no fue necesario deshacer datos ni cambiar variables.
+
+El despliegue CLI inicial satisfactorio fue `8c068834-8961-48ba-8a92-c8686dde7ffc`. Se comprobó un segundo arranque `postgres-demo` a las **21:09:22 UTC del 28 de octubre de 2026** y se verificaron ambos snapshots. Después se corrigió la fuente GitHub que todavía apuntaba al `main` anterior: ahora usa `codex/mobile-overview-scroll-20261028`, espera CI aprobada, usa Dockerfile `/api/Dockerfile` y vigila únicamente `/api/**`. Los cambios se leyeron de vuelta mediante CLI; el deployment final y ambos modos verify posteriores también aprobaron. No se fusionó el PR ni se utilizó push forzado. Cuando se fusione a main, deberá cambiarse explícitamente la rama de Railway al commit ya verificado.
+
+Registros finales ignorados: `artifacts/railway-accounts-restart-20261028.json`, `railway-accounts-final-deployment-9d5af81f.json`, `railway-accounts-final-source-config-20261028.json`, `railway-accounts-verify-postconfig-20261028.log` y `railway-legacy-verify-postconfig-20261028.log`.
 
 Capturas de la UI web local, ignoradas por Git: `artifacts/qa-0.1.3-buyer-history.png`, `qa-0.1.3-mine-before-stock.png`, `qa-0.1.3-stock-receipt.png` y `qa-0.1.3-operator-receipt.png`, todas dentro de `artifacts/`. El fixture de identidades sintéticas se mantiene privado en esa carpeta; su contenido no se publica. Esta comprobación usó `memory-demo` en loopback, no el teléfono Android ni el backend HTTPS nuevo.
+
+Se comprobó adicionalmente la fuente web final conectada por el proxy local de QA al backend HTTPS de Railway: login de comprador tras reinicio, saldo USDT 140,16, compra de 0,750 g y reserva de 0,250 g en sus dos comprobantes; login de operador con dos compradores, disponible 1,500 g, asignado 1,000 g, reservado 0,250 g y total 2,500 g. Son fixtures de una mina aislada; no alteran la mina principal del propietario. Capturas `artifacts/qa-0.1.3-buyer-history-railway.png` y `qa-0.1.3-mine-railway.png`.
+
+## Instalación y acceso
+
+1. Descargar el APK 0.1.3 indicado arriba e instalarlo **sin desinstalar** Openminerals Demo. Conservar los datos de la aplicación.
+2. Verificar los saldos e historial anteriores. En **Crear cuenta demo**, usar un alias ficticio de 3–40 letras minúsculas, números o guiones y una clave exclusiva de 10–128 caracteres. Guardarlos fuera del chat; no existe recuperación por correo.
+3. Dejar activado **Conservar mi sesión anterior** y crear la cuenta. Se copian saldos, posiciones y comprobantes; el origen queda disponible solo para consulta. Las compras nuevas consumen el inventario compartido.
+4. Comprar 0,1 g ficticios de oro, si hay saldo suficiente. En **Cuenta**, acceder con el operador provisto en `%LOCALAPPDATA%/Openminerals/access/operador-mina-demo-20261028.json`; el archivo está restringido al usuario de Windows. No subirlo a Git ni compartirlo públicamente.
+5. En **Mina**, pulsar **Actualizar panel de mina** y comprobar compra, gramos asignados y disponibilidad. Un ingreso ficticio de 1 g aumenta disponible y total; conserva su comprobante.
+6. Volver al alias comprador y comprobar historial y saldos. Al cerrar sesión se ve el archivo anterior sin cuenta; para continuar las operaciones se debe entrar a la cuenta vinculada.
+
+Para iPhone no hay instalador 0.1.3 firmado: siguen faltando membresía y credenciales Apple/provisionamiento. El export iOS comprobado valida empaquetado JavaScript, no instalación ni ejecución iOS. No se realizó compra de membresía.
 
 Se preparó `.github/workflows/apk-inspect.yml` para el APK 0.1.3/código 4, conservando el certificado de referencia. Revisa paquete, firma, API HTTPS y las rutas de cuentas, mina y comprobantes en el bundle. El transporte de stock se forma con `/api/demo/` y `mine/stock`; se comprueban ambos fragmentos para no exigir una cadena literal que Hermes no incluye. El job de inspección espera a que exista `mobile/e2e/apk-0.1.3-url.txt`; el fichero no se crea hasta obtener un APK real. Preparar el workflow no equivale a ejecutarlo y la inspección no sustituye una prueba nativa de pantallas.
 
