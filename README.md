@@ -2,6 +2,8 @@
 
 **Estado: prototipo técnico de simulación, no plataforma financiera en producción.**
 
+**Auditoría actual del 28 de octubre de 2026:** [informe de estado y aceptación móvil](docs/13-auditoria-demo-2026-10-28.md), base `0223326`. Código publicado y árbol inicial limpio; 31 pruebas API y 45 móviles aprobadas, Doctor 21/21, tres smokes HTTPS y persistencia tras un nuevo reinicio Railway comprobados. Android 0.1.3 sigue pendiente de recorrido nativo completo e iPhone de firma/build instalable. Marketplace entre compradores y custodia por lotes todavía requieren desarrollo. El supuesto fallo de coma decimal del informe anterior no se reproduce en el cliente actual.
+
 **Para continuar desde otro equipo:** [guía de traspaso](docs/12-continuar-desde-otro-equipo.md). El trabajo vigente está en `codex/mobile-overview-scroll-20261028`; `main` conserva una versión anterior. [APK alternativo en GitHub](https://github.com/Blaister9/Openminerals/releases/tag/v0.1.3-demo).
 
 Repositorio inicial para presentar la plataforma Openminerals a un operador de mina: aplicación nativa iOS/Android con React Native + Expo; API Node.js desplegable en Railway; sesiones de demostración persistentes en PostgreSQL de Railway; documentos maestros del producto. No requiere HTML anterior.
