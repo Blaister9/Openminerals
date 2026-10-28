@@ -58,7 +58,7 @@ La app no almacena saldos oficiales: consulta el servidor. API con sesiones inde
 
 Una tabla `demo_sessions` contiene un objeto JSONB por sesión. Aporta atomicidad de **simulación** mediante transacciones y bloqueo de fila. Las cifras representan centésimas de moneda y miligramos para evitar errores básicos de coma flotante. Los cálculos de tarifas y conversiones utilizan enteros y `BigInt`.
 
-**No usar el JSONB de sesiones como libro mayor final.** Es deliberadamente simple para un pitch. Los movimientos se limitan a 100 eventos recientes y el resumen gerencial es ilustrativo.
+**No usar el JSONB de sesiones como libro mayor final.** Es deliberadamente simple para un pitch. Los movimientos se limitan a 100 eventos recientes y el resumen gerencial es ilustrativo. Desde la revisión 0.1.2, el historial paginado consulta el mapa de comprobantes persistidos, que no tiene ese recorte. Los comprobantes nuevos guardan saldos posteriores; los antiguos no reciben saldos históricos inventados.
 
 ## API de demostración
 
@@ -68,6 +68,8 @@ Requieren cabecera `x-demo-session: <identificador aleatorio de al menos 16 cara
 
 - `GET /api/demo/state`
 - `GET /api/demo/operator/summary`
+- `GET /api/demo/history?limit=20&before=<receiptId>` → página de comprobantes; omitir `before` en la primera consulta
+- `GET /api/demo/receipts/<receiptId>` → detalle de comprobante de la misma sesión
 - `POST /api/demo/deposit` → `{ "currency":"USD", "amount":"100.00" }`
 - `POST /api/demo/withdraw` → `{ "currency":"USD", "amount":"50.00" }`
 - `POST /api/demo/convert` → `{ "from":"USD", "to":"USDT", "amount":"200.00" }`

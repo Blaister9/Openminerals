@@ -7,6 +7,10 @@ on:
         description: HTTPS Expo artifact URL of the APK to verify
         type: string
         required: true
+  push:
+    branches: [codex/mobile-overview-scroll-20261028]
+    paths:
+      - mobile/e2e/apk-0.1.2-url.txt
 
 permissions:
   contents: read
@@ -36,7 +40,7 @@ jobs:
           import os, pathlib, re, urllib.parse
           candidate = os.environ.get('APK_INPUT_URL', '').strip()
           if not candidate:
-              raise SystemExit('Provide the verified APK 0.1.2 URL explicitly')
+              candidate = pathlib.Path('mobile/e2e/apk-0.1.2-url.txt').read_text(encoding='utf-8-sig').strip()
           url = urllib.parse.urlsplit(candidate)
           if not (url.scheme == 'https' and url.netloc == 'expo.dev'
                   and re.fullmatch(r'/artifacts/eas/[A-Za-z0-9_-]+\.apk', url.path)
