@@ -2,7 +2,7 @@
 
 Revisión del código y del feedback del propietario, 28 de octubre de 2026. Este documento es un plan de trabajo; no declara implementadas las funciones propuestas. Se mantiene React Native/Expo y toda operación, identidad, cotización, lote y documento deberá ser ficticio.
 
-Avance posterior autorizado: el bloque 0.1.2 implementa vistas previas de conversión/venta, comprobantes detallados y consulta paginada del historial. Pasaron pruebas de código, UI web local, lógica PostgreSQL Railway aislada y smokes HTTPS de la API nueva desplegada. Compatibilidad y persistencia tras reinicio verificadas; la instalación Android nueva todavía no está validada. Ver [informe 0.1.2](10-comprobantes-y-operaciones-0.1.2.md). Los criterios siguientes siguen sirviendo para aceptar el resultado completo.
+Avance posterior autorizado: el bloque 0.1.2 implementa vistas previas de conversión/venta, comprobantes detallados y consulta paginada del historial. Pasaron pruebas de código, UI web local y con Railway, lógica PostgreSQL aislada y smokes HTTPS de la API desplegada. Compatibilidad y persistencia tras reinicio verificadas. El propietario confirmó actualización Android, historial conservado y consulta de comprobantes; el recorrido físico completo y el intento automático se registran por separado. Ver [informe 0.1.2](10-comprobantes-y-operaciones-0.1.2.md). Los criterios siguientes siguen sirviendo para aceptar el resultado completo.
 
 ## Punto de partida comprobado
 

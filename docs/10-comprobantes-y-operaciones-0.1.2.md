@@ -41,7 +41,10 @@ Sigue siendo JSONB de demostración por sesión, sin autenticación real, ledger
 | Export Android / iOS | Metro/Hermes aprobados: 597 / 599 módulos, con URL HTTPS Railway |
 | UI en navegador, API local aislada | Conversión, cancelar confirmación, compra/venta, bloqueo por saldo/posición, comprobante histórico, recarga y paginación 20 → 21 comprobados |
 | UI web con API Railway anterior | Conversión ficticia aislada de USD 0,01 aprobada; recibo antiguo muestra importes y avisa de snapshots ausentes. Historial HTTP 405 presenta un aviso de actualización pendiente sin borrar la sesión |
-| UI Android 0.1.2 | Pendiente; no se deduce de la prueba web ni de compilar |
+| UI web con API Railway nueva | Conversión USD 20, compra/venta de 0,5 g, recibos nuevos y consulta del recibo anterior comprobados con el backend desplegado |
+| Inspección APK | [Run 40757332825](https://github.com/Blaister9/Openminerals/actions/runs/40757332825) aprobado: firma v2, mismo certificado, paquete, versión 0.1.2/3, minSDK 24, rutas de comprobantes y URL HTTPS |
+| Android 0.1.2 del propietario | Confirmó actualización, historial conservado y comprobantes consultables. No comunicó importes exactos ni confirmó el recorrido completo de compra/venta en esta revisión |
+| Maestro Android 0.1.2 | Intento automático en ejecución; no se deduce su aprobación de la prueba web ni de compilar |
 | iOS físico | Sigue pendiente por firma Apple; no se generó instalador físico nuevo |
 
 En la sesión de UI local: USDT 250,00 iniciales; conversión de USD 20,00 → USDT 270,00; compra de oro 0,5 g por 73,23 → USDT 196,77; venta de 0,5 g con bruto 72,50, comisión 0,87 y neto 71,63 → USDT 268,40. Al abrir después el comprobante de compra, conservó USDT 196,77 y 0,5 g históricos. Se crearon dieciocho ingresos ficticios de USD 0,01 para verificar las dos páginas del historial; no se operó con la sesión del propietario.
@@ -79,6 +82,10 @@ Evidencia de la ejecución PostgreSQL por SSH: `artifacts/railway-receipts-pg-20
 
 ## Activación en Railway y APK
 
+Tras activar la API nueva, se repitió conversión/compra/venta en la sesión aislada de QA de Railway que ya tenía la conversión legacy de USD 0,01. Su saldo pasó de USDT 250,01 a 270,01, después a 196,78 al comprar 0,5 g y a 268,41 al venderlos. El historial mostró las cuatro operaciones, incluida la anterior al despliegue. El comprobante de compra conservó 196,78 y 0,5 g aun después de vender. Capturas locales: `artifacts/qa-0.1.2-*-web-railway.png` y texto `qa-0.1.2-historical-buy-railway.txt`. No son capturas del teléfono ni del emulador.
+
+La recarga posterior de la interfaz web mantuvo USDT 268,41 y cero oro, consultados de Railway; evidencia `artifacts/qa-0.1.2-reload-web-railway.txt`. El propietario confirmó por separado: «ya logré actualizar el app», «sí se conserva historial y puedo consultar comprobantes» (ortografía normalizada). Esa es evidencia física parcial comunicada por él, sin modelo Android, importes ni capturas aportados; no se extiende a operaciones que no describió.
+
 El primer despliegue de la API nueva fue rechazado con `Deploys have been paused temporarily`; el panel mostró **Limited Access**. [Incidencia oficial](https://status.railway.com/incident/Z1JDWW1W), identificada el 28 de octubre a las 17:49 UTC. Durante esa pausa la API anterior siguió respondiendo en `postgres-demo` y `/api/demo/history` devolvía 405.
 
 Railway marcó la incidencia resuelta a las 19:17 UTC. Los intentos posteriores `5712524c-edae-4772-93e5-c0ba1e45ecd7` y `498771b7-40d2-4b54-9b5a-0f7b395e393b` fallaron antes de instalar o arrancar: Railpack 0.43.0 devolvió `frontend grpc server closed unexpectedly`. Ambos reconocieron Node 22.23.3 y el paquete API. Logs locales: `artifacts/railway-receipts-build-5712524c.log` y `artifacts/railway-receipts-build-498771b7.log`.
@@ -95,4 +102,6 @@ Después se guardó un recibo v2 nuevo en `railway-receipts-v2-20261028.json`, e
 
 Build Android [EAS 812187c7](https://expo.dev/accounts/chipirips-team/projects/openminerals-demo/builds/812187c7-8dad-412c-8267-03b989df72c1), desde la fuente limpia indicada arriba: **FINISHED**, sin error, terminada a las 19:42:47 UTC. [APK 0.1.2](https://expo.dev/artifacts/eas/qfWvChA9T4G-qhjzFQMCLbcDrDvDz25TDbW3GGodKTQ.apk); copia local `artifacts/openminerals-android-0.1.2-812187c7.apk`, 68.548.005 bytes, SHA-256 `9801CAAF75AA5FC3603CC65EA6EB7FE6654E9301748BFA02C7CEF7437BC0CD90`. El bundle contiene Railway HTTPS, vistas previas, comprobantes, historial y cursores. La inspección de firma/versión del APK y la ejecución nativa se registran por separado; compilar no valida las pantallas en Android.
 
-Quedan la inspección del APK y la instalación/recorrido Android. No se contrató otro plan ni se conectó una red blockchain para resolver la pausa de despliegue.
+La inspección posterior de `apksigner` confirmó firma v2 válida y el mismo certificado SHA-256 público `3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c`. El hash de CI coincide con la copia local. Evidencias descargadas en `artifacts/apk-inspection-run-40757332825/extracted/`. Se entregó para instalar como actualización; el propietario confirmó actualización, historial y consulta de comprobantes con el alcance parcial registrado arriba.
+
+El [intento nativo 40757332725](https://github.com/Blaister9/Openminerals/actions/runs/40757332725) pasó el preflight del backend antes de arrancar el emulador; su resultado sigue pendiente. La actualización y consulta de comprobantes en el Android del propietario están confirmadas; el recorrido completo físico sigue pendiente. No se contrató otro plan ni se conectó una red blockchain para resolver la pausa de despliegue.
