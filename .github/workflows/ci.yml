@@ -1,0 +1,29 @@
+name: Openminerals validation
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Node API tests
+        working-directory: api
+        run: npm test
+  mobile-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Expo dependencies
+        working-directory: mobile
+        run: npm install --no-audit --no-fund
+      - name: Check mobile types
+        working-directory: mobile
+        run: npm run check

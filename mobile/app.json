@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "Openminerals Demo",
+    "slug": "openminerals-demo",
+    "scheme": "openminerals-demo",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#090F15",
+    "ios": { "supportsTablet": false, "bundleIdentifier": "com.openminerals.demo.mobile" },
+    "android": { "package": "com.openminerals.demo.mobile", "adaptiveIcon": { "backgroundColor": "#090F15" } },
+    "plugins": [],
+    "extra": { "demoOnly": true }
+  }
+}

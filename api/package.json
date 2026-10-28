@@ -1,0 +1,19 @@
+{
+  "name": "openminerals-demo-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "API de simulación para el MVP móvil de Openminerals. No apta para dinero real.",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  }
+}
