@@ -13,7 +13,7 @@
                  |
    Sesiones demo JSONB + transacciones SQL FOR UPDATE
 
-  GitHub: repositorio privado, CI, revisión de cambios
+  GitHub: repositorio público oficial, CI, revisión de cambios
 ```
 
 La app no almacena saldos oficiales: consulta el servidor. API con sesiones independientes mediante `X-Demo-Session`. **Este header es un identificador de prueba, NO autenticación.** Nunca utilizar este mecanismo con datos personales o dinero real.
@@ -88,4 +88,4 @@ Todas las peticiones POST de operaciones necesitan una cabecera **`Idempotency-K
 - API sin autenticación: apta solo para acceso controlado de demostración y datos ficticios. Antes de exposiciones públicas masivas: autenticación de demostración, límites por IP, cuotas, retención y monitoreo.
 - Claves API y `DATABASE_URL` solo en variables del servidor; nunca en `EXPO_PUBLIC_*`, Git o app instalada.
 - `EXPO_PUBLIC_API_URL` es públicamente visible en el binario, como corresponde a una dirección de servicio.
-- PostgreSQL en Railway está previsto; las pruebas automatizadas actuales no incluyen conexión PostgreSQL real ni verificación de copias de seguridad.
+- PostgreSQL en Railway está desplegado y se ejecutaron pruebas con conexión real, concurrencia y persistencia tras reiniciar la API; ver [informe de verificación](07-verificacion-2026-10-28.md). No se ha verificado restauración de copias de seguridad.
