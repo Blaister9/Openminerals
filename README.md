@@ -11,7 +11,7 @@ Repositorio inicial para presentar la plataforma Openminerals a un operador de m
 - [API HTTPS](https://openminerals-api-demo.up.railway.app/health): `ok:true`, `demoOnly:true`, `mode:postgres-demo`. Proyecto Railway `openminerals-demo`, entorno `demo`; PostgreSQL privado.
 - API: 12 pruebas de dominio/HTTP, cinco comprobaciones de integración PostgreSQL y smoke remoto aprobados. Persistencia tras reiniciar el servicio y repetición del mismo comprobante verificadas.
 - Móvil: 10 pruebas del cliente/reintentos, TypeScript, compatibilidad Expo, Expo Doctor 21/21 y exports Android/iOS aprobados. Se conserva Expo SDK 57 y React Native.
-- Builds EAS y pasos de instalación: [informe de verificación](docs/07-verificacion-2026-10-28.md). La ejecución en teléfonos físicos sigue pendiente; iPhone requiere firma Apple, no disponible en la cuenta del propietario.
+- Compilaciones nativas EAS aprobadas: [APK Android](https://expo.dev/artifacts/eas/Ic5ZX_B-ZrIwRQIXekpWrYE1T9nJ0DYIJRPwJsGFais.apk) y [archivo para simulador iOS](https://expo.dev/artifacts/eas/0UbmdUNFLWCt8ZNcUp7oIunu-2EKjEtqV2A63lRyXTk.tar.gz), también descargados en `artifacts/` (ignorado por Git). La ejecución en teléfonos físicos sigue pendiente; iPhone requiere firma Apple, no disponible en la cuenta del propietario. Detalle en [informe de verificación](docs/07-verificacion-2026-10-28.md).
 - [CI ampliado aprobado](https://github.com/Blaister9/Openminerals/actions/runs/40710145714).
 
 La app persiste operaciones pendientes antes de enviarlas y conserva su clave al reintentar después de un timeout o de cerrar/reabrir el cliente. El panel de operador sigue siendo **por sesión**, no un inventario global de la mina.

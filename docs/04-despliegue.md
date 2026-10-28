@@ -89,6 +89,8 @@ El perfil opcional `development` declara `developmentClient: true`, pero falta `
 
 ## Android: compilar e instalar
 
+Build de esta entrega: [APK Android completado](https://expo.dev/accounts/chipirips-team/projects/openminerals-demo/builds/265f4e3b-c6a6-4d26-b7b3-8805cd2332e4) y [descarga directa](https://expo.dev/artifacts/eas/Ic5ZX_B-ZrIwRQIXekpWrYE1T9nJ0DYIJRPwJsGFais.apk). Copia local `artifacts/openminerals-android-265f4e3b.apk`. Se verificó la compilación y la URL API integrada; falta instalar y ejecutar en el teléfono.
+
 Con EAS autenticado, proyecto enlazado y API verificada:
 
 ```powershell

@@ -10,6 +10,7 @@ La API de simulación funciona con PostgreSQL en Railway. La instalación y el r
 - [877ca777b66d40363732f9a6286c4d6f097a28ea](https://github.com/Blaister9/Openminerals/commit/877ca777b66d40363732f9a6286c4d6f097a28ea): importación inicial y lock de API.
 - [2e16413f090b6eb81c7a981c4ca21a4ae7a886ce](https://github.com/Blaister9/Openminerals/commit/2e16413f090b6eb81c7a981c4ca21a4ae7a886ce): reintentos persistentes, integración PostgreSQL, CI, configuración EAS y lock móvil.
 - [7762585de892673c3cd7fd20729d21056f0cb1ce](https://github.com/Blaister9/Openminerals/commit/7762585de892673c3cd7fd20729d21056f0cb1ce): vinculación real EAS, configuración iOS y limpieza del aviso al rechazar un pendiente.
+- [d4335a469e40a94eadd0d0d968b16c745ae5e7e7](https://github.com/Blaister9/Openminerals/commit/d4335a469e40a94eadd0d0d968b16c745ae5e7e7): informe y pasos de instalación publicados mientras Android esperaba en EAS. El presente archivo se actualiza con sus resultados finales.
 - Push normales, sin force ni eliminación de ramas. Las credenciales, `.env`, `node_modules` y snapshots de sesiones quedan fuera de Git.
 
 ## Railway
@@ -44,6 +45,7 @@ Variables de API: `DATABASE_URL` referencia `${{Postgres.DATABASE_URL}}`, `REQUI
 | TypeScript | `npm run check` aprobado |
 | Expo SDK 57 | `npx expo install --check`: dependencias compatibles; Expo Doctor 21/21 |
 | Metro/Hermes después de correcciones | Android 592 módulos e iOS 594, exports aprobados; no son instaladores |
+| Compilaciones nativas EAS | Android APK e iOS simulador FINISHED, sin error; archivos descargados y destino API comprobado dentro de ambos bundles |
 | CI | [Workflow ampliado aprobado](https://github.com/Blaister9/Openminerals/actions/runs/40710145714), incluyendo PostgreSQL 18 y pruebas móviles |
 | Auditoría API | Cero vulnerabilidades reportadas |
 | Auditoría móvil | 8 avisos: 3 altos transitivos y 5 bajos; detalle abajo |
@@ -59,13 +61,15 @@ EAS: [@chipirips-team/openminerals-demo](https://expo.dev/accounts/chipirips-tea
 
 | Plataforma | Build solicitado | Estado |
 | --- | --- | --- |
-| Android APK, `preview` | [265f4e3b-c6a6-4d26-b7b3-8805cd2332e4](https://expo.dev/accounts/chipirips-team/projects/openminerals-demo/builds/265f4e3b-c6a6-4d26-b7b3-8805cd2332e4) | IN_QUEUE en la comprobación del 28 de octubre; todavía sin APK descargable |
+| Android APK, `preview` | [265f4e3b-c6a6-4d26-b7b3-8805cd2332e4](https://expo.dev/accounts/chipirips-team/projects/openminerals-demo/builds/265f4e3b-c6a6-4d26-b7b3-8805cd2332e4) | FINISHED, sin error; APK descargado; instalación y ejecución física pendientes |
 | Simulador iOS, `ios-simulator` | [da164363-6526-4880-a0eb-8c0e444f704f](https://expo.dev/accounts/chipirips-team/projects/openminerals-demo/builds/da164363-6526-4880-a0eb-8c0e444f704f) | FINISHED; compilación nativa aprobada; ejecución no probada; no se instala en iPhone |
 | iPhone físico, `preview` | No se creó build | EAS rechazó la preparación por falta de certificados/perfil; propietario confirmó no tener Apple Developer activo |
 
 EAS generó la clave Android en su gestor remoto. Los builds registran `2e16413` como SHA de partida y contienen los cambios locales de vinculación de `app.json` y la limpieza del aviso de pendiente, versionados posteriormente en `7762585`. iOS simulador también contiene la configuración de cifrado de ese commit. No se afirma que el SHA de metadatos EAS identifique por sí solo esos cambios locales.
 
-Para Android, abrir el enlace del build **cuando indique Finished**, descargar el APK, autorizar su instalación desde el navegador si Android lo solicita e iniciar Openminerals Demo. Para iOS simulador se requiere un Mac con Xcode/Simulator; no sirve ese archivo para iPhone. La guía completa está en [04-despliegue.md](04-despliegue.md).
+Para Android, abrir el enlace del build completado, descargar el APK, autorizar su instalación desde el navegador si Android lo solicita e iniciar Openminerals Demo. Para iOS simulador se requiere un Mac con Xcode/Simulator; no sirve ese archivo para iPhone. La guía completa está en [04-despliegue.md](04-despliegue.md).
+
+Archivo Android generado: [descargar APK](https://expo.dev/artifacts/eas/Ic5ZX_B-ZrIwRQIXekpWrYE1T9nJ0DYIJRPwJsGFais.apk). Copia local `artifacts/openminerals-android-265f4e3b.apk`, 68.512.581 bytes, SHA-256 `02C1E33E6EE8E1953E4D0B7EC3010390B0E93087FE50A90336C24BA138DD6A4F`. Se comprobó que es un APK con `AndroidManifest.xml` y que `assets/index.android.bundle` incluye la URL HTTPS de Railway. Esto no sustituye la instalación y el recorrido en Android. EAS registró unos 27 minutos de cola gratuita y 6 minutos de compilación, finalizada satisfactoriamente. El QR de instalación está guardado en `artifacts/android-install-265f4e3b.png` y los hashes en `artifacts/SHA256SUMS.txt`.
 
 Archivo iOS simulador generado: [descargar archivo .tar.gz](https://expo.dev/artifacts/eas/0UbmdUNFLWCt8ZNcUp7oIunu-2EKjEtqV2A63lRyXTk.tar.gz). EAS confirma compilación finalizada; no se ejecutó el simulador en este equipo Windows.
 
