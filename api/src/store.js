@@ -1,65 +1,263 @@
-import {seedState,applyCommand} from './domain.js';
+import {randomUUID} from 'node:crypto';
+import {seedState,applyCommand,METALS} from './domain.js';
+import {DEFAULT_MINE_ID,seedMine,accountStateForMine,importLegacyState,applyAccountCommand,applyStockCommand,summarizeMine,operatorReceiptView} from './shared-mine.js';
+import {AUTH_LIFETIME_MS,accountError,normalizeAlias,passwordRecord,passwordMatches,newAuthToken,tokenHash,publicAccount} from './account-auth.js';
+import {readReceipt} from './receipt-history.js';
 
 const ID_PATTERN=/^[A-Za-z0-9_-]{16,100}$/;
+const clone=value=>structuredClone(value);
+const unauthorized=()=>accountError(401,'Inicia sesión de nuevo con tu cuenta demo.','UNAUTHORIZED');
+const forbidden=()=>accountError(403,'Esta función requiere el rol de cuenta demo correspondiente.','FORBIDDEN');
+const claimed=()=>accountError(409,'Esta sesión anterior ya está vinculada a una cuenta demo. Inicia sesión para operar; su historial anterior se conserva.','LEGACY_CLAIMED');
 export function validateSessionId(id){
-  if(typeof id!=='string'||!ID_PATTERN.test(id)) throw Object.assign(new Error('Sesión demo inválida'),{status:400});
+  if(typeof id!=='string'||!ID_PATTERN.test(id))throw Object.assign(new Error('Sesión demo inválida'),{status:400});
   return id;
 }
-
-// PostgreSQL guarda una sesión por fila JSONB. FOR UPDATE serializa las operaciones
-// de cada sesión de demo. NO sustituye el ledger contable de producción.
-export async function createStore(databaseUrl=process.env.DATABASE_URL){
-  if(!databaseUrl){
-    if(process.env.REQUIRE_DATABASE==='true') throw new Error('REQUIRE_DATABASE activo pero no hay DATABASE_URL');
-    const sessions=new Map();
-    const get=id=> {validateSessionId(id); if(!sessions.has(id)) sessions.set(id,seedState()); return structuredClone(sessions.get(id));};
-    return {
-      mode:'memory-demo',
-      async ping(){return true;},
-      async get(id){return get(id);},
-      async mutate(id,command){const current=get(id);const result=applyCommand(current,command);if(result.changed)sessions.set(id,result.state);return result;},
-      async reset(id){validateSessionId(id);sessions.set(id,seedState());return get(id);},
-      async close(){}
-    };
+function validateMineInput({name,initialInventoryMg}={}){
+  if(typeof name!=='string'||name.trim().length<3||name.trim().length>80)throw accountError(400,'Nombre de mina demo inválido.');
+  if(initialInventoryMg!==undefined){
+    if(!initialInventoryMg||typeof initialInventoryMg!=='object'||Array.isArray(initialInventoryMg)||
+      Object.keys(initialInventoryMg).some(key=>!Object.hasOwn(METALS,key))||
+      Object.values(initialInventoryMg).some(value=>!Number.isSafeInteger(value)||value<0||value>1_000_000_000))throw accountError(400,'Inventario inicial demo inválido.');
   }
-  const {default:pg}=await import('pg');
-  const {Pool}=pg;
-  const pool=new Pool({connectionString:databaseUrl,max:8,connectionTimeoutMillis:8000});
-  await pool.query(`CREATE TABLE IF NOT EXISTS demo_sessions (
-    id TEXT PRIMARY KEY,
-    state JSONB NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-  )`);
-  async function ensure(client,id){
-    await client.query('INSERT INTO demo_sessions (id,state) VALUES ($1,$2::jsonb) ON CONFLICT (id) DO NOTHING',[id,JSON.stringify(seedState())]);
+  return {name:name.trim(),initialInventoryMg};
+}
+function requireRole(account,role){if(!account)throw unauthorized();if(account.role!==role)throw forbidden();}
+function makeStore(adapter){
+  async function authenticatedContext(tx,accountId,role){
+    const first=await tx.account(accountId);
+    requireRole(first,role);
+    const mine=await tx.mine(first.mineId,true);
+    if(!mine)throw accountError(404,'Mina demo no disponible.');
+    const account=await tx.account(accountId,true);
+    requireRole(account,role);
+    return {account,mine};
+  }
+  async function addAccount({alias,password,role='buyer',mineId=DEFAULT_MINE_ID,legacySessionId}={}){
+    alias=normalizeAlias(alias);
+    if(!['buyer','operator'].includes(role))throw accountError(400,'Rol demo inválido.');
+    if(legacySessionId!==undefined&&role!=='buyer')throw accountError(400,'Solo un comprador puede vincular una sesión anterior.');
+    if(legacySessionId!==undefined)validateSessionId(legacySessionId);
+    const credentials=await passwordRecord(password);
+    const account=await adapter.tx(async tx=>{
+      let mine=await tx.mine(mineId,true);
+      if(!mine)throw accountError(404,'Mina demo no disponible.');
+      if(await tx.alias(alias))throw accountError(409,'Ese alias demo ya existe.','ALIAS_TAKEN');
+      let state=seedState();
+      if(legacySessionId!==undefined){
+        await tx.ensureLegacy(legacySessionId);
+        const legacy=await tx.legacy(legacySessionId,true);
+        if(await tx.claim(legacySessionId))throw claimed();
+        ({state,mine}=importLegacyState(legacy,mine));
+      }
+      const result={id:`account-${randomUUID()}`,alias,role,mineId,...credentials,state,legacySessionId:legacySessionId??null,createdAt:new Date().toISOString()};
+      await tx.insertAccount(result);
+      if(legacySessionId!==undefined)await tx.saveMine(mine);
+      return result;
+    });
+    return publicAccount(account);
+  }
+  async function issueSession(accountId){
+    const token=newAuthToken(),expiresAt=new Date(Date.now()+AUTH_LIFETIME_MS).toISOString();
+    const context=await adapter.tx(async tx=>{
+      const account=await tx.account(accountId);
+      if(!account)throw unauthorized();
+      const mine=await tx.mine(account.mineId);
+      await tx.insertAuth({hash:tokenHash(token),accountId,expiresAt});
+      return {account:publicAccount(account),mine:{id:mine.id,name:mine.name}};
+    });
+    return {...context,token,expiresAt,demoOnly:true};
   }
   return {
-    mode:'postgres-demo',
-    async ping(){await pool.query('SELECT 1'); return true;},
+    mode:adapter.mode,
+    ping:()=>adapter.ping(),
     async get(id){
       validateSessionId(id);
-      const client=await pool.connect();
-      try {await ensure(client,id);const r=await client.query('SELECT state FROM demo_sessions WHERE id=$1',[id]);return r.rows[0].state;}
-      finally {client.release();}
+      return adapter.tx(async tx=>{
+        await tx.ensureLegacy(id);
+        const state=clone(await tx.legacy(id,true));
+        if(await tx.claim(id))state.legacyReadOnly=true;
+        return state;
+      });
     },
     async mutate(id,command){
       validateSessionId(id);
-      const client=await pool.connect();
-      try {
-        await client.query('BEGIN');
-        await ensure(client,id);
-        const row=await client.query('SELECT state FROM demo_sessions WHERE id=$1 FOR UPDATE',[id]);
-        const result=applyCommand(row.rows[0].state,command);
-        if(result.changed) await client.query('UPDATE demo_sessions SET state=$2::jsonb,updated_at=NOW() WHERE id=$1',[id,JSON.stringify(result.state)]);
-        await client.query('COMMIT');
-        return result;
-      }catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}
+      return adapter.tx(async tx=>{
+        await tx.ensureLegacy(id);
+        const current=await tx.legacy(id,true);
+        if(await tx.claim(id))throw claimed();
+        const result=applyCommand(current,command);
+        if(result.changed)await tx.saveLegacy(id,result.state);
+        return clone(result);
+      });
     },
     async reset(id){
       validateSessionId(id);
-      await pool.query('INSERT INTO demo_sessions(id,state) VALUES ($1,$2::jsonb) ON CONFLICT(id) DO UPDATE SET state=EXCLUDED.state,updated_at=NOW()',[id,JSON.stringify(seedState())]);
-      return this.get(id);
+      return adapter.tx(async tx=>{
+        await tx.ensureLegacy(id);await tx.legacy(id,true);
+        if(await tx.claim(id))throw claimed();
+        const state=seedState();await tx.saveLegacy(id,state);return clone(state);
+      });
     },
-    async close(){await pool.end();}
+    async registerAccount({alias,password,legacySessionId}={}){
+      const account=await addAccount({alias,password,legacySessionId,role:'buyer',mineId:DEFAULT_MINE_ID});
+      return issueSession(account.id);
+    },
+    createAccount:options=>addAccount(options),
+    async createMine(input){
+      const {name,initialInventoryMg}=validateMineInput(input);
+      const mine=seedMine(`mine-${randomUUID()}`,name);
+      if(initialInventoryMg)for(const [metal,value] of Object.entries(initialInventoryMg)){
+        mine.inventoryMg[metal]=value;mine.totalSupplyMg[metal]=value;
+      }
+      await adapter.tx(tx=>tx.insertMine(mine));
+      return {id:mine.id,name:mine.name,demoOnly:true};
+    },
+    async loginAccount(rawAlias,password){
+      let alias;
+      try {alias=normalizeAlias(rawAlias);}catch{throw unauthorized();}
+      const account=await adapter.tx(tx=>tx.alias(alias));
+      if(!await passwordMatches(password,account))throw unauthorized();
+      return issueSession(account.id);
+    },
+    async authenticate(token){
+      if(typeof token!=='string'||!/^[A-Za-z0-9_-]{43}$/.test(token))throw unauthorized();
+      return adapter.tx(async tx=>{
+        const auth=await tx.auth(tokenHash(token));
+        if(!auth||new Date(auth.expiresAt).getTime()<=Date.now())throw unauthorized();
+        const account=await tx.account(auth.accountId);
+        if(!account)throw unauthorized();
+        const mine=await tx.mine(account.mineId);
+        if(!mine)throw unauthorized();
+        return {account:publicAccount(account),mine:{id:mine.id,name:mine.name},demoOnly:true};
+      });
+    },
+    async logoutAccount(token){
+      if(typeof token!=='string'||!/^[A-Za-z0-9_-]{43}$/.test(token))throw unauthorized();
+      await adapter.tx(tx=>tx.deleteAuth(tokenHash(token)));
+      return {ok:true,demoOnly:true};
+    },
+    async getAccountState(accountId){
+      return adapter.tx(async tx=>{
+        const {account,mine}=await authenticatedContext(tx,accountId,'buyer');
+        return {...accountStateForMine(account.state,mine),account:publicAccount(account)};
+      });
+    },
+    async mutateAccount(accountId,command){
+      return adapter.tx(async tx=>{
+        const {account,mine}=await authenticatedContext(tx,accountId,'buyer');
+        const result=applyAccountCommand(account.state,mine,command,{accountId:account.id});
+        if(result.changed){await tx.saveMine(result.mine);await tx.saveAccountState(account.id,result.state);}
+        return {receipt:clone(result.receipt),state:{...accountStateForMine(result.state,result.mine),account:publicAccount(account)},changed:result.changed};
+      });
+    },
+    async getMineSummary(accountId){
+      return adapter.tx(async tx=>{
+        const {account,mine}=await authenticatedContext(tx,accountId,'operator');
+        return summarizeMine(mine,await tx.accountsForMine(account.mineId));
+      });
+    },
+    async mutateStock(accountId,command){
+      return adapter.tx(async tx=>{
+        const {account,mine}=await authenticatedContext(tx,accountId,'operator');
+        const result=applyStockCommand(mine,command,{accountId:account.id,alias:account.alias});
+        if(result.changed)await tx.saveMine(result.mine);
+        return {receipt:clone(result.receipt),mine:summarizeMine(result.mine,await tx.accountsForMine(account.mineId)),changed:result.changed,demoOnly:true};
+      });
+    },
+    async getMineReceipt(operatorId,targetId,receiptId){
+      return adapter.tx(async tx=>{
+        const {account}=await authenticatedContext(tx,operatorId,'operator');
+        const target=await tx.account(targetId);
+        if(!target||target.role!=='buyer'||target.mineId!==account.mineId)throw accountError(404,'Comprobante no disponible en esta mina.');
+        const receipt=readReceipt(target.state,receiptId);
+        if(receipt.mineId!==account.mineId||receipt.accountId!==targetId||!['buy','sell','offer','cancel_offer','delivery','cancel_delivery'].includes(receipt.action))throw accountError(404,'Comprobante no disponible en esta mina.');
+        return operatorReceiptView(receipt);
+      });
+    },
+    close:()=>adapter.close(),
   };
+}
+
+function memoryAdapter(){
+  let database={legacy:new Map(),accounts:new Map(),mines:new Map([[DEFAULT_MINE_ID,seedMine(DEFAULT_MINE_ID,'Openminerals · Mina demo')]]),auth:new Map()};
+  let queue=Promise.resolve();
+  return {
+    mode:'memory-demo',async ping(){return true;},async close(){},
+    async tx(work){
+      let release;const previous=queue;queue=new Promise(resolve=>{release=resolve;});await previous;
+      const db=clone(database);
+      const tx={
+        async mine(id){return clone(db.mines.get(id));},async insertMine(mine){if(db.mines.has(mine.id))throw accountError(409,'La mina demo ya existe.');db.mines.set(mine.id,clone(mine));},async saveMine(mine){db.mines.set(mine.id,clone(mine));},
+        async ensureLegacy(id){if(!db.legacy.has(id))db.legacy.set(id,seedState());},async legacy(id){return clone(db.legacy.get(id));},async saveLegacy(id,state){db.legacy.set(id,clone(state));},
+        async account(id){return clone(db.accounts.get(id));},async alias(alias){return clone([...db.accounts.values()].find(account=>account.alias===alias));},
+        async claim(id){return [...db.accounts.values()].some(account=>account.legacySessionId===id);},
+        async insertAccount(account){if([...db.accounts.values()].some(a=>a.alias===account.alias||account.legacySessionId&&a.legacySessionId===account.legacySessionId))throw accountError(409,'El alias o la sesión ya están vinculados.');db.accounts.set(account.id,clone(account));},
+        async saveAccountState(id,state){db.accounts.get(id).state=clone(state);},async accountsForMine(id){return clone([...db.accounts.values()].filter(a=>a.mineId===id));},
+        async auth(hash){return clone(db.auth.get(hash));},async insertAuth(auth){db.auth.set(auth.hash,clone(auth));},async deleteAuth(hash){db.auth.delete(hash);},
+      };
+      try{const result=await work(tx);database=db;return result;}finally{release();}
+    },
+  };
+}
+
+async function postgresAdapter(databaseUrl){
+  const {default:pg}=await import('pg');
+  const pool=new pg.Pool({connectionString:databaseUrl,max:8,connectionTimeoutMillis:8000});
+  let startup;
+  try{
+    startup=await pool.connect();
+    await startup.query('BEGIN');
+    await startup.query("SELECT pg_advisory_xact_lock(hashtext('openminerals-demo-store-v2-init'))");
+    await startup.query(`CREATE TABLE IF NOT EXISTS demo_sessions (id TEXT PRIMARY KEY,state JSONB NOT NULL,updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+      CREATE TABLE IF NOT EXISTS demo_mines (id TEXT PRIMARY KEY,state JSONB NOT NULL,updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+      CREATE TABLE IF NOT EXISTS demo_accounts (id TEXT PRIMARY KEY,alias TEXT NOT NULL UNIQUE,role TEXT NOT NULL CHECK(role IN ('buyer','operator')),mine_id TEXT NOT NULL REFERENCES demo_mines(id),password_salt TEXT NOT NULL,password_hash TEXT NOT NULL,state JSONB NOT NULL,legacy_session_id TEXT UNIQUE,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+      CREATE TABLE IF NOT EXISTS demo_auth_sessions (token_hash TEXT PRIMARY KEY,account_id TEXT NOT NULL REFERENCES demo_accounts(id),expires_at TIMESTAMPTZ NOT NULL);
+      CREATE INDEX IF NOT EXISTS demo_accounts_mine_idx ON demo_accounts(mine_id);
+      CREATE INDEX IF NOT EXISTS demo_auth_sessions_account_idx ON demo_auth_sessions(account_id);`);
+    await startup.query('INSERT INTO demo_mines(id,state) VALUES($1,$2::jsonb) ON CONFLICT(id) DO NOTHING',[DEFAULT_MINE_ID,JSON.stringify(seedMine(DEFAULT_MINE_ID,'Openminerals · Mina demo'))]);
+    await startup.query('COMMIT');
+  }catch(error){
+    if(startup){try{await startup.query('ROLLBACK');}catch{}startup.release();startup=undefined;}
+    await pool.end().catch(()=>{});
+    throw error;
+  }finally{startup?.release();}
+  const accountRow=row=>row?{id:row.id,alias:row.alias,role:row.role,mineId:row.mine_id,passwordSalt:row.password_salt,passwordHash:row.password_hash,state:row.state,legacySessionId:row.legacy_session_id,createdAt:row.created_at.toISOString()}:undefined;
+  return {
+    mode:'postgres-demo',async ping(){await pool.query('SELECT 1');return true;},async close(){await pool.end();},
+    async tx(work){
+      const client=await pool.connect();
+      const one=async(sql,args)=>(await client.query(sql,args)).rows[0];
+      const tx={
+        async mine(id,lock=false){return (await one(`SELECT state FROM demo_mines WHERE id=$1${lock?' FOR UPDATE':''}`,[id]))?.state;},
+        async insertMine(mine){await client.query('INSERT INTO demo_mines(id,state) VALUES($1,$2::jsonb)',[mine.id,JSON.stringify(mine)]);},
+        async saveMine(mine){await client.query('UPDATE demo_mines SET state=$2::jsonb,updated_at=NOW() WHERE id=$1',[mine.id,JSON.stringify(mine)]);},
+        async ensureLegacy(id){await client.query('INSERT INTO demo_sessions(id,state) VALUES($1,$2::jsonb) ON CONFLICT(id) DO NOTHING',[id,JSON.stringify(seedState())]);},
+        async legacy(id,lock=false){return (await one(`SELECT state FROM demo_sessions WHERE id=$1${lock?' FOR UPDATE':''}`,[id]))?.state;},
+        async saveLegacy(id,state){await client.query('UPDATE demo_sessions SET state=$2::jsonb,updated_at=NOW() WHERE id=$1',[id,JSON.stringify(state)]);},
+        async account(id,lock=false){return accountRow(await one(`SELECT * FROM demo_accounts WHERE id=$1${lock?' FOR UPDATE':''}`,[id]));},
+        async alias(alias){return accountRow(await one('SELECT * FROM demo_accounts WHERE alias=$1',[alias]));},
+        async claim(id){return Boolean(await one('SELECT id FROM demo_accounts WHERE legacy_session_id=$1',[id]));},
+        async insertAccount(account){await client.query('INSERT INTO demo_accounts(id,alias,role,mine_id,password_salt,password_hash,state,legacy_session_id) VALUES($1,$2,$3,$4,$5,$6,$7::jsonb,$8)',[account.id,account.alias,account.role,account.mineId,account.passwordSalt,account.passwordHash,JSON.stringify(account.state),account.legacySessionId]);},
+        async saveAccountState(id,state){await client.query('UPDATE demo_accounts SET state=$2::jsonb WHERE id=$1',[id,JSON.stringify(state)]);},
+        async accountsForMine(id){return (await client.query('SELECT * FROM demo_accounts WHERE mine_id=$1',[id])).rows.map(accountRow);},
+        async auth(hash){const row=await one('SELECT account_id,expires_at FROM demo_auth_sessions WHERE token_hash=$1',[hash]);return row?{accountId:row.account_id,expiresAt:row.expires_at.toISOString()}:undefined;},
+        async insertAuth(auth){await client.query('DELETE FROM demo_auth_sessions WHERE expires_at<=NOW()');await client.query('INSERT INTO demo_auth_sessions(token_hash,account_id,expires_at) VALUES($1,$2,$3)',[auth.hash,auth.accountId,auth.expiresAt]);},
+        async deleteAuth(hash){await client.query('DELETE FROM demo_auth_sessions WHERE token_hash=$1',[hash]);},
+      };
+      try{await client.query('BEGIN');const result=await work(tx);await client.query('COMMIT');return result;}
+      catch(error){try{await client.query('ROLLBACK');}catch{}if(error.code==='23505')throw accountError(409,'El alias o la sesión ya están vinculados.','ACCOUNT_CONFLICT');throw error;}
+      finally{client.release();}
+    },
+  };
+}
+
+// Additive tables leave original sessions and receipts intact. Mine -> account locks
+// serialize buyers across processes; the memory adapter is only a local demo.
+export async function createStore(databaseUrl=process.env.DATABASE_URL){
+  if(!databaseUrl){
+    if(process.env.REQUIRE_DATABASE==='true')throw new Error('REQUIRE_DATABASE activo pero no hay DATABASE_URL');
+    return makeStore(memoryAdapter());
+  }
+  return makeStore(await postgresAdapter(databaseUrl));
 }

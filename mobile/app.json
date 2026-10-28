@@ -3,7 +3,7 @@
     "name": "Openminerals Demo",
     "slug": "openminerals-demo",
     "scheme": "openminerals-demo",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#090F15",
@@ -16,12 +16,14 @@
     },
     "android": {
       "package": "com.openminerals.demo.mobile",
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
         "backgroundColor": "#090F15"
       }
     },
-    "plugins": [],
+    "plugins": [
+      ["expo-secure-store", {"configureAndroidBackup": true, "faceIDPermission": false}]
+    ],
     "extra": {
       "demoOnly": true,
       "eas": {

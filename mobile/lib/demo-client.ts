@@ -7,21 +7,48 @@ export type Storage = {
 };
 export type PendingOperation = {
   session:string; action:string; body:Record<string,string>; requestId:string; title:string;
+  accountId?:string;
 };
-type OperationResult = {state:unknown;receipt:Receipt};
-type Options = {api:string;storage:Storage;uuid:()=>string;fetchImpl?:typeof fetch;timeoutMs?:number};
+export type OperationResult = {state?:unknown;mine?:unknown;receipt:Receipt};
+type Options = {
+  api:string;storage:Storage;uuid:()=>string;fetchImpl?:typeof fetch;timeoutMs?:number;
+  accountId?:string;getToken?:()=>string|null;
+};
 export class RequestError extends Error {
   status:number;
   ambiguous:boolean;
   constructor(message:string,status=0,ambiguous=true){super(message);this.status=status;this.ambiguous=ambiguous;}
 }
+const metalKeys=['XAU','XAG','XPT','XPD'];
+const nonnegative=(value:unknown)=>typeof value==='number'&&Number.isSafeInteger(value)&&value>=0;
+function metalRecord(value:unknown):value is Record<string,number>{
+  return !!value&&typeof value==='object'&&metalKeys.every(key=>nonnegative((value as Record<string,unknown>)[key]));
+}
+function completeStockResult(data:OperationResult,operation:PendingOperation):boolean {
+  const receipt=data.receipt as Receipt&{
+    reason?:unknown;actor?:{id?:unknown;alias?:unknown};inventoryAfterMg?:unknown;totalSupplyAfterMg?:unknown;
+  };
+  const mine=data.mine as Record<string,unknown>|undefined;
+  const identity=mine?.mine as {id?:unknown;name?:unknown}|undefined;
+  const snapshotAvailable=receipt?.inventoryAfterMg,snapshotSupply=receipt?.totalSupplyAfterMg;
+  return !!receipt&&receipt.action==='stock'&&receipt.status==='COMPLETED'&&receipt.demoOnly===true&&
+    typeof receipt.at==='string'&&Number.isFinite(Date.parse(receipt.at))&&
+    typeof receipt.metal==='string'&&metalKeys.includes(receipt.metal)&&receipt.metal===operation.body.metal&&nonnegative(receipt.mg)&&receipt.mg! > 0&&
+    typeof receipt.reason==='string'&&receipt.reason.length>=3&&receipt.actor?.id===operation.accountId&&typeof receipt.actor?.alias==='string'&&
+    metalRecord(snapshotAvailable)&&metalRecord(snapshotSupply)&&metalKeys.every(key=>snapshotAvailable[key]<=snapshotSupply[key])&&
+    !!mine&&mine.demoOnly===true&&mine.reconciled===true&&typeof identity?.id==='string'&&typeof identity?.name==='string'&&
+    ['inventoryMg','totalSupplyMg','allocatedMg','reservedMg'].every(key=>metalRecord(mine[key]))&&
+    ['accountCount','transactionCount','demoFeesCollectedMinor','offersOpen','deliveriesPending'].every(key=>nonnegative(mine[key]))&&
+    ['operations','pendingOffers','pendingDeliveries','stockAdjustments'].every(key=>Array.isArray(mine[key]));
+}
 
 // No operation is sent before its original key and payload are stored durably.
 // An uncertain response must be replayed with that same key, including after restart.
-export function createDemoClient({api,storage,uuid,fetchImpl=fetch,timeoutMs=12_000}:Options){
+export function createDemoClient({api,storage,uuid,fetchImpl=fetch,timeoutMs=12_000,accountId,getToken}:Options){
   const sessionKey='openminerals-demo-session';
-  const pendingKey=`openminerals-demo-pending:${api}`;
+  const pendingKey=`openminerals-demo-pending:${api}${accountId?`:account:${accountId}`:''}`;
   const actions=new Set(['deposit','withdraw','convert','buy','sell','offer','cancel_offer','delivery','cancel_delivery']);
+  if(accountId)actions.add('mine/stock');
   let session='';
   let pending:PendingOperation|null=null;
   let initialized=false;
@@ -29,14 +56,14 @@ export function createDemoClient({api,storage,uuid,fetchImpl=fetch,timeoutMs=12_
 
   async function initialize(){
     if(!initialized){
-      let id=await storage.getItem(sessionKey);
+      let id=accountId??await storage.getItem(sessionKey);
       if(!id){id=uuid();await storage.setItem(sessionKey,id);}
       if(!/^[A-Za-z0-9_-]{16,100}$/.test(id))throw new Error('La sesión guardada no es válida. No se enviaron operaciones.');
       const saved=await storage.getItem(pendingKey);
       let restored:PendingOperation|null=null;
       if(saved){
         const p=JSON.parse(saved) as PendingOperation;
-        if(p.session!==id||!actions.has(p.action)||!p.body||typeof p.body!=='object'||Array.isArray(p.body)||
+        if(p.session!==id||p.accountId!==accountId||!actions.has(p.action)||!p.body||typeof p.body!=='object'||Array.isArray(p.body)||
           !Object.values(p.body).every(v=>typeof v==='string')||typeof p.title!=='string'||
           typeof p.requestId!=='string'||!/^[A-Za-z0-9_-]{8,100}$/.test(p.requestId)){
           throw new Error('La operación pendiente no es válida. Se bloqueó el envío para evitar duplicaciones.');
@@ -70,19 +97,26 @@ export function createDemoClient({api,storage,uuid,fetchImpl=fetch,timeoutMs=12_
   }
 
   async function clearPending(){await storage.removeItem(pendingKey);pending=null;}
+  function identityHeaders():Record<string,string>{
+    if(!accountId)return {'x-demo-session':session};
+    const token=getToken?.();
+    if(!token)throw new RequestError('Inicia sesión de nuevo con la misma cuenta para continuar.',401,true);
+    return {Authorization:`Bearer ${token}`};
+  }
   async function execute(operation:PendingOperation){
     try{
       const data=await request<OperationResult>(`/api/demo/${operation.action}`,{
-        method:'POST',headers:{'Content-Type':'application/json','x-demo-session':operation.session,'Idempotency-Key':operation.requestId},
+        method:'POST',headers:{'Content-Type':'application/json',...identityHeaders(),'Idempotency-Key':operation.requestId},
         body:JSON.stringify(operation.body),
       });
-      if(!data.state||!data.receipt||typeof data.receipt.id!=='string'){
+      if(!(operation.action==='mine/stock'?completeStockResult(data,operation):data.state)||!data.receipt||typeof data.receipt.id!=='string'||
+        (accountId&&data.receipt.id!==operation.requestId)){
         throw new RequestError('Respuesta incompleta. Conservamos la operación para reintentar sin duplicarla.');
       }
       await clearPending();
       return data;
     }catch(error){
-      if(error instanceof RequestError&&!error.ambiguous)await clearPending();
+      if(error instanceof RequestError&&!error.ambiguous&&!(accountId&&error.status===401))await clearPending();
       throw error;
     }
   }
@@ -93,7 +127,7 @@ export function createDemoClient({api,storage,uuid,fetchImpl=fetch,timeoutMs=12_
       await initialize();
       if(pending)throw new Error('Resuelve primero la operación pendiente; así evitamos registrar otra por error.');
       if(!actions.has(action))throw new Error('Operación no disponible.');
-      const operation={session,action,body:{...body},requestId:uuid(),title};
+      const operation:PendingOperation={session,action,body:{...body},requestId:uuid(),title,...(accountId?{accountId}:{})};
       // Keep the in-memory block even if storage reports an ambiguous write failure.
       pending=operation;
       await storage.setItem(pendingKey,JSON.stringify(operation));
@@ -113,7 +147,7 @@ export function createDemoClient({api,storage,uuid,fetchImpl=fetch,timeoutMs=12_
   }
   async function get<T>(path:string){
     await initialize();
-    return request<T>(path,{headers:{'x-demo-session':session}});
+    return request<T>(path,{headers:identityHeaders()});
   }
-  return {initialize,submit,retry,get,getPending:()=>pending};
+  return {initialize,submit,retry,get,getPending:()=>pending,isSending:()=>sending};
 }

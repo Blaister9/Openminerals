@@ -10,6 +10,7 @@ export type Receipt={
   receiptVersion?:number;
   label?:string;
   replayed?:boolean;
+  operatorView?:boolean;
   metal?:ReceiptMetal;
   mg?:number;
   currency?:ReceiptCurrency;
@@ -105,6 +106,10 @@ export function receiptDetails(receipt:Receipt):ReceiptDetail[] {
   if(receipt.offerId||receipt.offer?.id)rows.push({label:'Oferta',value:receipt.offerId??receipt.offer!.id});
   if(receipt.deliveryId||receipt.delivery?.id)rows.push({label:'Solicitud de cotización',value:receipt.deliveryId??receipt.delivery!.id});
 
+  if(receipt.operatorView){
+    rows.push({label:'Privacidad del comprador',value:'Los saldos de su billetera no se comparten con el operador.'});
+    return rows;
+  }
   const snapshot=receipt.balancesAfter;
   if(!snapshot){
     rows.push({label:'Saldos posteriores',value:'No registrados en este comprobante anterior'});

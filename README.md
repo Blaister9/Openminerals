@@ -4,6 +4,14 @@
 
 Repositorio inicial para presentar la plataforma Openminerals a un operador de mina: aplicación nativa iOS/Android con React Native + Expo; API Node.js desplegable en Railway; sesiones de demostración persistentes en PostgreSQL de Railway; documentos maestros del producto. No requiere HTML anterior.
 
+## En preparación · 0.1.3, cuentas y mina compartida
+
+La revisión 0.1.3 incorpora cuentas ficticias de **comprador** y **operador**, acceso desde otro dispositivo, vinculación explícita de la sesión anterior e inventario compartido por mina. El registro público crea únicamente compradores; el operador se provisiona por administración y sus credenciales se entregan en un archivo privado fuera de Git. Las sesiones anteriores siguen disponibles: una actualización no las convierte automáticamente en cuentas ni borra su historial.
+
+La vinculación copia saldos, posiciones y comprobantes en una transacción y deja el origen en consulta. Compras y ventas de cuentas de la misma mina consumen o devuelven existencias compartidas. El panel **Mina** muestra disponible, asignado, reservado, operaciones y reposiciones ficticias; la vista anterior sin cuenta sigue siendo por sesión. Esto no incorpora custodia física ni blockchain.
+
+El [informe 0.1.3](docs/11-cuentas-e-inventario-compartido.md) describe contratos, recorrido y aceptación. **Commit final, despliegue de esta API, evidencias de aceptación y enlace del APK 0.1.3: pendientes de registrar.** Los resultados y enlaces de 0.1.2 siguientes no acreditan estas funciones nuevas.
+
 ## Estado verificado · 28 de octubre de 2026
 
 **Última build: [APK Android 0.1.2](https://expo.dev/artifacts/eas/qfWvChA9T4G-qhjzFQMCLbcDrDvDz25TDbW3GGodKTQ.apk)**, fuente `90cce38`, versión de compilación 3. Incluye confirmación con importes, comprobantes consultables y pestaña Actividad. Firma y versión comprobadas; API activa en Railway. El propietario confirmó actualización, historial conservado y comprobantes consultables en Android; el recorrido completo y la prueba automática nueva se registran por separado en [el informe de la revisión](docs/10-comprobantes-y-operaciones-0.1.2.md). La evidencia de 0.1.1 se conserva abajo.
@@ -18,7 +26,7 @@ Repositorio inicial para presentar la plataforma Openminerals a un operador de m
 - [CI de la revisión aprobado](https://github.com/Blaister9/Openminerals/actions/runs/40757343945): API/PostgreSQL, 28 pruebas móviles, tipos y dependencias. [Inspección del APK aprobada](https://github.com/Blaister9/Openminerals/actions/runs/40757332825). La prueba nativa de pantallas se registra por separado en el informe.
 - [Maestro Android](https://github.com/Blaister9/Openminerals/actions/runs/40757332725): APK instalado, pero el sistema emulado cayó al instalar el driver de pruebas; no se ejecutaron escenarios ni se cuenta como aprobado. El propietario confirmó por separado actualización 0.1.2, historial y consulta de comprobantes en su teléfono.
 
-La app persiste operaciones pendientes antes de enviarlas y conserva su clave al reintentar después de un timeout o de cerrar/reabrir el cliente. El panel de operador sigue siendo **por sesión**, no un inventario global de la mina.
+La app persiste operaciones pendientes antes de enviarlas y conserva su clave al reintentar después de un timeout o de cerrar/reabrir el cliente. En la build 0.1.2 documentada arriba, el panel de operador es **por sesión**. El panel compartido de cuentas corresponde a la revisión 0.1.3 y requiere su propia verificación.
 
 El [backlog priorizado de la demo](docs/09-prioridades-demo.md) recoge las funciones que faltan: comprobantes e historial detallados, cuentas/roles, operación de mina compartida, trazabilidad, ciclo de entrega y recorrido visual aceptado. Distingue las ampliaciones de las comprobaciones que todavía no se han ejecutado.
 
@@ -26,13 +34,13 @@ El [backlog priorizado de la demo](docs/09-prioridades-demo.md) recoge las funci
 
 ```text
 Openminerals/
-├── mobile/                # aplicación móvil iOS/Android con 5 secciones
+├── mobile/                # React Native/Expo: comprador y operador de demostración
 ├── api/                   # API Node.js, persistencia demo PostgreSQL, pruebas
 ├── docs/                  # diseño maestro, arquitectura, modelo y presentación
 └── .github/workflows/     # validación automática con PostgreSQL y móvil
 ```
 
-### Qué funciona en el código de demostración
+### Alcance del código de demostración
 
 - Cuatro billeteras independientes: COP, EUR, USD y USDT.
 - Movimientos ficticios de ingreso, retiro y conversión a tasa fija.
@@ -41,10 +49,11 @@ Openminerals/
 - Portafolio con cantidades, valoración, saldos disponibles y reservas.
 - Publicación/cancelación de ofertas (sin emparejamiento real de compradores).
 - Solicitud/cancelación de **cotización** de entrega física (sin envíos reales).
-- Historial simulado, panel ilustrativo del operador de la mina.
-- Idempotencia por operación y transacciones por sesión en PostgreSQL.
+- Historial y comprobantes simulados; compatibilidad con sesiones anteriores sin cuenta.
+- Cuentas demo de comprador y operador en 0.1.3, con inventario de mina compartido y reposiciones ficticias. Su aceptación se registra por separado en el informe de esa revisión.
+- Idempotencia por operación y transacciones en PostgreSQL; los pendientes de cuentas están separados por identidad.
 
-**No existe** KYC, autenticación real, integración bancaria, blockchain, contratos de custodia, inventario auditado, precio en tiempo real, certificados de título, envío físico, registro contable de doble entrada ni motor de órdenes de producción. La animación de lingote es una aproximación visual; el scrollytelling 3D cinematográfico queda en el diseño maestro, no está implementado todavía.
+**No existe** KYC, identidad verificada, acceso apto para producción financiera, integración bancaria, blockchain, contratos de custodia, inventario auditado, precio en tiempo real, certificados de título, envío físico, registro contable de doble entrada ni motor de órdenes de producción. La animación de lingote es una aproximación visual; el scrollytelling 3D cinematográfico queda en el diseño maestro, no está implementado todavía.
 
 ## Prueba local de la API
 
@@ -103,7 +112,9 @@ npm run check
 npx expo start
 ```
 
-En un dispositivo real el valor de `EXPO_PUBLIC_API_URL` debe ser una URL pública **HTTPS**. No sirve apuntar el teléfono a `http://localhost:3000` del computador. La app guarda un identificador aleatorio de sesión de prueba en almacenamiento local y el backend almacena el estado correspondiente. Ese identificador **no es autenticación segura**.
+En un dispositivo real el valor de `EXPO_PUBLIC_API_URL` debe ser una URL pública **HTTPS**. No sirve apuntar el teléfono a `http://localhost:3000` del computador. En modo anterior la app guarda un identificador aleatorio local; `x-demo-session` **no es autenticación segura**. En modo cuenta utiliza un token revocable y conserva esa identidad en SecureStore en Android/iOS; la clave no se persiste. El fallback web usa almacenamiento local para QA y no equivale a la protección nativa.
+
+Al actualizar, abre **Crear cuenta demo** para elegir si conservas la sesión anterior, o **Entrar en una cuenta** para recuperar una ya creada. El formulario no permite escoger el rol de operador. No desinstales la app antes de vincular tu sesión si quieres conservar su identificador local; una vez vinculada, el acceso con el mismo alias recupera la cuenta desde el backend. Resuelve cualquier operación pendiente antes de cerrar o cambiar de cuenta. Ver el [recorrido de cuentas y mina](docs/11-cuentas-e-inventario-compartido.md).
 
 Expo/EAS está enlazado a [@chipirips-team/openminerals-demo](https://expo.dev/accounts/chipirips-team/projects/openminerals-demo). El perfil `preview` solicita APK Android y utiliza la API HTTPS real; `ios-simulator` produce un build para simulador de macOS, que no se instala en iPhone. Seguir [la guía de instalación](docs/04-despliegue.md). Railway no genera APK/IPA.
 
@@ -115,7 +126,9 @@ La validación Android física es parcial y fue comunicada por el propietario: o
 
 ## Seguridad
 
-**No habilitar operaciones reales con este repositorio.** Rutas con sesiones demo sin autenticación, precios fijos y almacenamiento JSONB están concebidos solo para una demostración aislada. No reutilizar usuarios, claves, contraseñas ni saldos para un ambiente regulado o comercial.
+**No habilitar operaciones reales con este repositorio.** Las sesiones anteriores sin autenticación coexisten con cuentas ficticias, precios fijos y almacenamiento JSONB, concebidos para una demostración aislada. Un bearer inválido se rechaza y no se degrada a sesión anónima. El servidor aplica los permisos de comprador/operador; ocultar una pestaña no sustituye esa validación. No reutilizar usuarios, claves, contraseñas ni saldos para un ambiente regulado o comercial.
+
+No incluir en Git ni en la app contraseñas de operador, tokens de sesión o `DEMO_ADMIN_TOKEN`. Las credenciales iniciales del operador se guardan en un archivo privado fuera del repositorio y se comunican al propietario por ese medio, sin copiarlas a documentación, logs o variables `EXPO_PUBLIC_`.
 
 ## Entrega a Codex y sincronización GitHub
 
@@ -125,4 +138,4 @@ El repositorio oficial está publicado y la API Railway está desplegada. El rem
 - `docs/06-entrega-a-codex.md`: pasos de clonado, rama, importación, Railway y EAS.
 - `tools/import_to_github.py`: importador conservador para GitHub desde un ZIP ya descargado; aborta ante archivos distintos en lugar de sobrescribir, y exige `--push` para publicar.
 
-El PDF ejecutivo se conserva en `docs/Diseno_Maestro_Ejecutivo.pdf`. La demo no contiene un marketplace real multiusuario ni representa metales, reservas, cotizaciones o fondos reales.
+El PDF ejecutivo se conserva en `docs/Diseno_Maestro_Ejecutivo.pdf`. Las cuentas de prueba no convierten la demo en un marketplace de producción ni representan metales, reservas, cotizaciones o fondos reales.

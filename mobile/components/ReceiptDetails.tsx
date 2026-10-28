@@ -44,7 +44,7 @@ export function ReceiptDetails({visible,receipt,loading,error,onClose,onRetry,on
               <Text selectable style={styles.rowValue}>{row.value}</Text>
             </View>)}
           </View>
-          <Text style={styles.note}>Los saldos posteriores corresponden al momento de esta operación cuando fueron registrados. Pueden diferir de tus saldos actuales.</Text>
+          {!receipt.operatorView&&<Text style={styles.note}>Los saldos posteriores corresponden al momento de esta operación cuando fueron registrados. Pueden diferir de tus saldos actuales.</Text>}
           <Text style={styles.note}>Este comprobante no acredita un pago, una transferencia blockchain ni la custodia de metal físico.</Text>
         </>}
       </ScrollView>

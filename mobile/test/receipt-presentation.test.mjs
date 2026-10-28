@@ -7,6 +7,14 @@ const legacy={id:'legacy-receipt-01',action:'buy',status:'COMPLETED',at:'2026-10
   metal:'XAU',mg:500,baseMinor:7250,feeMinor:73,totalMinor:7323};
 const asMap=receipt=>Object.fromEntries(receiptDetails(receipt).map(row=>[row.label,row.value]));
 
+test('vista del operador explica la privacidad y no presenta saldos del comprador',()=>{
+  const receipt={...legacy,operatorView:true,balancesAfter:seedState()};
+  const rows=asMap(receipt);
+  assert.equal(rows['Total descontado'],'USDT 73,23');
+  assert.equal(rows['Privacidad del comprador'],'Los saldos de su billetera no se comparten con el operador.');
+  assert.equal(Object.keys(rows).some(key=>key.includes('después')||key==='Saldos posteriores'),false);
+});
+
 test('historial antiguo presenta los importes registrados sin inventar precio ni saldo',()=>{
   assert.equal(receiptTitle(legacy),'Compra de oro');
   assert.equal(receiptSummary(legacy),'−USDT 73,23 · 0,500 g');

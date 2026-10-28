@@ -2,18 +2,24 @@ import React, {useEffect,useRef,useState} from 'react';
 import {ActivityIndicator,Animated,Pressable,SafeAreaView,StatusBar,StyleSheet,Text,TextInput,View} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
-import {createDemoClient,RequestError,type PendingOperation} from './lib/demo-client';
+import {RequestError,type PendingOperation} from './lib/demo-client';
+import {createAccountClient} from './lib/account-client';
+import {authStorage} from './lib/auth-storage';
 import {normalizeDecimalInput,parsePositiveDecimal,quoteBuy,quoteSell,quoteConversion,summarizePortfolio} from './lib/presentation';
 import {receiptTitle,receiptSummary,type Receipt,type ReceiptHistoryPage} from './lib/receipt-presentation';
 import {MetalStory} from './components/MetalStory';
 import {ReceiptDetails} from './components/ReceiptDetails';
 import {OperationConfirmation} from './components/OperationConfirmation';
+import {AccountAccess} from './components/AccountAccess';
+import {MineDashboard,type MineSummary,type StockReceipt} from './components/MineDashboard';
+import {StockReceiptDetails} from './components/StockReceiptDetails';
 
 // DEMO: todas las cifras, inventarios y solicitudes son simulados.
-// No hay autenticación real, pasarela de pagos, exchange ni bóveda conectada.
+// Cuentas de demostración; no hay KYC, pagos, exchange ni bóveda real.
 type Metal = 'XAU'|'XAG'|'XPT'|'XPD';
 type Currency = 'COP'|'EUR'|'USD'|'USDT';
-type Tab = 'Inicio'|'Mercado'|'Billetera'|'Metales'|'Más';
+type Tab = 'Inicio'|'Mercado'|'Billetera'|'Metales'|'Más'|'Mina'|'Cuenta';
+type Account={id:string;alias:string;role:'buyer'|'operator';mineId:string};
 type Move = {id:string; type:string; label:string; at:string; metal?:Metal; mg?:number; amountMinor?:number};
 type Offer = {id:string;metal:Metal;mg:number;status:string};
 type Delivery = {id:string;metal:Metal;mg:number;status:string};
@@ -25,6 +31,7 @@ type State = {
   demoRates:Record<Currency,Partial<Record<Currency,number>>>;
   feesBps:{buy:number;sell:number};
   movements:Move[];offers:Offer[];custodyRequests:Delivery[];
+  legacyReadOnly?:boolean;
 };
 type Summary = {transactionCount:number;demoFeesCollectedMinor:number;offersOpen:number;deliveriesPending:number;inventoryMg:Record<Metal,number>;holdingsMg:Record<Metal,number>};
 type Confirmation={action:string;body:Record<string,string>;title:string;detail:string};
@@ -41,7 +48,18 @@ const money=(cents:number,currency:string='USDT')=>`${currency} ${(cents/100).to
 const gram=(mg:number)=>`${(mg/1000).toLocaleString('es-CO',{maximumFractionDigits:3,minimumFractionDigits:3})} g`;
 const meta=(code:Metal)=>metals.find(m=>m.code===code)!;
 const messageError=(e:unknown)=>e instanceof Error?e.message:'Error de conexión';
-const sections:Tab[]=['Inicio','Mercado','Billetera','Metales','Más'];
+const buyerSections:Tab[]=['Inicio','Mercado','Billetera','Metales','Más'];
+const operatorSections:Tab[]=['Mina','Cuenta'];
+function checkedMine(value:unknown):MineSummary{
+ const mine=value as MineSummary;
+ if(!mine||mine.demoOnly!==true||typeof mine.mine?.id!=='string'||typeof mine.mine?.name!=='string'||
+   ![mine.accountCount,mine.transactionCount,mine.demoFeesCollectedMinor,mine.offersOpen,mine.deliveriesPending].every(amount=>Number.isSafeInteger(amount)&&amount>=0)||typeof mine.reconciled!=='boolean'||
+   ![mine.operations,mine.pendingOffers,mine.pendingDeliveries,mine.stockAdjustments].every(Array.isArray)||
+   !metals.every(item=>[mine.inventoryMg?.[item.code],mine.totalSupplyMg?.[item.code],mine.allocatedMg?.[item.code],mine.reservedMg?.[item.code]].every(amount=>Number.isSafeInteger(amount)&&amount>=0))){
+  throw new Error('El panel de mina devolvió una respuesta incompleta. Actualiza la consulta.');
+ }
+ return mine;
+}
 
 function Chip({label,active,onPress}:{label:string;active:boolean;onPress:()=>void}){
  return <Pressable onPress={onPress} style={[styles.chip,active&&styles.chipOn]}><Text style={[styles.chipText,active&&styles.chipTextOn]}>{label}</Text></Pressable>;
@@ -71,6 +89,23 @@ export default function App(){
  const [metalAction,setMetalAction]=useState<'sell'|'offer'|'delivery'>('sell');
  const [sellGrams,setSellGrams]=useState('0.500');
  const [pending,setPending]=useState<PendingOperation|null>(null);
+ const [account,setAccount]=useState<Account|null>(null);
+ const [mineIdentity,setMineIdentity]=useState<{id:string;name:string}|null>(null);
+ const [authExpired,setAuthExpired]=useState(false);
+ const [authVisible,setAuthVisible]=useState(false);
+ const [authMode,setAuthMode]=useState<'login'|'register'>('login');
+ const [authBusy,setAuthBusy]=useState(false);
+ const [authError,setAuthError]=useState('');
+ const [accountRecovery,setAccountRecovery]=useState<'login'|'logout'|null>(null);
+ const [recoveryAlias,setRecoveryAlias]=useState('');
+ const authLock=useRef(false);
+ const identityVersion=useRef(0);
+ const [mineSummary,setMineSummary]=useState<MineSummary|null>(null);
+ const [mineLoading,setMineLoading]=useState(false);
+ const [mineError,setMineError]=useState('');
+ const mineRequest=useRef(0);
+ const [stockReceipt,setStockReceipt]=useState<StockReceipt|null>(null);
+ const [lastStockId,setLastStockId]=useState('');
  const [historyItems,setHistoryItems]=useState<Receipt[]>([]);
  const [historyCursor,setHistoryCursor]=useState<string|null>(null);
  const [historyTotal,setHistoryTotal]=useState(0);
@@ -85,17 +120,81 @@ export default function App(){
  const [receiptError,setReceiptError]=useState('');
  const receiptRequest=useRef(0);
  const receiptToFetch=useRef('');
+ const receiptOwner=useRef<string|null>(null);
  const [confirmation,setConfirmation]=useState<Confirmation|null>(null);
  const confirmationRef=useRef<Confirmation|null>(null);
  const actionLock=useRef(false);
- const client=useRef(createDemoClient({api:API,storage:AsyncStorage,uuid:()=>Crypto.randomUUID()})).current;
+ const client=useRef(createAccountClient({api:API,storage:AsyncStorage,authStorage,uuid:()=>Crypto.randomUUID()})).current;
+ const isOperator=account?.role==='operator';
+ const sections=isOperator?operatorSections:buyerSections;
+ const tradingBlocked=busy||authBusy||!!pending||authExpired||!!accountRecovery||(!account&&!!state?.legacyReadOnly);
  async function load(loadSummary=false){
-  setState(await client.get<State>('/api/demo/state'));
-  if(loadSummary)setSummary(await client.get<Summary>('/api/demo/operator/summary'));
+  const version=identityVersion.current;
+  if(client.getAccount()?.role==='operator'){await loadMine();return;}
+  const next=await client.get<State>('/api/demo/state');
+  if(version!==identityVersion.current)return;
+  setState(next);
+  if(loadSummary&&!client.getAccount()){
+   const nextSummary=await client.get<Summary>('/api/demo/operator/summary');
+   if(version===identityVersion.current)setSummary(nextSummary);
+  }
+ }
+ async function loadMine(){
+  if(client.getAccount()?.role!=='operator')return;
+  const request=++mineRequest.current;const version=identityVersion.current;
+  setMineLoading(true);setMineError('');
+  try{
+   const result=checkedMine(await client.get<unknown>('/api/demo/mine/summary'));
+   if(request===mineRequest.current&&version===identityVersion.current)setMineSummary(result);
+  }catch(error){
+   if(request===mineRequest.current&&version===identityVersion.current){setMineError(messageError(error));noticeExpired(error);}
+  }finally{if(request===mineRequest.current)setMineLoading(false);}
+ }
+ function noticeExpired(error:unknown){
+  if(error instanceof RequestError&&error.status===401&&client.getAccount())setAuthExpired(true);
+ }
+ function clearIdentityViews(){
+  identityVersion.current++;historyRequest.current++;receiptRequest.current++;mineRequest.current++;
+  setState(null);setSummary(null);setMineSummary(null);setMineError('');setMineLoading(false);
+  setHistoryItems([]);setHistoryCursor(null);setHistoryTotal(0);setHistoryLoaded(false);setHistoryLoading(false);setHistoryError('');
+  setSelectedReceipt(null);setReceiptVisible(false);setReceiptLoading(false);setReceiptError('');receiptToFetch.current='';receiptOwner.current=null;
+  setStockReceipt(null);setLastStockId('');setOperatorVisible(false);
+ }
+ function acceptIdentity(initial:{session:string;pending:PendingOperation|null;account:Account|null;mine?:{id:string;name:string}|null;authExpired?:boolean}){
+  setSession(initial.session);setPending(initial.pending);setAccount(initial.account);setMineIdentity(initial.mine??null);setAuthExpired(!!initial.authExpired);
+  setAccountRecovery(null);setRecoveryAlias('');
+ }
+ function openAccount(mode:'login'|'register'='login'){
+  if(busy||authBusy||actionLock.current||authLock.current||client.isSending())return;
+  setAuthMode(mode);setAuthError('');setAuthVisible(true);
+ }
+ async function submitAccount(mode:'login'|'register',alias:string,password:string,importLegacy:boolean){
+  if(busy||authLock.current||actionLock.current||client.isSending())return;
+  if(mode==='register'&&client.getPending()){setAuthError('Resuelve primero la operación pendiente antes de crear una cuenta.');return;}
+  authLock.current=true;setAuthBusy(true);setAuthError('');
+  try{
+   const initial=mode==='login'?await client.login(alias,password):await client.register(alias,password,importLegacy);
+   clearIdentityViews();acceptIdentity(initial);setTab(initial.account?.role==='operator'?'Mina':'Inicio');setAuthVisible(false);setProblem('');
+   try{await load(true);}catch(error){noticeExpired(error);setProblem(`La cuenta está abierta, pero no pudimos actualizar sus datos. ${messageError(error)}`);}
+  }catch(error){
+   if(client.isIdentityUncertain()){setAccountRecovery('login');setRecoveryAlias(alias);setAuthMode('login');}
+   setAuthError(messageError(error));
+  }
+  finally{setAuthBusy(false);authLock.current=false;}
+ }
+ async function signOut(){
+  if(busy||authLock.current||actionLock.current||client.isSending())return;
+  if(client.getPending()){setAuthError('Resuelve la operación pendiente antes de cerrar sesión.');return;}
+  authLock.current=true;setAuthBusy(true);setAuthError('');
+  try{
+   const initial=await client.logout();clearIdentityViews();acceptIdentity(initial);setTab('Inicio');setAuthVisible(false);setProblem('');
+   try{await load(true);}catch(error){setProblem(messageError(error));}
+  }catch(error){if(client.isIdentityUncertain())setAccountRecovery(previous=>previous==='login'?'login':'logout');setAuthError(messageError(error));}
+  finally{setAuthBusy(false);authLock.current=false;}
  }
  useEffect(()=>{void refresh();},[]);
  useEffect(()=>{homeScrollY.setValue(0);},[tab,homeScrollY]);
- useEffect(()=>{if(tab==='Más'&&session&&!historyLoaded)void loadHistory(true);},[tab,session]);
+ useEffect(()=>{if(tab==='Más'&&session&&!historyLoaded&&!isOperator&&!authExpired)void loadHistory(true);},[tab,session,authExpired]);
  async function loadHistory(reset=true){
   const request=++historyRequest.current;
   historyRetryReset.current=reset;
@@ -112,47 +211,61 @@ export default function App(){
    setHistoryItems(previous=>reset?page.items:[...previous,...page.items.filter(item=>!previous.some(existing=>existing.id===item.id))]);
    setHistoryCursor(page.nextCursor);setHistoryTotal(page.total);setHistoryLoaded(true);
   }catch(error){
-   if(request===historyRequest.current)setHistoryError(error instanceof RequestError&&[404,405].includes(error.status)?
-    'El servicio de demostración necesita actualizarse para mostrar este historial. Tus saldos y sesión siguen guardados.':messageError(error));
+   if(request===historyRequest.current){setHistoryError(error instanceof RequestError&&[404,405].includes(error.status)?
+    'El servicio de demostración necesita actualizarse para mostrar este historial. Tus saldos y sesión siguen guardados.':messageError(error));noticeExpired(error);}
   }finally{if(request===historyRequest.current)setHistoryLoading(false);}
  }
- async function openReceipt(id:string,cached?:Receipt){
+ async function openReceipt(id:string,cached?:Receipt,ownerId?:string){
   const request=++receiptRequest.current;receiptToFetch.current=id;
+  receiptOwner.current=ownerId??null;
   setSelectedReceipt(cached??(selectedReceipt?.id===id?selectedReceipt:null));
   setReceiptVisible(true);setReceiptLoading(true);setReceiptError('');
   try{
-   const receipt=await client.get<Receipt>(`/api/demo/receipts/${encodeURIComponent(id)}`);
+   const path=ownerId?`/api/demo/mine/receipts/${encodeURIComponent(ownerId)}/${encodeURIComponent(id)}`:`/api/demo/receipts/${encodeURIComponent(id)}`;
+   const receipt=await client.get<Receipt>(path);
    if(receipt.id!==id||receipt.demoOnly!==true||typeof receipt.action!=='string'||typeof receipt.at!=='string')throw new Error('El comprobante devolvió una respuesta incompleta.');
    if(request===receiptRequest.current)setSelectedReceipt(receipt);
-  }catch(error){if(request===receiptRequest.current)setReceiptError(error instanceof RequestError&&error.status===405?
-   'El servicio de demostración necesita actualizarse para consultar este comprobante. Puedes cerrar esta pantalla y reintentarlo después.':`No pudimos consultar el comprobante. ${messageError(error)}`);}
+  }catch(error){if(request===receiptRequest.current){setReceiptError(error instanceof RequestError&&error.status===405?
+   'El servicio de demostración necesita actualizarse para consultar este comprobante. Puedes cerrar esta pantalla y reintentarlo después.':`No pudimos consultar el comprobante. ${messageError(error)}`);noticeExpired(error);}}
   finally{if(request===receiptRequest.current)setReceiptLoading(false);}
  }
  function closeReceipt(){receiptRequest.current++;setReceiptVisible(false);setReceiptLoading(false);}
  async function refresh(){
-  if(actionLock.current)return;
+  if(actionLock.current||authLock.current||client.isSending())return;
   actionLock.current=true;setBusy(true);
   try{
-   const initial=await client.initialize();setSession(initial.session);setPending(initial.pending);
+   const initial=await client.initialize();acceptIdentity(initial);
+   setTab(previous=>initial.account?.role==='operator'?(previous==='Cuenta'?'Cuenta':'Mina'):(previous==='Mina'||previous==='Cuenta'?'Inicio':previous));
+   if(initial.authExpired){setProblem('El acceso a tu cuenta venció. Entra de nuevo con el mismo alias; tu historial permanece guardado.');return;}
    await load(true);setProblem('');
-   if(tab==='Más'||historyLoaded)void loadHistory(true);
-  }catch(e){setProblem(messageError(e));}finally{setBusy(false);actionLock.current=false;}
+   if(!initial.account||initial.account.role==='buyer'){if(tab==='Más'||historyLoaded)void loadHistory(true);}
+  }catch(e){if(client.isIdentityUncertain())setAccountRecovery(previous=>previous||'login');noticeExpired(e);setProblem(messageError(e));}finally{setBusy(false);actionLock.current=false;}
  }
  async function runOperation(send:()=>ReturnType<typeof client.retry>){
   actionLock.current=true;setBusy(true);
   try{
-   const data=await send();setState(data.state as State);setSummary(null);setOperatorVisible(false);setProblem('');
-   receiptRequest.current++;receiptToFetch.current=data.receipt.id;
-   setSelectedReceipt(data.receipt);setReceiptVisible(true);setReceiptLoading(false);setReceiptError('');
-   void loadHistory(true);
+   const data=await send();setSummary(null);setOperatorVisible(false);setProblem('');
+   if(data.receipt.action==='stock'){
+    mineRequest.current++;setMineLoading(false);
+    setStockReceipt(data.receipt as unknown as StockReceipt);setLastStockId(data.receipt.id);
+    try{setMineSummary(checkedMine(data.mine));}catch(error){setMineError(`El ingreso quedó registrado. Actualiza el panel para consultar las existencias. ${messageError(error)}`);}
+   }else{
+    setState(data.state as State);receiptRequest.current++;receiptToFetch.current=data.receipt.id;receiptOwner.current=null;
+    setSelectedReceipt(data.receipt);setReceiptVisible(true);setReceiptLoading(false);setReceiptError('');
+    void loadHistory(true);
+   }
   }catch(e){
    const unresolved=client.getPending();
+   noticeExpired(e);
    setProblem(unresolved?`Hay una operación pendiente de confirmar. Reinténtala con el botón de abajo antes de crear otra. ${messageError(e)}`:`Operación rechazada: ${messageError(e)}`);
   }finally{setPending(client.getPending());setBusy(false);actionLock.current=false;}
  }
- function retryPending(){if(!actionLock.current&&!busy)void runOperation(()=>client.retry());}
+ function retryPending(){if(!actionLock.current&&!authLock.current&&!busy&&!authBusy&&!client.isSending()&&!authExpired&&!accountRecovery)void runOperation(()=>client.retry());}
  function perform(action:string,body:Record<string,string>,title:string,detail:string){
-  if(busy||actionLock.current||!session)return;
+  if(busy||authBusy||actionLock.current||authLock.current||client.isSending()||!session)return;
+  if(accountRecovery){setProblem('Resuelve primero el acceso a tu cuenta con el botón de arriba. Conservamos tus datos para evitar operar con una identidad incierta.');return;}
+  if(authExpired){setProblem('Entra de nuevo en tu cuenta para continuar.');return;}
+  if(state?.legacyReadOnly&&!account){setProblem('Esta sesión anterior está vinculada a una cuenta y permanece en consulta. Entra con su alias para operar.');return;}
   if(client.getPending()){
    setProblem('Reintenta primero la operación pendiente con el botón situado arriba. Conservaremos su misma clave para evitar duplicaciones.');return;
   }
@@ -182,7 +295,16 @@ export default function App(){
  }
  const portfolio=state?summarizePortfolio(state):{metalsValueMinor:0,usdtAvailableMinor:0,totalUsdtAndMetalsMinor:0};
  const reserved=(metal:Metal)=>state?state.offers.filter(o=>o.metal===metal&&o.status==='OPEN').reduce((a,o)=>a+o.mg,0)+state.custodyRequests.filter(d=>d.metal===metal&&d.status==='PENDING_QUOTE').reduce((a,d)=>a+d.mg,0):0;
+ function accountCard(){return <Card>
+  <Text style={styles.cardTitle}>{account?account.alias:state?.legacyReadOnly?'Sesión anterior vinculada':'Tu cuenta de demostración'}</Text>
+  {account?<><Row left="Rol" right={account.role==='operator'?'Operador de mina':'Comprador'}/><Text style={styles.copy}>{mineIdentity?.name||'Mina de demostración'} · datos ficticios</Text><Button label="Abrir mi cuenta" secondary disabled={busy||authBusy} onPress={()=>openAccount('login')}/></>:<>
+   <Text style={styles.copy}>{state?.legacyReadOnly?'Esta sesión permanece en consulta. Entra en la cuenta vinculada para continuar con sus saldos e historial.':'Crea una cuenta para recuperar tus datos en otro dispositivo y operar con el inventario compartido de la mina. Puedes conservar esta sesión al crearla.'}</Text>
+   <View style={styles.hRow}>{!state?.legacyReadOnly&&<Button label="Crear cuenta demo" disabled={busy||authBusy||!!pending} onPress={()=>openAccount('register')}/>}<Button label="Entrar en una cuenta" secondary disabled={busy||authBusy} onPress={()=>openAccount('login')}/></View>
+  </>}
+ </Card>}
+ function accountPage(){return <><Text style={styles.eyebrow}>ACCESO A LA DEMOSTRACIÓN</Text><Text style={styles.pageTitle}>Cuenta</Text>{accountCard()}<Text style={styles.copy}>Los roles y el inventario son de prueba. No hay verificación de identidad, pagos, reservas físicas ni custodio conectado.</Text><Text style={styles.copy}>Para usar la misma cuenta en otro dispositivo, entra con el mismo alias y su clave exclusiva de demostración.</Text></>}
  function home(){return <>
+  {!account&&accountCard()}
   <Text style={styles.eyebrow}>USDT + METALES · SIMULACIÓN</Text>
   <Text style={styles.heroNumber}>{money(portfolio.totalUsdtAndMetalsMinor)}</Text>
   <Text style={styles.muted}>USDT disponible más valoración de metales. No incluye tus saldos COP, EUR y USD.</Text>
@@ -205,6 +327,7 @@ export default function App(){
   const insufficient=!!quote&&quote.totalMinor>(state?.walletMinor.USDT||0);
   const unavailable=!!quote&&quote.milligrams>(state?.inventoryMg[currentMetal]||0);
   return <><Text style={styles.eyebrow}>COMPRAVENTA DE METALES</Text><Text style={styles.pageTitle}>Mercado</Text><Text style={styles.copy}>Compra fracciones de oro, plata, platino o paladio. La liquidación simulada se realiza en USDT.</Text>
+   {account&&<Card><Text style={styles.cardTitle}>Inventario compartido</Text><Text style={styles.copy}>{mineIdentity?.name||'Mina de demostración'}. Las compras de otras cuentas reducen la misma disponibilidad.</Text><Row left={`${m.name} disponible en la mina`} right={gram(state?.inventoryMg[currentMetal]||0)}/><Button label="Actualizar mercado" secondary disabled={busy} onPress={refresh}/></Card>}
    <View style={styles.metalGrid}>{metals.map(v=><Pressable key={v.code} onPress={()=>setCurrentMetal(v.code)} style={[styles.metalChoice,currentMetal===v.code&&styles.metalChoiceOn]}>
     <Text style={[styles.choiceSymbol,{color:v.color}]}>{v.symbol}</Text><Text style={styles.choiceName}>{v.name}</Text><Text style={styles.mutedSmall}>{money(state?.priceCentsPerGram[v.code]||0)}/g</Text>
    </Pressable>)}</View>
@@ -219,7 +342,7 @@ export default function App(){
     {insufficient&&<Text style={styles.disclaimer}>Tu saldo USDT no alcanza para esta cantidad. Revisa los gramos o convierte saldo en Billetera.</Text>}
     {!insufficient&&unavailable&&<Text style={styles.disclaimer}>Esta cantidad supera el inventario ficticio disponible.</Text>}
     <Text style={styles.mutedSmall}>El servidor valida el importe definitivo. Al comprar, la comisión se suma al valor del metal.</Text>
-    <Button label={busy?'Procesando...':'Confirmar compra simulada'} disabled={busy||!!pending||!quote||insufficient||unavailable} onPress={()=>{if(quote)perform('buy',{metal:currentMetal,grams:quote.normalizedGrams},`Comprar ${gram(quote.milligrams)} de ${m.name}`,`Metal: ${money(quote.baseMinor)}. Comisión: ${money(quote.feeMinor)}.\nTotal estimado: ${money(quote.totalMinor)}.\nUSDT después de comprar: ${money((state?.walletMinor.USDT||0)-quote.totalMinor)}.`);}}/>
+    <Button label={busy?'Procesando...':'Confirmar compra simulada'} disabled={tradingBlocked||!quote||insufficient||unavailable} onPress={()=>{if(quote)perform('buy',{metal:currentMetal,grams:quote.normalizedGrams},`Comprar ${gram(quote.milligrams)} de ${m.name}`,`Metal: ${money(quote.baseMinor)}. Comisión: ${money(quote.feeMinor)}.\nTotal estimado: ${money(quote.totalMinor)}.\nUSDT después de comprar: ${money((state?.walletMinor.USDT||0)-quote.totalMinor)}.`);}}/>
    </Card>
    <Text style={styles.disclaimer}>Ningún gramo en esta pantalla representa una existencia física acreditada.</Text>
   </>;
@@ -249,15 +372,15 @@ export default function App(){
    {insufficient&&<Text accessibilityRole="alert" style={styles.disclaimer}>El saldo {from} no alcanza para esta conversión.</Text>}
    {overflow&&<Text accessibilityRole="alert" style={styles.disclaimer}>El saldo de destino superaría el límite de esta demostración.</Text>}
    <Text style={styles.mutedSmall}>Tasa fija exclusivamente de demostración. El resultado se redondea a centésimas hacia abajo; el comprobante guarda el importe definitivo.</Text>
-   <Button label="Convertir en demo" disabled={busy||!!pending||!quote||insufficient||overflow} onPress={()=>{if(quote)perform('convert',{from,to,amount:quote.normalizedAmount},`Convertir ${from} a ${to}`,`Entregas: ${money(quote.amountMinor,from)}.\nRecibes: ${money(quote.outputMinor,to)}.\nComisión: ${money(quote.feeMinor,to)}.\nSaldo ${to} después: ${money((state?.walletMinor[to]||0)+quote.outputMinor,to)}.`);}}/>
+   <Button label="Convertir en demo" disabled={tradingBlocked||!quote||insufficient||overflow} onPress={()=>{if(quote)perform('convert',{from,to,amount:quote.normalizedAmount},`Convertir ${from} a ${to}`,`Entregas: ${money(quote.amountMinor,from)}.\nRecibes: ${money(quote.outputMinor,to)}.\nComisión: ${money(quote.feeMinor,to)}.\nSaldo ${to} después: ${money((state?.walletMinor[to]||0)+quote.outputMinor,to)}.`);}}/>
   </Card>
   <Sub>Ingresos y retiros simulados</Sub><Card><Text style={styles.copy}>Estos movimientos son pruebas de saldo: no conectan bancos ni redes blockchain.</Text>
    <View style={styles.chips}>{currencies.map(c=><Chip key={c} label={c} active={currency===c} onPress={()=>setCurrency(c)}/>)}</View>
    <TextInput accessibilityLabel="Cantidad para ingresar o retirar" style={styles.input} value={amount} onChangeText={setAmount} keyboardType="decimal-pad"/>
    {depositOverflow&&<Text style={styles.disclaimer}>El ingreso superaría el límite de saldo de la demostración.</Text>}
    {withdrawalInsufficient&&<Text style={styles.disclaimer}>El saldo {currency} no alcanza para este retiro.</Text>}
-   <View style={styles.hRow}><Button label="Simular ingreso" disabled={busy||!!pending||depositMinor===null||depositOverflow} onPress={()=>perform('deposit',{currency,amount},'Simular ingreso',`Abono ficticio: ${amount} ${currency}.`)}/>
-   <Button label="Simular retiro" secondary disabled={busy||!!pending||depositMinor===null||withdrawalInsufficient} onPress={()=>perform('withdraw',{currency,amount},'Simular retiro',`Cargo ficticio: ${amount} ${currency}.`)}/></View>
+   <View style={styles.hRow}><Button label="Simular ingreso" disabled={tradingBlocked||depositMinor===null||depositOverflow} onPress={()=>perform('deposit',{currency,amount},'Simular ingreso',`Abono ficticio: ${amount} ${currency}.`)}/>
+   <Button label="Simular retiro" secondary disabled={tradingBlocked||depositMinor===null||withdrawalInsufficient} onPress={()=>perform('withdraw',{currency,amount},'Simular retiro',`Cargo ficticio: ${amount} ${currency}.`)}/></View>
   </Card></>}
  function holdings(){const m=meta(currentMetal);const available=(state?.holdingsMg[currentMetal]||0)-reserved(currentMetal);
   const quantity=parsePositiveDecimal(sellGrams,3);
@@ -289,17 +412,17 @@ export default function App(){
     </View>}
     {metalAction==='sell'&&overflow&&<Text style={styles.disclaimer}>El saldo USDT resultante superaría el límite de la demostración.</Text>}
     <Text style={styles.mutedSmall}>{metalAction==='delivery'?'Se solicita una cotización; no se genera un envío ni un impuesto real.':metalAction==='offer'?'La cantidad queda reservada. Publicar no significa que exista un comprador.':'La comisión se descuenta del valor bruto. El servidor valida el importe definitivo.'}</Text>
-    <Button label={metalAction==='sell'?'Simular venta':metalAction==='offer'?'Publicar oferta demo':'Solicitar cotización de entrega'} disabled={busy||!!pending||invalid||unavailable||(metalAction==='sell'&&(!quote||overflow))} onPress={()=>{
+    <Button label={metalAction==='sell'?'Simular venta':metalAction==='offer'?'Publicar oferta demo':'Solicitar cotización de entrega'} disabled={tradingBlocked||invalid||unavailable||(metalAction==='sell'&&(!quote||overflow))} onPress={()=>{
      const detail=metalAction==='sell'&&quote?`${gram(quote.milligrams)} de ${m.name}.\nValor bruto: ${money(quote.baseMinor)}.\nComisión: ${money(quote.feeMinor)}.\nRecibes neto: ${money(quote.outputMinor)}.\nUSDT después: ${money((state?.walletMinor.USDT||0)+quote.outputMinor)}.`:`${operationMg===null?sellGrams:gram(operationMg)} de ${m.name}. Se reservará esta cantidad.`;
      perform(metalAction,{metal:currentMetal,grams:normalizeDecimalInput(sellGrams)},metalAction==='sell'?'Confirmar venta simulada':'Confirmar reserva simulada',detail);
     }}/>
    </Card>
    <Sub>Solicitudes y ofertas</Sub>
-   {state?.offers.filter(o=>o.status==='OPEN').map(o=><Card key={o.id}><Row left={`Oferta ${meta(o.metal).name}`} right={gram(o.mg)}/><Button label="Cancelar oferta" secondary disabled={busy||!!pending} onPress={()=>perform('cancel_offer',{offerId:o.id},'Cancelar oferta',`Se liberan ${gram(o.mg)}.`)}/></Card>)}
-   {state?.custodyRequests.filter(d=>d.status==='PENDING_QUOTE').map(d=><Card key={d.id}><Row left={`Entrega ${meta(d.metal).name}`} right={gram(d.mg)}/><Text style={styles.mutedSmall}>Pendiente de cotización · sin envío real.</Text><Button label="Cancelar solicitud" secondary disabled={busy||!!pending} onPress={()=>perform('cancel_delivery',{deliveryId:d.id},'Cancelar entrega',`Se liberan ${gram(d.mg)}.`)}/></Card>)}
+   {state?.offers.filter(o=>o.status==='OPEN').map(o=><Card key={o.id}><Row left={`Oferta ${meta(o.metal).name}`} right={gram(o.mg)}/><Button label="Cancelar oferta" secondary disabled={tradingBlocked} onPress={()=>perform('cancel_offer',{offerId:o.id},'Cancelar oferta',`Se liberan ${gram(o.mg)}.`)}/></Card>)}
+   {state?.custodyRequests.filter(d=>d.status==='PENDING_QUOTE').map(d=><Card key={d.id}><Row left={`Entrega ${meta(d.metal).name}`} right={gram(d.mg)}/><Text style={styles.mutedSmall}>Pendiente de cotización · sin envío real.</Text><Button label="Cancelar solicitud" secondary disabled={tradingBlocked} onPress={()=>perform('cancel_delivery',{deliveryId:d.id},'Cancelar entrega',`Se liberan ${gram(d.mg)}.`)}/></Card>)}
   </>}
  function more(){return <><Text style={styles.eyebrow}>CONTROL Y TRANSPARENCIA</Text><Text style={styles.pageTitle}>Actividad</Text>
-  <Card><Text style={styles.cardTitle}>Cuenta de demostración</Text><Text style={styles.copy}>Sin verificación de identidad, sin dinero depositado y sin titularidad real acreditada.</Text><Row left="Modo" right="SIMULACIÓN"/><Row left="Sesión" right={`${session.slice(0,8)}…`}/><Button label="Actualizar datos" secondary onPress={refresh}/></Card>
+  {accountCard()}<Button label="Actualizar datos" secondary disabled={busy||authBusy} onPress={refresh}/>
   <Sub>Historial de operaciones</Sub>
   <Text style={styles.copy}>Abre una operación para consultar su comprobante, importes y saldos registrados en ese momento.</Text>
   <Button label="Actualizar historial" secondary disabled={historyLoading} onPress={()=>void loadHistory(true)}/>
@@ -318,27 +441,33 @@ export default function App(){
   {historyLoading&&<View style={styles.historyLoading}><ActivityIndicator color={accent}/><Text style={styles.muted}>Consultando historial…</Text></View>}
   {historyLoaded&&<Text style={styles.mutedSmall}>Mostrando {historyItems.length} de {historyTotal} operaciones registradas.</Text>}
   {!!historyCursor&&<Button label="Cargar más operaciones" secondary disabled={historyLoading} onPress={()=>void loadHistory(false)}/>}
-  <Sub>Operador de mina · esta sesión</Sub><Card><Text style={styles.copy}>Inventario, operaciones y solicitudes ficticios de esta sesión. No consolida las operaciones de otros usuarios ni representa el inventario global de una mina.</Text><Button label={operatorVisible?'Ocultar panel':'Abrir panel de esta sesión'} onPress={async()=>{if(!operatorVisible)await refresh();setOperatorVisible(!operatorVisible);}} secondary/>
+  {!account&&<><Sub>Vista anterior · esta sesión</Sub><Card><Text style={styles.copy}>Inventario, operaciones y solicitudes ficticios de esta sesión anterior. No es el panel compartido de la mina.</Text><Button label={operatorVisible?'Ocultar vista anterior':'Abrir vista de esta sesión'} onPress={async()=>{if(!operatorVisible)await refresh();setOperatorVisible(!operatorVisible);}} secondary/>
    {operatorVisible&&<><Row left="Compras y ventas del demo" right={String(summary?.transactionCount||0)}/><Row left="Comisiones simuladas" right={money(summary?.demoFeesCollectedMinor||0)}/><Row left="Ofertas pendientes" right={String(summary?.offersOpen||0)}/><Row left="Cotizaciones de entrega" right={String(summary?.deliveriesPending||0)}/>
     {metals.map(v=><Row key={v.code} left={`Inventario ficticio ${v.name}`} right={gram(summary?.inventoryMg[v.code]||0)}/>)}
    </>}
-  </Card><Text style={styles.disclaimer}>Un panel global requerirá agregación entre sesiones, roles, permisos y auditoría.</Text>
+  </Card><Text style={styles.disclaimer}>Para consultar la mina compartida se necesita una cuenta de operador de demostración.</Text></>}
   </>}
  return <SafeAreaView style={styles.screen}><StatusBar barStyle="light-content" backgroundColor="#090F15"/>
   <View style={styles.header}><View><Text style={styles.logo}>OPEN<Text style={{color:accent}}>MINERALS</Text></Text><Text style={styles.logoSub}>METALS · OWNERSHIP · TECHNOLOGY</Text></View><View style={styles.badge}><Text style={styles.badgeText}>DEMO</Text></View></View>
+  <View style={styles.identityBar}><View style={{flex:1}}><Text numberOfLines={1} style={styles.identityTitle}>{account?`${account.role==='operator'?'Operador':'Comprador'} · ${account.alias}`:state?.legacyReadOnly?'Sesión anterior · solo consulta':'Sesión sin cuenta'}</Text><Text numberOfLines={1} style={styles.identityNote}>{account?mineIdentity?.name||'Mina de demostración':'Datos ficticios · tu historial permanece guardado'}</Text></View><Pressable accessibilityRole="button" disabled={busy||authBusy} onPress={()=>openAccount('login')} style={styles.accountLink}><Text style={styles.accountLinkText}>Cuenta</Text></Pressable></View>
   {!!problem&&<Pressable accessibilityRole="button" onPress={refresh} style={styles.errorBox}><Text style={styles.errorText}>{problem}\nToca aquí para actualizar los datos.</Text></Pressable>}
-  {!!pending&&<View style={styles.errorBox}><Text style={styles.errorText}>Pendiente: {pending.title}. Una respuesta perdida no confirma que la operación haya fallado. Reintentar recupera el mismo comprobante y bloquea movimientos duplicados.</Text><Button label={busy?'Consultando…':'Reintentar operación pendiente'} onPress={retryPending} disabled={busy}/></View>}
-  {!state?<View style={styles.center}>{!problem&&<ActivityIndicator color={accent}/>}<Text style={styles.muted}>Preparando experiencia móvil…</Text></View>:
+  {!account&&!!state?.legacyReadOnly&&<View style={styles.archiveBanner}><Text style={styles.archiveText}>Tu sesión anterior está vinculada a una cuenta y queda en consulta. Entra en esa cuenta para operar; no se borró el historial.</Text></View>}
+  {!!accountRecovery&&<View style={styles.archiveBanner}><Text style={styles.archiveText}>{accountRecovery==='logout'?'El acceso se cerró en el servidor, pero falta finalizar el cierre guardado en este dispositivo. Tus datos permanecen conservados.':'Falta confirmar el acceso a tu cuenta. Entra con el mismo alias y clave demo antes de crear movimientos; no se borró la sesión anterior.'}</Text><Button label={accountRecovery==='logout'?'Reintentar cierre de sesión':'Resolver acceso a cuenta'} disabled={busy||authBusy} onPress={()=>accountRecovery==='logout'?void signOut():openAccount('login')}/></View>}
+  {!!pending&&<View style={styles.errorBox}><Text style={styles.errorText}>Pendiente: {pending.title}. Una respuesta perdida no confirma que la operación haya fallado. Reintentar recupera el mismo comprobante y bloquea movimientos duplicados.</Text><Button label={busy?'Consultando…':'Reintentar operación pendiente'} onPress={retryPending} disabled={busy||authBusy||authExpired||!!accountRecovery}/></View>}
+  {authExpired?<View style={styles.center}><Text style={styles.cardTitle}>Vuelve a entrar en tu cuenta demo</Text><Text style={styles.copy}>Conservamos la identidad y cualquier solicitud pendiente. Usa el mismo alias para recuperar el acceso.</Text><Button label="Entrar de nuevo" onPress={()=>openAccount('login')} disabled={busy||authBusy}/></View>:!state&&!isOperator?<View style={styles.center}>{!problem&&<ActivityIndicator color={accent}/>}<Text style={styles.muted}>Preparando experiencia móvil…</Text></View>:
   <Animated.ScrollView key={tab} style={{flex:1}} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
    onLayout={event=>setViewportHeight(Math.max(1,event.nativeEvent.layout.height))}
    onScroll={Animated.event([{nativeEvent:{contentOffset:{y:homeScrollY}}}],{useNativeDriver:true})} scrollEventThrottle={16}>
-   {tab==='Inicio'?home():tab==='Mercado'?market():tab==='Billetera'?wallet():tab==='Metales'?holdings():more()}
+   {isOperator?(tab==='Cuenta'?accountPage():<MineDashboard summary={mineSummary} loading={mineLoading} error={mineError} blocked={busy||authBusy||!!pending||authExpired||!!accountRecovery} lastStockId={lastStockId} onRefresh={()=>void loadMine()} onReceipt={(ownerId,receipt)=>void openReceipt(receipt.id,receipt,ownerId)} onStockReceipt={setStockReceipt} onRestock={body=>perform('mine/stock',body,'Registrar ingreso ficticio',`${gram(Math.round((parsePositiveDecimal(body.grams,3)||0)*1000))} de ${meta(body.metal).name}.\nMotivo: ${body.reason}.\nSe añadirá a las existencias compartidas de esta demostración.`)}/>):tab==='Inicio'?home():tab==='Mercado'?market():tab==='Billetera'?wallet():tab==='Metales'?holdings():more()}
   </Animated.ScrollView>}
   <View style={styles.tabs}>{sections.map(t=><Pressable accessibilityRole="tab" accessibilityState={{selected:tab===t}} key={t} onPress={()=>setTab(t)} style={styles.tab}><View style={[styles.tabDot,tab===t&&styles.tabDotActive]}/><Text style={[styles.tabLabel,tab===t&&styles.tabLabelActive]}>{t==='Más'?'Actividad':t}</Text></Pressable>)}</View>
   <OperationConfirmation visible={confirmation!==null} title={confirmation?.title||''} detail={confirmation?.detail||''} onCancel={cancelConfirmation} onConfirm={confirmOperation}/>
   <ReceiptDetails visible={receiptVisible} receipt={selectedReceipt} loading={receiptLoading} error={receiptError}
-   onClose={closeReceipt} onRetry={()=>{if(receiptToFetch.current)void openReceipt(receiptToFetch.current);}}
-   onHistory={()=>{closeReceipt();setTab('Más');}}/>
+   onClose={closeReceipt} onRetry={()=>{if(receiptToFetch.current)void openReceipt(receiptToFetch.current,undefined,receiptOwner.current??undefined);}}
+   onHistory={()=>{closeReceipt();setTab(isOperator?'Mina':'Más');}}/>
+  <StockReceiptDetails receipt={stockReceipt} onClose={()=>setStockReceipt(null)}/>
+  <AccountAccess visible={authVisible} initialMode={authMode} account={account} mineName={mineIdentity?.name} recoveryAlias={recoveryAlias} expired={authExpired} busy={authBusy} pending={!!pending} canImportLegacy={!account&&!!state&&!state.legacyReadOnly} legacyReadOnly={!!state?.legacyReadOnly}
+   error={authError} onClose={()=>{if(!authBusy){setAuthVisible(false);setAuthError('');}}} onLogout={()=>void signOut()} onSubmit={(mode,alias,password,importLegacy)=>void submitAccount(mode,alias,password,importLegacy)}/>
  </SafeAreaView>;
 }
 const accent='#DCBC7F';
@@ -346,6 +475,7 @@ const styles=StyleSheet.create({
  screen:{flex:1,backgroundColor:'#090F15'},header:{height:78,paddingHorizontal:22,flexDirection:'row',justifyContent:'space-between',alignItems:'center',borderBottomWidth:1,borderColor:'#24303A'},
  logo:{fontSize:19,fontWeight:'800',color:'#F7F6F2',letterSpacing:2},logoSub:{fontSize:8,color:'#88949D',letterSpacing:2.1,marginTop:5},badge:{paddingHorizontal:10,paddingVertical:6,borderColor:'#8E7350',borderWidth:1,borderRadius:5},badgeText:{color:accent,fontSize:10,fontWeight:'800',letterSpacing:1.5},
  body:{paddingHorizontal:21,paddingTop:25,paddingBottom:50},center:{flex:1,justifyContent:'center',alignItems:'center',gap:15},
+ identityBar:{flexDirection:'row',alignItems:'center',gap:14,paddingHorizontal:21,paddingVertical:10,backgroundColor:'#111E28',borderBottomWidth:1,borderColor:'#273541'},identityTitle:{fontSize:12,color:'#E1D3B3',fontWeight:'700'},identityNote:{fontSize:10,color:'#98A5B0',marginTop:5},accountLink:{paddingHorizontal:14,paddingVertical:12,minHeight:44,borderRadius:8,borderWidth:1,borderColor:'#806948',justifyContent:'center'},accountLinkText:{fontSize:12,color:accent,fontWeight:'700'},archiveBanner:{backgroundColor:'#343025',paddingHorizontal:21,paddingVertical:12},archiveText:{fontSize:12,lineHeight:20,color:'#E7D7B6'},
  eyebrow:{fontSize:10,color:accent,fontWeight:'800',letterSpacing:2,marginBottom:10},heroNumber:{fontSize:35,color:'#F7F7F5',fontWeight:'700',letterSpacing:-1},pageTitle:{fontSize:31,color:'#F9F6F0',fontWeight:'700',marginBottom:10},
  muted:{color:'#92A0AC',fontSize:12,lineHeight:20},mutedSmall:{color:'#98A5B0',fontSize:11,lineHeight:18,marginTop:4},copy:{fontSize:13,color:'#BAC4CE',lineHeight:21,marginBottom:13},
  subhead:{fontSize:18,color:'#F3F2EE',fontWeight:'700',marginTop:24,marginBottom:14},card:{backgroundColor:'#141E28',borderWidth:1,borderColor:'#273541',borderRadius:16,padding:18,marginBottom:12},cardTitle:{fontSize:16,fontWeight:'700',color:'#F6F5F1',marginBottom:6},
