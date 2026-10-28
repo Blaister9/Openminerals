@@ -1,6 +1,6 @@
 {
   "name": "openminerals-mobile",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
@@ -22,5 +22,7 @@
     "@types/react": "~19.2.2",
     "typescript": "~6.0.3"
   },
-  "engines": { "node": ">=22.13" }
+  "engines": {
+    "node": ">=22.13"
+  }
 }

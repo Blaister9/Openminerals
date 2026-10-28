@@ -1,8 +1,10 @@
 import React, {useEffect,useRef,useState} from 'react';
-import {ActivityIndicator,Alert,Animated,Pressable,SafeAreaView,ScrollView,StatusBar,StyleSheet,Text,TextInput,View} from 'react-native';
+import {ActivityIndicator,Alert,Animated,Pressable,SafeAreaView,StatusBar,StyleSheet,Text,TextInput,View} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
 import {createDemoClient,type PendingOperation} from './lib/demo-client';
+import {normalizeDecimalInput,parsePositiveDecimal,quoteBuy,summarizePortfolio} from './lib/presentation';
+import {MetalStory} from './components/MetalStory';
 
 // DEMO: todas las cifras, inventarios y solicitudes son simulados.
 // No hay autenticación real, pasarela de pagos, exchange ni bóveda conectada.
@@ -35,12 +37,6 @@ const gram=(mg:number)=>`${(mg/1000).toLocaleString('es-CO',{maximumFractionDigi
 const meta=(code:Metal)=>metals.find(m=>m.code===code)!;
 const messageError=(e:unknown)=>e instanceof Error?e.message:'Error de conexión';
 const sections:Tab[]=['Inicio','Mercado','Billetera','Metales','Más'];
-const story=[
-  {title:'01 · Origen',text:'La mina registra el origen y la disponibilidad del lote de metal.'},
-  {title:'02 · Refinación',text:'Se documentan pureza, peso y el proceso de verificación del metal.'},
-  {title:'03 · Custodia',text:'El activo se vincula a un esquema de custodia que deberá verificarse contractualmente.'},
-  {title:'04 · Fracción digital',text:'El usuario compra gramos y ve su posición en un registro digital.'},
-];
 
 function Chip({label,active,onPress}:{label:string;active:boolean;onPress:()=>void}){
  return <Pressable onPress={onPress} style={[styles.chip,active&&styles.chipOn]}><Text style={[styles.chipText,active&&styles.chipTextOn]}>{label}</Text></Pressable>;
@@ -51,16 +47,6 @@ function Button({label,onPress,secondary=false,disabled=false}:{label:string;onP
 function Card({children}:{children:React.ReactNode}){return <View style={styles.card}>{children}</View>}
 function Sub({children}:{children:React.ReactNode}){return <Text style={styles.subhead}>{children}</Text>}
 function Row({left,right}:{left:string;right:string}){return <View style={styles.row}><Text style={styles.muted}>{left}</Text><Text style={styles.rowValue}>{right}</Text></View>}
-function GoldBar(){
- const spin=useRef(new Animated.Value(0)).current;
- useEffect(()=>{const loop=Animated.loop(Animated.sequence([
-  Animated.timing(spin,{toValue:1,duration:2200,useNativeDriver:true}),
-  Animated.timing(spin,{toValue:0,duration:2200,useNativeDriver:true})]));loop.start();return()=>loop.stop();},[spin]);
- const tilt=spin.interpolate({inputRange:[0,1],outputRange:['-12deg','14deg']});
- return <View style={styles.barSpace}><Animated.View style={[styles.barBack,{transform:[{perspective:650},{rotateY:tilt}]}]}>
-  <View style={styles.barTop}/><Text style={styles.barSymbol}>Au</Text><Text style={styles.barWord}>OPENMINERALS</Text><Text style={styles.barFine}>FINE GOLD · CONCEPTO</Text>
- </Animated.View></View>;
-}
 export default function App(){
  const [session,setSession]=useState('');
  const [state,setState]=useState<State|null>(null);
@@ -74,7 +60,8 @@ export default function App(){
  const [to,setTo]=useState<Currency>('USDT');
  const [currency,setCurrency]=useState<Currency>('USD');
  const [amount,setAmount]=useState('200.00');
- const [storyStep,setStoryStep]=useState(0);
+ const homeScrollY=useRef(new Animated.Value(0)).current;
+ const [viewportHeight,setViewportHeight]=useState(600);
  const [operatorVisible,setOperatorVisible]=useState(false);
  const [metalAction,setMetalAction]=useState<'sell'|'offer'|'delivery'>('sell');
  const [sellGrams,setSellGrams]=useState('0.500');
@@ -86,6 +73,7 @@ export default function App(){
   if(loadSummary)setSummary(await client.get<Summary>('/api/demo/operator/summary'));
  }
  useEffect(()=>{void refresh();},[]);
+ useEffect(()=>{homeScrollY.setValue(0);},[tab,homeScrollY]);
  async function refresh(){
   if(actionLock.current)return;
   actionLock.current=true;setBusy(true);
@@ -111,31 +99,39 @@ export default function App(){
   if(client.getPending()){
    Alert.alert('Operación pendiente','Reintenta primero la operación pendiente con el botón situado arriba. Conservaremos su misma clave para evitar duplicaciones.');return;
   }
+  if(body.grams!==undefined){
+   const quantity=parsePositiveDecimal(body.grams,3);
+   if(quantity===null||quantity<0.1){Alert.alert('Revisa los gramos','Introduce al menos 0,1 g y hasta tres decimales. Puedes usar coma o punto decimal.');return;}
+  }
+  if(body.amount!==undefined&&parsePositiveDecimal(body.amount,2)===null){
+   Alert.alert('Revisa el importe','Introduce un importe positivo con hasta dos decimales, sin separadores de miles.');return;
+  }
+  const normalizedBody={...body};
+  if(body.grams!==undefined)normalizedBody.grams=normalizeDecimalInput(body.grams);
+  if(body.amount!==undefined)normalizedBody.amount=normalizeDecimalInput(body.amount);
   actionLock.current=true;
   let accepted=false;
   Alert.alert(title,`${detail}\n\nEsta operación es 100 % simulada.`,[
    {text:'Cancelar',style:'cancel',onPress:()=>{actionLock.current=false;}},
    {text:'Confirmar demo',onPress:()=>{
-    accepted=true;void runOperation(()=>client.submit(action,body,title));
+    accepted=true;void runOperation(()=>client.submit(action,normalizedBody,title));
    }}
   ],{cancelable:true,onDismiss:()=>{if(!accepted)actionLock.current=false;}});
  }
- const pos=state?metals.reduce((a,m)=>a+Math.ceil(state.holdingsMg[m.code]*state.priceCentsPerGram[m.code]/1000),0):0;
+ const portfolio=state?summarizePortfolio(state):{metalsValueMinor:0,usdtAvailableMinor:0,totalUsdtAndMetalsMinor:0};
  const reserved=(metal:Metal)=>state?state.offers.filter(o=>o.metal===metal&&o.status==='OPEN').reduce((a,o)=>a+o.mg,0)+state.custodyRequests.filter(d=>d.metal===metal&&d.status==='PENDING_QUOTE').reduce((a,d)=>a+d.mg,0):0;
  function home(){return <>
-  <Text style={styles.eyebrow}>PATRIMONIO DE METALES · DEMO</Text>
-  <Text style={styles.heroNumber}>{money(pos)}</Text>
-  <Text style={styles.muted}>Valor indicativo de tus posiciones · precios ficticios</Text>
-  <GoldBar/>
+  <Text style={styles.eyebrow}>USDT + METALES · SIMULACIÓN</Text>
+  <Text style={styles.heroNumber}>{money(portfolio.totalUsdtAndMetalsMinor)}</Text>
+  <Text style={styles.muted}>USDT disponible más valoración de metales. No incluye tus saldos COP, EUR y USD.</Text>
+  <Card><Row left="USDT disponible" right={money(portfolio.usdtAvailableMinor)}/><Row left="Valor de tus metales" right={money(portfolio.metalsValueMinor)}/>
+   <Text style={styles.mutedSmall}>{portfolio.metalsValueMinor===0?'Aún no tienes metales. Tu dinero simulado sigue disponible en USDT.':'Valor de referencia ficticio; las comisiones se muestran al operar.'}</Text>
+  </Card>
   <View style={styles.hRow}>
    <Pressable onPress={()=>setTab('Mercado')} style={styles.quick}><Text style={styles.quickText}>Comprar metales  →</Text></Pressable>
    <Pressable onPress={()=>setTab('Billetera')} style={styles.quick}><Text style={styles.quickText}>Abrir billetera  →</Text></Pressable>
   </View>
-  <Sub>Del origen a tu portafolio</Sub>
-  <Card><Text style={styles.eyebrow}>RECORRIDO INTERACTIVO {storyStep+1} / 4</Text><Text style={styles.cardTitle}>{story[storyStep].title}</Text><Text style={styles.copy}>{story[storyStep].text}</Text>
-   <View style={styles.hRow}><Button label="Anterior" secondary onPress={()=>setStoryStep(Math.max(0,storyStep-1))}/><Button label={storyStep===3?'Reiniciar':'Siguiente'} onPress={()=>setStoryStep((storyStep+1)%4)}/></View>
-   <Text style={styles.mutedSmall}>Narrativa conceptual. Sin certificaciones ni inventario real verificados.</Text>
-  </Card>
+  <MetalStory scrollY={homeScrollY} viewportHeight={viewportHeight}/>
   <Sub>Mercado ilustrativo</Sub>
   {metals.map(m=><Pressable key={m.code} onPress={()=>{setCurrentMetal(m.code);setTab('Mercado');}} style={styles.metalRow}>
    <View style={[styles.metalIcon,{borderColor:m.color}]}><Text style={[styles.metalText,{color:m.color}]}>{m.symbol}</Text></View>
@@ -143,16 +139,24 @@ export default function App(){
    <Text style={styles.rowValue}>{money(state?.priceCentsPerGram[m.code]||0)}/g</Text>
   </Pressable>)}
  </>}
- function market(){const m=meta(currentMetal);const estimated=state?Math.ceil(state.priceCentsPerGram[currentMetal]*Number(grams||0)*1.01):0;
+ function market(){const m=meta(currentMetal);const quote=state?quoteBuy(grams,state.priceCentsPerGram[currentMetal],state.feesBps.buy):null;
+  const insufficient=!!quote&&quote.totalMinor>(state?.walletMinor.USDT||0);
+  const unavailable=!!quote&&quote.milligrams>(state?.inventoryMg[currentMetal]||0);
   return <><Text style={styles.eyebrow}>COMPRAVENTA DE METALES</Text><Text style={styles.pageTitle}>Mercado</Text><Text style={styles.copy}>Compra fracciones de oro, plata, platino o paladio. La liquidación simulada se realiza en USDT.</Text>
    <View style={styles.metalGrid}>{metals.map(v=><Pressable key={v.code} onPress={()=>setCurrentMetal(v.code)} style={[styles.metalChoice,currentMetal===v.code&&styles.metalChoiceOn]}>
     <Text style={[styles.choiceSymbol,{color:v.color}]}>{v.symbol}</Text><Text style={styles.choiceName}>{v.name}</Text><Text style={styles.mutedSmall}>{money(state?.priceCentsPerGram[v.code]||0)}/g</Text>
    </Pressable>)}</View>
    <Card><Text style={styles.eyebrow}>{m.name.toUpperCase()} · {m.symbol}</Text><Text style={styles.cardTitle}>Comprar gramos</Text><Text style={styles.copy}>Referencia del demo: {money(state?.priceCentsPerGram[currentMetal]||0)} / g</Text>
     <Text style={styles.inputLabel}>Cantidad en gramos</Text><TextInput accessibilityLabel="Cantidad de metal en gramos" style={styles.input} value={grams} keyboardType="decimal-pad" onChangeText={setGrams} placeholder="2.000" placeholderTextColor="#667385"/>
-    <Row left="Importe estimado con comisión" right={money(estimated)}/><Row left="Saldo USDT" right={money(state?.walletMinor.USDT||0)}/>
-    <Text style={styles.mutedSmall}>El servidor calcula el importe definitivo. Comisión de compra demo: 1 %.</Text>
-    <Button label={busy?'Procesando...':'Confirmar compra simulada'} disabled={busy} onPress={()=>perform('buy',{metal:currentMetal,grams},`Comprar ${grams} g de ${m.name}`,`Coste aproximado: ${money(estimated)}. Se descontará de tu saldo USDT.`)}/>
+    <Text style={styles.mutedSmall}>Para medio gramo escribe 0,5 o 0.5. Escribir 1050 significa 1050 gramos.</Text>
+    <View style={styles.chips}>{['0.100','0.500','1.000','2.000'].map(q=><Chip key={q} label={`${Number(q).toLocaleString('es-CO')} g`} active={normalizeDecimalInput(grams)===q} onPress={()=>setGrams(q)}/>)}</View>
+    {quote?<><Row left="Cantidad interpretada" right={`${quote.grams.toLocaleString('es-CO',{useGrouping:false,maximumFractionDigits:3})} gramos`}/>
+     <Row left="Metal sin comisión" right={money(quote.baseMinor)}/><Row left="Comisión simulada" right={money(quote.feeMinor)}/><Row left="Total estimado" right={money(quote.totalMinor)}/></>:<Text style={styles.disclaimer}>Introduce al menos 0,1 g y hasta tres decimales, sin separadores de miles.</Text>}
+    <Row left="USDT disponible" right={money(state?.walletMinor.USDT||0)}/>
+    {insufficient&&<Text style={styles.disclaimer}>Tu saldo USDT no alcanza para esta cantidad. Revisa los gramos o convierte saldo en Billetera.</Text>}
+    {!insufficient&&unavailable&&<Text style={styles.disclaimer}>Esta cantidad supera el inventario ficticio disponible.</Text>}
+    <Text style={styles.mutedSmall}>El servidor valida el importe definitivo. Al comprar, la comisión se suma al valor del metal.</Text>
+    <Button label={busy?'Procesando...':'Confirmar compra simulada'} disabled={busy||!quote||insufficient||unavailable} onPress={()=>{if(quote)perform('buy',{metal:currentMetal,grams:quote.normalizedGrams},`Comprar ${gram(quote.milligrams)} de ${m.name}`,`Total estimado con comisión: ${money(quote.totalMinor)}. Se descontará de tu saldo USDT.`);}}/>
    </Card>
    <Text style={styles.disclaimer}>Ningún gramo en esta pantalla representa una existencia física acreditada.</Text>
   </>;
@@ -167,7 +171,7 @@ export default function App(){
   <Sub>Ingresos y retiros simulados</Sub><Card><Text style={styles.copy}>Estos movimientos son pruebas de saldo: no conectan bancos ni redes blockchain.</Text>
    <View style={styles.chips}>{currencies.map(c=><Chip key={c} label={c} active={currency===c} onPress={()=>setCurrency(c)}/>)}</View>
    <TextInput accessibilityLabel="Cantidad para ingresar o retirar" style={styles.input} value={amount} onChangeText={setAmount} keyboardType="decimal-pad"/>
-   <View style={styles.hRow}><Button label="Simular ingreso" onPress={()=>perform('deposit',{currency,amount},'Simular ingreso',`Abono ficticio: ${money(Number(amount||0)*100,currency)}.`)}/>
+   <View style={styles.hRow}><Button label="Simular ingreso" onPress={()=>perform('deposit',{currency,amount},'Simular ingreso',`Abono ficticio: ${amount} ${currency}.`)}/>
    <Button label="Simular retiro" secondary onPress={()=>perform('withdraw',{currency,amount},'Simular retiro',`Cargo ficticio: ${amount} ${currency}.`)}/></View>
   </Card></>}
  function holdings(){const m=meta(currentMetal);const available=(state?.holdingsMg[currentMetal]||0)-reserved(currentMetal);
@@ -202,9 +206,11 @@ export default function App(){
   {!!problem&&<Pressable onPress={refresh} style={styles.errorBox}><Text style={styles.errorText}>{problem}\nToca aquí para volver a intentar.</Text></Pressable>}
   {!!pending&&<View style={styles.errorBox}><Text style={styles.errorText}>Pendiente: {pending.title}. Una respuesta perdida no confirma que la operación haya fallado. Reintentar recupera el mismo comprobante y bloquea movimientos duplicados.</Text><Button label={busy?'Consultando…':'Reintentar operación pendiente'} onPress={retryPending} disabled={busy}/></View>}
   {!state?<View style={styles.center}>{!problem&&<ActivityIndicator color={accent}/>}<Text style={styles.muted}>Preparando experiencia móvil…</Text></View>:
-  <ScrollView key={tab} style={{flex:1}} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+  <Animated.ScrollView key={tab} style={{flex:1}} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
+   onLayout={event=>setViewportHeight(Math.max(1,event.nativeEvent.layout.height))}
+   onScroll={Animated.event([{nativeEvent:{contentOffset:{y:homeScrollY}}}],{useNativeDriver:true})} scrollEventThrottle={16}>
    {tab==='Inicio'?home():tab==='Mercado'?market():tab==='Billetera'?wallet():tab==='Metales'?holdings():more()}
-  </ScrollView>}
+  </Animated.ScrollView>}
   <View style={styles.tabs}>{sections.map(t=><Pressable key={t} onPress={()=>setTab(t)} style={styles.tab}><View style={[styles.tabDot,tab===t&&styles.tabDotActive]}/><Text style={[styles.tabLabel,tab===t&&styles.tabLabelActive]}>{t}</Text></Pressable>)}</View>
  </SafeAreaView>;
 }

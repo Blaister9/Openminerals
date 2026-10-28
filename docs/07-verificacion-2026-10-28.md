@@ -1,6 +1,6 @@
 # Verificación de Openminerals · 28 de octubre de 2026
 
-La API de simulación funciona con PostgreSQL en Railway. La instalación y el recorrido en teléfonos físicos todavía no están verificados. Todas las cifras, operaciones, cotizaciones y reservas son ficticias.
+La API de simulación funciona con PostgreSQL en Railway. El propietario confirmó después de esta entrega la instalación y parte del recorrido en Android; el detalle se registra en [la revisión de usabilidad](08-revision-usabilidad-2026-10-28.md). El recorrido físico completo e iPhone siguen pendientes. Todas las cifras, operaciones, cotizaciones y reservas son ficticias.
 
 ## Código publicado
 
@@ -49,7 +49,8 @@ Variables de API: `DATABASE_URL` referencia `${{Postgres.DATABASE_URL}}`, `REQUI
 | CI | [Workflow ampliado aprobado](https://github.com/Blaister9/Openminerals/actions/runs/40710145714), incluyendo PostgreSQL 18 y pruebas móviles |
 | Auditoría API | Cero vulnerabilidades reportadas |
 | Auditoría móvil | 8 avisos: 3 altos transitivos y 5 bajos; detalle abajo |
-| Android/iPhone físicos | No ejecutados; no se declara aceptación de dispositivos |
+| Android físico 0.1.0 | Propietario confirmó instalación, apertura, conversión, compra de 0,5 g, rechazo por saldo insuficiente y venta; aceptación completa pendiente |
+| iPhone físico | No ejecutado; firma Apple pendiente |
 
 PostgreSQL se comprobó con un esquema temporal exclusivo `om_test_<UUID>`, eliminado al concluir: sesiones aisladas; 12 compras concurrentes con la misma clave y un solo movimiento; 12 retiros concurrentes de los cuales solo los dos con saldo pueden completarse; rollback al rechazar una compra; cierre y reapertura del store sin pérdida de estado ni recibos. No se modificaron las sesiones normales de la demo.
 
