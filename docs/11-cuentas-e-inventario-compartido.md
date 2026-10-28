@@ -112,24 +112,30 @@ Para construir o ejecutar la app, `EXPO_PUBLIC_API_URL` debe apuntar al backend 
 
 ## Evidencia de la revisión 0.1.3
 
-Esta tabla debe completarse con resultados observados y enlaces reales antes de entregar la revisión como verificada. **Pendiente** significa que este archivo no aporta aún esa evidencia; no implica una prueba aprobada ni sustituye los registros del responsable de la ejecución.
+La fuente de esta revisión es `fb1f590f665fc5e7bb3dcc11217c7481446c7183`. La tabla separa las comprobaciones ya ejecutadas de la activación y la instalación pendientes. **Pendiente** no implica una prueba aprobada.
 
 | Elemento | Resultado/evidencia |
 | --- | --- |
-| Commit final y PR de la revisión | Pendiente de registrar |
-| Pruebas API de dominio/HTTP y contratos de roles | Pendiente de consolidar con comando, resultado y log |
-| PostgreSQL: concurrencia, importación, rollback y reconexión | Pendiente de consolidar con resultado y log |
-| Pruebas móviles y TypeScript de la fuente final | Pendiente de consolidar con resultado y log |
-| Dependencias Expo y exports Android/iOS | Pendiente de consolidar |
-| UI local con compradores y operador | Pendiente de registrar recorrido, entorno y capturas |
+| Commit de la revisión | [fb1f590](https://github.com/Blaister9/Openminerals/commit/fb1f590f665fc5e7bb3dcc11217c7481446c7183), `Add demo accounts and transactional shared mine inventory`; revisión en el PR existente #1 |
+| Pruebas API de dominio/HTTP y contratos de roles | `npm test`: 31 aprobadas y dos suites PostgreSQL omitidas localmente por falta de URL; no se cuentan las omisiones como pruebas aprobadas |
+| PostgreSQL: concurrencia, importación, rollback y reconexión | 14/14 aprobadas por SSH con PostgreSQL real de Railway, en esquemas temporales aislados; log local ignorado `artifacts/railway-accounts-pg-20261028.log` |
+| Pruebas móviles y TypeScript | `npm test`: 45/45 aprobadas; `npm run check` aprobado |
+| Dependencias Expo y exports Android/iOS | `expo install --check` aprobado; Expo Doctor 21/21; exports Hermes Android/iOS aprobados en `artifacts/native-exports-0.1.3/` |
+| UI local con compradores y operador | API aislada en memoria: dos compradores, importación del historial, ingreso de metal/comprobante de operador y cierre de sesión con retorno al origen anterior comprobados; capturas locales descritas abajo |
 | Activación 0.1.3 en Railway | Pendiente; el dominio existente es `https://openminerals-api-demo.up.railway.app`, y su funcionamiento anterior no acredita la revisión nueva |
 | Prueba HTTPS y persistencia tras reinicio | Pendiente de registrar para cuentas/mina de esta revisión |
 | Aprovisionamiento de operador | Pendiente de confirmar; credenciales solo en archivo privado fuera de Git |
-| APK Android 0.1.3 | Pendiente de enlace EAS/APK, fuente, firma, versión y hash |
+| APK Android 0.1.3 | Build EAS `269f285b-f16b-4c82-9c9a-35a3a5082bc5` en cola desde `fb1f590`, versión 0.1.3 y código 4. Todavía sin APK ni inspección de firma/hash; enlace de instalación pendiente |
 | Instalación y recorrido Android 0.1.3 | Pendiente de prueba nativa y confirmación del propietario |
 | Instalador/recorrido iPhone | Sin evidencia nueva en este informe; el bloqueo de firma Apple sigue documentado en la revisión anterior |
 
 El último APK entregado y sus resultados pertenecen a [0.1.2](10-comprobantes-y-operaciones-0.1.2.md). No usar ese enlace para afirmar que cuentas y mina ya están instaladas en el teléfono.
+
+La ejecución PostgreSQL copió las fuentes a un directorio temporal fuera de `/app`, verificó el archivo transferido y ejecutó las suites de cuentas y compatibilidad anterior. El log identifica las fuentes por SHA-256; los siete archivos de dominio/store/autenticación/historial y tests coinciden con la fuente local de esta revisión. Creó y eliminó únicamente esquemas aleatorios de prueba; no sustituyó las fuentes del servicio ni activó endpoints HTTP nuevos. Por tanto, esas 14 comprobaciones no acreditan todavía el despliegue 0.1.3 ni la persistencia tras reiniciar la API nueva.
+
+Capturas de la UI web local, ignoradas por Git: `artifacts/qa-0.1.3-buyer-history.png`, `qa-0.1.3-mine-before-stock.png`, `qa-0.1.3-stock-receipt.png` y `qa-0.1.3-operator-receipt.png`, todas dentro de `artifacts/`. El fixture de identidades sintéticas se mantiene privado en esa carpeta; su contenido no se publica. Esta comprobación usó `memory-demo` en loopback, no el teléfono Android ni el backend HTTPS nuevo.
+
+Se preparó `.github/workflows/apk-inspect.yml` para el APK 0.1.3/código 4, conservando el certificado de referencia. Revisa paquete, firma, API HTTPS y las rutas de cuentas, mina y comprobantes en el bundle. El transporte de stock se forma con `/api/demo/` y `mine/stock`; se comprueban ambos fragmentos para no exigir una cadena literal que Hermes no incluye. El job de inspección espera a que exista `mobile/e2e/apk-0.1.3-url.txt`; el fichero no se crea hasta obtener un APK real. Preparar el workflow no equivale a ejecutarlo y la inspección no sustituye una prueba nativa de pantallas.
 
 ## Límites que permanecen
 
