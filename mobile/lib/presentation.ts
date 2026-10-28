@@ -17,6 +17,17 @@ export type BuyQuote = {
   feeMinor:number;
   totalMinor:number;
 };
+export type SellQuote = Omit<BuyQuote,'totalMinor'> & {outputMinor:number};
+export type ConversionQuote = {
+  from:string;
+  to:string;
+  normalizedAmount:string;
+  amountMinor:number;
+  outputMinor:number;
+  rateDemo:number;
+  feeMinor:0;
+};
+export type DemoRates = Partial<Record<string,Partial<Record<string,number>>>>;
 
 /** Accept a decimal comma, never infer a thousands separator or omitted decimal. */
 export function normalizeDecimalInput(input:string):string {
@@ -65,4 +76,29 @@ export function quoteBuy(grams:string,priceCentsPerGram:number,buyBps=100):BuyQu
     grams:parsed.scaled/1000,milligrams:parsed.scaled,normalizedGrams:parsed.normalized,
     baseMinor:Number(base),feeMinor:Number(fee),totalMinor:Number(total),
   };
+}
+
+/** Preview only: the server checks the available position and resulting wallet. */
+export function quoteSell(grams:string,priceCentsPerGram:number,sellBps=120):SellQuote|null {
+  const quote=quoteBuy(grams,priceCentsPerGram,sellBps);
+  if(!quote)return null;
+  const outputMinor=quote.baseMinor-quote.feeMinor;
+  if(outputMinor<=0||outputMinor>10_000_000_000)return null;
+  return {
+    grams:quote.grams,milligrams:quote.milligrams,normalizedGrams:quote.normalizedGrams,
+    baseMinor:quote.baseMinor,feeMinor:quote.feeMinor,outputMinor,
+  };
+}
+
+/** Demo rates are scaled by 1,000,000; round down exactly as the API does. */
+export function quoteConversion(amount:string,from:string,to:string,rates:DemoRates):ConversionQuote|null {
+  const currencies=['COP','EUR','USD','USDT'];
+  const parsed=scaledDecimal(amount,2);
+  if(!parsed||from===to||!currencies.includes(from)||!currencies.includes(to))return null;
+  const rateDemo=rates[from]?.[to];
+  if(typeof rateDemo!=='number'||!Number.isSafeInteger(rateDemo)||rateDemo<=0)return null;
+  const output=BigInt(parsed.scaled)*BigInt(rateDemo)/1_000_000n;
+  if(output<=0n||output>10_000_000_000n)return null;
+  return {from,to,normalizedAmount:parsed.normalized,amountMinor:parsed.scaled,
+    outputMinor:Number(output),rateDemo,feeMinor:0};
 }

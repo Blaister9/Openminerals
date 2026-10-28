@@ -1,10 +1,13 @@
 import React, {useEffect,useRef,useState} from 'react';
-import {ActivityIndicator,Alert,Animated,Pressable,SafeAreaView,StatusBar,StyleSheet,Text,TextInput,View} from 'react-native';
+import {ActivityIndicator,Animated,Pressable,SafeAreaView,StatusBar,StyleSheet,Text,TextInput,View} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
-import {createDemoClient,type PendingOperation} from './lib/demo-client';
-import {normalizeDecimalInput,parsePositiveDecimal,quoteBuy,summarizePortfolio} from './lib/presentation';
+import {createDemoClient,RequestError,type PendingOperation} from './lib/demo-client';
+import {normalizeDecimalInput,parsePositiveDecimal,quoteBuy,quoteSell,quoteConversion,summarizePortfolio} from './lib/presentation';
+import {receiptTitle,receiptSummary,type Receipt,type ReceiptHistoryPage} from './lib/receipt-presentation';
 import {MetalStory} from './components/MetalStory';
+import {ReceiptDetails} from './components/ReceiptDetails';
+import {OperationConfirmation} from './components/OperationConfirmation';
 
 // DEMO: todas las cifras, inventarios y solicitudes son simulados.
 // No hay autenticación real, pasarela de pagos, exchange ni bóveda conectada.
@@ -24,7 +27,9 @@ type State = {
   movements:Move[];offers:Offer[];custodyRequests:Delivery[];
 };
 type Summary = {transactionCount:number;demoFeesCollectedMinor:number;offersOpen:number;deliveriesPending:number;inventoryMg:Record<Metal,number>;holdingsMg:Record<Metal,number>};
+type Confirmation={action:string;body:Record<string,string>;title:string;detail:string};
 const API=(process.env.EXPO_PUBLIC_API_URL||'').replace(/\/$/,'');
+const MAX_BALANCE_MINOR=10_000_000_000;
 const metals: {code:Metal;name:string;symbol:string;tagline:string;color:string}[]=[
   {code:'XAU',name:'Oro',symbol:'Au',tagline:'Reserva de valor',color:'#D8B676'},
   {code:'XAG',name:'Plata',symbol:'Ag',tagline:'Metal industrial',color:'#CED3DE'},
@@ -42,7 +47,7 @@ function Chip({label,active,onPress}:{label:string;active:boolean;onPress:()=>vo
  return <Pressable onPress={onPress} style={[styles.chip,active&&styles.chipOn]}><Text style={[styles.chipText,active&&styles.chipTextOn]}>{label}</Text></Pressable>;
 }
 function Button({label,onPress,secondary=false,disabled=false}:{label:string;onPress:()=>void;secondary?:boolean;disabled?:boolean}){
- return <Pressable disabled={disabled} onPress={onPress} style={[styles.button,secondary&&styles.buttonSecondary,disabled&&{opacity:.45}]}><Text style={[styles.buttonText,secondary&&styles.buttonSecondaryText]}>{label}</Text></Pressable>;
+ return <Pressable accessibilityRole="button" accessibilityState={{disabled}} disabled={disabled} onPress={onPress} style={[styles.button,secondary&&styles.buttonSecondary,disabled&&{opacity:.45}]}><Text style={[styles.buttonText,secondary&&styles.buttonSecondaryText]}>{label}</Text></Pressable>;
 }
 function Card({children}:{children:React.ReactNode}){return <View style={styles.card}>{children}</View>}
 function Sub({children}:{children:React.ReactNode}){return <Text style={styles.subhead}>{children}</Text>}
@@ -66,6 +71,22 @@ export default function App(){
  const [metalAction,setMetalAction]=useState<'sell'|'offer'|'delivery'>('sell');
  const [sellGrams,setSellGrams]=useState('0.500');
  const [pending,setPending]=useState<PendingOperation|null>(null);
+ const [historyItems,setHistoryItems]=useState<Receipt[]>([]);
+ const [historyCursor,setHistoryCursor]=useState<string|null>(null);
+ const [historyTotal,setHistoryTotal]=useState(0);
+ const [historyLoaded,setHistoryLoaded]=useState(false);
+ const [historyLoading,setHistoryLoading]=useState(false);
+ const [historyError,setHistoryError]=useState('');
+ const historyRequest=useRef(0);
+ const historyRetryReset=useRef(true);
+ const [receiptVisible,setReceiptVisible]=useState(false);
+ const [selectedReceipt,setSelectedReceipt]=useState<Receipt|null>(null);
+ const [receiptLoading,setReceiptLoading]=useState(false);
+ const [receiptError,setReceiptError]=useState('');
+ const receiptRequest=useRef(0);
+ const receiptToFetch=useRef('');
+ const [confirmation,setConfirmation]=useState<Confirmation|null>(null);
+ const confirmationRef=useRef<Confirmation|null>(null);
  const actionLock=useRef(false);
  const client=useRef(createDemoClient({api:API,storage:AsyncStorage,uuid:()=>Crypto.randomUUID()})).current;
  async function load(loadSummary=false){
@@ -74,49 +95,90 @@ export default function App(){
  }
  useEffect(()=>{void refresh();},[]);
  useEffect(()=>{homeScrollY.setValue(0);},[tab,homeScrollY]);
+ useEffect(()=>{if(tab==='Más'&&session&&!historyLoaded)void loadHistory(true);},[tab,session]);
+ async function loadHistory(reset=true){
+  const request=++historyRequest.current;
+  historyRetryReset.current=reset;
+  setHistoryLoading(true);setHistoryError('');
+  if(reset)setHistoryLoaded(false);
+  try{
+   const cursor=reset?null:historyCursor;
+   const page=await client.get<ReceiptHistoryPage>(`/api/demo/history?limit=20${cursor?`&before=${encodeURIComponent(cursor)}`:''}`);
+   if(!Array.isArray(page.items)||page.demoOnly!==true||!Number.isSafeInteger(page.total)||
+     (page.nextCursor!==null&&typeof page.nextCursor!=='string')||page.items.some(item=>!item||typeof item.id!=='string'||typeof item.action!=='string'||typeof item.at!=='string')){
+    throw new Error('El historial devolvió una respuesta incompleta. Reintenta la consulta.');
+   }
+   if(request!==historyRequest.current)return;
+   setHistoryItems(previous=>reset?page.items:[...previous,...page.items.filter(item=>!previous.some(existing=>existing.id===item.id))]);
+   setHistoryCursor(page.nextCursor);setHistoryTotal(page.total);setHistoryLoaded(true);
+  }catch(error){
+   if(request===historyRequest.current)setHistoryError(error instanceof RequestError&&[404,405].includes(error.status)?
+    'El servicio de demostración necesita actualizarse para mostrar este historial. Tus saldos y sesión siguen guardados.':messageError(error));
+  }finally{if(request===historyRequest.current)setHistoryLoading(false);}
+ }
+ async function openReceipt(id:string,cached?:Receipt){
+  const request=++receiptRequest.current;receiptToFetch.current=id;
+  setSelectedReceipt(cached??(selectedReceipt?.id===id?selectedReceipt:null));
+  setReceiptVisible(true);setReceiptLoading(true);setReceiptError('');
+  try{
+   const receipt=await client.get<Receipt>(`/api/demo/receipts/${encodeURIComponent(id)}`);
+   if(receipt.id!==id||receipt.demoOnly!==true||typeof receipt.action!=='string'||typeof receipt.at!=='string')throw new Error('El comprobante devolvió una respuesta incompleta.');
+   if(request===receiptRequest.current)setSelectedReceipt(receipt);
+  }catch(error){if(request===receiptRequest.current)setReceiptError(error instanceof RequestError&&error.status===405?
+   'El servicio de demostración necesita actualizarse para consultar este comprobante. Puedes cerrar esta pantalla y reintentarlo después.':`No pudimos consultar el comprobante. ${messageError(error)}`);}
+  finally{if(request===receiptRequest.current)setReceiptLoading(false);}
+ }
+ function closeReceipt(){receiptRequest.current++;setReceiptVisible(false);setReceiptLoading(false);}
  async function refresh(){
   if(actionLock.current)return;
   actionLock.current=true;setBusy(true);
   try{
    const initial=await client.initialize();setSession(initial.session);setPending(initial.pending);
    await load(true);setProblem('');
+   if(tab==='Más'||historyLoaded)void loadHistory(true);
   }catch(e){setProblem(messageError(e));}finally{setBusy(false);actionLock.current=false;}
  }
  async function runOperation(send:()=>ReturnType<typeof client.retry>){
   actionLock.current=true;setBusy(true);
   try{
    const data=await send();setState(data.state as State);setSummary(null);setOperatorVisible(false);setProblem('');
-   Alert.alert('Operación simulada',`Comprobante: ${data.receipt.id}\n${data.receipt.replayed?'Solicitud recuperada sin duplicar el movimiento.':'Operación registrada en el historial.'}`);
+   receiptRequest.current++;receiptToFetch.current=data.receipt.id;
+   setSelectedReceipt(data.receipt);setReceiptVisible(true);setReceiptLoading(false);setReceiptError('');
+   void loadHistory(true);
   }catch(e){
    const unresolved=client.getPending();
-   setProblem(unresolved?'Hay una operación pendiente de confirmar. Reinténtala con el botón de abajo antes de crear otra.':'');
-   Alert.alert(unresolved?'Operación pendiente':'Operación rechazada',messageError(e));
+   setProblem(unresolved?`Hay una operación pendiente de confirmar. Reinténtala con el botón de abajo antes de crear otra. ${messageError(e)}`:`Operación rechazada: ${messageError(e)}`);
   }finally{setPending(client.getPending());setBusy(false);actionLock.current=false;}
  }
  function retryPending(){if(!actionLock.current&&!busy)void runOperation(()=>client.retry());}
  function perform(action:string,body:Record<string,string>,title:string,detail:string){
   if(busy||actionLock.current||!session)return;
   if(client.getPending()){
-   Alert.alert('Operación pendiente','Reintenta primero la operación pendiente con el botón situado arriba. Conservaremos su misma clave para evitar duplicaciones.');return;
+   setProblem('Reintenta primero la operación pendiente con el botón situado arriba. Conservaremos su misma clave para evitar duplicaciones.');return;
   }
   if(body.grams!==undefined){
    const quantity=parsePositiveDecimal(body.grams,3);
-   if(quantity===null||quantity<0.1){Alert.alert('Revisa los gramos','Introduce al menos 0,1 g y hasta tres decimales. Puedes usar coma o punto decimal.');return;}
+   if(quantity===null||quantity<0.1){setProblem('Introduce al menos 0,1 g y hasta tres decimales. Puedes usar coma o punto decimal.');return;}
   }
   if(body.amount!==undefined&&parsePositiveDecimal(body.amount,2)===null){
-   Alert.alert('Revisa el importe','Introduce un importe positivo con hasta dos decimales, sin separadores de miles.');return;
+   setProblem('Introduce un importe positivo con hasta dos decimales, sin separadores de miles.');return;
   }
   const normalizedBody={...body};
   if(body.grams!==undefined)normalizedBody.grams=normalizeDecimalInput(body.grams);
   if(body.amount!==undefined)normalizedBody.amount=normalizeDecimalInput(body.amount);
   actionLock.current=true;
-  let accepted=false;
-  Alert.alert(title,`${detail}\n\nEsta operación es 100 % simulada.`,[
-   {text:'Cancelar',style:'cancel',onPress:()=>{actionLock.current=false;}},
-   {text:'Confirmar demo',onPress:()=>{
-    accepted=true;void runOperation(()=>client.submit(action,normalizedBody,title));
-   }}
-  ],{cancelable:true,onDismiss:()=>{if(!accepted)actionLock.current=false;}});
+  const next={action,body:normalizedBody,title,detail};
+  confirmationRef.current=next;setConfirmation(next);setProblem('');
+ }
+ function cancelConfirmation(){
+  if(!confirmationRef.current)return;
+  confirmationRef.current=null;setConfirmation(null);actionLock.current=false;
+ }
+ function confirmOperation(){
+  const operation=confirmationRef.current;
+  if(!operation)return;
+  confirmationRef.current=null;setConfirmation(null);
+  void runOperation(()=>client.submit(operation.action,operation.body,operation.title));
  }
  const portfolio=state?summarizePortfolio(state):{metalsValueMinor:0,usdtAvailableMinor:0,totalUsdtAndMetalsMinor:0};
  const reserved=(metal:Metal)=>state?state.offers.filter(o=>o.metal===metal&&o.status==='OPEN').reduce((a,o)=>a+o.mg,0)+state.custodyRequests.filter(d=>d.metal===metal&&d.status==='PENDING_QUOTE').reduce((a,d)=>a+d.mg,0):0;
@@ -153,28 +215,57 @@ export default function App(){
     {quote?<><Row left="Cantidad interpretada" right={`${quote.grams.toLocaleString('es-CO',{useGrouping:false,maximumFractionDigits:3})} gramos`}/>
      <Row left="Metal sin comisión" right={money(quote.baseMinor)}/><Row left="Comisión simulada" right={money(quote.feeMinor)}/><Row left="Total estimado" right={money(quote.totalMinor)}/></>:<Text style={styles.disclaimer}>Introduce al menos 0,1 g y hasta tres decimales, sin separadores de miles.</Text>}
     <Row left="USDT disponible" right={money(state?.walletMinor.USDT||0)}/>
+    {quote&&!insufficient&&<Row left="USDT después de comprar" right={money((state?.walletMinor.USDT||0)-quote.totalMinor)}/>}
     {insufficient&&<Text style={styles.disclaimer}>Tu saldo USDT no alcanza para esta cantidad. Revisa los gramos o convierte saldo en Billetera.</Text>}
     {!insufficient&&unavailable&&<Text style={styles.disclaimer}>Esta cantidad supera el inventario ficticio disponible.</Text>}
     <Text style={styles.mutedSmall}>El servidor valida el importe definitivo. Al comprar, la comisión se suma al valor del metal.</Text>
-    <Button label={busy?'Procesando...':'Confirmar compra simulada'} disabled={busy||!quote||insufficient||unavailable} onPress={()=>{if(quote)perform('buy',{metal:currentMetal,grams:quote.normalizedGrams},`Comprar ${gram(quote.milligrams)} de ${m.name}`,`Total estimado con comisión: ${money(quote.totalMinor)}. Se descontará de tu saldo USDT.`);}}/>
+    <Button label={busy?'Procesando...':'Confirmar compra simulada'} disabled={busy||!!pending||!quote||insufficient||unavailable} onPress={()=>{if(quote)perform('buy',{metal:currentMetal,grams:quote.normalizedGrams},`Comprar ${gram(quote.milligrams)} de ${m.name}`,`Metal: ${money(quote.baseMinor)}. Comisión: ${money(quote.feeMinor)}.\nTotal estimado: ${money(quote.totalMinor)}.\nUSDT después de comprar: ${money((state?.walletMinor.USDT||0)-quote.totalMinor)}.`);}}/>
    </Card>
    <Text style={styles.disclaimer}>Ningún gramo en esta pantalla representa una existencia física acreditada.</Text>
   </>;
  }
- function wallet(){return <><Text style={styles.eyebrow}>CUENTAS MULTIDIVISA</Text><Text style={styles.pageTitle}>Billetera</Text><Text style={styles.copy}>Cuatro saldos independientes con movimientos y conversiones simuladas.</Text>
+ function wallet(){
+  const quote=state?quoteConversion(amount,from,to,state.demoRates):null;
+  const insufficient=!!quote&&quote.amountMinor>(state?.walletMinor[from]||0);
+  const overflow=!!quote&&(state?.walletMinor[to]||0)+quote.outputMinor>MAX_BALANCE_MINOR;
+  const depositUnits=parsePositiveDecimal(amount,2);
+  const depositMinor=depositUnits===null?null:Math.round(depositUnits*100);
+  const depositOverflow=depositMinor!==null&&(state?.walletMinor[currency]||0)+depositMinor>MAX_BALANCE_MINOR;
+  const withdrawalInsufficient=depositMinor!==null&&depositMinor>(state?.walletMinor[currency]||0);
+  return <><Text style={styles.eyebrow}>CUENTAS MULTIDIVISA</Text><Text style={styles.pageTitle}>Billetera</Text><Text style={styles.copy}>Cuatro saldos independientes con movimientos y conversiones simuladas.</Text>
   <View style={styles.walletGrid}>{currencies.map(c=><View key={c} style={styles.walletCard}><Text style={styles.eyebrow}>{c}</Text><Text style={styles.walletValue}>{money(state?.walletMinor[c]||0,c)}</Text></View>)}</View>
   <Sub>Convertir saldo</Sub><Card><Text style={styles.inputLabel}>De</Text><View style={styles.chips}>{currencies.map(c=><Chip key={c} label={c} active={from===c} onPress={()=>{setFrom(c);if(c===to)setTo(c==='USD'?'USDT':'USD');}}/>)}</View>
    <Text style={styles.inputLabel}>A</Text><View style={styles.chips}>{currencies.map(c=><Chip key={c} label={c} active={to===c} onPress={()=>{setTo(c);if(c===from)setFrom(c==='USD'?'USDT':'USD');}}/>)}</View>
    <Text style={styles.inputLabel}>Importe</Text><TextInput accessibilityLabel="Cantidad de dinero para convertir" style={styles.input} value={amount} onChangeText={setAmount} keyboardType="decimal-pad"/>
-   <Text style={styles.mutedSmall}>Tasa fija exclusivamente de demostración.</Text><Button label="Convertir en demo" disabled={busy} onPress={()=>perform('convert',{from,to,amount},`Convertir ${from} a ${to}`,`Importe: ${amount} ${from}.`)}/>
+   {quote?<View style={styles.quoteBox}>
+    <Text style={styles.cardTitle}>Antes de convertir</Text>
+    <Row left="Entregas" right={money(quote.amountMinor,from)}/>
+    <Row left="Tasa ficticia" right={`1 ${from} = ${(quote.rateDemo/1_000_000).toLocaleString('es-CO',{useGrouping:false,maximumFractionDigits:6})} ${to}`}/>
+    <Row left="Comisión de conversión" right={money(quote.feeMinor,to)}/>
+    <Row left="Recibes" right={money(quote.outputMinor,to)}/>
+    {!insufficient&&<Row left={`Saldo ${from} después`} right={money((state?.walletMinor[from]||0)-quote.amountMinor,from)}/>}
+    {!overflow&&<Row left={`Saldo ${to} después`} right={money((state?.walletMinor[to]||0)+quote.outputMinor,to)}/>}
+   </View>:<Text style={styles.disclaimer}>Introduce un importe positivo con hasta dos decimales y elige dos monedas diferentes. La conversión debe producir al menos una centésima.</Text>}
+   {insufficient&&<Text accessibilityRole="alert" style={styles.disclaimer}>El saldo {from} no alcanza para esta conversión.</Text>}
+   {overflow&&<Text accessibilityRole="alert" style={styles.disclaimer}>El saldo de destino superaría el límite de esta demostración.</Text>}
+   <Text style={styles.mutedSmall}>Tasa fija exclusivamente de demostración. El resultado se redondea a centésimas hacia abajo; el comprobante guarda el importe definitivo.</Text>
+   <Button label="Convertir en demo" disabled={busy||!!pending||!quote||insufficient||overflow} onPress={()=>{if(quote)perform('convert',{from,to,amount:quote.normalizedAmount},`Convertir ${from} a ${to}`,`Entregas: ${money(quote.amountMinor,from)}.\nRecibes: ${money(quote.outputMinor,to)}.\nComisión: ${money(quote.feeMinor,to)}.\nSaldo ${to} después: ${money((state?.walletMinor[to]||0)+quote.outputMinor,to)}.`);}}/>
   </Card>
   <Sub>Ingresos y retiros simulados</Sub><Card><Text style={styles.copy}>Estos movimientos son pruebas de saldo: no conectan bancos ni redes blockchain.</Text>
    <View style={styles.chips}>{currencies.map(c=><Chip key={c} label={c} active={currency===c} onPress={()=>setCurrency(c)}/>)}</View>
    <TextInput accessibilityLabel="Cantidad para ingresar o retirar" style={styles.input} value={amount} onChangeText={setAmount} keyboardType="decimal-pad"/>
-   <View style={styles.hRow}><Button label="Simular ingreso" onPress={()=>perform('deposit',{currency,amount},'Simular ingreso',`Abono ficticio: ${amount} ${currency}.`)}/>
-   <Button label="Simular retiro" secondary onPress={()=>perform('withdraw',{currency,amount},'Simular retiro',`Cargo ficticio: ${amount} ${currency}.`)}/></View>
+   {depositOverflow&&<Text style={styles.disclaimer}>El ingreso superaría el límite de saldo de la demostración.</Text>}
+   {withdrawalInsufficient&&<Text style={styles.disclaimer}>El saldo {currency} no alcanza para este retiro.</Text>}
+   <View style={styles.hRow}><Button label="Simular ingreso" disabled={busy||!!pending||depositMinor===null||depositOverflow} onPress={()=>perform('deposit',{currency,amount},'Simular ingreso',`Abono ficticio: ${amount} ${currency}.`)}/>
+   <Button label="Simular retiro" secondary disabled={busy||!!pending||depositMinor===null||withdrawalInsufficient} onPress={()=>perform('withdraw',{currency,amount},'Simular retiro',`Cargo ficticio: ${amount} ${currency}.`)}/></View>
   </Card></>}
  function holdings(){const m=meta(currentMetal);const available=(state?.holdingsMg[currentMetal]||0)-reserved(currentMetal);
+  const quantity=parsePositiveDecimal(sellGrams,3);
+  const operationMg=quantity===null?null:Math.round(quantity*1000);
+  const invalid=operationMg===null||operationMg<100;
+  const unavailable=operationMg!==null&&operationMg>available;
+  const quote=state?quoteSell(sellGrams,state.priceCentsPerGram[currentMetal],state.feesBps.sell):null;
+  const overflow=!!quote&&(state?.walletMinor.USDT||0)+quote.outputMinor>MAX_BALANCE_MINOR;
   return <><Text style={styles.eyebrow}>MIS POSICIONES</Text><Text style={styles.pageTitle}>Mis metales</Text><Text style={styles.copy}>Consulta las cantidades adquiridas y su valor de referencia.</Text>
    {metals.map(v=><Pressable key={v.code} onPress={()=>setCurrentMetal(v.code)} style={[styles.metalRow,currentMetal===v.code&&{borderColor:accent}]}>
     <View style={[styles.metalIcon,{borderColor:v.color}]}><Text style={[styles.metalText,{color:v.color}]}>{v.symbol}</Text></View>
@@ -184,17 +275,49 @@ export default function App(){
    <Sub>Gestionar {m.name.toLowerCase()}</Sub><Card><Row left="Disponible para operar" right={gram(available)}/><Row left="Reservado en ofertas/entrega" right={gram(reserved(currentMetal))}/>
     <View style={styles.chips}><Chip label="Vender" active={metalAction==='sell'} onPress={()=>setMetalAction('sell')}/><Chip label="Publicar oferta" active={metalAction==='offer'} onPress={()=>setMetalAction('offer')}/><Chip label="Entrega física" active={metalAction==='delivery'} onPress={()=>setMetalAction('delivery')}/></View>
     <Text style={styles.inputLabel}>Gramos</Text><TextInput accessibilityLabel="Gramos para operación" style={styles.input} value={sellGrams} onChangeText={setSellGrams} keyboardType="decimal-pad"/>
-    <Text style={styles.mutedSmall}>{metalAction==='delivery'?'Se solicita una cotización; no se genera un envío ni un impuesto real.':metalAction==='offer'?'La cantidad queda reservada. Publicar no significa que exista un comprador.':'La recompra se simula a precio de referencia, menos 1,2 % de comisión.'}</Text>
-    <Button label={metalAction==='sell'?'Simular venta':metalAction==='offer'?'Publicar oferta demo':'Solicitar cotización de entrega'} disabled={busy} onPress={()=>perform(metalAction,{metal:currentMetal,grams:sellGrams},'Confirmar operación',`${sellGrams} gramos de ${m.name}.`)}/>
+    {!invalid&&operationMg!==null&&<Row left="Cantidad interpretada" right={gram(operationMg)}/>}
+    {invalid&&<Text style={styles.disclaimer}>Introduce al menos 0,1 g y hasta tres decimales. Puedes usar coma o punto decimal.</Text>}
+    {unavailable&&<Text accessibilityRole="alert" style={styles.disclaimer}>La cantidad supera tus gramos disponibles. Los gramos reservados no se pueden vender ni reservar otra vez.</Text>}
+    {metalAction==='sell'&&quote&&<View style={styles.quoteBox}>
+     <Text style={styles.cardTitle}>Antes de vender</Text>
+     <Row left="Precio ficticio por gramo" right={money(state?.priceCentsPerGram[currentMetal]||0)}/>
+     <Row left="Valor bruto" right={money(quote.baseMinor)}/>
+     <Row left="Comisión simulada" right={money(quote.feeMinor)}/>
+     <Row left="Recibes neto" right={money(quote.outputMinor)}/>
+     {!overflow&&<Row left="USDT después de vender" right={money((state?.walletMinor.USDT||0)+quote.outputMinor)}/>}
+     {!unavailable&&<Row left="Metal restante" right={gram((state?.holdingsMg[currentMetal]||0)-quote.milligrams)}/>}
+    </View>}
+    {metalAction==='sell'&&overflow&&<Text style={styles.disclaimer}>El saldo USDT resultante superaría el límite de la demostración.</Text>}
+    <Text style={styles.mutedSmall}>{metalAction==='delivery'?'Se solicita una cotización; no se genera un envío ni un impuesto real.':metalAction==='offer'?'La cantidad queda reservada. Publicar no significa que exista un comprador.':'La comisión se descuenta del valor bruto. El servidor valida el importe definitivo.'}</Text>
+    <Button label={metalAction==='sell'?'Simular venta':metalAction==='offer'?'Publicar oferta demo':'Solicitar cotización de entrega'} disabled={busy||!!pending||invalid||unavailable||(metalAction==='sell'&&(!quote||overflow))} onPress={()=>{
+     const detail=metalAction==='sell'&&quote?`${gram(quote.milligrams)} de ${m.name}.\nValor bruto: ${money(quote.baseMinor)}.\nComisión: ${money(quote.feeMinor)}.\nRecibes neto: ${money(quote.outputMinor)}.\nUSDT después: ${money((state?.walletMinor.USDT||0)+quote.outputMinor)}.`:`${operationMg===null?sellGrams:gram(operationMg)} de ${m.name}. Se reservará esta cantidad.`;
+     perform(metalAction,{metal:currentMetal,grams:normalizeDecimalInput(sellGrams)},metalAction==='sell'?'Confirmar venta simulada':'Confirmar reserva simulada',detail);
+    }}/>
    </Card>
    <Sub>Solicitudes y ofertas</Sub>
-   {state?.offers.filter(o=>o.status==='OPEN').map(o=><Card key={o.id}><Row left={`Oferta ${meta(o.metal).name}`} right={gram(o.mg)}/><Button label="Cancelar oferta" secondary onPress={()=>perform('cancel_offer',{offerId:o.id},'Cancelar oferta',`Se liberan ${gram(o.mg)}.`)}/></Card>)}
-   {state?.custodyRequests.filter(d=>d.status==='PENDING_QUOTE').map(d=><Card key={d.id}><Row left={`Entrega ${meta(d.metal).name}`} right={gram(d.mg)}/><Text style={styles.mutedSmall}>Pendiente de cotización · sin envío real.</Text><Button label="Cancelar solicitud" secondary onPress={()=>perform('cancel_delivery',{deliveryId:d.id},'Cancelar entrega',`Se liberan ${gram(d.mg)}.`)}/></Card>)}
+   {state?.offers.filter(o=>o.status==='OPEN').map(o=><Card key={o.id}><Row left={`Oferta ${meta(o.metal).name}`} right={gram(o.mg)}/><Button label="Cancelar oferta" secondary disabled={busy||!!pending} onPress={()=>perform('cancel_offer',{offerId:o.id},'Cancelar oferta',`Se liberan ${gram(o.mg)}.`)}/></Card>)}
+   {state?.custodyRequests.filter(d=>d.status==='PENDING_QUOTE').map(d=><Card key={d.id}><Row left={`Entrega ${meta(d.metal).name}`} right={gram(d.mg)}/><Text style={styles.mutedSmall}>Pendiente de cotización · sin envío real.</Text><Button label="Cancelar solicitud" secondary disabled={busy||!!pending} onPress={()=>perform('cancel_delivery',{deliveryId:d.id},'Cancelar entrega',`Se liberan ${gram(d.mg)}.`)}/></Card>)}
   </>}
  function more(){return <><Text style={styles.eyebrow}>CONTROL Y TRANSPARENCIA</Text><Text style={styles.pageTitle}>Actividad</Text>
   <Card><Text style={styles.cardTitle}>Cuenta de demostración</Text><Text style={styles.copy}>Sin verificación de identidad, sin dinero depositado y sin titularidad real acreditada.</Text><Row left="Modo" right="SIMULACIÓN"/><Row left="Sesión" right={`${session.slice(0,8)}…`}/><Button label="Actualizar datos" secondary onPress={refresh}/></Card>
-  <Sub>Movimientos recientes</Sub>{!state?.movements.length&&<Text style={styles.muted}>Aún no hay operaciones.</Text>}
-  {state?.movements.slice(0,20).map(item=><View key={item.id} style={styles.historyRow}><Text style={styles.rowValue}>{item.label}</Text><Text style={styles.mutedSmall}>{new Date(item.at).toLocaleString('es-CO')} · {item.id}</Text></View>)}
+  <Sub>Historial de operaciones</Sub>
+  <Text style={styles.copy}>Abre una operación para consultar su comprobante, importes y saldos registrados en ese momento.</Text>
+  <Button label="Actualizar historial" secondary disabled={historyLoading} onPress={()=>void loadHistory(true)}/>
+  {!!historyError&&<View accessibilityRole="alert" style={styles.historyError}>
+   <Text style={styles.errorText}>{historyError}</Text>
+   {!!historyItems.length&&<Text style={styles.errorText}>Se conserva la última lista consultada.</Text>}
+   <Button label="Reintentar historial" secondary disabled={historyLoading} onPress={()=>void loadHistory(historyRetryReset.current)}/>
+  </View>}
+  {historyLoaded&&!historyItems.length&&!historyError&&<Text style={styles.disclaimer}>Aún no hay operaciones en esta sesión de demostración.</Text>}
+  {historyItems.map(item=><Pressable accessibilityRole="button" accessibilityLabel={`Ver comprobante: ${receiptTitle(item)}, ${receiptSummary(item)}`} key={item.id} onPress={()=>void openReceipt(item.id,item)} style={styles.historyRow}>
+   <Text style={styles.cardTitle}>{receiptTitle(item)}</Text>
+   <Text style={styles.historyAmount}>{receiptSummary(item)}</Text>
+   <Text style={styles.mutedSmall}>{new Date(item.at).toLocaleString('es-CO')}</Text>
+   <Text style={styles.historyLink}>Ver comprobante →</Text>
+  </Pressable>)}
+  {historyLoading&&<View style={styles.historyLoading}><ActivityIndicator color={accent}/><Text style={styles.muted}>Consultando historial…</Text></View>}
+  {historyLoaded&&<Text style={styles.mutedSmall}>Mostrando {historyItems.length} de {historyTotal} operaciones registradas.</Text>}
+  {!!historyCursor&&<Button label="Cargar más operaciones" secondary disabled={historyLoading} onPress={()=>void loadHistory(false)}/>}
   <Sub>Operador de mina · esta sesión</Sub><Card><Text style={styles.copy}>Inventario, operaciones y solicitudes ficticios de esta sesión. No consolida las operaciones de otros usuarios ni representa el inventario global de una mina.</Text><Button label={operatorVisible?'Ocultar panel':'Abrir panel de esta sesión'} onPress={async()=>{if(!operatorVisible)await refresh();setOperatorVisible(!operatorVisible);}} secondary/>
    {operatorVisible&&<><Row left="Compras y ventas del demo" right={String(summary?.transactionCount||0)}/><Row left="Comisiones simuladas" right={money(summary?.demoFeesCollectedMinor||0)}/><Row left="Ofertas pendientes" right={String(summary?.offersOpen||0)}/><Row left="Cotizaciones de entrega" right={String(summary?.deliveriesPending||0)}/>
     {metals.map(v=><Row key={v.code} left={`Inventario ficticio ${v.name}`} right={gram(summary?.inventoryMg[v.code]||0)}/>)}
@@ -203,7 +326,7 @@ export default function App(){
   </>}
  return <SafeAreaView style={styles.screen}><StatusBar barStyle="light-content" backgroundColor="#090F15"/>
   <View style={styles.header}><View><Text style={styles.logo}>OPEN<Text style={{color:accent}}>MINERALS</Text></Text><Text style={styles.logoSub}>METALS · OWNERSHIP · TECHNOLOGY</Text></View><View style={styles.badge}><Text style={styles.badgeText}>DEMO</Text></View></View>
-  {!!problem&&<Pressable onPress={refresh} style={styles.errorBox}><Text style={styles.errorText}>{problem}\nToca aquí para volver a intentar.</Text></Pressable>}
+  {!!problem&&<Pressable accessibilityRole="button" onPress={refresh} style={styles.errorBox}><Text style={styles.errorText}>{problem}\nToca aquí para actualizar los datos.</Text></Pressable>}
   {!!pending&&<View style={styles.errorBox}><Text style={styles.errorText}>Pendiente: {pending.title}. Una respuesta perdida no confirma que la operación haya fallado. Reintentar recupera el mismo comprobante y bloquea movimientos duplicados.</Text><Button label={busy?'Consultando…':'Reintentar operación pendiente'} onPress={retryPending} disabled={busy}/></View>}
   {!state?<View style={styles.center}>{!problem&&<ActivityIndicator color={accent}/>}<Text style={styles.muted}>Preparando experiencia móvil…</Text></View>:
   <Animated.ScrollView key={tab} style={{flex:1}} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
@@ -211,7 +334,11 @@ export default function App(){
    onScroll={Animated.event([{nativeEvent:{contentOffset:{y:homeScrollY}}}],{useNativeDriver:true})} scrollEventThrottle={16}>
    {tab==='Inicio'?home():tab==='Mercado'?market():tab==='Billetera'?wallet():tab==='Metales'?holdings():more()}
   </Animated.ScrollView>}
-  <View style={styles.tabs}>{sections.map(t=><Pressable key={t} onPress={()=>setTab(t)} style={styles.tab}><View style={[styles.tabDot,tab===t&&styles.tabDotActive]}/><Text style={[styles.tabLabel,tab===t&&styles.tabLabelActive]}>{t}</Text></Pressable>)}</View>
+  <View style={styles.tabs}>{sections.map(t=><Pressable accessibilityRole="tab" accessibilityState={{selected:tab===t}} key={t} onPress={()=>setTab(t)} style={styles.tab}><View style={[styles.tabDot,tab===t&&styles.tabDotActive]}/><Text style={[styles.tabLabel,tab===t&&styles.tabLabelActive]}>{t==='Más'?'Actividad':t}</Text></Pressable>)}</View>
+  <OperationConfirmation visible={confirmation!==null} title={confirmation?.title||''} detail={confirmation?.detail||''} onCancel={cancelConfirmation} onConfirm={confirmOperation}/>
+  <ReceiptDetails visible={receiptVisible} receipt={selectedReceipt} loading={receiptLoading} error={receiptError}
+   onClose={closeReceipt} onRetry={()=>{if(receiptToFetch.current)void openReceipt(receiptToFetch.current);}}
+   onHistory={()=>{closeReceipt();setTab('Más');}}/>
  </SafeAreaView>;
 }
 const accent='#DCBC7F';
@@ -222,7 +349,7 @@ const styles=StyleSheet.create({
  eyebrow:{fontSize:10,color:accent,fontWeight:'800',letterSpacing:2,marginBottom:10},heroNumber:{fontSize:35,color:'#F7F7F5',fontWeight:'700',letterSpacing:-1},pageTitle:{fontSize:31,color:'#F9F6F0',fontWeight:'700',marginBottom:10},
  muted:{color:'#92A0AC',fontSize:12,lineHeight:20},mutedSmall:{color:'#98A5B0',fontSize:11,lineHeight:18,marginTop:4},copy:{fontSize:13,color:'#BAC4CE',lineHeight:21,marginBottom:13},
  subhead:{fontSize:18,color:'#F3F2EE',fontWeight:'700',marginTop:24,marginBottom:14},card:{backgroundColor:'#141E28',borderWidth:1,borderColor:'#273541',borderRadius:16,padding:18,marginBottom:12},cardTitle:{fontSize:16,fontWeight:'700',color:'#F6F5F1',marginBottom:6},
- row:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',gap:10,marginVertical:8},rowValue:{color:'#F3F3EF',fontWeight:'700',fontSize:12},
+ row:{flexDirection:'row',justifyContent:'space-between',alignItems:'flex-start',gap:10,marginVertical:8},rowValue:{color:'#F3F3EF',fontWeight:'700',fontSize:12,flexShrink:1,textAlign:'right'},
  barSpace:{height:180,justifyContent:'center',alignItems:'center'},barBack:{backgroundColor:'#8D6535',width:210,height:115,borderRadius:14,borderWidth:3,borderColor:'#EED09B',alignItems:'center',justifyContent:'center',shadowColor:'#D9AD69',shadowOpacity:.55,shadowRadius:22,elevation:12},barTop:{position:'absolute',top:0,left:9,right:9,height:26,backgroundColor:'#CE9E55',borderTopLeftRadius:10,borderTopRightRadius:10},barSymbol:{color:'#FFF0CB',fontSize:35,fontWeight:'900'},barWord:{fontSize:12,color:'#FFF1CB',fontWeight:'900',letterSpacing:2},barFine:{fontSize:8,color:'#FFF0CC',letterSpacing:2,marginTop:7},
  hRow:{flexDirection:'row',gap:10,marginTop:14},quick:{flex:1,borderWidth:1,borderColor:'#806948',padding:14,borderRadius:12},quickText:{color:accent,fontSize:12,fontWeight:'700'},
  button:{backgroundColor:accent,paddingVertical:14,paddingHorizontal:15,borderRadius:10,alignItems:'center',justifyContent:'center',marginTop:13,flex:1,minHeight:47},buttonSecondary:{backgroundColor:'#1D2B37',borderWidth:1,borderColor:'#4E6576'},buttonText:{fontSize:12,fontWeight:'800',color:'#15212B',textAlign:'center'},buttonSecondaryText:{color:'#EDF1F3'},
@@ -231,7 +358,8 @@ const styles=StyleSheet.create({
  inputLabel:{color:'#C1CBD2',fontSize:12,fontWeight:'600',marginTop:15,marginBottom:8},input:{color:'#FAF9F3',fontSize:18,fontWeight:'600',paddingHorizontal:15,paddingVertical:13,backgroundColor:'#09131C',borderColor:'#3C4B56',borderWidth:1,borderRadius:10,marginTop:6,marginBottom:8},
  walletGrid:{flexDirection:'row',flexWrap:'wrap',gap:10,marginTop:20},walletCard:{width:'48%',flexGrow:1,borderWidth:1,borderColor:'#36444D',backgroundColor:'#172530',padding:16,borderRadius:13},walletValue:{fontSize:16,fontWeight:'700',color:'#FFF9EB'},
  chips:{flexDirection:'row',flexWrap:'wrap',gap:7,marginVertical:6},chip:{paddingVertical:9,paddingHorizontal:11,borderRadius:8,borderWidth:1,borderColor:'#465766'},chipOn:{backgroundColor:'#665233',borderColor:accent},chipText:{color:'#AAB5BD',fontSize:11,fontWeight:'700'},chipTextOn:{color:'#FFE9B8'},
- disclaimer:{fontSize:11,lineHeight:18,color:'#98A5B0',marginVertical:15},historyRow:{paddingVertical:12,borderBottomWidth:1,borderColor:'#273541'},
+ disclaimer:{fontSize:11,lineHeight:18,color:'#98A5B0',marginVertical:15},historyRow:{padding:16,borderWidth:1,borderColor:'#273541',borderRadius:12,backgroundColor:'#141E28',marginTop:12},
+ historyAmount:{color:'#F3F3EF',fontSize:14,lineHeight:22,fontWeight:'700',marginTop:4},historyLink:{color:accent,fontSize:12,lineHeight:20,fontWeight:'700',marginTop:10},historyLoading:{flexDirection:'row',gap:12,alignItems:'center',marginVertical:18},historyError:{backgroundColor:'#4B2E2A',padding:16,borderRadius:12,marginTop:14},quoteBox:{backgroundColor:'#0C1720',borderRadius:12,padding:14,marginTop:12},
  tabs:{height:68,borderTopWidth:1,borderColor:'#283540',backgroundColor:'#101922',flexDirection:'row',justifyContent:'space-around',paddingTop:10},tab:{alignItems:'center',justifyContent:'flex-start',flex:1,gap:8},tabDot:{height:4,width:19,backgroundColor:'#52606B',borderRadius:10},tabDotActive:{backgroundColor:accent},tabLabel:{fontSize:10,fontWeight:'600',color:'#90A1AE'},tabLabelActive:{color:accent},
  errorBox:{backgroundColor:'#4B2E2A',borderWidth:1,borderColor:'#AA685A',paddingHorizontal:20,paddingVertical:13},errorText:{color:'#FCE4D9',fontSize:12,lineHeight:18},
 });

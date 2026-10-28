@@ -1,3 +1,5 @@
+import type {Receipt} from './receipt-presentation';
+
 export type Storage = {
   getItem(key:string):Promise<string|null>;
   setItem(key:string,value:string):Promise<void>;
@@ -6,7 +8,7 @@ export type Storage = {
 export type PendingOperation = {
   session:string; action:string; body:Record<string,string>; requestId:string; title:string;
 };
-type OperationResult = {state:unknown;receipt:{id:string;replayed?:boolean}};
+type OperationResult = {state:unknown;receipt:Receipt};
 type Options = {api:string;storage:Storage;uuid:()=>string;fetchImpl?:typeof fetch;timeoutMs?:number};
 export class RequestError extends Error {
   status:number;
