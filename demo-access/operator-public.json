@@ -1,0 +1,10 @@
+{
+  "publicDemoAccess": true,
+  "demoOnly": true,
+  "api": "https://openminerals-api-demo.up.railway.app",
+  "alias": "mina_demo_49d0ffce5f",
+  "password": "HLKI8_sihmuQwT_KxisyR-ZV3gvTOmO_",
+  "role": "operator",
+  "mineId": "openminerals-demo-v1",
+  "notice": "Acceso publico de demostracion publicado por peticion expresa del propietario. Todos los datos son ficticios. No reutilizar estas credenciales en produccion."
+}

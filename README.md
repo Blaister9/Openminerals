@@ -8,11 +8,11 @@ Repositorio inicial para presentar la plataforma Openminerals a un operador de m
 
 ## Disponible · 0.1.3, cuentas y mina compartida
 
-La revisión 0.1.3 incorpora cuentas ficticias de **comprador** y **operador**, acceso desde otro dispositivo, vinculación explícita de la sesión anterior e inventario compartido por mina. El registro público crea únicamente compradores; el operador se provisiona por administración y sus credenciales se entregan en un archivo privado fuera de Git. Las sesiones anteriores siguen disponibles: una actualización no las convierte automáticamente en cuentas ni borra su historial.
+La revisión 0.1.3 incorpora cuentas ficticias de **comprador** y **operador**, acceso desde otro dispositivo, vinculación explícita de la sesión anterior e inventario compartido por mina. El registro público crea únicamente compradores; el operador se provisiona por administración. Por autorización expresa del propietario, el alias y la clave de la cuenta de operador demo están en [el archivo de acceso público](demo-access/operator-public.json). Las claves de cada comprador permanecen privadas. Las sesiones anteriores siguen disponibles: una actualización no las convierte automáticamente en cuentas ni borra su historial.
 
 La vinculación copia saldos, posiciones y comprobantes en una transacción y deja el origen en consulta. Compras y ventas de cuentas de la misma mina consumen o devuelven existencias compartidas. El panel **Mina** muestra disponible, asignado, reservado, operaciones y reposiciones ficticias; la vista anterior sin cuenta sigue siendo por sesión. Esto no incorpora custodia física ni blockchain.
 
-**[Descargar APK Android 0.1.3](https://expo.dev/artifacts/eas/MG34boaq4KCKSOqvkDsUIj_q8J_rp-xADGup1B9M2hs.apk)**. Instalar como actualización sin desinstalar; al crear el comprador, conservar la sesión anterior. El [informe 0.1.3](docs/11-cuentas-e-inventario-compartido.md) contiene instrucciones y acceso privado del operador, contratos, evidencia y límites.
+**[Descargar APK Android 0.1.3](https://expo.dev/artifacts/eas/MG34boaq4KCKSOqvkDsUIj_q8J_rp-xADGup1B9M2hs.apk)**. Instalar como actualización sin desinstalar; al crear el comprador, conservar la sesión anterior. El [informe 0.1.3](docs/11-cuentas-e-inventario-compartido.md) contiene instrucciones, contratos, evidencia y límites. Para entrar como operador, consultar [el acceso público de prueba](demo-access/README.md).
 
 ## Estado verificado · 28 de octubre de 2026
 
@@ -137,7 +137,7 @@ La validación Android física es parcial y fue comunicada por el propietario: o
 
 **No habilitar operaciones reales con este repositorio.** Las sesiones anteriores sin autenticación coexisten con cuentas ficticias, precios fijos y almacenamiento JSONB, concebidos para una demostración aislada. Un bearer inválido se rechaza y no se degrada a sesión anónima. El servidor aplica los permisos de comprador/operador; ocultar una pestaña no sustituye esa validación. No reutilizar usuarios, claves, contraseñas ni saldos para un ambiente regulado o comercial.
 
-No incluir en Git ni en la app contraseñas de operador, tokens de sesión o `DEMO_ADMIN_TOKEN`. Las credenciales iniciales del operador se guardan en un archivo privado fuera del repositorio y se comunican al propietario por ese medio, sin copiarlas a documentación, logs o variables `EXPO_PUBLIC_`.
+El propietario autorizó publicar únicamente el alias y la clave del operador demo en `demo-access/operator-public.json`. Es una cuenta compartida con facultades sobre inventario y operaciones ficticias; otras personas pueden modificar esa misma demostración. Las claves de compradores y demás cuentas siguen siendo privadas. No publicar tokens de sesión, `DEMO_ADMIN_TOKEN`, `DATABASE_URL`, credenciales de GitHub/Railway/EAS ni la clave del respaldo cifrado; no incluirlos en la app o en variables `EXPO_PUBLIC_`.
 
 ## Entrega a Codex y sincronización GitHub
 

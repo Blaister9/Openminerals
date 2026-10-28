@@ -74,19 +74,17 @@ La versión preliminar GitHub `v0.1.3-demo` está publicada y su tag apunta a `1
 
 Instalar como actualización, sin desinstalar ni borrar datos. `artifacts/`, snapshots y helpers de QA del PC original están ignorados por Git: no forman parte de un clon nuevo. El informe versionado y las ejecuciones públicas contienen el resumen de evidencia; no subir los fixtures privados para trasladarlos.
 
-## Acceso del operador: traslado privado
+## Acceso público del operador demo
 
-El operador de la mina principal ya está creado. El archivo con su alias y clave existe **solo en el equipo original**, en:
+El propietario autorizó expresamente publicar el alias y la clave de la cuenta de operador de la mina demo. Están en [demo-access/operator-public.json](../demo-access/operator-public.json), con [instrucciones de entrada](../demo-access/README.md). Desde otro equipo basta abrir ese archivo en GitHub o clonar la rama vigente; no se necesita una ruta del PC original ni descifrar un respaldo para entrar a esta cuenta.
 
-```text
-%LOCALAPPDATA%\Openminerals\access\operador-mina-demo-20261028.json
-```
+Es una cuenta compartida que permite consultar operaciones de mina y registrar ingresos ficticios de metal. Otras personas pueden usarla y modificar la misma demostración. Las cuentas compradoras conservan sus propias claves privadas y los permisos del backend. Todos los saldos, metales, cotizaciones y reservas siguen siendo ficticios.
 
-Tras informar el propietario de que el enlace no abría, se comprobó que ese archivo sí existía y se creó una copia más accesible en `%USERPROFILE%\Downloads\Openminerals-acceso-operador-PRIVADO.json`. Para localizarla, usar Win+R → `%USERPROFILE%\Downloads`; abrir el JSON con un editor de texto. La copia está restringida al usuario actual e incluye la clave de recuperación de un [respaldo cifrado publicado en GitHub](../secure-backups/README.md). Se comprobó la restauración de ese respaldo. La contraseña legible y la clave permanecen fuera de Git.
+La publicación posterior de estas credenciales está en la rama vigente. El tag y el ZIP originales de `v0.1.3-demo` siguen apuntando a `1ec833d` y no contienen ese archivo nuevo; usar el enlace de acceso público o el clon de la rama indicada arriba.
 
-Antes de dejar ese equipo, conservarlo mediante un gestor de contraseñas o un medio privado cifrado. **No añadirlo a Git, al release, a un issue ni al chat.** Clonar el repositorio no recupera esas credenciales. PostgreSQL conserva un hash y no permite recuperar la clave original en claro.
+El [respaldo cifrado](../secure-backups/README.md) y las copias privadas anteriores quedan conservados como opciones históricas. El archivo privado de Descargas también contiene `backupKeyBase64`: esa clave no está incluida en el archivo público ni es necesaria para el acceso demo actual. No publicar ese archivo privado completo, tokens de sesión, `DEMO_ADMIN_TOKEN`, `DATABASE_URL` ni credenciales de GitHub/Railway/EAS.
 
-Si ese archivo ya no está disponible, la administración autenticada en Railway puede provisionar **otro operador** mediante `POST /api/demo/admin/accounts`, con `role:operator` y la mina `openminerals-demo-v1`. Usar el `DEMO_ADMIN_TOKEN` existente únicamente dentro del entorno autorizado y guardar la nueva clave de forma privada. No reiniciar la mina, la base de datos ni los compradores para recuperar acceso. La API no implementa recuperación de contraseña de las cuentas.
+Si en el futuro se cambia o se retira la cuenta compartida, la administración autenticada en Railway puede provisionar otro operador mediante `POST /api/demo/admin/accounts`, con `role:operator` y la mina `openminerals-demo-v1`. No reiniciar la mina, la base de datos ni los compradores para recuperar acceso. La API no implementa recuperación de contraseña de las cuentas.
 
 ## Punto de continuación y límites
 

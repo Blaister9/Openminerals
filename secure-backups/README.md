@@ -1,6 +1,8 @@
 # Respaldo cifrado del operador demo
 
-`operator-demo.enc.json` contiene el respaldo **cifrado y autenticado** de las credenciales del operador de la mina demo. No contiene su clave de descifrado. Se publica para poder trasladar el acceso desde este repositorio sin hacer pública la contraseña del operador.
+> El propietario autorizó después publicar el alias y la clave del operador de prueba en [demo-access/operator-public.json](../demo-access/operator-public.json). Para entrar desde otro equipo se puede usar ese acceso público directamente; este respaldo cifrado es opcional y se conserva como historial. La clave del respaldo y otros secretos no forman parte de la autorización de publicación.
+
+`operator-demo.enc.json` contiene el respaldo **cifrado y autenticado** de las credenciales del operador de la mina demo. No contiene su clave de descifrado. Se creó antes de la autorización de acceso público; su restauración sigue disponible para quien conserve la copia privada.
 
 La copia legible del propietario y la clave de recuperación se guardaron en el PC original en:
 
@@ -28,4 +30,4 @@ El resultado se escribe en `Downloads/openminerals-demo-access-restored.json`, f
 
 Cifrado AES-256-GCM con clave aleatoria de 32 bytes, nonce de 12 bytes y tag de 16 bytes. Se probaron recuperación idéntica al original, rechazo de clave incorrecta y de datos alterados, bloqueo de destino Git y restauración mediante la CLI. El restaurador no imprime el contenido privado.
 
-Sin el archivo privado o su clave no es posible descifrar este respaldo. En tal caso, la administración de Railway puede crear otro operador en la misma mina, como explica [la guía de continuidad](../docs/12-continuar-desde-otro-equipo.md). No reiniciar la base ni las cuentas para recuperar acceso.
+Sin el archivo privado o su clave no es posible descifrar este respaldo, pero el acceso público demo actual no lo requiere. Si esa cuenta compartida se cambia o se retira, la administración de Railway puede crear otro operador en la misma mina, como explica [la guía de continuidad](../docs/12-continuar-desde-otro-equipo.md). No reiniciar la base ni las cuentas para recuperar acceso.
