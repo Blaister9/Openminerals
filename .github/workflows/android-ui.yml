@@ -1,0 +1,137 @@
+name: Android UI verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      apk_url:
+        description: HTTPS Expo artifact URL of the APK to verify
+        type: string
+        required: true
+  push:
+    branches: [codex/mobile-overview-scroll-20261028]
+    paths:
+      - .github/workflows/android-ui.yml
+      - mobile/e2e/**
+
+permissions:
+  contents: read
+
+jobs:
+  android-ui:
+    # Standard hosted runners are free for public repositories. Never use a
+    # larger runner or a paid Maestro/EAS testing service for this workflow.
+    if: github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      APK_INPUT_URL: ${{ inputs.apk_url }}
+      RESULTS: ${{ runner.temp }}/android-ui/results
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Validate and download the Expo APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RESULTS"
+          python3 - <<'PY'
+          import os, pathlib, re, urllib.parse
+          candidate = os.environ.get('APK_INPUT_URL', '').strip()
+          if not candidate:
+              candidate = pathlib.Path('mobile/e2e/apk-url.txt').read_text(encoding='utf-8-sig').strip()
+          url = urllib.parse.urlsplit(candidate)
+          if not (url.scheme == 'https' and url.netloc == 'expo.dev'
+                  and re.fullmatch(r'/artifacts/eas/[A-Za-z0-9_-]+\.apk', url.path)
+                  and not url.query and not url.fragment):
+              raise SystemExit('Only https://expo.dev/artifacts/eas/<id>.apk is accepted')
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'android-ui', 'apk-url.txt').write_text(candidate)
+          PY
+          curl --fail --location --proto '=https' --proto-redir '=https' \
+            --retry 2 --max-time 180 --max-filesize 200000000 \
+            --output "$RUNNER_TEMP/android-ui/app.apk" \
+            "$(cat "$RUNNER_TEMP/android-ui/apk-url.txt")"
+          sha256sum "$RUNNER_TEMP/android-ui/app.apk" > "$RESULTS/apk-sha256.txt"
+          printf 'Commit: %s\nRun: %s\nApp: com.openminerals.demo.mobile\n' \
+            "$GITHUB_SHA" "$GITHUB_RUN_ID" > "$RESULTS/run.txt"
+
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install pinned open-source Maestro CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          curl --fail --location --proto '=https' --proto-redir '=https' \
+            --retry 2 --max-time 180 \
+            --output maestro.zip \
+            https://github.com/mobile-dev-inc/Maestro/releases/download/cli-2.12.0/maestro.zip
+          echo 'a6044a84542f522f434c5dc3d609e60c7446d423f3ed1b2ae513f5c48663ec5e  maestro.zip' | sha256sum --check
+          unzip -q maestro.zip -d maestro-cli
+          mapfile -t maestro_bins < <(find "$RUNNER_TEMP/maestro-cli" -type f -path '*/bin/maestro')
+          test "${#maestro_bins[@]}" -eq 1
+          chmod +x "${maestro_bins[0]}"
+          dirname "${maestro_bins[0]}" >> "$GITHUB_PATH"
+          "${maestro_bins[0]}" --version | tee "$RESULTS/maestro-version.txt"
+
+      - name: Compare signing certificates when Android build-tools are present
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          signer=''
+          if test -d "$sdk_root/build-tools"; then
+            signer="$(find "$sdk_root/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
+          fi
+          if test -z "$signer"; then
+            echo 'SKIPPED: apksigner absent from the standard runner; no signature comparison was performed.' | tee "$RESULTS/signature-status.txt"
+            exit 0
+          fi
+          curl --fail --location --proto '=https' --proto-redir '=https' \
+            --retry 2 --max-time 180 --max-filesize 200000000 \
+            --output "$RUNNER_TEMP/android-ui/previous.apk" \
+            https://expo.dev/artifacts/eas/Ic5ZX_B-ZrIwRQIXekpWrYE1T9nJ0DYIJRPwJsGFais.apk
+          "$signer" verify --verbose --print-certs "$RUNNER_TEMP/android-ui/app.apk" > "$RESULTS/signature-new.txt"
+          "$signer" verify --verbose --print-certs "$RUNNER_TEMP/android-ui/previous.apk" > "$RESULTS/signature-previous.txt"
+          old_digest="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RESULTS/signature-previous.txt")"
+          new_digest="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RESULTS/signature-new.txt")"
+          test -n "$old_digest"
+          test "$new_digest" = "$old_digest"
+          echo 'PASS: signatures verify and the APKs use the same signing certificate. Existing user data preservation still requires a device/update test.' | tee "$RESULTS/signature-status.txt"
+
+      - name: Enable KVM for the ephemeral Android emulator
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          test -r /dev/kvm
+          test -w /dev/kvm
+
+      - name: Run the native UI smoke test
+        uses: ReactiveCircus/android-emulator-runner@ed009f5318f15b1cf93a191b856c4f1748a2d4c1
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          cores: 2
+          ram-size: 2048M
+          emulator-boot-timeout: 300
+          emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim
+          disable-animations: false
+          script: bash mobile/e2e/run.sh
+
+      - name: Upload screenshots and diagnostics even after failures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: android-ui-${{ github.run_id }}
+          path: ${{ runner.temp }}/android-ui/results/
+          if-no-files-found: warn
+          retention-days: 1
+          compression-level: 9
