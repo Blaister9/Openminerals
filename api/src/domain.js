@@ -41,7 +41,8 @@ const quoteBase = (mg, centsPerGram) => ceilDiv(BigInt(mg)*BigInt(centsPerGram),
 const bpsFee = (cents,bps) => ceilDiv(BigInt(cents)*BigInt(bps),10000n);
 function clone(o) { return structuredClone(o); }
 function checkRequestId(requestId) {
-  assert(typeof requestId === 'string' && /^[a-zA-Z0-9_-]{8,100}$/.test(requestId),'Identificador de operación inválido');
+  assert(typeof requestId === 'string' && /^[a-zA-Z0-9_-]{8,100}$/.test(requestId) &&
+    !['__proto__','constructor','prototype'].includes(requestId),'Identificador de operación inválido');
 }
 function move(state, type, label, details, now) {
   const event = { id: `mov-${state.sequence++}`, type, label, ...details, at: now };
@@ -89,9 +90,9 @@ export function applyCommand(current, cmd, now=new Date().toISOString()) {
   checkRequestId(requestId);
   assert(['deposit','withdraw','convert','buy','sell','offer','cancel_offer','delivery','cancel_delivery'].includes(action),'Acción no permitida');
   const signature=JSON.stringify(Object.keys(cmd).filter(k=>k!=='requestId').sort().map(k=>[k,cmd[k]]));
-  if(current.receipts[requestId]) {
+  if(Object.hasOwn(current.receipts,requestId)) {
     assert(current.signatures?.[requestId]===signature,'Identificador reutilizado con otros parámetros');
-    return {state: current, receipt: {...current.receipts[requestId], replayed: true},changed: false};
+    return {state: current, receipt: {...clone(current.receipts[requestId]), replayed: true},changed: false};
   }
   const s=clone(current);
   let receipt = {id:requestId, action, status:'COMPLETED', at:now, demoOnly:true};
@@ -115,7 +116,7 @@ export function applyCommand(current, cmd, now=new Date().toISOString()) {
     assert(outputMinor>0 && outputMinor<=MAX_MINOR,'Conversión fuera de límites');
     assert(s.walletMinor[to]+outputMinor<=MAX_MINOR,'Saldo de destino fuera de límites');
     s.walletMinor[from]-=amountMinor; s.walletMinor[to]+=outputMinor;
-    receipt={...receipt,from,to,amountMinor,outputMinor,rateDemo:rate};
+    receipt={...receipt,from,to,amountMinor,outputMinor,feeMinor:0,rateDemo:rate};
     move(s,'CONVERT',`Conversión ${from} → ${to}`,{from,to,amountMinor,outputMinor},now);
   }
   if(action==='buy') {
@@ -129,7 +130,7 @@ export function applyCommand(current, cmd, now=new Date().toISOString()) {
     s.walletMinor.USDT-=totalMinor;
     s.holdingsMg[cmd.metal]+=mg;
     s.inventoryMg[cmd.metal]-=mg;
-    receipt={...receipt,metal:cmd.metal,mg,baseMinor,feeMinor,totalMinor};
+    receipt={...receipt,metal:cmd.metal,mg,priceCentsPerGram:s.priceCentsPerGram[cmd.metal],baseMinor,feeMinor,totalMinor};
     move(s,'BUY',`Compra de ${METALS[cmd.metal].name}`,{metal:cmd.metal,mg,feeMinor,totalMinor},now);
   }
   if(action==='sell') {
@@ -143,7 +144,7 @@ export function applyCommand(current, cmd, now=new Date().toISOString()) {
     assert(s.walletMinor.USDT+outputMinor<=MAX_MINOR,'Saldo de destino fuera de límites');
     s.holdingsMg[cmd.metal]-=mg; s.inventoryMg[cmd.metal]+=mg;
     s.walletMinor.USDT+=outputMinor;
-    receipt={...receipt,metal:cmd.metal,mg,baseMinor,feeMinor,outputMinor};
+    receipt={...receipt,metal:cmd.metal,mg,priceCentsPerGram:s.priceCentsPerGram[cmd.metal],baseMinor,feeMinor,outputMinor};
     move(s,'SELL',`Venta de ${METALS[cmd.metal].name}`,{metal:cmd.metal,mg,feeMinor,outputMinor},now);
   }
   if(action==='offer') {
@@ -159,7 +160,7 @@ export function applyCommand(current, cmd, now=new Date().toISOString()) {
     const offer=s.offers.find(o=>o.id===cmd.offerId);
     assert(offer && offer.status==='OPEN','Oferta no disponible');
     offer.status='CANCELLED';
-    receipt={...receipt,offerId:offer.id};
+    receipt={...receipt,offerId:offer.id,metal:offer.metal,mg:offer.mg};
     move(s,'CANCEL_OFFER','Oferta cancelada',{metal:offer.metal,mg:offer.mg,offerId:offer.id},now);
   }
   if(action==='delivery') {
@@ -175,10 +176,19 @@ export function applyCommand(current, cmd, now=new Date().toISOString()) {
     const delivery=s.custodyRequests.find(d=>d.id===cmd.deliveryId);
     assert(delivery && delivery.status==='PENDING_QUOTE','Solicitud no disponible');
     delivery.status='CANCELLED';
-    receipt={...receipt,deliveryId:delivery.id};
+    receipt={...receipt,deliveryId:delivery.id,metal:delivery.metal,mg:delivery.mg};
     move(s,'CANCEL_DELIVERY','Solicitud de entrega cancelada',{metal:delivery.metal,mg:delivery.mg},now);
   }
-  s.receipts[requestId]=receipt;
+  receipt={...receipt,receiptVersion:2,label:s.movements[0].label,
+    balancesAfter:{
+      walletMinor:{...s.walletMinor},
+      holdingsMg:{...s.holdingsMg},
+      reservedMg:Object.fromEntries(Object.keys(METALS).map(m=>[m,reservedMg(s,m)])),
+    },
+  };
+  // An offer/delivery can change later. A completed receipt must retain the
+  // original command and its resulting balances, not references to live objects.
+  s.receipts[requestId]=clone(receipt);
   s.signatures[requestId]=signature;
-  return {state:s,receipt,changed:true};
+  return {state:s,receipt:clone(receipt),changed:true};
 }

@@ -2,6 +2,7 @@ import http from 'node:http';
 import {fileURLToPath} from 'node:url';
 import {createStore,validateSessionId} from './store.js';
 import {DomainError,METALS,operatorSummary} from './domain.js';
+import {historyPage,parseHistoryQuery,readReceipt} from './receipt-history.js';
 
 const ACTIONS=new Set(['deposit','withdraw','convert','buy','sell','offer','cancel_offer','delivery','cancel_delivery']);
 async function readJson(req){
@@ -18,7 +19,8 @@ function send(res,status,payload){res.writeHead(status,{'Content-Type':'applicat
 export function createApiServer(store,config={}){
   const adminToken=config.adminToken ?? process.env.DEMO_ADMIN_TOKEN;
   return http.createServer(async (req,res)=>{
-    const path=new URL(req.url||'/', 'http://127.0.0.1').pathname;
+    const url=new URL(req.url||'/', 'http://127.0.0.1');
+    const path=url.pathname;
     try {
       if(req.method==='GET'&&path==='/health'){await store.ping();return send(res,200,{ok:true,mode:store.mode,demoOnly:true});}
       if(!path.startsWith('/api/demo/'))return send(res,404,{error:'Ruta no disponible'});
@@ -30,6 +32,16 @@ export function createApiServer(store,config={}){
       if(req.method==='GET'&&path==='/api/demo/operator/summary'){
         const state=await store.get(session);
         return send(res,200,operatorSummary(state));
+      }
+      if(req.method==='GET'&&path==='/api/demo/history'){
+        const options=parseHistoryQuery(url.searchParams);
+        const state=await store.get(session);
+        return send(res,200,historyPage(state,options));
+      }
+      if(req.method==='GET'&&path.startsWith('/api/demo/receipts/')){
+        const id=path.slice('/api/demo/receipts/'.length);
+        const state=await store.get(session);
+        return send(res,200,readReceipt(state,id));
       }
       if(req.method==='POST'&&path==='/api/demo/reset'){
         if(!adminToken||req.headers['x-demo-admin-token']!==adminToken)return send(res,403,{error:'No autorizado'});

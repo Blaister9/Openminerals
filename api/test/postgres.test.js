@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {createStore} from '../src/store.js';
 import {seedState} from '../src/domain.js';
+import {historyPage,readReceipt} from '../src/receipt-history.js';
 
 // Never infer a database from DATABASE_URL: opt in with a dedicated test URL.
 // Every run uses its own schema; existing demo_sessions and sessions are untouched.
@@ -84,6 +85,28 @@ test('PostgreSQL: aislamiento, atomicidad, concurrencia y persistencia',{
       assert.equal(replay.changed,false);
       assert.equal(replay.receipt.replayed,true);
       assert.deepEqual(replay.state,first.state);
+    });
+
+    await t.test('historial de más de cien operaciones y snapshots sobreviven reconexión sin duplicarse',async()=>{
+      const session=`history-${randomUUID()}`;
+      const command={action:'convert',from:'USD',to:'USDT',amount:'20.00',requestId:randomUUID()};
+      const first=await store.mutate(session,command);
+      await Promise.all(Array.from({length:105},()=>store.mutate(session,{
+        action:'deposit',currency:'USDT',amount:'0.01',requestId:randomUUID(),
+      })));
+      await store.close();
+      store=await createStore(scopedUrl.toString());
+      const state=await store.get(session);
+      assert.equal(state.movements.length,100);
+      assert.equal(historyPage(state).total,106);
+      const original=readReceipt(state,command.requestId);
+      assert.deepEqual(original,first.receipt);
+      assert.equal(original.balancesAfter.walletMinor.USDT,27000);
+      assert.equal(state.walletMinor.USDT,27105);
+      const replay=await store.mutate(session,command);
+      assert.equal(replay.changed,false);
+      assert.deepEqual(replay.receipt,{...first.receipt,replayed:true});
+      assert.equal(historyPage(await store.get(session)).total,106);
     });
   } finally {
     try {if(store)await store.close();}
