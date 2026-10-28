@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "node --test",
+    "test": "node --test test/*.test.js",
+    "test:postgres": "node scripts/run-postgres.mjs",
     "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {

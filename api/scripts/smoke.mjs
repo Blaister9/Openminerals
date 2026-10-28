@@ -8,13 +8,14 @@ import assert from 'node:assert/strict';
 const base=(process.argv[2]||'http://localhost:3000').replace(/\/$/,'');
 const session=`smoke-${randomUUID()}`;
 async function req(path,body,requestId){
- const res=await fetch(base+path,{method:body?'POST':'GET',headers:{'x-demo-session':session,'Content-Type':'application/json',...(requestId?{'Idempotency-Key':requestId}:{})},body:body?JSON.stringify(body):undefined});
+ const res=await fetch(base+path,{method:body?'POST':'GET',headers:{'x-demo-session':session,'Content-Type':'application/json',...(requestId?{'Idempotency-Key':requestId}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(15_000)});
  const json=await res.json();
  if(!res.ok)throw new Error(`${res.status} ${path}: ${json.error||'error'}`);
  return json;
 }
 try {
  const health=await req('/health');assert.equal(health.ok,true);assert.equal(health.demoOnly,true);
+ if(process.env.REQUIRE_POSTGRES==='true')assert.equal(health.mode,'postgres-demo','El despliegue debe usar PostgreSQL; memory-demo no cumple');
  console.log('PASS salud',health.mode);
  const before=await req('/api/demo/state');assert.equal(before.holdingsMg.XAU,0);
  const conversionId=randomUUID();

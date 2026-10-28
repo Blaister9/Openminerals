@@ -1,19 +1,44 @@
 name: Openminerals validation
 on:
   push:
-    branches: [main]
+    branches: [main, 'codex/**']
   pull_request:
+  workflow_dispatch:
 jobs:
   api-tests:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: openminerals_test
+          POSTGRES_PASSWORD: test-only-ci-password
+          POSTGRES_DB: openminerals_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openminerals_test -d openminerals_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+      - name: Install API dependencies
+        working-directory: api
+        run: npm ci --no-audit --no-fund
       - name: Node API tests
         working-directory: api
         run: npm test
+      - name: Require PostgreSQL integration coverage
+        working-directory: api
+        env:
+          TEST_DATABASE_URL: postgresql://openminerals_test:test-only-ci-password@localhost:5432/openminerals_test
+        run: node scripts/run-postgres.mjs
   mobile-typecheck:
     runs-on: ubuntu-latest
     steps:
@@ -21,9 +46,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
       - name: Install Expo dependencies
         working-directory: mobile
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
+      - name: Check Expo dependency compatibility
+        working-directory: mobile
+        run: npx expo install --check
       - name: Check mobile types
         working-directory: mobile
         run: npm run check
+      - name: Mobile request recovery tests
+        working-directory: mobile
+        run: npm test
+      - name: Expo Doctor
+        working-directory: mobile
+        run: npx expo-doctor

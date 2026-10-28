@@ -1,60 +1,83 @@
-# Openminerals — Transferencia y sincronización con Codex
+# Openminerals · Continuidad del trabajo con Codex
 
-**Repositorio objetivo:** `https://github.com/Blaister9/Openminerals.git`.
+Actualizado el **28 de octubre de 2026**. El proyecto sigue siendo una simulación: saldos, operaciones, metales, cotizaciones y entregas ficticios.
 
-**Entorno de infraestructura:** Railway del usuario, todavía sin acceso/autorización desde esta sesión. Codex del PC realizará el despliegue una vez valide los proyectos disponibles.
+## Código sincronizado
 
-## Importación (sin forzar ni sobrescribir)
-
-El ZIP anterior incluye la carpeta contenedora `openminerals-foundation/`. Su contenido debe ubicarse directamente en la raíz de `Openminerals`, con esta estructura:
+El repositorio oficial es [Blaister9/Openminerals](https://github.com/Blaister9/Openminerals). Se comprobó que estaba vacío antes de importar; no se sustituyó trabajo anterior. Su clon local está en:
 
 ```text
-Openminerals/
-├── AGENTS.md
-├── README.md
-├── .github/workflows/ci.yml
-├── api/
-│   ├── package.json
-│   ├── railway.json
-│   ├── src/
-│   └── test/
-├── mobile/
-│   ├── App.tsx
-│   ├── app.json
-│   └── eas.json
-├── docs/
-│   ├── Diseno_Maestro_Ejecutivo.pdf
-│   └── ...
-└── tools/
+C:\Users\edwin.paz\Projects\Openminerals
 ```
 
-El PDF descargado por separado ya está incluido en `docs/` y no hay que duplicarlo.
+El contenido interno de `openminerals-foundation/` del ZIP se incorporó directamente a la raíz, incluidos los archivos ocultos. El commit inicial publicado en `main`, mediante push normal, es [`877ca777b66d40363732f9a6286c4d6f097a28ea`](https://github.com/Blaister9/Openminerals/commit/877ca777b66d40363732f9a6286c4d6f097a28ea).
 
-Se puede ejecutar `tools/import_to_github.py` desde una carpeta externa (o el archivo suelto `importar_openminerals_github.py` suministrado con la entrega):
-
-```bash
-python importar_openminerals_github.py \
-  --zip ~/Downloads/Openminerals_Entrega_para_Codex.zip \
-  --dest ~/Projects/Openminerals \
-  --push
-```
-
-En Windows PowerShell puede usarse:
+Los cambios posteriores y sus pruebas están en el README, el informe de validación y el historial de Git. Para continuar:
 
 ```powershell
-py .\importar_openminerals_github.py --zip "$HOME\Downloads\Openminerals_Entrega_para_Codex.zip" --dest "$HOME\Projects\Openminerals" --push
+Set-Location "$env:USERPROFILE\Projects\Openminerals"
+git remote -v
+git status --short
+git fetch origin
+git log -5 --oneline
 ```
 
-**Precauciones del importador:** exige Git y Python, comprueba que la carpeta corresponda al remoto previsto, rechaza una carpeta Git con modificaciones, no sobreescribe contenidos diferentes, no usa `push --force`, y crea una rama `codex/*` si detecta repositorio con commits. Si el remoto contiene un README diferente u otros archivos en conflicto, se detiene y deja a Codex hacer la integración manual en una rama. `--push` necesita autenticación GitHub configurada **en el PC**. No publica nada desde esta sesión.
+Leer `AGENTS.md` antes de modificar archivos. Conservar cambios locales del propietario; no ejecutar un reset destructivo ni `push --force`. Cuando el árbol esté limpio, `git pull --ff-only` permite actualizar la rama sin reescribir historial. Si hay divergencia o conflictos, integrarlos en una rama `codex/*` y revisar el diff.
 
-Para usar el ZIP **original** ya descargado, cambiar solo el argumento `--zip` por `Openminerals_Fundacion_Movil_Railway_GitHub.zip`; ese ZIP no contiene `AGENTS.md`, que sí está en la entrega actualizada.
+No volver a ejecutar el importador sobre el clon como actualización rutinaria: la integración ya ocurrió. `tools/import_to_github.py` se conserva para importaciones deliberadas y aborta ante archivos distintos. El PDF maestro está en `docs/Diseno_Maestro_Ejecutivo.pdf`; no requiere otra copia en la raíz.
 
-## Orden de ejecución posterior
+## Infraestructura identificada
 
-1. Confirmar subida y comprobar la estructura y el workflow de GitHub.
-2. Validar API y móvil localmente; generar lockfiles, corregir tipos/dependencias.
-3. En Railway verificar recursos existentes, enlazar API y PostgreSQL y exponer HTTPS; confirmar `/health` con `postgres-demo`.
-4. Configurar URL API en build EAS; compilar APK e iOS.
-5. Probar el flujo en teléfonos físicos; anotar lo que sí y lo que no está implementado.
+Se revisaron cinco proyectos Railway existentes y se creó un proyecto separado para la demo. No desplegar cambios de Openminerals en los otros proyectos.
 
-Las instrucciones detalladas para el agente están en `AGENTS.md`. No interpretar las pruebas de motor/HTTP en memoria como prueba de PostgreSQL, compilación nativa o instalación real.
+| Recurso | Identificador |
+| --- | --- |
+| Proyecto `openminerals-demo` | `1442be94-b13f-4067-9fee-ea99caf5715a` |
+| Entorno `demo` | `1e835541-fd3a-49dd-8ae3-0315d4118940` |
+| API | `00e2d919-2cd1-4293-befd-d8af58df8069` |
+| PostgreSQL | `4cedb5b6-dbf2-4a3c-8a97-4c11df009e44` |
+
+La API está en [https://openminerals-api-demo.up.railway.app](https://openminerals-api-demo.up.railway.app). Se verificó `/health` con `ok: true`, `demoOnly: true`, `mode: "postgres-demo"`, y pasó el smoke HTTPS. Las pruebas ampliadas de concurrencia y persistencia tras reinicio deben consultarse en el informe de validación; no se daban por aprobadas al redactar este documento.
+
+La API utiliza `/api` como raíz, `npm start` y `/health`, configurados mediante la API de Railway. El dominio apunta al puerto de plataforma `8080`; el servidor lee `PORT`. PostgreSQL permanece en red privada, sin proxy TCP público. La API usa una referencia a su `DATABASE_URL`, `REQUIRE_DATABASE=true`, `NODE_ENV=production` y `DEMO_ADMIN_TOKEN` secreto.
+
+Railway rechazó `railwayConfigFile` por **“Config as Code deprecated”**. Se conserva `api/railway.json` como archivo heredado, pero la configuración activa está en Railway. No se ha migrado a IaC; no afirmar lo contrario por la presencia de un archivo de configuración.
+
+## Pruebas reproducibles y límites
+
+```powershell
+Set-Location "$env:USERPROFILE\Projects\Openminerals\api"
+npm ci
+npm test
+node scripts/smoke.mjs https://openminerals-api-demo.up.railway.app
+
+Set-Location "$env:USERPROFILE\Projects\Openminerals\mobile"
+npm ci
+npx expo install --check
+npm run check
+npx expo-doctor
+```
+
+En esta preparación se ejecutaron las 12 pruebas iniciales de dominio/HTTP en memoria, los controles de compatibilidad, TypeScript y Expo Doctor, y los exports Android/iOS. Esos resultados no demuestran por sí solos PostgreSQL, compilación nativa ni instalación en dispositivos. La cobertura y resultados añadidos después se detallan en el informe de validación.
+
+Para aceptar Railway, `/health` debe responder `ok: true`, `demoOnly: true` y `mode: "postgres-demo"`. Hay que comprobar el recorrido de operaciones, el aislamiento de sesiones, los reintentos concurrentes y la persistencia tras reiniciar la API. Una prueba PostgreSQL omitida por falta de conexión no debe registrarse como aprobada.
+
+## Compilación e instalación pendientes
+
+La app mantiene React Native/Expo SDK 57. `mobile/eas.json` prepara un APK con el perfil `preview`, entorno `preview` y la URL API pública. `mobile/app.config.js` exige una API HTTPS válida en builds EAS. El perfil `ios-simulator` está separado y no produce una app instalable en iPhone.
+
+Al preparar estos documentos la autenticación Expo/EAS seguía pendiente y **no existían APK, IPA ni enlaces de instalación generados**. Los exports en `mobile/dist/` son bundles de código, no instaladores. Después de autenticar al propietario en Expo, revisar los proyectos de su cuenta, enlazar el correspondiente y comprobar la API antes de solicitar builds:
+
+```powershell
+Set-Location "$env:USERPROFILE\Projects\Openminerals\mobile"
+npx eas-cli@latest login --device
+npx eas-cli@latest whoami
+npx eas-cli@latest build --platform android --profile preview
+npx eas-cli@latest build --platform ios --profile preview
+```
+
+Android requiere firma y un APK completado. iPhone interno requiere la cuenta/provisión Apple autorizada y el dispositivo registrado. La distribución por TestFlight necesita una configuración y un envío separados; aún no se ha efectuado. El perfil `development` requiere instalar primero `expo-dev-client`, que todavía no está entre las dependencias.
+
+Los pasos de instalación y las fuentes oficiales están en [`04-despliegue.md`](04-despliegue.md). Registrar enlace real, estado, plataforma y commit de cada build. Probar en teléfonos físicos conversión, compra de 2 g, saldos, venta, oferta, entrega, historial y reapertura; documentar bloqueos de firma o acceso que impidan completarlo.
+
+El cierre requiere evidencia. No presentar el panel por sesión como inventario global, una exportación como compilación nativa ni una API en memoria como despliegue PostgreSQL funcional.

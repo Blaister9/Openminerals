@@ -2,6 +2,7 @@ import React, {useEffect,useRef,useState} from 'react';
 import {ActivityIndicator,Alert,Animated,Pressable,SafeAreaView,ScrollView,StatusBar,StyleSheet,Text,TextInput,View} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
+import {createDemoClient,type PendingOperation} from './lib/demo-client';
 
 // DEMO: todas las cifras, inventarios y solicitudes son simulados.
 // No hay autenticación real, pasarela de pagos, exchange ni bóveda conectada.
@@ -77,33 +78,47 @@ export default function App(){
  const [operatorVisible,setOperatorVisible]=useState(false);
  const [metalAction,setMetalAction]=useState<'sell'|'offer'|'delivery'>('sell');
  const [sellGrams,setSellGrams]=useState('0.500');
- const sessionRef=useRef('');
- async function load(id:string,loadSummary=false){
-  if(!API) throw new Error('Falta EXPO_PUBLIC_API_URL en mobile/.env. Conecta primero la API de Railway.');
-  const res=await fetch(`${API}/api/demo/state`,{headers:{'x-demo-session':id}});
-  const json=await res.json();if(!res.ok)throw new Error(json.error||'Error en API');setState(json);
-  if(loadSummary){const sum=await fetch(`${API}/api/demo/operator/summary`,{headers:{'x-demo-session':id}});if(sum.ok)setSummary(await sum.json());}
+ const [pending,setPending]=useState<PendingOperation|null>(null);
+ const actionLock=useRef(false);
+ const client=useRef(createDemoClient({api:API,storage:AsyncStorage,uuid:()=>Crypto.randomUUID()})).current;
+ async function load(loadSummary=false){
+  setState(await client.get<State>('/api/demo/state'));
+  if(loadSummary)setSummary(await client.get<Summary>('/api/demo/operator/summary'));
  }
- useEffect(()=>{let alive=true;(async()=>{
-  try{let id=await AsyncStorage.getItem('openminerals-demo-session');
-   if(!id){id=Crypto.randomUUID();await AsyncStorage.setItem('openminerals-demo-session',id);}
-   if(!alive)return;sessionRef.current=id;setSession(id);await load(id);
-  }catch(e){if(alive)setProblem(messageError(e));}
- })();return()=>{alive=false};},[]);
- async function refresh(){if(!session)return;setBusy(true);try{await load(session,true);setProblem('');}catch(e){setProblem(messageError(e));}finally{setBusy(false);}}
- async function perform(action:string,body:Record<string,string>,title:string,detail:string){
-  if(busy||!session)return;
+ useEffect(()=>{void refresh();},[]);
+ async function refresh(){
+  if(actionLock.current)return;
+  actionLock.current=true;setBusy(true);
+  try{
+   const initial=await client.initialize();setSession(initial.session);setPending(initial.pending);
+   await load(true);setProblem('');
+  }catch(e){setProblem(messageError(e));}finally{setBusy(false);actionLock.current=false;}
+ }
+ async function runOperation(send:()=>ReturnType<typeof client.retry>){
+  actionLock.current=true;setBusy(true);
+  try{
+   const data=await send();setState(data.state as State);setSummary(null);setOperatorVisible(false);setProblem('');
+   Alert.alert('Operación simulada',`Comprobante: ${data.receipt.id}\n${data.receipt.replayed?'Solicitud recuperada sin duplicar el movimiento.':'Operación registrada en el historial.'}`);
+  }catch(e){
+   const unresolved=client.getPending();
+   if(unresolved)setProblem('Hay una operación pendiente de confirmar. Reinténtala con el botón de abajo antes de crear otra.');
+   Alert.alert(unresolved?'Operación pendiente':'Operación rechazada',messageError(e));
+  }finally{setPending(client.getPending());setBusy(false);actionLock.current=false;}
+ }
+ function retryPending(){if(!actionLock.current&&!busy)void runOperation(()=>client.retry());}
+ function perform(action:string,body:Record<string,string>,title:string,detail:string){
+  if(busy||actionLock.current||!session)return;
+  if(client.getPending()){
+   Alert.alert('Operación pendiente','Reintenta primero la operación pendiente con el botón situado arriba. Conservaremos su misma clave para evitar duplicaciones.');return;
+  }
+  actionLock.current=true;
+  let accepted=false;
   Alert.alert(title,`${detail}\n\nEsta operación es 100 % simulada.`,[
-   {text:'Cancelar',style:'cancel'},
-   {text:'Confirmar demo',onPress:async()=>{
-    setBusy(true);
-    try{
-     const res=await fetch(`${API}/api/demo/${action}`,{method:'POST',headers:{'Content-Type':'application/json','x-demo-session':session,'Idempotency-Key':Crypto.randomUUID()},body:JSON.stringify(body)});
-     const data=await res.json();if(!res.ok)throw new Error(data.error||'Operación rechazada');setState(data.state);setProblem('');
-     Alert.alert('Operación simulada',`Comprobante: ${data.receipt.id}\nOperación registrada en el historial.`);
-    }catch(e){Alert.alert('No se pudo completar',messageError(e));}finally{setBusy(false);}
+   {text:'Cancelar',style:'cancel',onPress:()=>{actionLock.current=false;}},
+   {text:'Confirmar demo',onPress:()=>{
+    accepted=true;void runOperation(()=>client.submit(action,body,title));
    }}
-  ]);
+  ],{cancelable:true,onDismiss:()=>{if(!accepted)actionLock.current=false;}});
  }
  const pos=state?metals.reduce((a,m)=>a+Math.ceil(state.holdingsMg[m.code]*state.priceCentsPerGram[m.code]/1000),0):0;
  const reserved=(metal:Metal)=>state?state.offers.filter(o=>o.metal===metal&&o.status==='OPEN').reduce((a,o)=>a+o.mg,0)+state.custodyRequests.filter(d=>d.metal===metal&&d.status==='PENDING_QUOTE').reduce((a,d)=>a+d.mg,0):0;
@@ -176,15 +191,16 @@ export default function App(){
   <Card><Text style={styles.cardTitle}>Cuenta de demostración</Text><Text style={styles.copy}>Sin verificación de identidad, sin dinero depositado y sin titularidad real acreditada.</Text><Row left="Modo" right="SIMULACIÓN"/><Row left="Sesión" right={`${session.slice(0,8)}…`}/><Button label="Actualizar datos" secondary onPress={refresh}/></Card>
   <Sub>Movimientos recientes</Sub>{!state?.movements.length&&<Text style={styles.muted}>Aún no hay operaciones.</Text>}
   {state?.movements.slice(0,20).map(item=><View key={item.id} style={styles.historyRow}><Text style={styles.rowValue}>{item.label}</Text><Text style={styles.mutedSmall}>{new Date(item.at).toLocaleString('es-CO')} · {item.id}</Text></View>)}
-  <Sub>Vista del operador de la mina</Sub><Card><Text style={styles.copy}>Muestra qué podría consultar la empresa: inventario, operaciones y solicitudes. Datos ficticios y sin permisos reales.</Text><Button label={operatorVisible?'Ocultar panel':'Abrir panel de la mina'} onPress={async()=>{if(!operatorVisible)await refresh();setOperatorVisible(!operatorVisible);}} secondary/>
+  <Sub>Operador de mina · esta sesión</Sub><Card><Text style={styles.copy}>Inventario, operaciones y solicitudes ficticios de esta sesión. No consolida las operaciones de otros usuarios ni representa el inventario global de una mina.</Text><Button label={operatorVisible?'Ocultar panel':'Abrir panel de esta sesión'} onPress={async()=>{if(!operatorVisible)await refresh();setOperatorVisible(!operatorVisible);}} secondary/>
    {operatorVisible&&<><Row left="Compras y ventas del demo" right={String(summary?.transactionCount||0)}/><Row left="Comisiones simuladas" right={money(summary?.demoFeesCollectedMinor||0)}/><Row left="Ofertas pendientes" right={String(summary?.offersOpen||0)}/><Row left="Cotizaciones de entrega" right={String(summary?.deliveriesPending||0)}/>
     {metals.map(v=><Row key={v.code} left={`Inventario ficticio ${v.name}`} right={gram(summary?.inventoryMg[v.code]||0)}/>)}
    </>}
-  </Card><Text style={styles.disclaimer}>El panel del operador requerirá roles, permisos y auditoría para uso real.</Text>
+  </Card><Text style={styles.disclaimer}>Un panel global requerirá agregación entre sesiones, roles, permisos y auditoría.</Text>
   </>}
  return <SafeAreaView style={styles.screen}><StatusBar barStyle="light-content" backgroundColor="#090F15"/>
   <View style={styles.header}><View><Text style={styles.logo}>OPEN<Text style={{color:accent}}>MINERALS</Text></Text><Text style={styles.logoSub}>METALS · OWNERSHIP · TECHNOLOGY</Text></View><View style={styles.badge}><Text style={styles.badgeText}>DEMO</Text></View></View>
   {!!problem&&<Pressable onPress={refresh} style={styles.errorBox}><Text style={styles.errorText}>{problem}\nToca aquí para volver a intentar.</Text></Pressable>}
+  {!!pending&&<View style={styles.errorBox}><Text style={styles.errorText}>Pendiente: {pending.title}. Una respuesta perdida no confirma que la operación haya fallado. Reintentar recupera el mismo comprobante y bloquea movimientos duplicados.</Text><Button label={busy?'Consultando…':'Reintentar operación pendiente'} onPress={retryPending} disabled={busy}/></View>}
   {!state?<View style={styles.center}>{!problem&&<ActivityIndicator color={accent}/>}<Text style={styles.muted}>Preparando experiencia móvil…</Text></View>:
   <ScrollView key={tab} style={{flex:1}} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
    {tab==='Inicio'?home():tab==='Mercado'?market():tab==='Billetera'?wallet():tab==='Metales'?holdings():more()}
