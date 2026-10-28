@@ -1,17 +1,29 @@
-# OPENMINERALS · Mobile Demo Foundation
+# OPENMINERALS · Demo móvil con Railway
 
 **Estado: prototipo técnico de simulación, no plataforma financiera en producción.**
 
 Repositorio inicial para presentar la plataforma Openminerals a un operador de mina: aplicación nativa iOS/Android con React Native + Expo; API Node.js desplegable en Railway; sesiones de demostración persistentes en PostgreSQL de Railway; documentos maestros del producto. No requiere HTML anterior.
 
+## Estado verificado · 28 de octubre de 2026
+
+- Clon local: `C:\Users\edwin.paz\Projects\Openminerals`; remoto oficial `https://github.com/Blaister9/Openminerals.git`, rama `main`.
+- Commits publicados: [importación 877ca77](https://github.com/Blaister9/Openminerals/commit/877ca777b66d40363732f9a6286c4d6f097a28ea), [fiabilidad/pruebas 2e16413](https://github.com/Blaister9/Openminerals/commit/2e16413f090b6eb81c7a981c4ca21a4ae7a886ce) y [vinculación EAS 7762585](https://github.com/Blaister9/Openminerals/commit/7762585de892673c3cd7fd20729d21056f0cb1ce).
+- [API HTTPS](https://openminerals-api-demo.up.railway.app/health): `ok:true`, `demoOnly:true`, `mode:postgres-demo`. Proyecto Railway `openminerals-demo`, entorno `demo`; PostgreSQL privado.
+- API: 12 pruebas de dominio/HTTP, cinco comprobaciones de integración PostgreSQL y smoke remoto aprobados. Persistencia tras reiniciar el servicio y repetición del mismo comprobante verificadas.
+- Móvil: 10 pruebas del cliente/reintentos, TypeScript, compatibilidad Expo, Expo Doctor 21/21 y exports Android/iOS aprobados. Se conserva Expo SDK 57 y React Native.
+- Builds EAS y pasos de instalación: [informe de verificación](docs/07-verificacion-2026-10-28.md). La ejecución en teléfonos físicos sigue pendiente; iPhone requiere firma Apple, no disponible en la cuenta del propietario.
+- [CI ampliado aprobado](https://github.com/Blaister9/Openminerals/actions/runs/40710145714).
+
+La app persiste operaciones pendientes antes de enviarlas y conserva su clave al reintentar después de un timeout o de cerrar/reabrir el cliente. El panel de operador sigue siendo **por sesión**, no un inventario global de la mina.
+
 ## Contenido
 
 ```text
-openminerals-foundation/
+Openminerals/
 ├── mobile/                # aplicación móvil iOS/Android con 5 secciones
 ├── api/                   # API Node.js, persistencia demo PostgreSQL, pruebas
 ├── docs/                  # diseño maestro, arquitectura, modelo y presentación
-└── .github/workflows/     # pruebas automáticas propuestas
+└── .github/workflows/     # validación automática con PostgreSQL y móvil
 ```
 
 ### Qué funciona en el código de demostración
@@ -34,7 +46,7 @@ Node.js 22.13 o posterior.
 
 ```bash
 cd api
-npm install
+npm ci
 npm test
 npm start
 ```
@@ -71,25 +83,29 @@ Contra un servicio publicado en Railway:
 node api/scripts/smoke.mjs https://tu-api.up.railway.app
 ```
 
-Usa una sesión aleatoria distinta a la de los usuarios de la demo. Verifica compra de 2 g, venta, reservas, idempotencia y resumen de operador. **No verifica que PostgreSQL persista tras un reinicio**, lo cual requiere prueba de integración adicional en Railway.
+Usa una sesión aleatoria distinta a la de los usuarios de la demo. Verifica compra de 2 g, venta, reservas, idempotencia y resumen de operador. Definir `REQUIRE_POSTGRES=true` exige el modo PostgreSQL. El smoke no prueba por sí solo un reinicio: `api/scripts/persistence.mjs` compara el estado antes y después, y ya se ejecutó contra Railway. Ver comandos y evidencia en el informe.
 
 ## App móvil
 
 ```bash
 cd mobile
-npm install
-# crear archivo .env (NO .env.example) con EXPO_PUBLIC_API_URL=https://tu-api.up.railway.app
+npm ci
+# crear archivo .env (NO .env.example) con EXPO_PUBLIC_API_URL=https://openminerals-api-demo.up.railway.app
 npx expo install --check
+npm test
+npm run check
 npx expo start
 ```
 
 En un dispositivo real el valor de `EXPO_PUBLIC_API_URL` debe ser una URL pública **HTTPS**. No sirve apuntar el teléfono a `http://localhost:3000` del computador. La app guarda un identificador aleatorio de sesión de prueba en almacenamiento local y el backend almacena el estado correspondiente. Ese identificador **no es autenticación segura**.
 
-Para instalar en Android/iOS y mostrar al cliente, configurar una cuenta de Expo/EAS, seguir `docs/04-despliegue.md` y compilar una versión `preview`. Railway no genera APK/IPA.
+Expo/EAS está enlazado a [@chipirips-team/openminerals-demo](https://expo.dev/accounts/chipirips-team/projects/openminerals-demo). El perfil `preview` solicita APK Android y utiliza la API HTTPS real; `ios-simulator` produce un build para simulador de macOS, que no se instala en iPhone. Seguir [la guía de instalación](docs/04-despliegue.md). Railway no genera APK/IPA.
 
 ## Pruebas y alcance de validación
 
-`api/test` cubre la lógica de dominio e integración HTTP en memoria, pero **no prueba PostgreSQL**, ni compilación de iOS/Android, ni instalación en teléfonos. Esas verificaciones son requisitos del siguiente hito. El repositorio se entrega como **base reproducible**, no como demo desplegado.
+`api/test` cubre dominio, HTTP en memoria y PostgreSQL con aislamiento, concurrencia, rollback y persistencia al reconectar. `npm run test:postgres` exige `TEST_DATABASE_URL`; si falta, falla expresamente. Los tests utilizan un esquema temporal propio y no borran sesiones existentes. CI ejecuta PostgreSQL 18 y las pruebas móviles con instalaciones reproducibles.
+
+La ejecución física Android/iPhone no está probada. Los resultados de compilación, los enlaces reales y los bloqueos se registran por separado en el informe. La auditoría móvil conserva tres avisos altos transitivos de Zod y cinco bajos en las herramientas Expo, detallados en el informe; no se aplicó un downgrade de SDK ni un override incompatible. La auditoría de la API no reportó vulnerabilidades.
 
 ## Seguridad
 
@@ -97,10 +113,10 @@ Para instalar en Android/iOS y mostrar al cliente, configurar una cuenta de Expo
 
 ## Entrega a Codex y sincronización GitHub
 
-El repositorio de destino indicado es `https://github.com/Blaister9/Openminerals.git`. **Esta entrega no afirma que el código esté publicado ni que Railway esté desplegado**: la importación debe ejecutarse desde el equipo autorizado del propietario.
+El repositorio oficial está publicado y la API Railway está desplegada. El remoto estaba vacío al importar; no se sobrescribió trabajo anterior ni se utilizó `push --force`.
 
 - `AGENTS.md`: especificaciones y criterios verificables que deberá seguir Codex.
 - `docs/06-entrega-a-codex.md`: pasos de clonado, rama, importación, Railway y EAS.
 - `tools/import_to_github.py`: importador conservador para GitHub desde un ZIP ya descargado; aborta ante archivos distintos en lugar de sobrescribir, y exige `--push` para publicar.
 
-El PDF ejecutivo se incluye en `docs/Diseno_Maestro_Ejecutivo.pdf`; no es necesario añadir por separado otro PDF igual a la raíz. Esta base no tiene compilación móvil verificada, no ha sido probada contra una instancia PostgreSQL de Railway y no contiene un marketplace real multiusuario.
+El PDF ejecutivo se conserva en `docs/Diseno_Maestro_Ejecutivo.pdf`. La demo no contiene un marketplace real multiusuario ni representa metales, reservas, cotizaciones o fondos reales.

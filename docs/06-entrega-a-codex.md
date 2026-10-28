@@ -37,7 +37,7 @@ Se revisaron cinco proyectos Railway existentes y se creó un proyecto separado 
 | API | `00e2d919-2cd1-4293-befd-d8af58df8069` |
 | PostgreSQL | `4cedb5b6-dbf2-4a3c-8a97-4c11df009e44` |
 
-La API está en [https://openminerals-api-demo.up.railway.app](https://openminerals-api-demo.up.railway.app). Se verificó `/health` con `ok: true`, `demoOnly: true`, `mode: "postgres-demo"`, y pasó el smoke HTTPS. Las pruebas ampliadas de concurrencia y persistencia tras reinicio deben consultarse en el informe de validación; no se daban por aprobadas al redactar este documento.
+La API está en [https://openminerals-api-demo.up.railway.app](https://openminerals-api-demo.up.railway.app). Se verificó `/health` con `ok: true`, `demoOnly: true`, `mode: "postgres-demo"`, y pasó el smoke HTTPS. También pasaron la integración PostgreSQL por SSH y la persistencia después de reiniciar el servicio. La evidencia y los límites constan en [el informe de validación](07-verificacion-2026-10-28.md).
 
 La API utiliza `/api` como raíz, `npm start` y `/health`, configurados mediante la API de Railway. El dominio apunta al puerto de plataforma `8080`; el servidor lee `PORT`. PostgreSQL permanece en red privada, sin proxy TCP público. La API usa una referencia a su `DATABASE_URL`, `REQUIRE_DATABASE=true`, `NODE_ENV=production` y `DEMO_ADMIN_TOKEN` secreto.
 
@@ -66,7 +66,7 @@ Para aceptar Railway, `/health` debe responder `ok: true`, `demoOnly: true` y `m
 
 La app mantiene React Native/Expo SDK 57. `mobile/eas.json` prepara un APK con el perfil `preview`, entorno `preview` y la URL API pública. `mobile/app.config.js` exige una API HTTPS válida en builds EAS. El perfil `ios-simulator` está separado y no produce una app instalable en iPhone.
 
-Al preparar estos documentos la autenticación Expo/EAS seguía pendiente y **no existían APK, IPA ni enlaces de instalación generados**. Los exports en `mobile/dist/` son bundles de código, no instaladores. Después de autenticar al propietario en Expo, revisar los proyectos de su cuenta, enlazar el correspondiente y comprobar la API antes de solicitar builds:
+Expo/EAS ya está autenticado y enlazado a `@chipirips-team/openminerals-demo`, ID `c3985e04-43dd-4896-9f8a-09366b6a3579`. Se solicitaron builds Android `preview` e iOS `ios-simulator`; consultar su resultado y enlaces reales en [el informe](07-verificacion-2026-10-28.md). Los exports en `mobile/dist/` son bundles de código, no instaladores. El build para iPhone físico se detuvo por falta de firma y el propietario confirmó que no dispone de membresía Apple Developer. Comandos para futuras compilaciones:
 
 ```powershell
 Set-Location "$env:USERPROFILE\Projects\Openminerals\mobile"

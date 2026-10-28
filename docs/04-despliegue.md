@@ -76,14 +76,14 @@ Después puede iniciarse Metro con `npx expo start`. La URL pública evita apunt
 
 El perfil `preview` de `mobile/eas.json` incluye esa URL pública, utiliza el entorno EAS `preview` y solicita un APK Android. `mobile/app.config.js` detiene un build EAS si falta una URL pública HTTPS válida. Las variables `EXPO_PUBLIC_*` quedan integradas en el bundle; no deben contener secretos.
 
-La sesión Expo/EAS todavía requiere autenticación del propietario. No hay APK ni IPA generado en este punto. Autenticar en el navegador sin enviar contraseñas o tokens por chat:
+Expo/EAS está autenticado y enlazado a `@chipirips-team/openminerals-demo`, proyecto `c3985e04-43dd-4896-9f8a-09366b6a3579`. Las compilaciones y su resultado final se registran en [el informe de verificación](07-verificacion-2026-10-28.md). Para renovar la sesión sin enviar contraseñas o tokens por chat:
 
 ```powershell
 npx eas-cli@latest login --device
 npx eas-cli@latest whoami
 ```
 
-Antes de enlazar un proyecto EAS, revisar si la cuenta ya tiene uno para Openminerals y reutilizarlo. Si no existe, `npx eas-cli@latest init` permite crearlo o enlazarlo; guardar el identificador devuelto en la configuración Expo. No inventar un `projectId`.
+El identificador real y el propietario ya están guardados en `mobile/app.json`; reutilizar ese proyecto en futuras compilaciones.
 
 El perfil opcional `development` declara `developmentClient: true`, pero falta `expo-dev-client` entre las dependencias. Antes de utilizarlo, instalar la versión compatible con `npx expo install expo-dev-client` y repetir la validación. El perfil `preview` no necesita ese paquete.
 
@@ -107,6 +107,8 @@ No distribuir un enlace como instalador mientras el build esté pendiente o fall
 ## iPhone y simulador iOS
 
 Para instalar un build interno en un iPhone físico se necesitan los certificados/provisionamiento Apple y el dispositivo registrado en el perfil ad hoc. Con la cuenta Apple Developer autorizada:
+
+El propietario confirmó que no tiene membresía Apple Developer activa. Por tanto, la instalación en iPhone queda bloqueada por firma. Apple indica 99 USD por año de membresía, con precio local según la región; no se contrató ni pagó una membresía. Para pruebas personales existe Xcode Personal Team en un Mac, con perfiles de siete días. [Membresía](https://developer.apple.com/programs/enroll/) y [pruebas personales](https://developer.apple.com/help/account/basics/about-your-developer-account).
 
 ```powershell
 npx eas-cli@latest device:create
