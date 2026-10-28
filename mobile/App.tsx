@@ -101,7 +101,7 @@ export default function App(){
    Alert.alert('Operación simulada',`Comprobante: ${data.receipt.id}\n${data.receipt.replayed?'Solicitud recuperada sin duplicar el movimiento.':'Operación registrada en el historial.'}`);
   }catch(e){
    const unresolved=client.getPending();
-   if(unresolved)setProblem('Hay una operación pendiente de confirmar. Reinténtala con el botón de abajo antes de crear otra.');
+   setProblem(unresolved?'Hay una operación pendiente de confirmar. Reinténtala con el botón de abajo antes de crear otra.':'');
    Alert.alert(unresolved?'Operación pendiente':'Operación rechazada',messageError(e));
   }finally{setPending(client.getPending());setBusy(false);actionLock.current=false;}
  }

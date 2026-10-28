@@ -7,9 +7,26 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#090F15",
-    "ios": { "supportsTablet": false, "bundleIdentifier": "com.openminerals.demo.mobile" },
-    "android": { "package": "com.openminerals.demo.mobile", "adaptiveIcon": { "backgroundColor": "#090F15" } },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.openminerals.demo.mobile",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.openminerals.demo.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#090F15"
+      }
+    },
     "plugins": [],
-    "extra": { "demoOnly": true }
+    "extra": {
+      "demoOnly": true,
+      "eas": {
+        "projectId": "c3985e04-43dd-4896-9f8a-09366b6a3579"
+      }
+    },
+    "owner": "chipirips-team"
   }
 }
