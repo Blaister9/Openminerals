@@ -36,7 +36,7 @@ Para conservar una sesión anterior todavía no vinculada, instalar la actualiza
 - Las operaciones pendientes conservan el payload y su clave original, separados por cuenta. Bloquean registro, cambio de identidad y cierre hasta resolverse. Un token expirado permite entrar de nuevo en esa misma cuenta y reintentar el mismo comando.
 - Si no se confirma el registro o la persistencia del acceso, la UI muestra **Resolver acceso a cuenta** y bloquea movimientos nuevos. Si falla el borrado local después de revocar la sesión, permite **Reintentar cierre de sesión**. Estos errores no borran saldos ni pendientes para despejar la pantalla.
 
-Las contraseñas iniciales del operador se entregan al propietario en un archivo privado **fuera del repositorio**. No copiar su contenido, tokens ni `DEMO_ADMIN_TOKEN` a Git, capturas, logs, documentación o variables `EXPO_PUBLIC_`. Este documento no contiene esas credenciales ni presupone que ya se haya provisionado un operador en Railway.
+Las contraseñas iniciales del operador se entregan al propietario en un archivo privado **fuera del repositorio**. No copiar su contenido, tokens ni `DEMO_ADMIN_TOKEN` a Git, capturas, logs, documentación o variables `EXPO_PUBLIC_`. El operador de la mina principal ya está provisionado; este documento no contiene sus credenciales. Para trasladar el acceso, consultar [la guía de continuidad](12-continuar-desde-otro-equipo.md).
 
 ## Mina compartida
 
@@ -126,7 +126,7 @@ La fuente de esta revisión es `fb1f590f665fc5e7bb3dcc11217c7481446c7183`. La ta
 | Prueba HTTPS y persistencia tras reinicio | Tres smokes aprobados: anterior, comprobantes y cuentas. Tras `railway restart`, verificadas cuentas, tokens, claves, estados, historiales, inventario, reserva y cuatro reintentos sin duplicados; también el snapshot legacy preparado antes del despliegue. Evidencia de arranque del proceso se registra por separado |
 | Aprovisionamiento de operador | Cuenta de operador de la mina principal creada; login/summary conciliado/logout HTTPS aprobados. Credenciales en archivo privado de `%LOCALAPPDATA%/Openminerals/access/`, fuera de Git y con ACL del usuario actual; ningún secreto en la app |
 | APK Android 0.1.3 | [Descargar APK](https://expo.dev/artifacts/eas/MG34boaq4KCKSOqvkDsUIj_q8J_rp-xADGup1B9M2hs.apk), EAS `269f285b-f16b-4c82-9c9a-35a3a5082bc5` FINISHED, fuente `fb1f590`, versión 0.1.3/código 4. [Inspección 40770949478](https://github.com/Blaister9/Openminerals/actions/runs/40770949478) SUCCESS: firma/certificado anterior, paquete, versión, rutas/API HTTPS y SHA256 concordantes con copia local |
-| Instalación y recorrido Android 0.1.3 | Pendiente de prueba nativa y confirmación del propietario |
+| Instalación y recorrido Android 0.1.3 | Pendiente: el propietario informó de descarga lenta y confirmó que no había probado cuentas/roles; pidió posponer esa aceptación y continuar desde otro equipo. No solicitar otra repetición del historial anterior |
 | Instalador/recorrido iPhone | Sin evidencia nueva en este informe; el bloqueo de firma Apple sigue documentado en la revisión anterior |
 
 La aceptación física anterior corresponde a [0.1.2](10-comprobantes-y-operaciones-0.1.2.md). La compilación e inspección de 0.1.3 no demuestran por sí solas instalación, acceso a SecureStore o recorrido nativo en un teléfono.

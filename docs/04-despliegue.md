@@ -1,5 +1,7 @@
 # Openminerals · Despliegue de la demo e instalación
 
+> Documento histórico de la entrega inicial. Para la rama, el despliegue y los instaladores vigentes, consultar [continuidad desde otro equipo](12-continuar-desde-otro-equipo.md) y [la revisión 0.1.3](11-cuentas-e-inventario-compartido.md).
+
 Estado comprobado el **28 de octubre de 2026**. Todas las cifras, transacciones, cotizaciones, reservas y entregas son ficticias.
 
 El código ya está publicado en el [repositorio oficial](https://github.com/Blaister9/Openminerals), con el commit inicial [`877ca777b66d40363732f9a6286c4d6f097a28ea`](https://github.com/Blaister9/Openminerals/commit/877ca777b66d40363732f9a6286c4d6f097a28ea). No es necesario crear otro repositorio ni volver a importar el ZIP sobre este clon.

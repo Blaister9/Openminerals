@@ -2,6 +2,8 @@
 
 **Estado: prototipo técnico de simulación, no plataforma financiera en producción.**
 
+**Para continuar desde otro equipo:** [guía de traspaso](docs/12-continuar-desde-otro-equipo.md). El trabajo vigente está en `codex/mobile-overview-scroll-20261028`; `main` conserva una versión anterior. [APK alternativo en GitHub](https://github.com/Blaister9/Openminerals/releases/tag/v0.1.3-demo).
+
 Repositorio inicial para presentar la plataforma Openminerals a un operador de mina: aplicación nativa iOS/Android con React Native + Expo; API Node.js desplegable en Railway; sesiones de demostración persistentes en PostgreSQL de Railway; documentos maestros del producto. No requiere HTML anterior.
 
 ## Disponible · 0.1.3, cuentas y mina compartida
