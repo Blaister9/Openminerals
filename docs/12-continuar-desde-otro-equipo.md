@@ -40,7 +40,7 @@ npx expo install --check
 npx expo start
 ```
 
-El perfil EAS `preview` ya contiene la URL HTTPS correcta. No poner claves, tokens ni contraseñas en `EXPO_PUBLIC_`. Para trabajar en API local: `cd api`, `npm ci`, `npm test`, `npm start`; sin `DATABASE_URL` ese proceso usa memoria desechable y no demuestra persistencia. No copiar la conexión de Railway al repositorio. La integración PostgreSQL requiere `TEST_DATABASE_URL` y `npm run test:postgres`; CI ya dispone de su propia base temporal.
+El perfil EAS `preview` ya contiene la URL HTTPS correcta. No poner claves, tokens ni contraseñas en `EXPO_PUBLIC_`. Para trabajar en API local **desde la raíz del repositorio**: `cd api`, `npm ci`, `npm test`, `npm start`; si se está en `mobile/`, usar primero `cd ../api`. Sin `DATABASE_URL` ese proceso usa memoria desechable y no demuestra persistencia. No copiar la conexión de Railway al repositorio. La integración PostgreSQL requiere `TEST_DATABASE_URL` y `npm run test:postgres`; CI ya dispone de su propia base temporal.
 
 ## Recursos existentes que se deben reutilizar
 
@@ -69,6 +69,8 @@ En el nuevo equipo hay que iniciar sesión por los flujos oficiales de GitHub, R
 - APK: **68.772.781 bytes**, SHA256 `fda0953d11a6035100bef9f9c04d070053edc2ae47c31852803a020d89e6b7c7`.
 - Certificado Android SHA256: `3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c`.
 - [CI de la revisión aprobada](https://github.com/Blaister9/Openminerals/actions/runs/40770956257) y [firma/versión/rutas del APK aprobadas](https://github.com/Blaister9/Openminerals/actions/runs/40770949478).
+
+La versión preliminar GitHub `v0.1.3-demo` está publicada y su tag apunta a `1ec833d943ed895cf76b73b0063c316238b7ec4f`. Se descargó el APK desde su enlace público de GitHub y se comprobó el archivo completo: tamaño y SHA256 idénticos a los indicados arriba. No incluye credenciales ni datos privados de las pruebas.
 
 Instalar como actualización, sin desinstalar ni borrar datos. `artifacts/`, snapshots y helpers de QA del PC original están ignorados por Git: no forman parte de un clon nuevo. El informe versionado y las ejecuciones públicas contienen el resumen de evidencia; no subir los fixtures privados para trasladarlos.
 
