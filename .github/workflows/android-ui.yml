@@ -79,7 +79,7 @@ jobs:
           dirname "${maestro_bins[0]}" >> "$GITHUB_PATH"
           "${maestro_bins[0]}" --version | tee "$RESULTS/maestro-version.txt"
 
-      - name: Compare signing certificates when Android build-tools are present
+      - name: Verify signing certificate when Android build-tools are present
         shell: bash
         run: |
           set -euo pipefail
@@ -92,17 +92,12 @@ jobs:
             echo 'SKIPPED: apksigner absent from the standard runner; no signature comparison was performed.' | tee "$RESULTS/signature-status.txt"
             exit 0
           fi
-          curl --fail --location --proto '=https' --proto-redir '=https' \
-            --retry 2 --max-time 180 --max-filesize 200000000 \
-            --output "$RUNNER_TEMP/android-ui/previous.apk" \
-            https://expo.dev/artifacts/eas/Ic5ZX_B-ZrIwRQIXekpWrYE1T9nJ0DYIJRPwJsGFais.apk
           "$signer" verify --verbose --print-certs "$RUNNER_TEMP/android-ui/app.apk" > "$RESULTS/signature-new.txt"
-          "$signer" verify --verbose --print-certs "$RUNNER_TEMP/android-ui/previous.apk" > "$RESULTS/signature-previous.txt"
-          old_digest="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RESULTS/signature-previous.txt")"
-          new_digest="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RESULTS/signature-new.txt")"
-          test -n "$old_digest"
-          test "$new_digest" = "$old_digest"
-          echo 'PASS: signatures verify and the APKs use the same signing certificate. Existing user data preservation still requires a device/update test.' | tee "$RESULTS/signature-status.txt"
+          expected_digest="$(tr -d '[:space:]' < mobile/e2e/android-certificate.sha256)"
+          new_digest="$(sed -nE 's/^.*certificate SHA-256 digest: ([0-9a-fA-F]{64})[[:space:]]*$/\1/p' "$RESULTS/signature-new.txt" | sort -u)"
+          test -n "$new_digest"
+          test "$new_digest" = "$expected_digest"
+          echo 'PASS: APK signature verifies and its certificate matches the verified 0.1.0 baseline. Existing user data preservation still requires a device/update test.' | tee "$RESULTS/signature-status.txt"
 
       - name: Enable KVM for the ephemeral Android emulator
         shell: bash
