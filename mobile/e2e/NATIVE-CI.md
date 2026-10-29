@@ -47,7 +47,11 @@ Solo se sube openminerals-native/public, retención un día:
 - Resumen de etapas y, si falla Maestro, failure-context.json con categoría cerrada y selectores/últimos comandos que coinciden exclusivamente con textos estáticos del YAML. Jamás se copia una línea raw.
 - PNGs con nombres permitidos, capturados únicamente antes de autenticación.
 
-Consola Maestro, XML original, debug, jerarquías, capturas automáticas de errores y cualquier log sensible permanecen privados en RUNNER_TEMP y no se publican. No se toma una captura de recuperación ni se generan recoveryKeys en este recorrido. Ninguna contraseña/token se pasa como argumento CLI, input del workflow o archivo de snapshot.
+Si falla exclusivamente legacy-seed-old-apk, antes de introducir credenciales y tras una instalación limpia del APK 0.1.3, se permite safe-legacy-failure.png. El helper exige que solo hayan terminado las etapas de aislamiento e instalación anterior; rechaza todos los fallos posteriores, incluidos registro, cuentas, recuperación y OTA. La captura real exige GitHub Linux y un serial de emulador.
+
+En esa misma excepción se guarda uiautomator.xml únicamente en private y se publica safe-legacy-ui.json: clase, bounds, enabled y scrollable; solo para EditText se admiten text numérico y contentDescription que coincida con etiquetas literales del flujo o importes/números. Se rechazan comodines, declaraciones XML y valores privados conocidos. El parser usa xml.etree de Python 3 ya disponible en Ubuntu, sin nuevas dependencias npm. Si no puede capturar o filtrar, publica un estado fijo unavailable; nunca XML ni stderr originales. El PNG corresponde a la secuencia anónima anterior y no se habilita para otros fallos.
+
+Consola Maestro, XML original, debug, jerarquías sin filtrar, capturas automáticas de errores y cualquier log sensible permanecen privados en RUNNER_TEMP y no se publican. No se toma una captura de recuperación ni se generan recoveryKeys en este recorrido. Ninguna contraseña/token se pasa como argumento CLI, input del workflow o archivo de snapshot.
 
 Las pruebas locales de android-ci.test.mjs validan URLs, límites, guardia adb, publicación de diagnósticos, YAML y conservación contra una API HTTP en memoria aislada. No arrancan adb, Maestro, un emulador ni Railway.
 

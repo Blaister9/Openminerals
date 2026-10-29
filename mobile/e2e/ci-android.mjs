@@ -9,6 +9,7 @@ import {fileURLToPath} from 'node:url';
 import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,certificate,cleanFixture,emulatorGuard,fixtures,hash,manifest,otaUpdateId,publicJunit,requireSafe,sha} from './ci-safety.mjs';
 import {verifyNativeSnapshot} from './ci-result.mjs';
 import {flowSelectors,failureDiagnostic} from './ci-diagnostics.mjs';
+import {captureLegacyFailure} from './ci-legacy-failure.mjs';
 
 const repo=resolve(dirname(fileURLToPath(import.meta.url)),'..'),root=resolve(process.env.RUNNER_TEMP||'.','openminerals-native');
 const published=join(root,'public'),privateRoot=join(root,'private');
@@ -155,7 +156,12 @@ async function run(){
     const directory=join(privateRoot,'legacy');await mkdir(directory,{recursive:true});
     try{
       command('maestro',['--no-ansi','--device',serial,'test','--format','JUNIT','--output',join(directory,'raw-report.xml'),'--debug-output',join(directory,'debug'),'--test-output-dir',join(directory,'screenshots'),join(repo,'e2e/trades.yaml')],{timeout:420000,output:join(directory,'console.txt')});
-    }catch(error){await saveDiagnostic('legacy-seed-old-apk',join(directory,'console.txt'),await readFile(join(repo,'e2e/trades.yaml'),'utf8'));throw error;}
+    }catch(error){
+      const definitions=await readFile(join(repo,'e2e/trades.yaml'),'utf8');
+      await saveDiagnostic('legacy-seed-old-apk',join(directory,'console.txt'),definitions);
+      await captureLegacyFailure({stage:'legacy-seed-old-apk',completedStages:results.filter(item=>item.ok).map(item=>item.name),serial,definitions,privateDirectory:directory,publishDirectory:published,privateValues:[...privateValues]});
+      throw error;
+    }
   });
   await runStage('update-without-clearing-data',async()=>{
     const before=adb('shell','pidof','system_server');
@@ -190,7 +196,8 @@ async function report(){
   await mkdir(published,{recursive:true});
   await writeFile(join(published,'report.xml'),publicJunit(results,[...privateValues]));
   // Fixed labels and counts only. No raw Maestro XML, stderr, hierarchy, logcat,
-  // failure screenshot, account alias, password, token or recovery key is copied.
+  // account failure screenshot, alias, password, token or recovery key is copied.
+  // The isolated anonymous 0.1.3 phase has its own explicit screenshot policy.
   const summary={demoOnly:true,environment:'disposable Android CI emulator',phoneAcceptance:false,realCustody:false,ota:{requested:expectedOtaId!==null,expectedUpdateId:expectedOtaId},completed:results.filter(item=>item.ok).map(item=>item.name),failed:results.filter(item=>!item.ok).map(item=>item.name),safeScreenshots:'Anonymous legacy/story before credentials only',privateDiagnosticsPublished:false};
   const text=JSON.stringify(summary,null,2)+'\n';
   requireSafe([...privateValues].every(value=>!text.includes(value)),'Refusing to publish private values.');
