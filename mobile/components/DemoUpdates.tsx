@@ -1,14 +1,16 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {ActivityIndicator,Platform,Pressable,StyleSheet,Text,View} from 'react-native';
 import * as Updates from 'expo-updates';
+import {updateCheckNotice} from '../lib/update-message';
 
 // Native startup downloads compatible updates in the background. Applying them
 // on the next cold launch leaves pending-operation persistence in charge of
 // recovery; fetching here never reloads a running financial demonstration.
 export function DemoUpdates({disabled=false}:{disabled?:boolean}){
   const enabled=Platform.OS==='android'&&Updates.isEnabled;
+  const {isUpdatePending}=Updates.useUpdates();
   const [busy,setBusy]=useState(false),[notice,setNotice]=useState('');
-  const mounted=useRef(true),running=useRef(false),blocked=useRef(disabled);blocked.current=disabled;
+  const mounted=useRef(true),running=useRef(false),blocked=useRef(disabled),pending=useRef(isUpdatePending);blocked.current=disabled;pending.current=isUpdatePending;
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
   async function check(){
     if(!enabled||blocked.current||running.current)return;
@@ -16,13 +18,13 @@ export function DemoUpdates({disabled=false}:{disabled?:boolean}){
     try{
       const result=await Updates.checkForUpdateAsync();
       if(!result.isAvailable&&!result.isRollBackToEmbedded){
-        if(mounted.current)setNotice('Ya tienes la última actualización compatible.');
+        if(mounted.current)setNotice(updateCheckNotice({pending:pending.current,embedded:Updates.isEmbeddedLaunch,updateId:Updates.updateId,reason:result.reason}));
         return;
       }
       const fetched=await Updates.fetchUpdateAsync();
       if(mounted.current)setNotice(fetched.isNew||fetched.isRollBackToEmbedded
         ?'Actualización descargada. Cierra y vuelve a abrir la app para aplicarla; tus datos se conservan.'
-        :'Ya tienes la última actualización compatible.');
+        :updateCheckNotice({pending:pending.current,embedded:Updates.isEmbeddedLaunch,updateId:Updates.updateId}));
     }catch{
       if(mounted.current)setNotice('No se pudo comprobar la actualización. Puedes seguir usando esta versión y reintentar con conexión.');
     }finally{
@@ -39,7 +41,7 @@ export function DemoUpdates({disabled=false}:{disabled?:boolean}){
     {enabled&&<Pressable accessibilityRole="button" disabled={disabled||busy} onPress={()=>void check()} style={[styles.button,(disabled||busy)&&styles.disabled]}>
       {busy&&<ActivityIndicator color="#D8B66A" size="small"/>}<Text style={styles.buttonText}>{busy?'Comprobando actualización…':'Buscar actualización'}</Text>
     </Pressable>}
-    {!!notice&&<Text accessibilityLiveRegion="polite" style={styles.note}>{notice}</Text>}
+    {(isUpdatePending||!!notice)&&<Text testID="demo-update-status" accessibilityLiveRegion="polite" style={styles.note}>{isUpdatePending?updateCheckNotice({pending:true,embedded:Updates.isEmbeddedLaunch}):notice}</Text>}
   </View>;
 }
 const styles=StyleSheet.create({
