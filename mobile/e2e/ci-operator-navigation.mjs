@@ -13,12 +13,13 @@ export function sanitizeOperatorHierarchy(xml){
   requireSafe(!result.error&&result.status===0,'Operator landmarks could not be safely parsed.');
   return JSON.parse(result.stdout);
 }
-export async function captureOperatorNavigation({scenario,checkpoint,serial,publishDirectory,privateValues=[],invoke=spawnSync}){
-  requireSafe(scenario==='operator-navigation'&&checkpoints.has(checkpoint)&&/^emulator-\d+$/.test(serial),'Invalid operator diagnostic scope.');
+export async function captureOperatorNavigation({scenario,checkpoint,flow,serial,publishDirectory,privateValues=[],invoke=spawnSync}){
+  const allowed=scenario==='operator-navigation'||scenario==='full'&&checkpoint==='failure'&&['quote','operator','operator-stock'].includes(flow);
+  requireSafe(allowed&&checkpoints.has(checkpoint)&&/^emulator-\d+$/.test(serial),'Invalid operator diagnostic scope.');
   requireSafe(invoke!==spawnSync||(process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_OS==='Linux'),'Native capture requires disposable GitHub Linux.');
   const remote='/sdcard/openminerals-ci-navigation.xml';
   const run=args=>invoke('adb',['-s',serial,...args],{encoding:'utf8',timeout:15000,killSignal:'SIGKILL',maxBuffer:2500000,windowsHide:true,stdio:['ignore','pipe','pipe']});
-  let diagnostic={checkpoint,status:'unavailable',rawUiPublished:false,screenshotsTaken:false};
+  let diagnostic={checkpoint,...(scenario==='full'?{flow}:{}),status:'unavailable',rawUiPublished:false,screenshotsTaken:false};
   try{
     const dumped=run(['shell','uiautomator','dump',remote]);
     requireSafe(!dumped.error&&dumped.status===0,'UI dump unavailable.');

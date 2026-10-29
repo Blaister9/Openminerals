@@ -69,7 +69,7 @@ function checkedMine(value:unknown):MineSummary{
 }
 
 function Chip({label,active,onPress}:{label:string;active:boolean;onPress:()=>void}){
- return <Pressable onPress={onPress} style={[styles.chip,active&&styles.chipOn]}><Text style={[styles.chipText,active&&styles.chipTextOn]}>{label}</Text></Pressable>;
+ return <Pressable accessibilityRole="button" accessibilityState={{selected:active}} onPress={onPress} style={[styles.chip,active&&styles.chipOn]}><Text style={[styles.chipText,active&&styles.chipTextOn]}>{label}</Text></Pressable>;
 }
 function Button({label,onPress,secondary=false,disabled=false}:{label:string;onPress:()=>void;secondary?:boolean;disabled?:boolean}){
  return <Pressable accessibilityRole="button" accessibilityState={{disabled}} disabled={disabled} onPress={onPress} style={[styles.button,secondary&&styles.buttonSecondary,disabled&&{opacity:.45}]}><Text style={[styles.buttonText,secondary&&styles.buttonSecondaryText]}>{label}</Text></Pressable>;
@@ -502,12 +502,16 @@ export default function App(){
  function operatorMine(){
   if(!account)return null;
   const blocked=busy||authBusy||!!pending||authExpired||!!accountRecovery;
-  return <><Button label="Ver presentación Openminerals" secondary onPress={()=>{presentationScrollY.setValue(0);setStoryVisible(true);}}/><View style={styles.chips}><Chip label="Panel gerencial" active={mineSection==='management'} onPress={()=>setMineSection('management')}/><Chip label="Inventario" active={mineSection==='inventory'} onPress={()=>setMineSection('inventory')}/><Chip label="Lotes" active={mineSection==='custody'} onPress={()=>setMineSection('custody')}/><Chip label="Entregas DEMO" active={mineSection==='delivery'} onPress={()=>setMineSection('delivery')}/></View>
+  return <><Button label="Ver presentación Openminerals" secondary onPress={()=>{presentationScrollY.setValue(0);setStoryVisible(true);}}/>
    {mineSection==='management'?<ManagementPanel key={account.id} identityKey={account.id} get={client.get} disabled={blocked} refreshKey={String(operationRevision)} onReceipt={(receipt,ownerId)=>void openReceipt(receipt.id,receipt,ownerId)}/>:
     mineSection==='custody'?<CustodyPanel key={account.id} identityKey={account.id} operator get={client.get} disabled={blocked} refreshKey={String(operationRevision)}/>:
     mineSection==='delivery'?<DeliveryPanel key={account.id} identityKey={account.id} operator get={client.get} submit={perform} disabled={blocked} refreshKey={String(operationRevision)}/>:
     <MineDashboard summary={mineSummary} loading={mineLoading} error={mineError} blocked={blocked} lastStockId={lastStockId} onRefresh={()=>void loadMine()} onReceipt={(ownerId,receipt)=>void openReceipt(receipt.id,receipt,ownerId)} onStockReceipt={setStockReceipt} onRestock={body=>perform('mine/stock',body,'Crear lote de demostración',`${gram(Math.round((parsePositiveDecimal(body.grams,3)||0)*1000))} de ${meta(body.metal).name}.\nPureza ficticia: ${(Number(body.purityBps)/100).toFixed(2)} %.\nUbicación DEMO: ${body.location}.\nDocumento: ${body.documentTitle}.\nMotivo: ${body.reason}.\nSe añadirá al inventario compartido de esta demostración.`)}/>
    }</>;
+ }
+ function mineNavigation(){
+  const select=(section:typeof mineSection)=>{contentScroll.current?.scrollTo({y:0,animated:false});setMineSection(section);};
+  return <View style={styles.mineNavigation}><Chip label="Panel gerencial" active={mineSection==='management'} onPress={()=>select('management')}/><Chip label="Inventario" active={mineSection==='inventory'} onPress={()=>select('inventory')}/><Chip label="Lotes" active={mineSection==='custody'} onPress={()=>select('custody')}/><Chip label="Entregas DEMO" active={mineSection==='delivery'} onPress={()=>select('delivery')}/></View>;
  }
  return <SafeAreaProvider initialMetrics={initialWindowMetrics}><SafeAreaView style={styles.screen}><StatusBar barStyle="light-content"/>
   <View style={styles.header}><View><Text style={styles.logo}>OPEN<Text style={{color:accent}}>MINERALS</Text></Text><Text style={styles.logoSub}>METALS · OWNERSHIP · TECHNOLOGY</Text></View><View style={styles.badge}><Text style={styles.badgeText}>DEMO</Text></View></View>
@@ -522,6 +526,7 @@ export default function App(){
    onScroll={Animated.event([{nativeEvent:{contentOffset:{y:homeScrollY}}}],{useNativeDriver:true})} scrollEventThrottle={16}>
    {isOperator?(tab==='Cuenta'?accountPage():operatorMine()):tab==='Inicio'?home():tab==='Mercado'?market():tab==='Billetera'?wallet():tab==='Metales'?holdings():more()}
   </Animated.ScrollView>}
+  {isOperator&&tab!=='Cuenta'&&!authExpired&&mineNavigation()}
   <View style={styles.tabs}>{sections.map(t=><Pressable accessibilityRole="tab" accessibilityState={{selected:tab===t}} key={t} onPress={()=>setTab(t)} style={styles.tab}><View style={[styles.tabDot,tab===t&&styles.tabDotActive]}/><Text style={[styles.tabLabel,tab===t&&styles.tabLabelActive]}>{t==='Más'?'Actividad':t}</Text></Pressable>)}</View>
   <OperationConfirmation visible={confirmation!==null} title={confirmation?.title||''} detail={confirmation?.detail||''} onCancel={cancelConfirmation} onConfirm={confirmOperation}/>
   <ReceiptDetails visible={receiptVisible} receipt={selectedReceipt} loading={receiptLoading} error={receiptError}
@@ -551,7 +556,8 @@ const styles=StyleSheet.create({
  metalGrid:{flexDirection:'row',flexWrap:'wrap',gap:10,marginVertical:17},metalChoice:{width:'48%',flexGrow:1,padding:14,borderRadius:13,backgroundColor:'#141E28',borderWidth:1,borderColor:'#293846'},metalChoiceOn:{borderColor:accent,backgroundColor:'#242B2E'},choiceSymbol:{fontSize:23,fontWeight:'800'},choiceName:{color:'#F4F3EE',fontSize:14,fontWeight:'700',marginTop:8},
  inputLabel:{color:'#C1CBD2',fontSize:12,fontWeight:'600',marginTop:15,marginBottom:8},input:{color:'#FAF9F3',fontSize:18,fontWeight:'600',paddingHorizontal:15,paddingVertical:13,backgroundColor:'#09131C',borderColor:'#3C4B56',borderWidth:1,borderRadius:10,marginTop:6,marginBottom:8},
  walletGrid:{flexDirection:'row',flexWrap:'wrap',gap:10,marginTop:20},walletCard:{width:'48%',flexGrow:1,borderWidth:1,borderColor:'#36444D',backgroundColor:'#172530',padding:16,borderRadius:13},walletValue:{fontSize:16,fontWeight:'700',color:'#FFF9EB'},
- chips:{flexDirection:'row',flexWrap:'wrap',gap:7,marginVertical:6},chip:{paddingVertical:9,paddingHorizontal:11,borderRadius:8,borderWidth:1,borderColor:'#465766'},chipOn:{backgroundColor:'#665233',borderColor:accent},chipText:{color:'#AAB5BD',fontSize:11,fontWeight:'700'},chipTextOn:{color:'#FFE9B8'},
+ mineNavigation:{flexDirection:'row',flexWrap:'wrap',gap:7,paddingHorizontal:21,paddingVertical:8,borderTopWidth:1,borderColor:'#283540',backgroundColor:'#101922'},
+ chips:{flexDirection:'row',flexWrap:'wrap',gap:7,marginVertical:6},chip:{minHeight:44,minWidth:44,justifyContent:'center',paddingVertical:9,paddingHorizontal:11,borderRadius:8,borderWidth:1,borderColor:'#465766'},chipOn:{backgroundColor:'#665233',borderColor:accent},chipText:{color:'#AAB5BD',fontSize:11,fontWeight:'700'},chipTextOn:{color:'#FFE9B8'},
  disclaimer:{fontSize:11,lineHeight:18,color:'#98A5B0',marginVertical:15},historyRow:{padding:16,borderWidth:1,borderColor:'#273541',borderRadius:12,backgroundColor:'#141E28',marginTop:12},
  historyAmount:{color:'#F3F3EF',fontSize:14,lineHeight:22,fontWeight:'700',marginTop:4},historyLink:{color:accent,fontSize:12,lineHeight:20,fontWeight:'700',marginTop:10},historyLoading:{flexDirection:'row',gap:12,alignItems:'center',marginVertical:18},historyError:{backgroundColor:'#4B2E2A',padding:16,borderRadius:12,marginTop:14},quoteBox:{backgroundColor:'#0C1720',borderRadius:12,padding:14,marginTop:12},
  tabs:{height:68,borderTopWidth:1,borderColor:'#283540',backgroundColor:'#101922',flexDirection:'row',justifyContent:'space-around',paddingTop:10},tab:{alignItems:'center',justifyContent:'flex-start',flex:1,gap:8},tabDot:{height:4,width:19,backgroundColor:'#52606B',borderRadius:10},tabDotActive:{backgroundColor:accent},tabLabel:{fontSize:10,fontWeight:'600',color:'#90A1AE'},tabLabelActive:{color:accent},

@@ -57,6 +57,8 @@ test('operator navigation: captures no screenshot or raw UI, removes remote dump
     const failed=await captureOperatorNavigation({...options,checkpoint:'failure',invoke:()=>({status:1,stderr:secret})});
     assert.equal(failed.status,'unavailable');assert.equal(JSON.stringify(failed).includes(secret),false);
     let invoked=false;await assert.rejects(()=>captureOperatorNavigation({...options,scenario:'full',invoke:()=>{invoked=true;}}));assert.equal(invoked,false);
+    const fullFailure=await captureOperatorNavigation({...options,scenario:'full',checkpoint:'failure',flow:'quote'});assert.equal(fullFailure.status,'captured');assert.equal(fullFailure.flow,'quote');
+    await assert.rejects(()=>captureOperatorNavigation({...options,scenario:'full',checkpoint:'failure',flow:'profile',invoke:()=>{invoked=true;}}));assert.equal(invoked,false);
     await assert.rejects(()=>captureOperatorNavigation({...options,serial:'physical-device'}));
   }finally{await rm(directory,{recursive:true,force:true});}
 });

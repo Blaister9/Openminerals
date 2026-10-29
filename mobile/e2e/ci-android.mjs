@@ -88,11 +88,11 @@ async function maestro(name,role){
   }catch(error){
     const definitions=(await Promise.all([name,'login'].map(flow=>readFile(join(repo,'e2e/native',flow+'.yaml'),'utf8')))).join('\n');
     await saveDiagnostic(name,join(directory,'console.txt'),definitions);
-    if(scenario==='operator-navigation')await captureNavigation('failure');
+    if(scenario==='operator-navigation'||scenario==='full'&&['quote','operator','operator-stock'].includes(name))await captureNavigation('failure',name);
     throw error;
   }
 }
-const captureNavigation=checkpoint=>captureOperatorNavigation({scenario,checkpoint,serial,publishDirectory:published,privateValues:[...privateValues]});
+const captureNavigation=(checkpoint,flow)=>captureOperatorNavigation({scenario,checkpoint,flow,serial,publishDirectory:published,privateValues:[...privateValues]});
 async function captureSafeScreens(name){
   // These phases finish before entering any alias/password, and run alone.
   const directory=join(privateRoot,name,'screenshots');
