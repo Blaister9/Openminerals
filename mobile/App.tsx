@@ -1,5 +1,5 @@
 import React, {useEffect,useRef,useState} from 'react';
-import {ActivityIndicator,Animated,Pressable,SafeAreaView,StatusBar,StyleSheet,Text,TextInput,View} from 'react-native';
+import {ActivityIndicator,Animated,Modal,Pressable,SafeAreaView,ScrollView,StatusBar,StyleSheet,Text,TextInput,View} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
 import {RequestError,type PendingOperation} from './lib/demo-client';
@@ -17,6 +17,7 @@ import {CustodyPanel} from './components/CustodyPanel';
 import {MarketplacePanel} from './components/MarketplacePanel';
 import {DeliveryPanel} from './components/DeliveryPanel';
 import {ManagementPanel} from './components/ManagementPanel';
+import {AccountSettings} from './components/AccountSettings';
 
 // DEMO: todas las cifras, inventarios y solicitudes son simulados.
 // Cuentas de demostración; no hay KYC, pagos, exchange ni bóveda real.
@@ -98,6 +99,7 @@ export default function App(){
  const [mineIdentity,setMineIdentity]=useState<{id:string;name:string}|null>(null);
  const [authExpired,setAuthExpired]=useState(false);
  const [authVisible,setAuthVisible]=useState(false);
+ const [settingsVisible,setSettingsVisible]=useState(false);
  const [authMode,setAuthMode]=useState<'login'|'register'>('login');
  const [authBusy,setAuthBusy]=useState(false);
  const [authError,setAuthError]=useState('');
@@ -170,6 +172,7 @@ export default function App(){
   setStockReceipt(null);setLastStockId('');setOperatorVisible(false);
   setMetalAction('sell');
   setMineSection('management');setMetalsSection('positions');
+  setSettingsVisible(false);
  }
  function acceptIdentity(initial:{session:string;pending:PendingOperation|null;account:Account|null;mine?:{id:string;name:string}|null;authExpired?:boolean}){
   setSession(initial.session);setPending(initial.pending);setAccount(initial.account);setMineIdentity(initial.mine??null);setAuthExpired(!!initial.authExpired);
@@ -178,6 +181,14 @@ export default function App(){
  function openAccount(mode:'login'|'register'='login'){
   if(busy||authBusy||actionLock.current||authLock.current||client.isSending())return;
   setAuthMode(mode);setAuthError('');setAuthVisible(true);
+ }
+ function openSettings(){
+  if(!account||busy||authBusy||!!pending||authExpired||client.isSending())return;
+  setAuthVisible(false);setSettingsVisible(true);
+ }
+ async function recoveredAccount(alias:string){
+  try{acceptIdentity(await client.initialize());setRecoveryAlias(alias);setAuthMode('login');setAuthError('');setAuthVisible(true);}
+  catch(error){setAuthError(messageError(error));setRecoveryAlias(alias);setAuthMode('login');setAuthVisible(true);}
  }
  async function submitAccount(mode:'login'|'register',alias:string,password:string,importLegacy:boolean){
   if(busy||authLock.current||actionLock.current||client.isSending())return;
@@ -313,7 +324,7 @@ export default function App(){
  const reserved=(metal:Metal)=>state?state.offers.filter(o=>o.metal===metal&&o.status==='OPEN').reduce((a,o)=>a+o.mg,0)+state.custodyRequests.filter(d=>d.metal===metal&&['PENDING_QUOTE','QUOTED','APPROVED','PREPARING','DISPATCHED_DEMO'].includes(d.status)).reduce((a,d)=>a+d.mg,0):0;
  function accountCard(){return <Card>
   <Text style={styles.cardTitle}>{account?account.alias:state?.legacyReadOnly?'Sesión anterior vinculada':'Tu cuenta de demostración'}</Text>
-  {account?<><Row left="Rol" right={account.role==='operator'?'Operador de mina':'Comprador'}/><Text style={styles.copy}>{mineIdentity?.name||'Mina de demostración'} · datos ficticios</Text><Button label="Abrir mi cuenta" secondary disabled={busy||authBusy} onPress={()=>openAccount('login')}/></>:<>
+  {account?<><Row left="Rol" right={account.role==='operator'?'Operador de mina':'Comprador'}/><Text style={styles.copy}>{mineIdentity?.name||'Mina de demostración'} · datos ficticios</Text><Button label="Abrir mi cuenta" secondary disabled={busy||authBusy} onPress={()=>openAccount('login')}/><Button label="Perfil y recuperación" secondary disabled={busy||authBusy||!!pending||authExpired} onPress={openSettings}/></>:<>
    <Text style={styles.copy}>{state?.legacyReadOnly?'Esta sesión permanece en consulta. Entra en la cuenta vinculada para continuar con sus saldos e historial.':'Crea una cuenta para recuperar tus datos en otro dispositivo y operar con el inventario compartido de la mina. Puedes conservar esta sesión al crearla.'}</Text>
    <View style={styles.hRow}>{!state?.legacyReadOnly&&<Button label="Crear cuenta demo" disabled={busy||authBusy||!!pending} onPress={()=>openAccount('register')}/>}<Button label="Entrar en una cuenta" secondary disabled={busy||authBusy} onPress={()=>openAccount('login')}/></View>
   </>}
@@ -501,8 +512,9 @@ export default function App(){
    onClose={closeReceipt} onRetry={()=>{if(receiptToFetch.current)void openReceipt(receiptToFetch.current,undefined,receiptOwner.current??undefined);}}
    onHistory={()=>{closeReceipt();setTab(isOperator?'Mina':'Más');}}/>
   <StockReceiptDetails receipt={stockReceipt} onClose={()=>setStockReceipt(null)}/>
+  {settingsVisible&&account&&<Modal visible onRequestClose={()=>setSettingsVisible(false)} animationType="none" presentationStyle="pageSheet"><SafeAreaView style={styles.screen}><View style={styles.identityBar}><Text style={[styles.cardTitle,{flex:1}]}>Perfil de demostración</Text><Pressable accessibilityRole="button" style={styles.accountLink} onPress={()=>setSettingsVisible(false)}><Text style={styles.accountLinkText}>Cerrar</Text></Pressable></View><ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled"><AccountSettings key={account.id} identityKey={account.id} account={account} disabled={busy||authBusy||!!pending||authExpired} getProfile={client.getProfile} saveProfile={client.updateProfile} setupRecovery={client.setupRecovery} onAuthExpired={()=>{setSettingsVisible(false);setAuthExpired(true);}}/></ScrollView></SafeAreaView></Modal>}
   <AccountAccess visible={authVisible} initialMode={authMode} account={account} mineName={mineIdentity?.name} recoveryAlias={recoveryAlias} expired={authExpired} busy={authBusy} pending={!!pending} canImportLegacy={!account&&!!state&&!state.legacyReadOnly} legacyReadOnly={!!state?.legacyReadOnly}
-   error={authError} onClose={()=>{if(!authBusy){setAuthVisible(false);setAuthError('');}}} onLogout={()=>void signOut()} onSubmit={(mode,alias,password,importLegacy)=>void submitAccount(mode,alias,password,importLegacy)}/>
+   error={authError} onClose={()=>{if(!authBusy){setAuthVisible(false);setAuthError('');}}} onLogout={()=>void signOut()} onSubmit={(mode,alias,password,importLegacy)=>void submitAccount(mode,alias,password,importLegacy)} onSettings={openSettings} startRecovery={client.startRecovery} completeRecovery={client.completeRecovery} cancelRecovery={client.cancelRecovery} onRecoveryDone={alias=>void recoveredAccount(alias)}/>
  </SafeAreaView>;
 }
 const accent='#DCBC7F';

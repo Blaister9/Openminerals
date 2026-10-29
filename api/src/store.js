@@ -7,6 +7,7 @@ import {ensureCustody,validateCustody,allocateCustody,releaseCustody,addStockLot
 import {marketplaceCatalog,marketReplay,settleMarketplace} from './marketplace.js';
 import {ensureDelivery,deliveryView,applyBuyerDelivery,operatorDeliveryReplay,applyOperatorDelivery} from './delivery.js';
 import {parseManagementQuery,managementView} from './management.js';
+import {accountServices} from './account-services.js';
 
 const ID_PATTERN=/^[A-Za-z0-9_-]{16,100}$/;
 const clone=value=>structuredClone(value);
@@ -85,6 +86,7 @@ function makeStore(adapter){
     return {...context,token,expiresAt,demoOnly:true};
   }
   return {
+    ...accountServices(adapter),
     mode:adapter.mode,
     ping:()=>adapter.ping(),
     async get(id){
@@ -134,9 +136,13 @@ function makeStore(adapter){
     async loginAccount(rawAlias,password){
       let alias;
       try {alias=normalizeAlias(rawAlias);}catch{throw unauthorized();}
-      const account=await adapter.tx(tx=>tx.alias(alias));
-      if(!await passwordMatches(password,account))throw unauthorized();
-      return issueSession(account.id);
+      return adapter.tx(async tx=>{
+        const first=await tx.alias(alias),account=first?await tx.account(first.id,true):undefined;
+        if(!await passwordMatches(password,account))throw unauthorized();
+        const mine=await tx.mine(account.mineId),token=newAuthToken(),expiresAt=new Date(Date.now()+AUTH_LIFETIME_MS).toISOString();
+        await tx.insertAuth({hash:tokenHash(token),accountId:account.id,expiresAt});
+        return {account:publicAccount(account),mine:{id:mine.id,name:mine.name},token,expiresAt,demoOnly:true};
+      });
     },
     async authenticate(token){
       if(typeof token!=='string'||!/^[A-Za-z0-9_-]{43}$/.test(token))throw unauthorized();
@@ -302,7 +308,7 @@ function makeStore(adapter){
 }
 
 function memoryAdapter(){
-  let database={legacy:new Map(),accounts:new Map(),mines:new Map([[DEFAULT_MINE_ID,seedMine(DEFAULT_MINE_ID,'Openminerals · Mina demo')]]),auth:new Map()};
+  let database={legacy:new Map(),accounts:new Map(),mines:new Map([[DEFAULT_MINE_ID,seedMine(DEFAULT_MINE_ID,'Openminerals · Mina demo')]]),auth:new Map(),profiles:new Map(),recoveryKeys:new Map(),recoveryChallenges:new Map(),recoveryAttempts:new Map()};
   let queue=Promise.resolve();
   return {
     mode:'memory-demo',async ping(){return true;},async close(){},
@@ -317,6 +323,17 @@ function memoryAdapter(){
         async insertAccount(account){if([...db.accounts.values()].some(a=>a.alias===account.alias||account.legacySessionId&&a.legacySessionId===account.legacySessionId))throw accountError(409,'El alias o la sesión ya están vinculados.');db.accounts.set(account.id,clone(account));},
         async saveAccountState(id,state){db.accounts.get(id).state=clone(state);},async accountsForMine(id){return clone([...db.accounts.values()].filter(a=>a.mineId===id));},
         async auth(hash){return clone(db.auth.get(hash));},async insertAuth(auth){db.auth.set(auth.hash,clone(auth));},async deleteAuth(hash){db.auth.delete(hash);},
+        async deleteAccountAuth(accountId){for(const [hash,auth] of db.auth)if(auth.accountId===accountId)db.auth.delete(hash);},
+        async savePassword(id,credentials){Object.assign(db.accounts.get(id),clone(credentials));},
+        async profile(id){return clone(db.profiles.get(id));},async saveProfile(id,profile){db.profiles.set(id,clone(profile));},
+        async recoveryKey(id){return clone(db.recoveryKeys.get(id));},async saveRecoveryKey(id,keyHash){db.recoveryKeys.set(id,{keyHash,updatedAt:new Date().toISOString()});},
+        async recoveryChallenge(hash){return clone(db.recoveryChallenges.get(hash));},async insertRecoveryChallenge(challenge){db.recoveryChallenges.set(challenge.hash,clone(challenge));},
+        async deleteRecoveryChallenges(accountId){for(const [hash,challenge] of db.recoveryChallenges)if(challenge.accountId===accountId)db.recoveryChallenges.delete(hash);},
+        async recoveryAttempt(keyHash,limit,windowMs){
+          const now=Date.now();let row=db.recoveryAttempts.get(keyHash);
+          if(!row||Date.parse(row.resetAt)<=now)row={count:1,resetAt:new Date(now+windowMs).toISOString()};else row={...row,count:Math.min(row.count,limit)+1};
+          db.recoveryAttempts.set(keyHash,row);return row.count<=limit;
+        },
       };
       try{const result=await work(tx);database=db;return result;}finally{release();}
     },
@@ -335,8 +352,13 @@ async function postgresAdapter(databaseUrl){
       CREATE TABLE IF NOT EXISTS demo_mines (id TEXT PRIMARY KEY,state JSONB NOT NULL,updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
       CREATE TABLE IF NOT EXISTS demo_accounts (id TEXT PRIMARY KEY,alias TEXT NOT NULL UNIQUE,role TEXT NOT NULL CHECK(role IN ('buyer','operator')),mine_id TEXT NOT NULL REFERENCES demo_mines(id),password_salt TEXT NOT NULL,password_hash TEXT NOT NULL,state JSONB NOT NULL,legacy_session_id TEXT UNIQUE,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
       CREATE TABLE IF NOT EXISTS demo_auth_sessions (token_hash TEXT PRIMARY KEY,account_id TEXT NOT NULL REFERENCES demo_accounts(id),expires_at TIMESTAMPTZ NOT NULL);
+      CREATE TABLE IF NOT EXISTS demo_account_profiles (account_id TEXT PRIMARY KEY REFERENCES demo_accounts(id),profile JSONB NOT NULL,updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+      CREATE TABLE IF NOT EXISTS demo_recovery_keys (account_id TEXT PRIMARY KEY REFERENCES demo_accounts(id),key_hash TEXT NOT NULL CHECK(key_hash ~ '^[a-f0-9]{64}$'),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+      CREATE TABLE IF NOT EXISTS demo_recovery_challenges (token_hash TEXT PRIMARY KEY CHECK(token_hash ~ '^[a-f0-9]{64}$'),account_id TEXT NOT NULL REFERENCES demo_accounts(id),expires_at TIMESTAMPTZ NOT NULL);
+      CREATE TABLE IF NOT EXISTS demo_recovery_attempts (key_hash TEXT PRIMARY KEY CHECK(key_hash ~ '^[a-f0-9]{64}$'),count INTEGER NOT NULL CHECK(count>=0),reset_at TIMESTAMPTZ NOT NULL);
       CREATE INDEX IF NOT EXISTS demo_accounts_mine_idx ON demo_accounts(mine_id);
-      CREATE INDEX IF NOT EXISTS demo_auth_sessions_account_idx ON demo_auth_sessions(account_id);`);
+      CREATE INDEX IF NOT EXISTS demo_auth_sessions_account_idx ON demo_auth_sessions(account_id);
+      CREATE INDEX IF NOT EXISTS demo_recovery_challenges_account_idx ON demo_recovery_challenges(account_id);`);
     await startup.query('INSERT INTO demo_mines(id,state) VALUES($1,$2::jsonb) ON CONFLICT(id) DO NOTHING',[DEFAULT_MINE_ID,JSON.stringify(seedMine(DEFAULT_MINE_ID,'Openminerals · Mina demo'))]);
     await startup.query('COMMIT');
   }catch(error){
@@ -366,6 +388,21 @@ async function postgresAdapter(databaseUrl){
         async auth(hash){const row=await one('SELECT account_id,expires_at FROM demo_auth_sessions WHERE token_hash=$1',[hash]);return row?{accountId:row.account_id,expiresAt:row.expires_at.toISOString()}:undefined;},
         async insertAuth(auth){await client.query('DELETE FROM demo_auth_sessions WHERE expires_at<=NOW()');await client.query('INSERT INTO demo_auth_sessions(token_hash,account_id,expires_at) VALUES($1,$2,$3)',[auth.hash,auth.accountId,auth.expiresAt]);},
         async deleteAuth(hash){await client.query('DELETE FROM demo_auth_sessions WHERE token_hash=$1',[hash]);},
+        async deleteAccountAuth(accountId){await client.query('DELETE FROM demo_auth_sessions WHERE account_id=$1',[accountId]);},
+        async savePassword(id,credentials){await client.query('UPDATE demo_accounts SET password_salt=$2,password_hash=$3 WHERE id=$1',[id,credentials.passwordSalt,credentials.passwordHash]);},
+        async profile(id){return (await one('SELECT profile FROM demo_account_profiles WHERE account_id=$1',[id]))?.profile;},
+        async saveProfile(id,profile){await client.query('INSERT INTO demo_account_profiles(account_id,profile) VALUES($1,$2::jsonb) ON CONFLICT(account_id) DO UPDATE SET profile=EXCLUDED.profile,updated_at=NOW()',[id,JSON.stringify(profile)]);},
+        async recoveryKey(id){const row=await one('SELECT key_hash,updated_at FROM demo_recovery_keys WHERE account_id=$1',[id]);return row?{keyHash:row.key_hash,updatedAt:row.updated_at.toISOString()}:undefined;},
+        async saveRecoveryKey(id,keyHash){await client.query('INSERT INTO demo_recovery_keys(account_id,key_hash) VALUES($1,$2) ON CONFLICT(account_id) DO UPDATE SET key_hash=EXCLUDED.key_hash,updated_at=NOW()',[id,keyHash]);},
+        async recoveryChallenge(hash,lock=false){const row=await one(`SELECT account_id,expires_at FROM demo_recovery_challenges WHERE token_hash=$1${lock?' FOR UPDATE':''}`,[hash]);return row?{hash,accountId:row.account_id,expiresAt:row.expires_at.toISOString()}:undefined;},
+        async insertRecoveryChallenge(challenge){await client.query('INSERT INTO demo_recovery_challenges(token_hash,account_id,expires_at) VALUES($1,$2,$3)',[challenge.hash,challenge.accountId,challenge.expiresAt]);},
+        async deleteRecoveryChallenges(accountId){await client.query('DELETE FROM demo_recovery_challenges WHERE account_id=$1',[accountId]);},
+        async recoveryAttempt(keyHash,limit,windowMs){
+          const row=await one(`INSERT INTO demo_recovery_attempts(key_hash,count,reset_at) VALUES($1,1,NOW()+$2::integer*INTERVAL '1 millisecond')
+            ON CONFLICT(key_hash) DO UPDATE SET count=CASE WHEN demo_recovery_attempts.reset_at<=NOW() THEN 1 ELSE LEAST(demo_recovery_attempts.count,$3::integer)+1 END,
+            reset_at=CASE WHEN demo_recovery_attempts.reset_at<=NOW() THEN EXCLUDED.reset_at ELSE demo_recovery_attempts.reset_at END RETURNING count`,[keyHash,windowMs,limit]);
+          return row.count<=limit;
+        },
       };
       try{await client.query('BEGIN');const result=await work(tx);await client.query('COMMIT');return result;}
       catch(error){try{await client.query('ROLLBACK');}catch{}if(error.code==='23505')throw accountError(409,'El alias o la sesión ya están vinculados.','ACCOUNT_CONFLICT');throw error;}

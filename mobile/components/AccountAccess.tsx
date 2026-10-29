@@ -1,5 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import {ActivityIndicator,Modal,Pressable,SafeAreaView,ScrollView,StyleSheet,Switch,Text,TextInput,View} from 'react-native';
+import {RecoveryAccess} from './RecoveryAccess';
+import type {RecoveryChallenge,RecoveryCompletion} from '../lib/account-client';
 
 type Account={id:string;alias:string;role:'buyer'|'operator';mineId:string};
 type Props={
@@ -7,22 +9,29 @@ type Props={
   expired:boolean;busy:boolean;pending:boolean;canImportLegacy:boolean;legacyReadOnly:boolean;
   error:string;onClose:()=>void;onLogout:()=>void;
   onSubmit:(mode:'login'|'register',alias:string,password:string,importLegacy:boolean)=>void;
+  onSettings?:()=>void;
+  startRecovery?:(alias:string,key:string)=>Promise<RecoveryChallenge>;
+  completeRecovery?:(password:string)=>Promise<RecoveryCompletion>;
+  cancelRecovery?:()=>void;
+  onRecoveryDone?:(alias:string)=>void;
 };
 
-export function AccountAccess({visible,initialMode,account,mineName,recoveryAlias,expired,busy,pending,canImportLegacy,legacyReadOnly,error,onClose,onLogout,onSubmit}:Props){
+export function AccountAccess({visible,initialMode,account,mineName,recoveryAlias,expired,busy,pending,canImportLegacy,legacyReadOnly,error,onClose,onLogout,onSubmit,onSettings,startRecovery,completeRecovery,cancelRecovery,onRecoveryDone}:Props){
   const [mode,setMode]=useState<'login'|'register'>(initialMode);
   const [alias,setAlias]=useState('');
   const [password,setPassword]=useState('');
   const [importLegacy,setImportLegacy]=useState(false);
+  const [recoveryVisible,setRecoveryVisible]=useState(false);
   useEffect(()=>{
     setPassword('');
     if(visible){setMode(initialMode);setAlias(recoveryAlias||(expired?account?.alias||'':''));setImportLegacy(canImportLegacy);}
   },[visible,initialMode,expired,account?.id,canImportLegacy,recoveryAlias]);
+  useEffect(()=>{setRecoveryVisible(false);cancelRecovery?.();},[visible,account?.id]);
   const validAlias=/^[a-z0-9_-]{3,40}$/.test(alias.trim());
   const validPassword=password.length>=10&&password.length<=128;
   const blocked=busy||!validAlias||!validPassword||(mode==='register'&&(pending||!!account));
-  function close(){if(!busy){setPassword('');onClose();}}
-  return <Modal visible={visible} onRequestClose={close} animationType="none" presentationStyle="pageSheet">
+  function close(){if(!busy){setPassword('');setRecoveryVisible(false);cancelRecovery?.();onClose();}}
+  return <><Modal visible={visible} onRequestClose={close} animationType="none" presentationStyle="pageSheet">
     <SafeAreaView style={styles.screen} accessibilityViewIsModal>
       <View style={styles.header}><Text accessibilityRole="header" style={styles.headerTitle}>Cuenta demo</Text>
         <Pressable accessibilityRole="button" accessibilityLabel="Cerrar acceso a cuenta" disabled={busy} onPress={close} style={styles.close}><Text style={styles.link}>Cerrar</Text></Pressable>
@@ -33,6 +42,7 @@ export function AccountAccess({visible,initialMode,account,mineName,recoveryAlia
           <Text style={styles.titleSmall}>{account.alias}</Text>
           <Text style={styles.copy}>{account.role==='operator'?'Operador de mina':'Comprador'} · {mineName||'Mina de demostración'}</Text>
           <Text style={styles.copy}>{expired?'Tu acceso venció. Entra de nuevo con la misma cuenta para continuar.':'Puedes abrir esta cuenta en otro dispositivo utilizando el mismo alias y su clave demo.'}</Text>
+          {onSettings&&<Pressable accessibilityRole="button" disabled={busy||pending} onPress={()=>{setPassword('');onSettings();}} style={[styles.secondary,(busy||pending)&&styles.disabled]}><Text style={styles.secondaryText}>Perfil y recuperación</Text></Pressable>}
           <Pressable accessibilityRole="button" disabled={busy||pending} onPress={onLogout} style={[styles.secondary,(busy||pending)&&styles.disabled]}><Text style={styles.secondaryText}>Cerrar sesión</Text></Pressable>
         </View>}
         {pending&&<Text accessibilityRole="alert" style={styles.warning}>Hay una operación pendiente. Para evitar duplicaciones, resuélvela antes de crear o cambiar de cuenta. Si el acceso venció, puedes entrar de nuevo en esa misma cuenta.</Text>}
@@ -56,13 +66,18 @@ export function AccountAccess({visible,initialMode,account,mineName,recoveryAlia
           <Text style={styles.note}>Guarda el alias y la clave demo para volver a entrar. Este prototipo no ofrece recuperación por correo.</Text>
         </>}
         {mode==='login'&&<Text style={styles.note}>El rol de operador lo asigna la administración de la demostración. No se elige un rol desde este formulario.</Text>}
+        {mode==='login'&&startRecovery&&completeRecovery&&cancelRecovery&&<Pressable accessibilityRole="button" disabled={busy||(pending&&!expired)} onPress={()=>{setPassword('');setRecoveryVisible(true);}} style={[styles.secondary,(busy||(pending&&!expired))&&styles.disabled]}><Text style={styles.secondaryText}>Recuperar comprador con clave privada</Text></Pressable>}
         {!!error&&<Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
         <Pressable accessibilityRole="button" disabled={blocked} onPress={()=>onSubmit(mode,alias.trim(),password,mode==='register'&&canImportLegacy&&importLegacy)} style={[styles.primary,blocked&&styles.disabled]}>
           {busy?<ActivityIndicator color="#15212B"/>:<Text style={styles.primaryText}>{mode==='register'?(canImportLegacy&&importLegacy?'Crear y vincular mi sesión':'Crear cuenta de comprador'):'Entrar en mi cuenta'}</Text>}
         </Pressable>
       </ScrollView>
     </SafeAreaView>
-  </Modal>;
+  </Modal>
+    {startRecovery&&completeRecovery&&cancelRecovery&&<RecoveryAccess visible={visible&&recoveryVisible} initialAlias={recoveryAlias||alias||account?.alias||''} currentAlias={account?.alias} pending={pending} expired={expired} startRecovery={startRecovery} completeRecovery={completeRecovery} cancelRecovery={cancelRecovery}
+      onClose={recoveredAlias=>{setRecoveryVisible(false);setMode('login');setAlias(recoveredAlias);setPassword('');}}
+      onDone={recoveredAlias=>{setRecoveryVisible(false);setMode('login');setAlias(recoveredAlias);setPassword('');onRecoveryDone?.(recoveredAlias);}}/>}
+  </>;
 }
 
 const styles=StyleSheet.create({

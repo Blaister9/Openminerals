@@ -41,6 +41,16 @@ export function createApiServer(store,config={}){
         const body=await readJson(req);onlyKeys(body,['alias','password']);
         return send(res,200,await store.loginAccount(body.alias,body.password));
       }
+      if(req.method==='POST'&&path==='/api/demo/accounts/recovery/start'){
+        allowAuth(req.socket.remoteAddress||'unknown');
+        const body=await readJson(req);onlyKeys(body,['alias','recoveryKey']);
+        return send(res,200,await store.startRecovery(body.alias,body.recoveryKey));
+      }
+      if(req.method==='POST'&&path==='/api/demo/accounts/recovery/complete'){
+        allowAuth(req.socket.remoteAddress||'unknown');
+        const body=await readJson(req);onlyKeys(body,['token','password']);
+        return send(res,200,await store.completeRecovery(body.token,body.password));
+      }
       if(req.method==='POST'&&path==='/api/demo/accounts/logout'){
         const token=bearerToken(req.headers.authorization);
         if(!token)throw accountError(401,'Inicia sesión con tu cuenta demo.','UNAUTHORIZED');
@@ -62,6 +72,17 @@ export function createApiServer(store,config={}){
       const token=bearerToken(req.headers.authorization);
       const identity=token?await store.authenticate(token):null;
       if(req.method==='GET'&&path==='/api/demo/accounts/me')return send(res,200,requireIdentity(identity));
+      if(req.method==='GET'&&path==='/api/demo/accounts/profile'){
+        const {account}=requireIdentity(identity);return send(res,200,await store.getProfile(account.id));
+      }
+      if(req.method==='POST'&&path==='/api/demo/accounts/profile'){
+        const {account}=requireIdentity(identity),body=await readJson(req);onlyKeys(body,['displayName','preferredCurrency','jurisdiction']);
+        return send(res,200,await store.updateProfile(account.id,body));
+      }
+      if(req.method==='POST'&&path==='/api/demo/accounts/recovery/setup'){
+        const {account}=requireIdentity(identity),body=await readJson(req);onlyKeys(body,['password']);
+        return send(res,200,await store.setupRecovery(account.id,body.password));
+      }
       if(req.method==='GET'&&path==='/api/demo/marketplace'){
         const {account}=requireIdentity(identity);
         return send(res,200,await store.getMarketplace(account.id));
