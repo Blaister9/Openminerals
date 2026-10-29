@@ -74,7 +74,8 @@ test('CI logical flows: splits preserve one login and the financial sequence wit
   assert.equal(operators[0].filter(command=>command.tapOn==='^Confirmar demo$').length,3);
   assert.equal(operators[1].filter(command=>command.tapOn==='^Confirmar demo$').length,1);
   for(const commands of [buyers[1],buyers[2],operators[1]])assert.ok(commands.every(command=>!['launchApp','stopApp'].includes(command)&&!command.runFlow));
-  const runner=await readFile(new URL('../e2e/ci-android.mjs',import.meta.url),'utf8');
+  const runnerSource=await readFile(new URL('../e2e/ci-android.mjs',import.meta.url),'utf8');
+  const runner=runnerSource.slice(runnerSource.indexOf('async function run(){'),runnerSource.indexOf('async function report(){'));
   const stages=['buyer-a-login-conversion','buyer-a-buy-and-certificate','buyer-a-publish-priced-offer','buyer-b-marketplace-certificate','operator-delivery-lifecycle','operator-restock-management','api-verifies-native-wallets-lots-fees'];
   for(let i=1;i<stages.length;i++)assert.ok(runner.indexOf(stages[i-1])<runner.indexOf(stages[i]));
   assert.match(runner,/runStage\('api-verifies-native-wallets-lots-fees',verifyNative\)/);
