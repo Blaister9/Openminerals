@@ -9,7 +9,7 @@ export function expectedImportedWallet(){
   }
   return wallet;
 }
-const scroll=(element,direction='DOWN')=>({scrollUntilVisible:{element,direction,centerElement:true,timeout:30000}});
+const scroll=(element,direction='DOWN')=>({scrollUntilVisible:{element,direction,centerElement:false,timeout:30000}});
 const wait=text=>({extendedWaitUntil:{visible:text,timeout:30000}});
 const tap=text=>({tapOn:text});
 const field=(text,value,direction='DOWN')=>[scroll({text},direction),{tapOn:{text,point:'95%,50%'}},{eraseText:100},{inputText:value},'hideKeyboard'];
