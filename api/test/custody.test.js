@@ -42,6 +42,8 @@ test('custodia: migración rechaza conciliación anterior inválida sin reinicia
   assert.deepEqual({mine,accounts},before);assert.equal(Object.hasOwn(mine,'custody'),false);
   const valid=ensureCustody(seedMine(),[]).mine;valid.custody.lots[0].weightMg++;
   assert.throws(()=>ensureCustody(valid,[]),{code:'INVALID_CUSTODY'});
+  const invalidDelivered=ensureCustody(seedMine(),[]).mine;invalidDelivered.custody.lots[0].deliveredMg=null;
+  assert.throws(()=>ensureCustody(invalidDelivered,[]),{code:'INVALID_CUSTODY'});
 });
 
 test('custodia: compras concurrentes no sobreasignan lotes y replay conserva certificados',async()=>{
