@@ -7,7 +7,7 @@ import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,certificate,cleanFixture,emulatorGuard,fixtures,hash,manifest,otaUpdateId,publicJunit,requireSafe,sha} from './ci-safety.mjs';
 import {verifyNativeSnapshot} from './ci-result.mjs';
-import {flowSelectors,failureDiagnostic} from './ci-diagnostics.mjs';
+import {flowSelectors,collectFailureDiagnostic} from './ci-diagnostics.mjs';
 import {captureLegacyFailure} from './ci-legacy-failure.mjs';
 import {withLegacyNavigation} from './ci-legacy-navigation.mjs';
 import {adbBudget,runBounded} from './ci-process.mjs';
@@ -73,7 +73,7 @@ async function runStage(name,fn){
   catch(error){results.push({name,ok:false,seconds:(Date.now()-started)/1000});progress.stageEnd(name,false);throw error;}
 }
 async function saveDiagnostic(name,consoleFile,definitions){
-  const diagnostic={stage:name,...failureDiagnostic(await readFile(consoleFile,'utf8'),flowSelectors(definitions))};
+  const diagnostic={stage:name,...await collectFailureDiagnostic(dirname(consoleFile),flowSelectors(definitions))};
   const text=JSON.stringify(diagnostic,null,2)+'\n';
   requireSafe([...privateValues].every(value=>!text.includes(value)),'Refusing to publish a private diagnostic.');
   await writeFile(join(published,'failure-context.json'),text);

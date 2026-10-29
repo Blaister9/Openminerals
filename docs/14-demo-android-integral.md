@@ -4,6 +4,16 @@ Encargo del propietario del 28 de octubre de 2026. Punto de partida: [auditoría
 
 Todas las operaciones, lotes, ubicaciones, documentos, certificados, impuestos y entregas son SIMULADOS. No hay transferencias bancarias, USDT real, custodia física acreditada ni envío real.
 
+## Informe de tres estados
+
+| Estado | Resultado comprobable |
+| --- | --- |
+| Implementado y probado | Backend de billetera multidivisa, compraventa, portafolio, lotes/certificados DEMO, marketplace, entrega, gerencia y cuentas. Pruebas automatizadas, PostgreSQL y HTTPS: 930 aserciones de preparación y 195 de conservación tras reiniciar la API. APK 0.2.0 firmado y publicado; el propietario confirmó actualización física conservando sesión, saldos e historial. |
+| Implementado pero pendiente de pruebas | [Recorrido Android integral sin completar](https://github.com/Blaister9/Openminerals/actions/runs/40818437386): aprobó actualización compatible, escenas, registro, conversión y compra/certificado; se detuvo al publicar la oferta. Marketplace, entrega y gestión nativas continúan pendientes. Importación y recuperación tienen pruebas automáticas, sin aceptación nativa completa. Aplicación de Studio en el teléfono, rendimiento físico y valoración estética pendientes. |
+| Todavía no desarrollado | Banca o USDT real, KYC/AML, contabilidad de producción, custodia física acreditada, certificados con validez jurídica y Web3. Quedan fuera del encargo de simulación. iOS fue excluido expresamente de esta entrega Android. |
+
+Este resumen no declara completada la aplicación. La evidencia por plataforma y las limitaciones se detallan a continuación; la publicación de una actualización no confirma su aplicación en el teléfono.
+
 ## Orden y criterios de aceptación
 
 | Fase | Criterio verificable | Estado de implementación |
@@ -60,7 +70,7 @@ Acceso de compilación: el propietario inició sesión Expo por la terminal ofic
 
 ## Actualizaciones Android sin reinstalación
 
-El propietario pidió recibir cambios sin descargar un APK cada vez. La revisión 0.2.0 incorpora `expo-updates` compatible con SDK 57 y EAS Update del proyecto existente, canal `demo`, entorno `preview` y compatibilidad derivada de `app.json.version` (`0.2.0`). La consulta se hace al arrancar, sin esperar la red; la aplicación usa el bundle incluido o el último compatible guardado y aplica una descarga al siguiente arranque. No se fuerza un reinicio durante una operación. Más/Cuenta permite buscar cambios y muestra si la versión viene del APK o de una actualización.
+El propietario pidió recibir cambios sin descargar un APK cada vez. La revisión 0.2.0 incorpora `expo-updates` compatible con SDK 57 y EAS Update del proyecto existente, canal `demo`, entorno `preview` y compatibilidad derivada de `app.json.version` (`0.2.0`). La consulta se hace al arrancar, sin esperar la red; la aplicación usa el bundle incluido o el último compatible guardado y aplica una descarga al siguiente arranque. No se fuerza un reinicio durante una operación. Actividad (comprador) o Cuenta (operador) permite buscar cambios y muestra si la versión viene del APK o de una actualización.
 
 La instalación 0.1.3 no incorpora este mecanismo: necesita una actualización al nuevo APK conservando datos. Después pueden publicarse cambios compatibles de JavaScript, estilos y recursos sin reinstalar. Instalar módulos nativos, cambiar permisos, SDK o configuración nativa requiere incrementar la versión y el código Android y crear otro APK con la firma existente. Mantener `0.2.0` únicamente para updates compatibles con esta base nativa.
 
@@ -112,3 +122,7 @@ La revisión studio está publicada por EAS Update desde `ed0dcbdd2b45be3250b08f
 También se aclaran los mensajes de actualizaciones: una respuesta negativa del SDK no implica siempre «última versión». Ahora se distingue la revisión incluida, una revisión remota en uso, una descarga pendiente de aplicar y un arranque fallido que conserva la versión anterior. Tres regresiones específicas aprobadas. El texto «última actualización compatible» observado por el propietario solo acredita esa comprobación; no se atribuyó a ese mensaje una aplicación OTA confirmada.
 
 El [quinto intento nativo](https://github.com/Blaister9/Openminerals/actions/runs/40814480970) avanzó con navegación inmersiva limitada al APK antiguo y restaurada antes de actualizar: operaciones legacy aprobadas a las 03:58:24 UTC, `install -r` a las 03:58:51, conservación a las 03:59:36, cinco escenas/movimiento reducido a las 04:00:55 y registro sin importar a las 04:02:22. El agente lo canceló a las 04:05:39 mientras ejecutaba el flujo del comprador A. La interrupción fue prematura: no hay prueba de cuelgue ni aceptación completa. Una lectura posterior a las 04:23 confirmó dos movimientos de A, USDT157,10 y 2 g XAU; B seguía sin operaciones. Eso acredita progreso parcial, sin completar certificado, oferta ni liquidación. Se conservaron esos datos y se provisionaron tres cuentas en otra mina QA aislada para el siguiente intento, reemplazando únicamente los seis secretos de prueba creados por el agente. Los nuevos checkpoints conservan el resultado real de cada etapa y los límites de los procesos; 31 pruebas dirigidas y revisión independiente de privacidad aprobadas.
+
+El [sexto intento nativo](https://github.com/Blaister9/Openminerals/actions/runs/40818437386), fuente `d708f55`, sí terminó por fallo del proceso, sin cancelación. Aprobó firma/versión de ambos APK, actualización con datos conservados, aplicación exacta de Studio `01a185e3` en dos arranques a las 04:40:42 UTC, cinco escenas y movimiento reducido a las 04:41:47, registro sin importación a las 04:43:07, conversión de A a las 04:44:44 y compra más certificado a las 04:45:56. Las capturas anónimas revisadas muestran el renderer nuevo y los cinco textos. Esto acredita el emulador con SwiftShader, sin probar rendimiento ni aceptación estética en teléfono.
+
+La publicación de oferta falló a las 04:46:06, tras 10,6 segundos, exit 1 y sin timeout. La lectura de esas mismas cuentas confirmó A con dos movimientos, USDT157,10 y 2 g; B sin operaciones y ninguna oferta. El diagnóstico inicial no identificó el comando; YAML, tipos de entrada, selectores y condiciones financieras se revisaron sin hallar una causa estática. No se cambia la aplicación a ciegas: se amplía el diagnóstico privado filtrado antes de repetir con otras cuentas aisladas. Los datos de los intentos anteriores se conservan. La instrumentación nueva aprobó 39 pruebas dirigidas y revisión independiente de privacidad y presupuestos: usa JUnit y commands.json, filtra las entradas y publica únicamente comandos/categorías/selectores estáticos; acota también directorios y entradas mediante lectura streaming.
