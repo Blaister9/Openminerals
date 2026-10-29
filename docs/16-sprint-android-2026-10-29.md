@@ -8,7 +8,7 @@ Continuación de la [PR #4](https://github.com/Blaister9/Openminerals/pull/4), s
 - Migración aditiva: las minas anteriores reciben un saldo de apertura identificado, sin reconstruir operaciones inexistentes ni cambiar cuentas, certificados o comprobantes anteriores. El peso original de apertura se distingue del peso activo tras entregas.
 - Permisos: comprador ve su actividad, dirección de entrada/salida y referencias propias; operador ve la actividad de su mina sin billeteras privadas. Total y cursor se calculan después de filtrar permisos. [Contrato API](../api/LOT-HISTORY.md).
 - Gerencia muestra gramos de compras directas, ventas directas y marketplace por cada metal, derivados de los comprobantes persistidos y los filtros; cada intercambio se cuenta una vez.
-- Corrección de navegación Android: reset del desplazamiento nativo después de cambiar identidad, pestaña o sección. Cambiar únicamente el valor animado de la presentación no restablecía el `ScrollView` real.
+- Navegación Android: reset del desplazamiento nativo después de cambiar identidad, pestaña o sección y menú fijo de Mina fuera del `ScrollView`. Los cuatro accesos permanecen disponibles al recorrer paneles largos; pulsar el activo vuelve al inicio. Controles con mínimo 44 puntos, estado accesible seleccionado y cuatro columnas compactas.
 
 ## Reproducción Android y regresión
 
@@ -16,13 +16,13 @@ Continuación de la [PR #4](https://github.com/Blaister9/Openminerals/pull/4), s
 
 El escenario focalizado conserva la búsqueda original, entra, sale a Cuenta y vuelve a Entregas; al terminar exige que las cuentas sigan sin operaciones financieras. El diagnóstico publica sólo identificadores estáticos, geometría y estados cerrados; no XML, credenciales ni capturas autenticadas.
 
-**Arreglo comprobado en Android:** [40921013248](https://github.com/Blaister9/Openminerals/actions/runs/40921013248), fuente `19b6207`, **8/8 etapas aprobadas**. Misma secuencia, APK firmado y nueva OTA `01a188b0`; el nodo Entregas ahora tiene bounds `[706,677,973,769]`, área positiva, antes del primer DOWN. Entrar, salir a Cuenta y volver a Entregas aprobaron con rol operador y sin movimientos financieros. La nueva OTA se aplicó y sobrevivió a dos aperturas.
+**Regresión focalizada de la primera revisión:** [40921013248](https://github.com/Blaister9/Openminerals/actions/runs/40921013248), fuente `19b6207`, **8/8 etapas aprobadas**. Misma secuencia, APK firmado y OTA `01a188b0`; el nodo Entregas tiene bounds `[706,677,973,769]`, área positiva, antes del primer DOWN. Entrar, salir a Cuenta y volver a Entregas aprobaron con rol operador y sin movimientos financieros. La OTA se aplicó y sobrevivió a dos aperturas. Una repetición completa posterior volvió a fallar en el menú: este resultado focalizado no cierra por sí solo el fallo intermitente.
 
 ## Validación de código
 
 - API completa sobre PostgreSQL local aislado: **127/127 aprobadas, sin omisiones**. Incluye diario durable tras reconexión, migración concurrente, replay por dos pools, dos compradores por una oferta, transferencia que cruza dos asignaciones del mismo lote, negociación concurrente de los cuatro metales, importación y rollback ante evidencia inconsistente.
 - Runner PostgreSQL obligatorio: **60/60 aprobadas, sin omisiones**, incluyendo la nueva suite en el mismo comando que CI. [CI de la cobertura ampliada](https://github.com/Blaister9/Openminerals/actions/runs/40923957261), fuente `8b0e624`: suite general68 aprobadas/9 grupos PG omitidos en ese primer comando, seguida del runner obligatorio60/60 sin omisiones. No sumar ejecuciones repetidas como casos nuevos.
-- Móvil: **181 aprobadas, una WebGL opcional omitida**, sin fallos; TypeScript y export Android/Hermes de 645 módulos aprobados. Los shaders no cambiaron en este sprint.
+- Móvil: **182 aprobadas, una WebGL opcional omitida**, sin fallos, en CI de la revisión vigente; TypeScript y export Android/Hermes de 645 módulos aprobados. Los shaders no cambiaron en este sprint.
 - Cliente HTTP del historial: entrada/salida en marketplace, comprador sin acceso al lote, referencias propias y consulta de operador sin billeteras. Parsers rechazan respuestas ajenas, duplicados, cantidades o cursores inválidos.
 - Recuperación, perfil y mitigación de dependencias: regresión conservada; auditoría con cero críticas/altas y siete bajas residuales de la herramienta deepmerge ya mitigada. No se cambió el SDK ni se añadió un módulo nativo.
 
@@ -38,16 +38,22 @@ OTA compatible publicada: update Android `01a188b0-9875-7eaf-bbd6-872e782af8ec`,
 
 [Recorrido Android 40922146693](https://github.com/Blaister9/Openminerals/actions/runs/40922146693), fuente de pruebas `5ea0a33`: **15 etapas aprobadas**. Incluye consulta nativa del diario después de comprar, marketplace y certificados de ambas cuentas, venta directa, solicitud, cotización del operador y aceptación con pago único de costes. Se detuvo en `operator-delivery-lifecycle`, primer campo de motivo, antes de registrar una transición: la prueba buscaba hacia UP pese al nuevo inicio de la sección en y=0. El campo está debajo de la cotización. La solicitud queda APPROVED, comprador A287,89 USDT/1g y B180 USDT/0,5g; los registros se conservan.
 
-Se corrigió la prueba en `bda945e`: esperar el encabezado de Entregas y buscar el primer campo hacia DOWN; los siguientes cambios conservan el desplazamiento de su formulario. Validadores20/20 aprobados. [Nueva ejecución completa](https://github.com/Blaister9/Openminerals/actions/runs/40926226905), con otra mina y cuentas nuevas, en curso. No se reinició ni borró la mina anterior para repetirla. No se atribuye aceptación integral hasta terminar las etapas pendientes.
+Se corrigió la prueba en `bda945e`: esperar el encabezado de Entregas y buscar el primer campo hacia DOWN; los siguientes cambios conservan el desplazamiento de su formulario. Validadores 20/20 aprobados. Se repitió el recorrido con otra mina y cuentas nuevas, conservando la mina anterior.
+
+La repetición [40926226905](https://github.com/Blaister9/Openminerals/actions/runs/40926226905) terminó con 13 etapas aprobadas y volvió a fallar al localizar Entregas después del login de operador. No llegó a probar la transición corregida. Se sustituyó el menú desplazable por navegación fija fuera del contenido (`e99bbe3`), con cuatro columnas compactas (`e5bba79`). El diagnóstico filtrado también puede capturar fallos de los tres flujos de operador del recorrido completo, sin publicar XML ni capturas autenticadas. [CI de la revisión](https://github.com/Blaister9/Openminerals/actions/runs/40931052663) aprobada.
+
+**OTA vigente:** Android `01a188eb-a3b9-7ae5-944d-581e87e94d1c`, grupo `abd89222-5738-43cc-9351-322cdaad05b6`, fuente `e5bba798913d5c787a2772dc35c93e7df0ae2734`, publicada el 29 de octubre a las 13:28:26 Bogotá; canal `demo`, runtime 0.2.0, entorno `preview`. La revisión intermedia `01a188e7-7a58-7833-903f-884f440f61d5` se publicó desde `e99bbe3`. Ambas conservan la firma y el APK existentes. [Aceptación Android con navegación fija](https://github.com/Blaister9/Openminerals/actions/runs/40931245969) en curso, con otra mina nueva; aún no acredita resultado integral ni aplicación en teléfono.
 
 En el navegador **integrado de Codex**, previsualización local con relay HTTPS fijo de QA: se consultaron el nuevo desglose por metal y el historial de un lote anterior. El lote de oro y su asignación de 200 g se conservan; el diario muestra apertura explícita, sin inventar los movimientos previos. Esta consulta fue de lectura, sin cotizar ni modificar solicitudes del propietario. Evidencia local ignorada por Git: `artifacts/browser-review/iab-lot-history-20261029.jpg`. La previsualización web no sustituye la validación Android.
+
+También se simuló un único 503 exclusivamente en el relay local para consultar el diario. La pantalla conservó las dos filas visibles, mostró reintento y recuperó las mismas dos filas sin duplicarlas. La simulación se retiró después; Railway no recibió ese fallo. Evidencia: `artifacts/browser-review/iab-lot-history-retry-20261029.jpg`. La navegación fija se comprobó bajando dos páginas de Entregas y volviendo al inicio con el mismo acceso, sin cambiar la solicitud previa del propietario.
 
 ## Estado de aceptación
 
 | Estado | Alcance |
 | --- | --- |
 | Implementado y probado | Reglas de custodia, marketplace, reservas, entrega, roles y recuperación en API/PostgreSQL; diario y cliente HTTP; compra/venta, marketplace, certificados/diario, solicitud/cotización/aceptación, navegación de operador y OTA en Android emulado; persistencia HTTPS tras reinicio. Ver la evidencia anterior para las comprobaciones físicas parciales. |
-| Implementado pero pendiente de pruebas | Preparación/despacho/entrega, reposición, gerencia ampliada y perfil/reapertura del recorrido Android completo; aplicación de esta OTA en teléfono, aceptación visual y rendimiento en GPU física. |
+| Implementado pero pendiente de pruebas | Menú fijo nuevo, preparación/despacho/entrega, reposición, gerencia ampliada y perfil/reapertura del recorrido Android completo; aplicación de esta OTA en teléfono, aceptación visual y rendimiento en GPU física. |
 | Todavía no desarrollado | Fondos, metales, custodia o logística reales, documentos jurídicos válidos, integración bancaria, KYC/AML, ledger financiero y blockchain. Fuera del alcance de esta demo; iOS excluido del sprint. |
 
 El [APK 0.2.0 firmado](https://github.com/Blaister9/Openminerals/releases/download/v0.2.0-demo/Openminerals-Demo-0.2.0-android.apk) conserva runtime 0.2.0. Estos cambios JavaScript son compatibles con OTA; no requieren reinstalar ni borrar los datos de la instalación existente. No se declara terminada la aceptación Android.
