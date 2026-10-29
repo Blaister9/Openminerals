@@ -48,9 +48,37 @@ name: Buyer A publishes priced05g peer offer
     timeout: 30000
 - scrollUntilVisible:
     element:
-      text: ^Oferta publicada$
+      text: ^Oferta de Oro$
     direction: UP
     centerElement: true
     timeout: 30000
-- assertVisible: ^Oferta publicada$
+- assertVisible: ^Oferta de Oro$
+- scrollUntilVisible:
+    element:
+      text: ^Cantidad$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^0,500 g$
+- scrollUntilVisible:
+    element:
+      text: ^Precio publicado por gramo$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^USDT 140,00/g$
+- scrollUntilVisible:
+    element:
+      text: ^Oro reservado después$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^0,500 g$
+- scrollUntilVisible:
+    element:
+      text: ^Oro disponible después$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^1,500 g$
 - tapOn: Cerrar comprobante
