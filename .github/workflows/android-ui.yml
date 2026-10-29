@@ -72,14 +72,30 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -c /dev/kvm
+          acceleration_log="$RUNNER_TEMP/openminerals-native/public/acceleration.txt"
+          printf 'KVM preflight on disposable public Ubuntu runner\n' > "$acceleration_log"
+          id >> "$acceleration_log"
+          if ! test -c /dev/kvm; then
+            printf 'FAIL KVM_DEVICE_MISSING: /dev/kvm is not a character device.\n' | tee -a "$acceleration_log"
+            exit 1
+          fi
+          stat -c 'KVM before udev: mode=%a uid=%u gid=%g type=%F' /dev/kvm >> "$acceleration_log"
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-          test -r /dev/kvm
-          test -w /dev/kvm
+          sudo udevadm settle --timeout=30 >> "$acceleration_log" 2>&1
+          sudo chmod 0666 /dev/kvm
+          stat -c 'KVM after settle/chmod: mode=%a uid=%u gid=%g type=%F' /dev/kvm >> "$acceleration_log"
+          if ! test -r /dev/kvm; then
+            printf 'FAIL KVM_NOT_READABLE: runner cannot read /dev/kvm.\n' | tee -a "$acceleration_log"
+            exit 1
+          fi
+          if ! test -w /dev/kvm; then
+            printf 'FAIL KVM_NOT_WRITABLE: runner cannot write /dev/kvm.\n' | tee -a "$acceleration_log"
+            exit 1
+          fi
           # The next action installs the emulator binary; it is not present yet.
-          printf 'PASS KVM character device is readable and writable by this runner.\n' > "$RUNNER_TEMP/openminerals-native/public/acceleration.txt"
+          printf 'PASS KVM character device is readable and writable by this runner.\n' >> "$acceleration_log"
           echo 'PASS KVM is accessible; software CPU acceleration fallback is disabled.'
       - name: Install old APK update in place and execute native demo journeys
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0

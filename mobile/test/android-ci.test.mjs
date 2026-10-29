@@ -125,8 +125,18 @@ test('Android CI: workflow is manual KVM-only bounded public upload and no secre
   assert.equal(runner.with.script.includes('\n'),false);
   assert.ok(runner.with.script.indexOf('-accel-check')<runner.with.script.indexOf('node mobile/e2e/ci-android.mjs run'));
   const preflight=job.steps.slice(0,runnerIndex).find(step=>step.run?.includes('udevadm trigger --name-match=kvm'));
-  assert.match(preflight.run,/test -c \/dev\/kvm/);
-  assert.match(preflight.run,/test -r \/dev\/kvm\n\s*test -w \/dev\/kvm/);
+  assert.match(preflight.run,/if ! test -c \/dev\/kvm; then[\s\S]*KVM_DEVICE_MISSING[\s\S]*exit 1/);
+  assert.ok(preflight.run.indexOf('test -c /dev/kvm')<preflight.run.indexOf('sudo chmod 0666 /dev/kvm'));
+  assert.match(preflight.run,/udevadm settle --timeout=30/);
+  assert.ok(preflight.run.indexOf('udevadm settle --timeout=30')<preflight.run.indexOf('sudo chmod 0666 /dev/kvm'));
+  for(const mode of ['r','w']){
+    const check='test -'+mode+' /dev/kvm';
+    assert.ok(preflight.run.indexOf('sudo chmod 0666 /dev/kvm')<preflight.run.indexOf(check));
+    assert.match(preflight.run,new RegExp('if ! test -'+mode+' /dev/kvm; then[\\s\\S]*exit 1'));
+  }
+  assert.match(preflight.run,/stat -c/);assert.match(preflight.run,/\n\s*id >>/);
+  assert.equal((preflight.run.match(/sudo chmod 0666 \/dev\/kvm/g)||[]).length,1);
+  assert.doesNotMatch(preflight.run,/mknod|modprobe|\/dev\/kvm\s*\|\|\s*true/);
   assert.equal(runner.with['disable-linux-hw-accel'],false);assert.match(runner.with['emulator-options'],/-accel on/);assert.doesNotMatch(raw,/-accel off|software-acceleration fallback/);
   assert.deepEqual(Object.keys(runner.env).sort(),[...SECRET_NAMES,'OTA_INPUT_UPDATE_ID'].sort());
   assert.equal(runner.env.OTA_INPUT_UPDATE_ID,'$'+'{{ inputs.ota_update_id }}');
