@@ -18,17 +18,14 @@ import {runAccountLifecycle} from './account-lifecycle.mjs';
 import {privateRecoveryKey} from './private-recovery.mjs';
 import {captureNativeFailure,nativeFailureAllowed} from './ci-native-failure.mjs';
 import {runNetworkQuality} from './network-quality.mjs';
+import {createObserverRequest} from './ci-http.mjs';
 
 const repo=resolve(dirname(fileURLToPath(import.meta.url)),'..'),root=resolve(process.env.RUNNER_TEMP||'.','openminerals-native');
 const published=join(root,'public'),privateRoot=join(root,'private');
 const results=[],privateValues=new Set(),sessions=[];
 let stage='configuration',users,serial,expectedOtaId=null,scenario='full',coverageMetal='XAU';
 let progress;
-const request=async(path,token,body,expectedStatus=200)=>{
-  const response=await fetch(API+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(20000),redirect:'error'});
-  requireSafe(response.status===expectedStatus,'API precondition or native result could not be verified.');
-  return response.json();
-};
+const request=createObserverRequest({onFailure:async value=>{if(value.operation==='logout')return;try{await writeFile(join(published,'api-failure-context.json'),JSON.stringify(value,null,2)+'\n',{flag:'wx'});}catch{}}});
 function command(file,args,{timeout,env=process.env,output}={}){
   timeout??=file==='adb'?adbBudget(args):180000;
   let fd;
