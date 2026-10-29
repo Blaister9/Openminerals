@@ -23,6 +23,11 @@ export function otaUpdateId(value){
   requireSafe(typeof value==='string'&&value.length===36&&/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(value),'Expected an optional canonical lowercase OTA update UUID.');
   return value;
 }
+export function nativeScenario(value){
+  if(value===undefined||value==='')return 'full';
+  requireSafe(value==='full'||value==='operator-navigation','Expected a supported native scenario.');
+  return value;
+}
 export const hash=data=>createHash('sha256').update(data).digest('hex');
 export function fixtures(env){
   const values=SECRET_NAMES.map(name=>env[name]);

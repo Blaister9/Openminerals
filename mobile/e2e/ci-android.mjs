@@ -5,18 +5,19 @@ import {closeSync,openSync} from 'node:fs';
 import {copyFile,mkdir,readFile,readdir,writeFile} from 'node:fs/promises';
 import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,certificate,cleanFixture,emulatorGuard,fixtures,hash,manifest,otaUpdateId,publicJunit,requireSafe,sha} from './ci-safety.mjs';
+import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,certificate,cleanFixture,emulatorGuard,fixtures,hash,manifest,nativeScenario,otaUpdateId,publicJunit,requireSafe,sha} from './ci-safety.mjs';
 import {verifyNativeSnapshot} from './ci-result.mjs';
 import {flowSelectors,collectFailureDiagnostic} from './ci-diagnostics.mjs';
 import {captureLegacyFailure} from './ci-legacy-failure.mjs';
 import {withLegacyNavigation} from './ci-legacy-navigation.mjs';
 import {adbBudget,runBounded} from './ci-process.mjs';
 import {createProgress} from './ci-progress.mjs';
+import {captureOperatorNavigation} from './ci-operator-navigation.mjs';
 
 const repo=resolve(dirname(fileURLToPath(import.meta.url)),'..'),root=resolve(process.env.RUNNER_TEMP||'.','openminerals-native');
 const published=join(root,'public'),privateRoot=join(root,'private');
 const results=[],privateValues=new Set(),sessions=[];
-let stage='configuration',users,serial,expectedOtaId=null;
+let stage='configuration',users,serial,expectedOtaId=null,scenario='full';
 let progress;
 const request=async(path,token,body)=>{
   const response=await fetch(API+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(20000),redirect:'error'});
@@ -81,14 +82,17 @@ async function saveDiagnostic(name,consoleFile,definitions){
 async function maestro(name,role){
   const directory=join(privateRoot,name);await mkdir(directory,{recursive:true,mode:0o700});
   const user=role==='register'?users.register:users[role];
-  const env={...process.env,MAESTRO_CLI_NO_ANALYTICS:'1',MAESTRO_LOGIN_ALIAS:user?.alias||'',MAESTRO_LOGIN_PASSWORD:user?.password||'',MAESTRO_EXPECTED_OTA_ID:['ota','ota-before-story'].includes(name)?(expectedOtaId??''):''};
+  const env={...process.env,MAESTRO_CLI_NO_ANALYTICS:'1',MAESTRO_LOGIN_ALIAS:user?.alias||'',MAESTRO_LOGIN_PASSWORD:user?.password||'',MAESTRO_EXPECTED_OTA_ID:['ota','ota-before-story','operator-navigation-ota'].includes(name)?(expectedOtaId??''):''};
   try{
     command('maestro',['--no-ansi','--device',serial,'test','--format','JUNIT','--output',join(directory,'raw-report.xml'),'--debug-output',join(directory,'debug'),'--test-output-dir',join(directory,'screenshots'),join(repo,'e2e/native',name+'.yaml')],{env,timeout:420000,output:join(directory,'console.txt')});
   }catch(error){
     const definitions=(await Promise.all([name,'login'].map(flow=>readFile(join(repo,'e2e/native',flow+'.yaml'),'utf8')))).join('\n');
-    await saveDiagnostic(name,join(directory,'console.txt'),definitions);throw error;
+    await saveDiagnostic(name,join(directory,'console.txt'),definitions);
+    if(scenario==='operator-navigation')await captureNavigation('failure');
+    throw error;
   }
 }
+const captureNavigation=checkpoint=>captureOperatorNavigation({scenario,checkpoint,serial,publishDirectory:published,privateValues:[...privateValues]});
 async function captureSafeScreens(name){
   // These phases finish before entering any alias/password, and run alone.
   const directory=join(privateRoot,name,'screenshots');
@@ -143,6 +147,25 @@ async function verifyNative(){
   ]);
   verifyNativeSnapshot({a,b,summary,ca,cb,cm,management,profile,history});
 }
+async function operatorNavigation(){
+  // No baseline seed, registration, financial action, quote or configuration.
+  // Auth sessions and anonymous installation state are the only writes.
+  await runStage('install-navigation-apk',async()=>{
+    requireSafe(!adb('shell','pm','list','packages',PACKAGE),'Navigation diagnosis requires a fresh disposable emulator.');
+    adb('install',join(root,'new.apk'));
+    requireSafe(adb('shell','dumpsys','package',PACKAGE).includes('versionCode=5'),'Installed navigation APK versionCode mismatch.');
+  });
+  await runStage('navigation-compatible-ota',()=>maestro('operator-navigation-ota'));
+  await runStage('navigation-operator-login',()=>maestro('operator-navigation-login','op'));
+  await captureNavigation('before-original-down');
+  await runStage('navigation-original-down-entry',()=>maestro('operator-navigation','op'));
+  await captureNavigation('after-original-entry');
+  await runStage('navigation-exit-to-account',()=>maestro('operator-navigation-exit','op'));
+  await captureNavigation('after-exit');
+  await runStage('navigation-reenter-deliveries',()=>maestro('operator-navigation-reentry','op'));
+  await captureNavigation('after-reentry');
+  await runStage('navigation-api-confirms-financially-unused',unusedFixtures);
+}
 async function run(){
   requireSafe(process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_OS==='Linux','Native UI runs only in GitHub Linux.');
   await mkdir(privateRoot,{recursive:true,mode:0o700});await mkdir(published,{recursive:true});
@@ -153,6 +176,7 @@ async function run(){
   serial=candidate;
   progress.stageEnd('emulator-preconditions',true);
   await runStage('qa-isolation-preconditions',async()=>{await connectFixtures();await unusedFixtures();});
+  if(scenario==='operator-navigation'){await operatorNavigation();return;}
   users.register={alias:'native_'+randomBytes(9).toString('hex'),password:randomBytes(24).toString('base64url')};
   mask(users.register.alias);mask(users.register.password);
   await runStage('install-baseline-013',async()=>{
@@ -213,7 +237,7 @@ async function report(){
   // Fixed labels and counts only. No raw Maestro XML, stderr, hierarchy, logcat,
   // account failure screenshot, alias, password, token or recovery key is copied.
   // The isolated anonymous 0.1.3 phase has its own explicit screenshot policy.
-  const summary={demoOnly:true,environment:'disposable Android CI emulator',phoneAcceptance:false,realCustody:false,ota:{requested:expectedOtaId!==null,expectedUpdateId:expectedOtaId},completed:results.filter(item=>item.ok).map(item=>item.name),failed:results.filter(item=>!item.ok).map(item=>item.name),safeScreenshots:'Anonymous legacy/story before credentials only',privateDiagnosticsPublished:false};
+  const summary={demoOnly:true,scenario,environment:'disposable Android CI emulator',phoneAcceptance:false,realCustody:false,ota:{requested:expectedOtaId!==null,expectedUpdateId:expectedOtaId},completed:results.filter(item=>item.ok).map(item=>item.name),failed:results.filter(item=>!item.ok).map(item=>item.name),safeScreenshots:'Anonymous legacy/story before credentials only',privateDiagnosticsPublished:false};
   const text=JSON.stringify(summary,null,2)+'\n';
   requireSafe([...privateValues].every(value=>!text.includes(value)),'Refusing to publish private values.');
   await writeFile(join(published,'summary.json'),text);
@@ -221,6 +245,8 @@ async function report(){
 try{
   // Reject malformed workflow input before curl, adb, Maestro or API access.
   expectedOtaId=otaUpdateId(process.env.OTA_INPUT_UPDATE_ID);
+  scenario=nativeScenario(process.env.NATIVE_INPUT_SCENARIO);
+  requireSafe(scenario!=='operator-navigation'||expectedOtaId!==null,'Operator navigation requires an exact published OTA update ID.');
   const mode=process.argv[2];
   if(['download','preflight','run'].includes(mode))progress=createProgress(published,mode,()=>[...privateValues]);
   if(mode==='download'){progress.stageStart('download-apks');await download();progress.stageEnd('download-apks',true);}

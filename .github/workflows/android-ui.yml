@@ -2,6 +2,14 @@ name: Android UI verification
 on:
   workflow_dispatch:
     inputs:
+      scenario:
+        description: Full acceptance or read-only operator navigation reproduction
+        type: choice
+        required: true
+        default: full
+        options:
+          - full
+          - operator-navigation
       apk_url:
         description: Public HTTPS APK URL (Expo or this repository release)
         type: string
@@ -38,9 +46,12 @@ jobs:
           APK_INPUT_URL: ${{ inputs.apk_url }}
           APK_INPUT_SHA256: ${{ inputs.apk_sha256 }}
           OTA_INPUT_UPDATE_ID: ${{ inputs.ota_update_id }}
+          NATIVE_INPUT_SCENARIO: ${{ inputs.scenario }}
         run: node mobile/e2e/ci-android.mjs download
       - name: Require unused isolated QA fixtures and PostgreSQL API 0.2.0
         env:
+          OTA_INPUT_UPDATE_ID: ${{ inputs.ota_update_id }}
+          NATIVE_INPUT_SCENARIO: ${{ inputs.scenario }}
           OPENMINERALS_QA_BUYER_A_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_A_ALIAS }}
           OPENMINERALS_QA_BUYER_A_PASSWORD: ${{ secrets.OPENMINERALS_QA_BUYER_A_PASSWORD }}
           OPENMINERALS_QA_BUYER_B_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_B_ALIAS }}
@@ -108,6 +119,7 @@ jobs:
         timeout-minutes: 35
         env:
           OTA_INPUT_UPDATE_ID: ${{ inputs.ota_update_id }}
+          NATIVE_INPUT_SCENARIO: ${{ inputs.scenario }}
           OPENMINERALS_QA_BUYER_A_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_A_ALIAS }}
           OPENMINERALS_QA_BUYER_A_PASSWORD: ${{ secrets.OPENMINERALS_QA_BUYER_A_PASSWORD }}
           OPENMINERALS_QA_BUYER_B_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_B_ALIAS }}

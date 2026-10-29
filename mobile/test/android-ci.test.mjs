@@ -8,7 +8,7 @@ import {spawnSync} from 'node:child_process';
 import {join,resolve,sep} from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
-import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,sha,otaUpdateId,fixtures,emulatorGuard,publicJunit,manifest,certificate,cleanFixture} from '../e2e/ci-safety.mjs';
+import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,sha,nativeScenario,otaUpdateId,fixtures,emulatorGuard,publicJunit,manifest,certificate,cleanFixture} from '../e2e/ci-safety.mjs';
 import {verifyNativeSnapshot} from '../e2e/ci-result.mjs';
 import {flowSelectors,failureDiagnostic} from '../e2e/ci-diagnostics.mjs';
 import {createStore} from '../../api/src/store.js';
@@ -109,7 +109,8 @@ test('Android CI: fixtures reject owner mine imported state previous receipts an
 test('Android CI: workflow is manual KVM-only bounded public upload and no secret inputs',async()=>{
   const raw=await source('../../.github/workflows/android-ui.yml'),workflow=yaml.parse(raw);
   assert.deepEqual(Object.keys(workflow.on),['workflow_dispatch']);
-  assert.deepEqual(Object.keys(workflow.on.workflow_dispatch.inputs),['apk_url','apk_sha256','ota_update_id']);
+  assert.deepEqual(Object.keys(workflow.on.workflow_dispatch.inputs),['scenario','apk_url','apk_sha256','ota_update_id']);
+  assert.deepEqual(workflow.on.workflow_dispatch.inputs.scenario,{description:'Full acceptance or read-only operator navigation reproduction',type:'choice',required:true,default:'full',options:['full','operator-navigation']});
   assert.deepEqual(workflow.on.workflow_dispatch.inputs.ota_update_id,{description:'Optional full published Android update UUID for runtime 0.2.0 on channel demo',type:'string',required:false,default:''});
   const job=workflow.jobs['android-ui'];assert.equal(job['runs-on'],'ubuntu-24.04');
   assert.equal(job.if,'github.event.repository.private == false');
@@ -140,11 +141,12 @@ test('Android CI: workflow is manual KVM-only bounded public upload and no secre
   assert.equal((preflight.run.match(/sudo chmod 0666 \/dev\/kvm/g)||[]).length,1);
   assert.doesNotMatch(preflight.run,/mknod|modprobe|\/dev\/kvm\s*\|\|\s*true/);
   assert.equal(runner.with['disable-linux-hw-accel'],false);assert.match(runner.with['emulator-options'],/-accel on/);assert.doesNotMatch(raw,/-accel off|software-acceleration fallback/);
-  assert.deepEqual(Object.keys(runner.env).sort(),[...SECRET_NAMES,'OTA_INPUT_UPDATE_ID'].sort());
+  assert.deepEqual(Object.keys(runner.env).sort(),[...SECRET_NAMES,'OTA_INPUT_UPDATE_ID','NATIVE_INPUT_SCENARIO'].sort());
+  assert.equal(runner.env.NATIVE_INPUT_SCENARIO,'$'+'{{ inputs.scenario }}');
   assert.equal(runner.env.OTA_INPUT_UPDATE_ID,'$'+'{{ inputs.ota_update_id }}');
   const download=job.steps.find(step=>step.run?.endsWith('ci-android.mjs download'));
   assert.equal(download.env.OTA_INPUT_UPDATE_ID,'$'+'{{ inputs.ota_update_id }}');
-  for(const step of job.steps)assert.doesNotMatch((step.run??'')+(step.with?.script??''),/inputs\.ota_update_id/);
+  for(const step of job.steps)assert.doesNotMatch((step.run??'')+(step.with?.script??''),/inputs\.(?:ota_update_id|scenario)/);
   const uploader=job.steps.find(step=>step.uses?.startsWith('actions/upload-artifact'));
   assert.equal(uploader.with.path,'$'+'{{ runner.temp }}/openminerals-native/public/');assert.equal(uploader.with['retention-days'],1);
   assert.doesNotMatch(raw,/DEMO_ADMIN_TOKEN|tee .*maestro|debug-output|logcat|hierarchy/);
@@ -168,7 +170,9 @@ test('Android CI: new Maestro documents preserve data and only anonymous phases 
     }
   }
   const runner=await source('../e2e/ci-android.mjs');
-  assert.ok(runner.indexOf("emulatorGuard(process.env")<runner.indexOf("adb('install'"));
+  const execution=runner.slice(runner.indexOf('async function run(){'));
+  assert.ok(execution.indexOf("emulatorGuard(process.env")<execution.indexOf("adb('install'"));
+  assert.ok(execution.indexOf("emulatorGuard(process.env")<execution.indexOf('await operatorNavigation()'));
   assert.ok(runner.indexOf("'legacy-seed-old-apk'")<runner.indexOf("adb('install','-r'"));
   assert.equal((runner.match(/adb\('install','-r'/g)||[]).length,1);
   assert.doesNotMatch(runner,/pm','clear|adb\('uninstall/);
@@ -177,9 +181,9 @@ test('Android CI: new Maestro documents preserve data and only anonymous phases 
 
 test('Android CI: optional OTA follows native verification, passes ID only by env and verifies unchanged results again',async()=>{
   const runner=await source('../e2e/ci-android.mjs');
-  assert.match(runner,/MAESTRO_EXPECTED_OTA_ID:\['ota','ota-before-story'\]\.includes\(name\)\?\(expectedOtaId\?\?''\):''/);
+  assert.match(runner,/MAESTRO_EXPECTED_OTA_ID:\['ota','ota-before-story','operator-navigation-ota'\]\.includes\(name\)\?\(expectedOtaId\?\?''\):''/);
   assert.match(runner,/await runStage\('api-verifies-native-wallets-lots-fees',verifyNative\);\s+if\(expectedOtaId\)\{\s+await runStage\('buyer-compatible-ota-cold-launch',\(\)=>maestro\('ota','a'\)\);\s+await runStage\('api-verifies-data-after-compatible-ota',verifyNative\);\s+\}/);
-  assert.match(runner,/try\{\s+\/\/[^\n]+\n\s+expectedOtaId=otaUpdateId\(process.env.OTA_INPUT_UPDATE_ID\);\s+const mode=/);
+  assert.match(runner,/try\{\s+\/\/[^\n]+\n\s+expectedOtaId=otaUpdateId\(process.env.OTA_INPUT_UPDATE_ID\);\s+scenario=nativeScenario\(process.env.NATIVE_INPUT_SCENARIO\);[\s\S]*?const mode=/);
   const cli=runner.slice(runner.indexOf("command('maestro'"),runner.indexOf("async function captureSafeScreens"));
   assert.doesNotMatch(cli,/expectedOtaId|MAESTRO_EXPECTED_OTA_ID/);
   const ota=await source('../e2e/native/ota.yaml');

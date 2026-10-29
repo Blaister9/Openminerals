@@ -1,0 +1,16 @@
+appId: com.openminerals.demo.mobile
+name: Reenter operator deliveries preserving account and role
+---
+- tapOn: ^Mina$
+- extendedWaitUntil:
+    visible: ^Gestionar entregas demo$
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: ^Solicitudes de compradores$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^No hay solicitudes de entrega registradas en este alcance de demostración\.$
+- assertNotVisible: ^USDT de tu cuenta demo$
+- assertVisible: ^Operador ·.*
