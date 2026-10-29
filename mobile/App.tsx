@@ -1,5 +1,5 @@
 import React, {useEffect,useLayoutEffect,useRef,useState} from 'react';
-import {ActivityIndicator,Animated,Modal,Platform,Pressable,ScrollView,StatusBar,StyleSheet,Text,TextInput,View} from 'react-native';
+import {ActivityIndicator,Animated,Keyboard,Modal,Platform,Pressable,ScrollView,StatusBar,StyleSheet,Text,TextInput,View} from 'react-native';
 import {SafeAreaProvider,SafeAreaView,initialWindowMetrics} from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
@@ -70,7 +70,7 @@ function checkedMine(value:unknown):MineSummary{
 }
 
 function Chip({label,active,onPress,compact=false,testID}:{label:string;active:boolean;onPress:()=>void;compact?:boolean;testID?:string}){
- return <Pressable testID={testID} accessibilityRole="button" accessibilityState={{selected:active}} onPress={onPress} style={[styles.chip,compact&&styles.mineNavigationChip,active&&styles.chipOn]}><Text style={[styles.chipText,active&&styles.chipTextOn]}>{label}</Text></Pressable>;
+ return <Pressable testID={testID} accessibilityRole="button" accessibilityState={{selected:active}} onPress={()=>{Keyboard.dismiss();onPress();}} style={[styles.chip,compact&&styles.mineNavigationChip,active&&styles.chipOn]}><Text style={[styles.chipText,active&&styles.chipTextOn]}>{label}</Text></Pressable>;
 }
 function Button({label,onPress,secondary=false,disabled=false}:{label:string;onPress:()=>void;secondary?:boolean;disabled?:boolean}){
  return <Pressable accessibilityRole="button" accessibilityState={{disabled}} disabled={disabled} onPress={onPress} style={[styles.button,secondary&&styles.buttonSecondary,disabled&&{opacity:.45}]}><Text style={[styles.buttonText,secondary&&styles.buttonSecondaryText]}>{label}</Text></Pressable>;
@@ -204,6 +204,7 @@ export default function App(){
  async function submitAccount(mode:'login'|'register',alias:string,password:string,importLegacy:boolean){
   if(busy||authLock.current||actionLock.current||client.isSending())return;
   if(mode==='register'&&client.getPending()){setAuthError('Resuelve primero la operación pendiente antes de crear una cuenta.');return;}
+  Keyboard.dismiss();
   authLock.current=true;setAuthBusy(true);setAuthError('');
   try{
    const initial=mode==='login'?await client.login(alias,password):await client.register(alias,password,importLegacy);
@@ -303,6 +304,7 @@ export default function App(){
  function retryPending(){if(!actionLock.current&&!authLock.current&&!busy&&!authBusy&&!client.isSending()&&!authExpired&&!accountRecovery)void runOperation(()=>client.retry());}
  function perform(action:string,body:Record<string,string>,title:string,detail:string){
   if(busy||authBusy||actionLock.current||authLock.current||client.isSending()||!session)return;
+  Keyboard.dismiss();
   if(accountRecovery){setProblem('Resuelve primero el acceso a tu cuenta con el botón de arriba. Conservamos tus datos para evitar operar con una identidad incierta.');return;}
   if(authExpired){setProblem('Entra de nuevo en tu cuenta para continuar.');return;}
   if(state?.legacyReadOnly&&!account){setProblem('Esta sesión anterior está vinculada a una cuenta y permanece en consulta. Entra con su alias para operar.');return;}
@@ -527,7 +529,7 @@ export default function App(){
   {!!accountRecovery&&<View style={styles.archiveBanner}><Text style={styles.archiveText}>{accountRecovery==='logout'?'El acceso se cerró en el servidor, pero falta finalizar el cierre guardado en este dispositivo. Tus datos permanecen conservados.':'Falta confirmar el acceso a tu cuenta. Entra con el mismo alias y clave demo antes de crear movimientos; no se borró la sesión anterior.'}</Text><Button label={accountRecovery==='logout'?'Reintentar cierre de sesión':'Resolver acceso a cuenta'} disabled={busy||authBusy} onPress={()=>accountRecovery==='logout'?void signOut():openAccount('login')}/></View>}
   {!!pending&&<View style={styles.errorBox}><Text style={styles.errorText}>Pendiente: {pending.title}. Una respuesta perdida no confirma que la operación haya fallado. Reintentar recupera el mismo comprobante y bloquea movimientos duplicados.</Text><Button label={busy?'Consultando…':'Reintentar operación pendiente'} onPress={retryPending} disabled={busy||authBusy||authExpired||!!accountRecovery}/></View>}
   {authExpired?<View style={styles.center}><Text style={styles.cardTitle}>Vuelve a entrar en tu cuenta demo</Text><Text style={styles.copy}>Conservamos la identidad y cualquier solicitud pendiente. Usa el mismo alias para recuperar el acceso.</Text><Button label="Entrar de nuevo" onPress={()=>openAccount('login')} disabled={busy||authBusy}/></View>:!state&&!isOperator?<View style={styles.center}>{!problem&&<ActivityIndicator color={accent}/>}<Text style={styles.muted}>Preparando experiencia móvil…</Text></View>:
-  <Animated.ScrollView key={contentRoute} ref={contentScroll} style={{flex:1}} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
+  <Animated.ScrollView key={contentRoute} ref={contentScroll} style={{flex:1}} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false}
    onLayout={event=>{setViewportHeight(Math.max(1,event.nativeEvent.layout.height));if(laidOutScroll.current!==contentScroll.current){laidOutScroll.current=contentScroll.current;contentScroll.current?.scrollTo({y:0,animated:false});}}}
    onScroll={Animated.event([{nativeEvent:{contentOffset:{y:homeScrollY}}}],{useNativeDriver:true})} scrollEventThrottle={16}>
    {isOperator?(tab==='Cuenta'?accountPage():operatorMine()):tab==='Inicio'?home():tab==='Mercado'?market():tab==='Billetera'?wallet():tab==='Metales'?holdings():more()}

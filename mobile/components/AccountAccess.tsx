@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import {ActivityIndicator,Modal,Pressable,ScrollView,StyleSheet,Switch,Text,TextInput,View} from 'react-native';
+import {ActivityIndicator,Keyboard,Modal,Pressable,ScrollView,StyleSheet,Switch,Text,TextInput,View} from 'react-native';
 import {RecoveryAccess} from './RecoveryAccess';
 import {ModalSurface} from './ModalSurface';
 import type {RecoveryChallenge,RecoveryCompletion} from '../lib/account-client';
@@ -31,7 +31,7 @@ export function AccountAccess({visible,initialMode,account,mineName,recoveryAlia
   const validAlias=/^[a-z0-9_-]{3,40}$/.test(alias.trim());
   const validPassword=password.length>=10&&password.length<=128;
   const blocked=busy||!validAlias||!validPassword||(mode==='register'&&(pending||!!account));
-  function close(){if(!busy){setPassword('');setRecoveryVisible(false);cancelRecovery?.();onClose();}}
+  function close(){if(!busy){Keyboard.dismiss();setPassword('');setRecoveryVisible(false);cancelRecovery?.();onClose();}}
   return <><Modal visible={visible} onRequestClose={close} animationType="none" presentationStyle="pageSheet">
     <ModalSurface style={styles.screen} keyboard onEscape={close}>
       <View style={styles.header}><Text accessibilityRole="header" style={styles.headerTitle}>Cuenta demo</Text>

@@ -17,6 +17,7 @@ import {nativeCase,nativeFlow} from './native-case.mjs';
 import {runAccountLifecycle} from './account-lifecycle.mjs';
 import {privateRecoveryKey} from './private-recovery.mjs';
 import {captureNativeFailure,nativeFailureAllowed} from './ci-native-failure.mjs';
+import {runNetworkQuality} from './network-quality.mjs';
 
 const repo=resolve(dirname(fileURLToPath(import.meta.url)),'..'),root=resolve(process.env.RUNNER_TEMP||'.','openminerals-native');
 const published=join(root,'public'),privateRoot=join(root,'private');
@@ -95,7 +96,7 @@ async function maestro(name,role,{source,extraEnv={}}={}){
   const env={...process.env,MAESTRO_CLI_NO_ANALYTICS:'1',MAESTRO_LOGIN_ALIAS:user?.alias||'',MAESTRO_LOGIN_PASSWORD:user?.password||'',MAESTRO_EXPECTED_OTA_ID:['ota','ota-before-story','operator-navigation-ota'].includes(name)?(expectedOtaId??''):'',...extraEnv};
   const generated=join(privateRoot,'flows');await mkdir(generated,{recursive:true,mode:0o700});
   for(const file of await readdir(join(repo,'e2e/native')))if(file.endsWith('.yaml'))await writeFile(join(generated,file),nativeFlow(file.slice(0,-5),await readFile(join(repo,'e2e/native',file),'utf8'),coverageMetal),{mode:0o600});
-  if(source){requireSafe(scenario==='account-lifecycle'&&/^(?:wallet-(?:cop|eur|usd|usdt)|account-[a-z-]+)$/.test(name),'Custom native flow outside account lifecycle.');await writeFile(join(generated,name+'.yaml'),source,{mode:0o600});}
+  if(source){requireSafe((scenario==='account-lifecycle'&&/^(?:wallet-(?:cop|eur|usd|usdt)|account-[a-z-]+)$/.test(name)||scenario==='quality-network'&&/^quality-(?:login|insufficient|prepare|offline|resolve)$/.test(name)),'Custom native flow outside account lifecycle.');await writeFile(join(generated,name+'.yaml'),source,{mode:0o600});}
   try{
     command('maestro',['--no-ansi','--device',serial,'test','--format','JUNIT','--output',join(directory,'raw-report.xml'),'--debug-output',join(directory,'debug'),'--test-output-dir',join(directory,'screenshots'),join(generated,name+'.yaml')],{env,timeout:420000,output:join(directory,'console.txt')});
   }catch(error){
@@ -220,6 +221,11 @@ async function run(){
   await runStage('qa-isolation-preconditions',async()=>{await connectFixtures();await scenarioFixtures();});
   if(scenario==='operator-navigation'){await operatorNavigation();return;}
   if(scenario==='profile-relaunch'){await profileRelaunch();return;}
+  if(scenario==='quality-network'){
+    await runStage('install-quality-apk',async()=>{requireSafe(!adb('shell','pm','list','packages',PACKAGE),'Quality coverage requires a fresh disposable emulator.');adb('install',join(root,'new.apk'));});
+    await runStage('quality-compatible-ota-before-login',()=>maestro('operator-navigation-ota'));
+    await runNetworkQuality({runStage,maestro,request,users,adb});return;
+  }
   if(scenario==='account-lifecycle'){
     await runStage('install-account-apk',async()=>{requireSafe(!adb('shell','pm','list','packages',PACKAGE),'Account coverage requires a fresh disposable emulator.');adb('install',join(root,'new.apk'));});
     await runStage('account-compatible-ota-before-wallet',()=>maestro('operator-navigation-ota'));
@@ -294,7 +300,7 @@ async function report(){
   // Fixed labels and counts only. No raw Maestro XML, stderr, hierarchy, logcat,
   // account failure screenshot, alias, password, token or recovery key is copied.
   // The isolated anonymous 0.1.3 phase has its own explicit screenshot policy.
-  const summary={demoOnly:true,scenario,coverageMetal:scenario==='account-lifecycle'?null:coverageMetal,environment:'disposable Android CI emulator',phoneAcceptance:false,realCustody:false,ota:{requested:expectedOtaId!==null,expectedUpdateId:expectedOtaId},completed:results.filter(item=>item.ok).map(item=>item.name),failed:results.filter(item=>!item.ok).map(item=>item.name),safeScreenshots:'Anonymous legacy/story before credentials only',privateDiagnosticsPublished:false};
+  const summary={demoOnly:true,scenario,coverageMetal:['account-lifecycle','quality-network'].includes(scenario)?null:coverageMetal,environment:'disposable Android CI emulator',phoneAcceptance:false,realCustody:false,ota:{requested:expectedOtaId!==null,expectedUpdateId:expectedOtaId},completed:results.filter(item=>item.ok).map(item=>item.name),failed:results.filter(item=>!item.ok).map(item=>item.name),safeScreenshots:'Anonymous legacy/story before credentials only',privateDiagnosticsPublished:false};
   const text=JSON.stringify(summary,null,2)+'\n';
   requireSafe([...privateValues].every(value=>!text.includes(value)),'Refusing to publish private values.');
   await writeFile(join(published,'summary.json'),text);

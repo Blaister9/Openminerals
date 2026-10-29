@@ -111,7 +111,7 @@ test('Android CI: workflow is manual KVM-only bounded public upload and no secre
   const raw=await source('../../.github/workflows/android-ui.yml'),workflow=yaml.parse(raw);
   assert.deepEqual(Object.keys(workflow.on),['workflow_dispatch']);
   assert.deepEqual(Object.keys(workflow.on.workflow_dispatch.inputs),['scenario','case_scope','apk_url','apk_sha256','ota_update_id']);
-  assert.deepEqual(workflow.on.workflow_dispatch.inputs.scenario,{description:'Full acceptance, operator navigation or completed-trade profile continuation',type:'choice',required:true,default:'full',options:['full','operator-navigation','profile-relaunch']});
+  assert.deepEqual(workflow.on.workflow_dispatch.inputs.scenario,{description:'Full acceptance, operator navigation, profile continuation or network quality',type:'choice',required:true,default:'full',options:['full','operator-navigation','profile-relaunch','quality-network']});
   assert.deepEqual(workflow.on.workflow_dispatch.inputs.ota_update_id,{description:'Optional full published Android update UUID for runtime 0.2.0 on channel demo',type:'string',required:false,default:''});
   const job=workflow.jobs['android-ui'];assert.equal(job['runs-on'],'ubuntu-24.04');
   assert.equal(job.if,'github.event.repository.private == false');

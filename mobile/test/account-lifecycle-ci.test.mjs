@@ -8,6 +8,7 @@ import {accountFlow,expectedImportedWallet,verifyImportedState,walletCurrencies}
 import {privateRecoveryKey} from '../e2e/private-recovery.mjs';
 import {flowSelectors} from '../e2e/ci-diagnostics.mjs';
 import {captureNativeFailure} from '../e2e/ci-native-failure.mjs';
+import {qualityFlow,verifyQualityResult} from '../e2e/network-quality.mjs';
 import {mkdtemp,readdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -66,4 +67,24 @@ test('native failure metadata excludes private UI and never captures recovery or
     await assert.rejects(()=>captureNativeFailure({scenario:'asset-full',flow:'unreviewed-flow',serial:'emulator-5554',invoke}));
     await assert.rejects(()=>captureNativeFailure({scenario:'asset-full',flow:'buyer-b',serial:'physical-device',invoke}));
   }finally{await rm(directory,{recursive:true,force:true});}
+});
+
+test('network quality flows preserve data and never capture authenticated screens',()=>{
+  for(const name of ['login','insufficient','prepare','offline','resolve']){
+    const source=qualityFlow(name),documents=yaml.parseAllDocuments(source);assert.ok(documents.every(document=>document.errors.length===0));
+    assert.doesNotMatch(source,/takeScreenshot|clearState|clearKeychain|uninstall|DEMO_ADMIN_TOKEN/);
+  }
+  assert.throws(()=>qualityFlow('unreviewed'));
+});
+
+test('native network-quality postconditions detect duplicate debits against the real store',async()=>{
+  const store=await createStore('');
+  try{
+    const mine=await store.createMine({name:'Network quality unit',initialInventoryMg:{XAU:5000}}),user=await store.createAccount({alias:'quality_'+randomUUID().slice(0,8),password:'Exclusive-native-quality-789',role:'buyer',mineId:mine.id});
+    const before=await store.getAccountState(user.id),withdraw={action:'withdraw',currency:'USD',amount:'0.01',requestId:randomUUID()};
+    await store.mutateAccount(user.id,withdraw);await store.mutateAccount(user.id,withdraw);
+    await store.mutateAccount(user.id,{action:'deposit',currency:'USD',amount:'0.01',requestId:randomUUID()});
+    const after=await store.getAccountState(user.id);verifyQualityResult(after,before);
+    const bad=structuredClone(after);bad.walletMinor.USD--;assert.throws(()=>verifyQualityResult(bad,before));
+  }finally{await store.close();}
 });

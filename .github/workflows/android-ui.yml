@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       scenario:
-        description: Full acceptance, operator navigation or completed-trade profile continuation
+        description: Full acceptance, operator navigation, profile continuation or network quality
         type: choice
         required: true
         default: full
@@ -11,6 +11,7 @@ on:
           - full
           - operator-navigation
           - profile-relaunch
+          - quality-network
       case_scope:
         description: Single original scenario, all candidate cases or one isolated case
         type: choice

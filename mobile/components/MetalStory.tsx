@@ -21,6 +21,7 @@ function Chapter({scene}:{scene:Scene}){
 // Text changes by chapter; it never scrolls underneath an opaque GL surface.
 export function MetalStory({scrollY,viewportHeight,onSkip}:Props){
   const [origin,setOrigin]=useState(0),[headerHeight,setHeaderHeight]=useState(240),[viewerHeight,setViewerHeight]=useState(560);
+  const [originMeasured,setOriginMeasured]=useState(false),[headerMeasured,setHeaderMeasured]=useState(false);
   const [controlsHeight,setControlsHeight]=useState(58),[captionHeight,setCaptionHeight]=useState(43),[readingHeight,setReadingHeight]=useState(0);
   const [chapterHeights,setChapterHeights]=useState<Record<string,number>>({});
   const [systemReduced,setSystemReduced]=useState(true),[manualReduced,setManualReduced]=useState(false),[skipped,setSkipped]=useState(false);
@@ -43,8 +44,9 @@ export function MetalStory({scrollY,viewportHeight,onSkip}:Props){
   const readingEstimate=controlsHeight+figureHeight+captionHeight+scenes.reduce((sum,scene)=>sum+(chapterHeights[scene.number]??chapterHeight),0);
   const travel=readingLayout?Math.max(1,(readingHeight||readingEstimate)-controlsHeight):normalTravel;
   const viewerStart=origin+headerHeight,endY=viewerStart+travel;
-  const geometry=useRef({viewerStart,endY,travel,viewerHeight,visibleHeight,controlsHeight,figureHeight,readingLayout,skipped});
-  geometry.current={viewerStart,endY,travel,viewerHeight,visibleHeight,controlsHeight,figureHeight,readingLayout,skipped};
+  const measured=originMeasured&&headerMeasured;
+  const geometry=useRef({viewerStart,endY,travel,viewerHeight,visibleHeight,controlsHeight,figureHeight,readingLayout,skipped,measured});
+  geometry.current={viewerStart,endY,travel,viewerHeight,visibleHeight,controlsHeight,figureHeight,readingLayout,skipped,measured};
   const update=useRef((value:number)=>{});
   update.current=(value:number)=>{
     lastScroll.current=value;
@@ -52,11 +54,11 @@ export function MetalStory({scrollY,viewportHeight,onSkip}:Props){
     if(lastStage.current!==index){lastStage.current=index;setStage(index);}
     const local=g.viewerStart+Math.max(0,Math.min(g.travel,value-g.viewerStart+PIN));
     const canvasTop=(g.readingLayout?g.viewerStart:local)+g.controlsHeight;
-    const visible=!g.skipped&&canvasTop+g.figureHeight>value-60&&canvasTop<value+g.visibleHeight+60;
+    const visible=g.measured&&!g.skipped&&canvasTop+g.figureHeight>value-60&&canvasTop<value+g.visibleHeight+60;
     if(lastActive.current!==visible){lastActive.current=visible;setActive(visible);}
   };
   useEffect(()=>{const listener=scrollY.addListener(({value})=>update.current(value));return()=>scrollY.removeListener(listener);},[scrollY]);
-  useEffect(()=>{update.current(lastScroll.current);},[origin,headerHeight,viewerHeight,viewportHeight,travel,controlsHeight,figureHeight,readingLayout,skipped]);
+  useEffect(()=>{update.current(lastScroll.current);},[origin,headerHeight,viewerHeight,viewportHeight,travel,controlsHeight,figureHeight,readingLayout,skipped,measured]);
   const translateY=useMemo(()=>scrollY.interpolate({inputRange:[viewerStart-PIN,endY-PIN],outputRange:[0,travel],extrapolate:'clamp'}),[scrollY,viewerStart,endY,travel]);
   const skip=()=>{setSkipped(true);onSkip?.();};
   const controls=<View style={styles.controls} onLayout={event=>{const value=event.nativeEvent.layout.height;setControlsHeight(previous=>Math.abs(previous-value)>.5?value:previous);}}>
@@ -74,8 +76,8 @@ export function MetalStory({scrollY,viewportHeight,onSkip}:Props){
   const figure=<GoldBar3D scrollY={scrollY} initialScrollY={lastScroll.current} startY={viewerStart-PIN} endY={endY-PIN}
     active={active} reducedMotion={reduced} height={figureHeight}/>;
 
-  return <View style={styles.story} onLayout={event=>setOrigin(event.nativeEvent.layout.y)}>
-    <View onLayout={event=>setHeaderHeight(event.nativeEvent.layout.height)} style={styles.header}>
+  return <View style={styles.story} onLayout={event=>{setOrigin(event.nativeEvent.layout.y);setOriginMeasured(true);}}>
+    <View onLayout={event=>{setHeaderHeight(event.nativeEvent.layout.height);setHeaderMeasured(true);}} style={styles.header}>
       <View style={styles.headerTop}><Text style={styles.eyebrow}>OPENMINERALS / RECORRIDO</Text><Text style={styles.edition}>01—07</Text></View>
       <Text style={styles.title}>La historia{`\n`}<Text style={styles.titleAccent}>del metal.</Text></Text>
       <Text style={styles.intro}>De la mina a la entrega. Siete momentos conectan el metal con tu portafolio.</Text>

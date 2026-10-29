@@ -6,7 +6,7 @@ import {sanitizeOperatorHierarchy} from './ci-operator-navigation.mjs';
 import {legacyRuntimeState} from './ci-legacy-failure.mjs';
 import {PACKAGE,requireSafe} from './ci-safety.mjs';
 const tradeFlows=new Set(['ota-before-story','operator-navigation-ota','story','register','buyer-a','buyer-a-buy','buyer-a-offer','buyer-b','request-delivery','quote','accept','operator','operator-stock','profile','ota']);
-export function nativeFailureAllowed(scenario,flow){return ['full','asset-full'].includes(scenario)&&tradeFlows.has(flow)||scenario==='account-lifecycle'&&/^(?:operator-navigation-ota|wallet-(?:cop|eur|usd|usdt)|account-(?:import|setup|hide-and-logout|recover-start|recover-complete|reenter))$/.test(flow);}
+export function nativeFailureAllowed(scenario,flow){return ['full','asset-full'].includes(scenario)&&tradeFlows.has(flow)||scenario==='account-lifecycle'&&/^(?:operator-navigation-ota|wallet-(?:cop|eur|usd|usdt)|account-(?:import|setup|hide-and-logout|recover-start|recover-complete|reenter))$/.test(flow)||scenario==='quality-network'&&/^(?:operator-navigation-ota|quality-(?:login|insufficient|prepare|offline|resolve))$/.test(flow);}
 export async function captureNativeFailure({scenario,flow,serial,publishDirectory,privateValues=[],invoke=spawnSync}){
   requireSafe(nativeFailureAllowed(scenario,flow)&&/^emulator-\d+$/.test(serial),'Invalid native failure scope.');
   requireSafe(invoke!==spawnSync||process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_OS==='Linux','Native failure capture requires disposable CI.');
