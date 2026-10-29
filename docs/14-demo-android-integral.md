@@ -1,5 +1,7 @@
 # Implementación de la demo Android integral
 
+**Continuación del 29 de octubre:** consultar [el sprint vigente](16-sprint-android-2026-10-29.md) para el arreglo Android de Entregas, el historial por lote y el despliegue/OTA nuevos. Este documento conserva la evidencia de la implementación anterior.
+
 Encargo del propietario del 28 de octubre de 2026. Punto de partida: [auditoría sobre 0223326](13-auditoria-demo-2026-10-28.md). Los PR #2 y #1 se integraron, en ese orden, con merge y CI aprobada; base `f34dc30`. La implementación de `codex/android-complete-20261028` se integró mediante [PR #3](https://github.com/Blaister9/Openminerals/pull/3), merge `2574f29`. Rama actual de aceptación: `codex/android-acceptance-20261028`. El alcance actual es exclusivamente Android; no se desarrollan funciones ni builds iOS.
 
 Todas las operaciones, lotes, ubicaciones, documentos, certificados, impuestos y entregas son SIMULADOS. No hay transferencias bancarias, USDT real, custodia física acreditada ni envío real.

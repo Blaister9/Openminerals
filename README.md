@@ -8,7 +8,7 @@
 
 **Punto de partida del 28 de octubre de 2026:** [auditoría histórica sobre 0223326](docs/13-auditoria-demo-2026-10-28.md). Sus resultados corresponden a 0.1.3 y no acreditan los módulos de 0.2.0. El supuesto fallo de coma decimal del informe anterior no se reproduce en el cliente existente.
 
-**Para continuar desde otro equipo:** clonar el remoto oficial y consultar [el avance vigente de Android](docs/14-demo-android-integral.md). Los PR #2, #1 y #3 ya están integrados en `main`; fuente de la API `2574f29`, fuente del APK `3ed688c` con árbol equivalente. Rama de aceptación `codex/android-acceptance-20261028`. La [guía de traspaso anterior](docs/12-continuar-desde-otro-equipo.md) y el [APK 0.1.3 conservado](https://github.com/Blaister9/Openminerals/releases/tag/v0.1.3-demo) documentan la base histórica.
+**Para continuar desde otro equipo:** clonar el remoto oficial y consultar [el sprint vigente de Android](docs/16-sprint-android-2026-10-29.md). Los PR #2, #1 y #3 ya están integrados en `main`; la API del sprint usa `19b6207` y el APK conservado usa `3ed688c`. Rama de aceptación `codex/android-acceptance-20261028`; [PR #4](https://github.com/Blaister9/Openminerals/pull/4). La [guía de traspaso anterior](docs/12-continuar-desde-otro-equipo.md) y el [APK 0.1.3 conservado](https://github.com/Blaister9/Openminerals/releases/tag/v0.1.3-demo) documentan la base histórica.
 
 Repositorio inicial para presentar la plataforma Openminerals a un operador de mina: aplicación nativa iOS/Android con React Native + Expo; API Node.js desplegable en Railway; sesiones de demostración persistentes en PostgreSQL de Railway; documentos maestros del producto. No requiere HTML anterior.
 
