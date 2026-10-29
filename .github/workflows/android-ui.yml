@@ -115,7 +115,7 @@ jobs:
           # The next action installs the emulator binary; it is not present yet.
           printf 'PASS KVM character device is readable and writable by this runner.\n' >> "$acceleration_log"
           echo 'PASS KVM is accessible; software CPU acceleration fallback is disabled.'
-      - name: Install old APK update in place and execute native demo journeys
+      - name: Install APKs and execute selected native demo journeys
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         timeout-minutes: 35
         env:
