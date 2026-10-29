@@ -101,6 +101,7 @@ async function maestro(name,role,{source,extraEnv={}}={}){
   }catch(error){
     const definitions=source|| (await Promise.all([name,'login'].map(flow=>readFile(join(repo,'e2e/native',flow+'.yaml'),'utf8')))).join('\n');
     await saveDiagnostic(name,join(directory,'console.txt'),definitions);
+    if(scenario==='account-lifecycle'&&name==='wallet-cop')await captureSafeScreens(name);
     if(nativeFailureAllowed(scenario,name))await captureNativeFailure({scenario,flow:name,serial,publishDirectory:published,privateValues:[...privateValues]});
     if(scenario==='operator-navigation'||scenario==='full'&&['quote','operator','operator-stock'].includes(name))await captureNavigation('failure',name);
     throw error;
@@ -122,7 +123,7 @@ async function captureSafeScreens(name){
       if(entry.isSymbolicLink())continue;
       const file=join(folder,entry.name);
       if(entry.isDirectory())await walk(file);
-      else if(/^safe-(story-[1-7]|upgrade-preserved|reduced-motion)\.png$/.test(entry.name)){
+      else if(/^safe-(story-[1-7]|upgrade-preserved|reduced-motion|wallet-cop-before-eur)\.png$/.test(entry.name)){
         const pixels=await readFile(file);requireSafe(pixels.length<10000000&&pixels.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),'Unexpected safe screenshot.');
         await copyFile(file,join(published,entry.name));
       }

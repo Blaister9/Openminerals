@@ -15,7 +15,9 @@ const yaml=createRequire(import.meta.url)('yaml');
 test('account lifecycle uses valid bounded private flows and no screenshots or state clearing',()=>{
   for(const [name,currency] of [...walletCurrencies.map(currency=>['wallet',currency]),...['import','setup','hide-and-logout','recover-start','recover-complete','reenter'].map(name=>[name])]){
     const source=accountFlow(name,currency),documents=yaml.parseAllDocuments(source);assert.equal(documents.length,2);assert.ok(documents.every(document=>document.errors.length===0));
-    assert.equal(documents[0].toJSON().appId,'com.openminerals.demo.mobile');assert.doesNotMatch(source,/takeScreenshot|clearState|clearKeychain|uninstall|DEMO_ADMIN_TOKEN/);
+    assert.equal(documents[0].toJSON().appId,'com.openminerals.demo.mobile');assert.doesNotMatch(source,/clearState|clearKeychain|uninstall|DEMO_ADMIN_TOKEN/);
+    const screenshots=documents[1].toJSON().filter(command=>command?.takeScreenshot).map(command=>command.takeScreenshot);
+    assert.deepEqual(screenshots,name==='wallet'&&currency==='COP'?['safe-wallet-cop-before-eur']:[]);
     const selectors=flowSelectors(source);assert.ok(selectors.length>0);assert.equal(selectors.some(value=>value.includes('MAESTRO_')),false);
   }
   assert.throws(()=>accountFlow('wallet','__proto__'));assert.throws(()=>accountFlow('unknown'));
