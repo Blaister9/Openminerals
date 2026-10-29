@@ -18,7 +18,15 @@ export function verifyQualityResult(state,before){
   for(const action of ['withdraw','deposit'])requireSafe(receipts.filter(receipt=>receipt.action===action&&receipt.currency==='USD'&&receipt.amountMinor===1).length===1,'Native quality receipt differs.');
   requireSafe(Object.values(state.holdingsMg).every(value=>value===0)&&state.offers.length===0&&state.custodyRequests.length===0,'Native quality consumed metal.');
 }
-export async function runNetworkQuality({runStage,maestro,request,users,adb}){
+export async function waitQualityResult(read,before,publishChecks=()=>{}){
+  for(let attempt=1;attempt<=5;attempt++){
+    const state=await read();
+    await publishChecks({attempt,walletsRestored:['COP','EUR','USD','USDT'].every(code=>state.walletMinor[code]===before.walletMinor[code]),movements:state.movements.length,receipts:Object.keys(state.receipts).length,holdingsZero:Object.values(state.holdingsMg).every(value=>value===0)});
+    try{verifyQualityResult(state,before);return state;}catch(error){if(attempt===5)throw error;}
+    await new Promise(resolve=>setTimeout(resolve,500));
+  }
+}
+export async function runNetworkQuality({runStage,maestro,request,users,adb,publishChecks}){
   const before=await request('/api/demo/state',users.a.token),flow=name=>maestro('quality-'+name,'a',{source:qualityFlow(name)});
   await runStage('native-quality-buyer-login',()=>flow('login'));
   await runStage('native-insufficient-balance-blocks-purchase',async()=>{await flow('insufficient');const state=await request('/api/demo/state',users.a.token);requireSafe(Object.keys(state.receipts).length===0,'Insufficient purchase created a receipt.');});
@@ -30,5 +38,6 @@ export async function runNetworkQuality({runStage,maestro,request,users,adb}){
     }finally{adb('shell','svc','wifi','enable');adb('shell','svc','data','enable');}
   });
   await runStage('native-pending-survives-cold-open-retry-once',()=>flow('resolve'));
-  await runStage('api-verifies-no-duplicate-after-offline-retry',async()=>{verifyQualityResult(await request('/api/demo/state',users.a.token),before);await request('/api/demo/mine/summary',users.a.token,undefined,403);});
+  await runStage('api-verifies-no-duplicate-after-offline-retry',()=>waitQualityResult(()=>request('/api/demo/state',users.a.token),before,publishChecks));
+  await runStage('api-verifies-quality-buyer-permission',()=>request('/api/demo/mine/summary',users.a.token,undefined,403));
 }

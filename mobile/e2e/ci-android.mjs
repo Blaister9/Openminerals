@@ -224,7 +224,7 @@ async function run(){
   if(scenario==='quality-network'){
     await runStage('install-quality-apk',async()=>{requireSafe(!adb('shell','pm','list','packages',PACKAGE),'Quality coverage requires a fresh disposable emulator.');adb('install',join(root,'new.apk'));});
     await runStage('quality-compatible-ota-before-login',()=>maestro('operator-navigation-ota'));
-    await runNetworkQuality({runStage,maestro,request,users,adb});return;
+    await runNetworkQuality({runStage,maestro,request,users,adb,publishChecks:async value=>{const text=JSON.stringify(value,null,2)+'\n';requireSafe([...privateValues].every(secret=>!text.includes(secret)),'Private native quality metadata.');await writeFile(join(published,'network-quality-checks.json'),text);}});return;
   }
   if(scenario==='account-lifecycle'){
     await runStage('install-account-apk',async()=>{requireSafe(!adb('shell','pm','list','packages',PACKAGE),'Account coverage requires a fresh disposable emulator.');adb('install',join(root,'new.apk'));});

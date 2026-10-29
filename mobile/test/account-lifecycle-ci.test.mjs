@@ -8,7 +8,7 @@ import {accountFlow,expectedImportedWallet,verifyImportedState,walletCurrencies}
 import {privateRecoveryKey} from '../e2e/private-recovery.mjs';
 import {flowSelectors} from '../e2e/ci-diagnostics.mjs';
 import {captureNativeFailure} from '../e2e/ci-native-failure.mjs';
-import {qualityFlow,verifyQualityResult} from '../e2e/network-quality.mjs';
+import {qualityFlow,verifyQualityResult,waitQualityResult} from '../e2e/network-quality.mjs';
 import {mkdtemp,readdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -86,5 +86,6 @@ test('native network-quality postconditions detect duplicate debits against the 
     await store.mutateAccount(user.id,{action:'deposit',currency:'USD',amount:'0.01',requestId:randomUUID()});
     const after=await store.getAccountState(user.id);verifyQualityResult(after,before);
     const bad=structuredClone(after);bad.walletMinor.USD--;assert.throws(()=>verifyQualityResult(bad,before));
+    let reads=0;const checks=[];assert.deepEqual(await waitQualityResult(async()=>++reads===1?bad:after,before,value=>checks.push(value)),after);assert.equal(reads,2);assert.equal(checks[0].walletsRestored,false);assert.equal(checks[1].walletsRestored,true);
   }finally{await store.close();}
 });
