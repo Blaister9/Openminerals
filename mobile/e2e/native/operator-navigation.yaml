@@ -1,0 +1,17 @@
+appId: com.openminerals.demo.mobile
+name: Reproduce original operator delivery menu search
+---
+# Deliberately identical to quote.yaml before its first delivery tap.
+# Do not add a preparatory swipe UP or tap Mina: this diagnoses the old route.
+- scrollUntilVisible:
+    element:
+      text: ^Entregas DEMO$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Entregas DEMO$
+- extendedWaitUntil:
+    visible: ^Gestionar entregas demo$
+    timeout: 30000
+- assertNotVisible: ^USDT de tu cuenta demo$
+- assertNotVisible: ^CUENTAS MULTIDIVISA$

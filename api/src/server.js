@@ -108,6 +108,10 @@ export function createApiServer(store,config={}){
         const {account}=requireIdentity(identity);
         return send(res,200,await store.getCustody(account.id,'buyer'));
       }
+      if(req.method==='GET'&&/^\/api\/demo\/custody\/lots\/[^/]+\/history$/.test(path)){
+        const {account}=requireIdentity(identity),lotId=path.split('/')[5];
+        return send(res,200,await store.getLotHistory(account.id,lotId,url.searchParams));
+      }
       if(req.method==='GET'&&path.startsWith('/api/demo/certificates/')){
         const {account}=requireIdentity(identity);
         const certificateId=path.slice('/api/demo/certificates/'.length);

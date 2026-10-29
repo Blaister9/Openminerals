@@ -2,6 +2,15 @@ name: Android UI verification
 on:
   workflow_dispatch:
     inputs:
+      scenario:
+        description: Full acceptance, operator navigation or completed-trade profile continuation
+        type: choice
+        required: true
+        default: full
+        options:
+          - full
+          - operator-navigation
+          - profile-relaunch
       apk_url:
         description: Public HTTPS APK URL (Expo or this repository release)
         type: string
@@ -10,6 +19,11 @@ on:
         description: Verified lowercase SHA256 of the new versionCode 5 APK
         type: string
         required: true
+      ota_update_id:
+        description: Optional full published Android update UUID for runtime 0.2.0 on channel demo
+        type: string
+        required: false
+        default: ''
 permissions:
   contents: read
 concurrency:
@@ -32,9 +46,13 @@ jobs:
         env:
           APK_INPUT_URL: ${{ inputs.apk_url }}
           APK_INPUT_SHA256: ${{ inputs.apk_sha256 }}
+          OTA_INPUT_UPDATE_ID: ${{ inputs.ota_update_id }}
+          NATIVE_INPUT_SCENARIO: ${{ inputs.scenario }}
         run: node mobile/e2e/ci-android.mjs download
-      - name: Require unused isolated QA fixtures and PostgreSQL API 0.2.0
+      - name: Require scenario-specific isolated QA fixtures and PostgreSQL API 0.2.0
         env:
+          OTA_INPUT_UPDATE_ID: ${{ inputs.ota_update_id }}
+          NATIVE_INPUT_SCENARIO: ${{ inputs.scenario }}
           OPENMINERALS_QA_BUYER_A_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_A_ALIAS }}
           OPENMINERALS_QA_BUYER_A_PASSWORD: ${{ secrets.OPENMINERALS_QA_BUYER_A_PASSWORD }}
           OPENMINERALS_QA_BUYER_B_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_B_ALIAS }}
@@ -66,19 +84,43 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -c /dev/kvm
+          acceleration_log="$RUNNER_TEMP/openminerals-native/public/acceleration.txt"
+          node <<'NODE'
+          const fs=require('node:fs'),os=require('node:os');
+          const resource={availableCpus:os.availableParallelism(),totalMemoryMiB:Math.floor(os.totalmem()/1048576),guestCpus:4,guestMemoryMiB:4096};
+          fs.writeFileSync(process.env.RUNNER_TEMP+'/openminerals-native/public/host-resources.json',JSON.stringify(resource,null,2)+'\n');
+          if(resource.availableCpus<4||resource.totalMemoryMiB<8192){console.error('STANDARD_HOST_RESOURCES_INSUFFICIENT');process.exit(1);}
+          NODE
+          printf 'KVM preflight on disposable public Ubuntu runner\n' > "$acceleration_log"
+          id >> "$acceleration_log"
+          if ! test -c /dev/kvm; then
+            printf 'FAIL KVM_DEVICE_MISSING: /dev/kvm is not a character device.\n' | tee -a "$acceleration_log"
+            exit 1
+          fi
+          stat -c 'KVM before udev: mode=%a uid=%u gid=%g type=%F' /dev/kvm >> "$acceleration_log"
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-          test -r /dev/kvm && test -w /dev/kvm
-          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
-          test -n "$sdk_root"
-          "$sdk_root/emulator/emulator" -accel-check > "$RUNNER_TEMP/openminerals-native/public/acceleration.txt" 2>&1
+          sudo udevadm settle --timeout=30 >> "$acceleration_log" 2>&1
+          sudo chmod 0666 /dev/kvm
+          stat -c 'KVM after settle/chmod: mode=%a uid=%u gid=%g type=%F' /dev/kvm >> "$acceleration_log"
+          if ! test -r /dev/kvm; then
+            printf 'FAIL KVM_NOT_READABLE: runner cannot read /dev/kvm.\n' | tee -a "$acceleration_log"
+            exit 1
+          fi
+          if ! test -w /dev/kvm; then
+            printf 'FAIL KVM_NOT_WRITABLE: runner cannot write /dev/kvm.\n' | tee -a "$acceleration_log"
+            exit 1
+          fi
+          # The next action installs the emulator binary; it is not present yet.
+          printf 'PASS KVM character device is readable and writable by this runner.\n' >> "$acceleration_log"
           echo 'PASS KVM is accessible; software CPU acceleration fallback is disabled.'
-      - name: Install old APK update in place and execute native demo journeys
+      - name: Install APKs and execute selected native demo journeys
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         timeout-minutes: 35
         env:
+          OTA_INPUT_UPDATE_ID: ${{ inputs.ota_update_id }}
+          NATIVE_INPUT_SCENARIO: ${{ inputs.scenario }}
           OPENMINERALS_QA_BUYER_A_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_A_ALIAS }}
           OPENMINERALS_QA_BUYER_A_PASSWORD: ${{ secrets.OPENMINERALS_QA_BUYER_A_PASSWORD }}
           OPENMINERALS_QA_BUYER_B_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_B_ALIAS }}
@@ -90,13 +132,16 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_2
-          cores: 2
-          ram-size: 2048M
+          cores: 4
+          ram-size: 4096M
           emulator-boot-timeout: 360
           disable-linux-hw-accel: false
           emulator-options: -accel on -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim
           disable-animations: false
-          script: node mobile/e2e/ci-android.mjs run
+          # This script runs after the action installs the Android SDK and boots
+          # with -accel on. A failed SDK check stops before all native commands.
+          script: >-
+            "$ANDROID_HOME/emulator/emulator" -accel-check >> "$RUNNER_TEMP/openminerals-native/public/acceleration.txt" 2>&1 && node mobile/e2e/ci-android.mjs run
       - name: Upload only sanitized JUnit metadata and anonymous pre-login images
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

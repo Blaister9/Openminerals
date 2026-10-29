@@ -1,0 +1,48 @@
+appId: com.openminerals.demo.mobile
+name: Anonymous compatible OTA before studio story
+---
+- tapOn: ^Actividad$
+- scrollUntilVisible:
+    element:
+      text: ^Buscar actualización$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Buscar actualización$
+- extendedWaitUntil:
+    visible: ^Buscar actualización$
+    timeout: 60000
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: ^Sesión sin cuenta$
+    timeout: 30000
+- tapOn: ^Actividad$
+- scrollUntilVisible:
+    element:
+      id: demo-update-source
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: Actualización aplicada · ${MAESTRO_EXPECTED_OTA_ID.slice(0,8)}
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: ^Sesión sin cuenta$
+    timeout: 30000
+- tapOn: ^Actividad$
+- scrollUntilVisible:
+    element:
+      id: demo-update-source
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: Actualización aplicada · ${MAESTRO_EXPECTED_OTA_ID.slice(0,8)}
+- tapOn: ^Billetera$
+- scrollUntilVisible:
+    element:
+      text: ^USDT 268,40$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^USDT 268,40$

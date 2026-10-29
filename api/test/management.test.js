@@ -13,6 +13,7 @@ test('gerencia: KPIs sin duplicar mercado/comandos y foto conciliada sin billete
     const f=await seedManagement(store),view=await store.getManagement(f.op.id);
     assert.equal(view.kpis.directBuys,1);assert.equal(view.kpis.directSells,1);assert.equal(view.kpis.marketplaceTrades,1);assert.equal(view.kpis.tradingFeesMinor,199);
     assert.equal(view.kpis.directBuyVolumeMinor,14500);assert.equal(view.kpis.directSellVolumeMinor,1450);assert.equal(view.kpis.marketplaceVolumeMinor,3000);assert.equal(view.kpis.deliveryCostsCollectedMinor,1000);
+    assert.deepEqual(view.kpis.metalVolumesMg,{XAU:{directBuy:1000,directSell:100,marketplace:200},XAG:{directBuy:0,directSell:0,marketplace:0},XPT:{directBuy:0,directSell:0,marketplace:0},XPD:{directBuy:0,directSell:0,marketplace:0}});
     assert.equal(view.kpis.stockEntries,1);assert.equal(view.kpis.stockMg,1000);assert.equal(view.kpis.policyChanges,1);assert.equal(view.history.total,15);
     assert.equal(view.history.items.filter(item=>item.action==='delivery_quote').length,1);assert.equal(view.history.items.filter(item=>item.action==='delivery_transition').length,3);
     assert.equal(new Set(view.history.items.map(item=>item.id)).size,view.history.items.length);
@@ -20,8 +21,8 @@ test('gerencia: KPIs sin duplicar mercado/comandos y foto conciliada sin billete
     assert.equal(view.obligations.offersOpen,1);assert.equal(view.obligations.offersMg.XAU,100);assert.equal(view.obligations.deliveriesActive,1);assert.equal(view.obligations.deliveryMg.XAU,100);
     assert.equal(view.buyers.find(item=>item.id===f.a.id).holdingsMg.XAU,700);assert.equal(view.buyers.find(item=>item.id===f.b.id).reservedMg.XAU,100);
     const serialized=JSON.stringify(view);for(const privateField of ['walletMinor','balancesAfter','passwordHash','passwordSalt','token','DEPOSIT','WITHDRAW','CONVERT'])assert.equal(serialized.includes(privateField),false,privateField);
-    for(const action of ['market_buy','market_sell']){const filtered=await store.getManagement(f.op.id,new URLSearchParams({action}));assert.equal(filtered.history.total,1);assert.equal(filtered.kpis.marketplaceTrades,1);assert.equal(filtered.kpis.tradingFeesMinor,36);}
-    const own=await store.getManagement(f.op.id,new URLSearchParams({buyer:f.a.id,status:'FILLED'}));assert.equal(own.history.total,1);assert.equal(own.history.items[0].action,'market_sell');
+    for(const action of ['market_buy','market_sell']){const filtered=await store.getManagement(f.op.id,new URLSearchParams({action}));assert.equal(filtered.history.total,1);assert.equal(filtered.kpis.marketplaceTrades,1);assert.equal(filtered.kpis.tradingFeesMinor,36);assert.deepEqual(filtered.kpis.metalVolumesMg.XAU,{directBuy:0,directSell:0,marketplace:200});}
+    const own=await store.getManagement(f.op.id,new URLSearchParams({buyer:f.a.id,status:'FILLED'}));assert.equal(own.history.total,1);assert.equal(own.history.items[0].action,'market_sell');assert.equal(own.kpis.metalVolumesMg.XAU.marketplace,200);
     const delivered=await store.getManagement(f.op.id,new URLSearchParams({action:'delivery_transition',status:'DELIVERED_DEMO'}));assert.equal(delivered.history.total,1);assert.equal(delivered.history.items[0].scope,'command');assert.equal(delivered.history.items[0].ownerId,'mine');
   }finally{await store.close();}
 });
@@ -37,6 +38,7 @@ test('gerencia: historial completo supera veinte y cursor no repite al insertar 
     while(cursor){const page=await store.getManagement(op.id,new URLSearchParams({before:cursor}));seen.push(...page.history.items);cursor=page.history.nextCursor;assert.equal(page.history.total,46);}
     assert.equal(seen.length,45);assert.equal(new Set(seen.map(item=>item.id)).size,45);assert.equal(seen.some(item=>item.receipt.id===newest.receipt.id),false);
     const from=seen.at(-1).at,to=first.history.items[0].at;const filtered=await store.getManagement(op.id,new URLSearchParams({metal:'XAG',action:'buy',buyer:buyer.id,from,to,limit:'50'}));assert.equal(filtered.history.total,45);
+    assert.deepEqual(filtered.kpis.metalVolumesMg.XAG,{directBuy:4500,directSell:0,marketplace:0});assert.equal(filtered.kpis.metalVolumesMg.XAU.directBuy,0);
     assert.equal((await store.getManagement(op.id,new URLSearchParams({metal:'XAU'}))).history.total,0);
     await assert.rejects(store.getManagement(op.id,new URLSearchParams({metal:'XAU',before:first.history.nextCursor})),{code:'INVALID_MANAGEMENT_QUERY'});
   }finally{await store.close();}

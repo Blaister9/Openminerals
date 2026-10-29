@@ -48,6 +48,18 @@ test('filtros de metal, tipo, estado y comprador afectan KPI e historial sin alt
   assert.deepEqual(filtered.metals,all.metals);assert.deepEqual(filtered.buyers,all.buyers);assert.deepEqual(filtered.obligations,all.obligations);
 });
 
+test('cantidades históricas por metal conservan el contrato anterior y rechazan cifras inválidas',()=>{
+  const f=fixture(),raw=managementView(f.mine,f.accounts,f.operator);
+  const previous=structuredClone(raw);delete previous.kpis.metalVolumesMg;
+  assert.equal(parseManagementSummary(previous).kpis.metalVolumesMg,undefined);
+  raw.kpis.metalVolumesMg={XAU:{directBuy:100,directSell:0,marketplace:500},XAG:{directBuy:0,directSell:0,marketplace:0},XPT:{directBuy:0,directSell:0,marketplace:0},XPD:{directBuy:0,directSell:0,marketplace:0}};
+  assert.deepEqual(parseManagementSummary(raw).kpis.metalVolumesMg.XAU,{directBuy:100,directSell:0,marketplace:500});
+  for(const change of [
+    value=>{value.kpis.metalVolumesMg.XAU.directBuy=-1;},value=>{value.kpis.metalVolumesMg.XAU.marketplace=0.5;},
+    value=>{delete value.kpis.metalVolumesMg.XPD;},value=>{value.kpis.metalVolumesMg.XAG.directSell=Number.MAX_SAFE_INTEGER+1;},
+  ]){const broken=structuredClone(raw);change(broken);assert.throws(()=>parseManagementSummary(broken));}
+});
+
 test('paginación por cursor recorre todo el historial sin perder ni duplicar operaciones',()=>{
   const f=fixture();let before=null,events=[],total;
   do{

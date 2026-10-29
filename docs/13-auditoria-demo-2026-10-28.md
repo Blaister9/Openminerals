@@ -48,7 +48,7 @@ Los smokes de cuentas crean una mina sintética aislada. Comprobaron dos comprad
 
 **El supuesto fallo de ingreso/retiro del informe anterior no se reproduce en la fuente actual.** `mobile/App.tsx` normaliza `amount` y `grams` antes de confirmar y enviar la operación. Se ejecutaron las funciones reales `perform` y `confirmOperation`, extraídas/transpiladas con estado aislado: tanto ingreso como retiro con `" 1,25 "` entregaron `amount:"1.25"` a `client.submit`.
 
-La API rechaza directamente `amount:"1,25"` con HTTP 422 y acepta `"1.25"`. Eso describe el contrato decimal canónico de la API y no demuestra un fallo de la pantalla. Queda pendiente pulsar ese recorrido en teléfono; no corresponde aplicar una corrección de código sin un fallo reproducido.
+La API rechaza directamente `amount:"1,25"` con HTTP 422 y acepta `"1.25"`. Eso describe el contrato decimal canónico de la API y no demuestra un fallo de la pantalla. La revisión incremental posterior ejecutó los handlers reales con el cliente TypeScript y una API HTTP local: 16 operaciones de ingreso/retiro en las cuatro divisas, con coma y espacios, registraron 125 centésimas y recuperaron el saldo inicial sin duplicación por doble pulsación; cuatro formatos inválidos se bloquearon antes de HTTP. Las 34 pruebas dirigidas aprobaron. La normalización ya existe en `0223326`; no es una corrección nueva. Queda pendiente pulsar ese recorrido en teléfono.
 
 ## Railway y persistencia
 

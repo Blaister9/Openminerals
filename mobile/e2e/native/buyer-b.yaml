@@ -20,11 +20,11 @@ name: Buyer B buys entire peer offer and checks its lot certificate
 - assertVisible: ^USDT 70,00$
 - scrollUntilVisible:
     element:
-      text: ^Revisar compra completa$
+      text: "^Comprar oferta completa de 0,500 g de Oro de [a-z0-9_-]{3,40}$"
     direction: DOWN
     centerElement: true
     timeout: 30000
-- tapOn: ^Revisar compra completa$
+- tapOn: "^Comprar oferta completa de 0,500 g de Oro de [a-z0-9_-]{3,40}$"
 - tapOn: ^Confirmar demo$
 - extendedWaitUntil:
     visible: ^Comprobante$

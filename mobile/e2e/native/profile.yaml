@@ -44,10 +44,13 @@ name: Buyer history profile saving and SecureStore relaunch
     direction: DOWN
     centerElement: true
     timeout: 30000
-- tapOn: Nombre visible ficticio
-- eraseText
+- tapOn:
+    text: Nombre visible ficticio
+    point: "95%,50%"
+- eraseText: 40
 - inputText: Comprador QA DEMO
 - hideKeyboard
+- assertVisible: ^Comprador QA DEMO$
 - scrollUntilVisible:
     element:
       text: ^EUR$
@@ -69,6 +72,12 @@ name: Buyer history profile saving and SecureStore relaunch
     centerElement: true
     timeout: 30000
 - tapOn: ^Guardar perfil ficticio$
+- scrollUntilVisible:
+    element:
+      text: Perfil ficticio guardado.*
+    direction: UP
+    centerElement: true
+    timeout: 30000
 - extendedWaitUntil:
     visible: Perfil ficticio guardado.*
     timeout: 30000

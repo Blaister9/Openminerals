@@ -113,7 +113,7 @@ export function applyOperatorDelivery(mine,actor,buyer,command,now=new Date().to
       event(request,command.status,now,`Operador: ${transitionReason}`);
       if(command.status==='DELIVERED_DEMO'){
         state.holdingsMg[request.metal]-=request.mg;fail(availableHoldingMg(state,request.metal)>=0,'La entrega excede los gramos asignados.');
-        ({mine:next,deliveredLots}=deliverCustody(next,buyer.id,request.metal,request.mg));request.deliveredLots=copy(deliveredLots);request.deliveredAt=now;
+        ({mine:next,deliveredLots}=deliverCustody(next,buyer.id,request.metal,request.mg,{at:now,referenceId:command.requestId,references:[{accountId:buyer.id,id:deliveryBuyerReceiptId(actor.id,command.requestId)}]}));request.deliveredLots=copy(deliveredLots);request.deliveredAt=now;
       }
       receipt={...common,label:`Entrega DEMO: ${command.status}`,reason:transitionReason,quote:request.quote?copy(request.quote):null,...(deliveredLots?{deliveredLots}: {})};
     }

@@ -16,10 +16,12 @@ test('PostgreSQL gerencia: KPIs privados, histórico completo, cursores y aislam
     await admin.query(`CREATE SCHEMA "${schema}"`);[a,b]=await Promise.all([createStore(scoped.toString()),createStore(scoped.toString())]);f=await seedManagement(a,'pg');
     await t.test('indicadores concilian entrega y mercado sin duplicar comisiones ni comandos',async()=>{
       const view=await b.getManagement(f.op.id);assert.equal(view.history.total,15);assert.equal(view.kpis.tradingFeesMinor,199);assert.equal(view.kpis.marketplaceTrades,1);assert.equal(view.kpis.deliveryCostsCollectedMinor,1000);
+      assert.deepEqual(view.kpis.metalVolumesMg.XAU,{directBuy:1000,directSell:100,marketplace:200});assert.deepEqual(view.kpis.metalVolumesMg.XAG,{directBuy:0,directSell:0,marketplace:0});
       assert.equal(view.metals.XAU.originalWeightMg,3000);assert.equal(view.metals.XAU.deliveredMg,100);assert.equal(view.metals.XAU.activeSupplyMg,2900);assert.equal(view.metals.XAU.availableMg+view.metals.XAU.allocatedMg,2900);assert.equal(view.metals.XAU.reservedMg,200);
       assert.equal(view.history.items.filter(item=>item.action==='delivery_quote').length,1);assert.equal(view.history.items.filter(item=>item.action==='delivery_transition').length,3);
       for(const field of ['walletMinor','balancesAfter','passwordSalt','passwordHash','DEPOSIT','WITHDRAW','CONVERT'])assert.equal(JSON.stringify(view).includes(field),false,field);
       const filtered=await a.getManagement(f.op.id,new URLSearchParams({action:'market_buy',buyer:f.b.id,metal:'XAU',status:'FILLED'}));assert.equal(filtered.history.total,1);assert.equal(filtered.kpis.tradingFeesMinor,36);assert.equal(filtered.kpis.marketplaceVolumeMinor,3000);
+      assert.deepEqual(filtered.kpis.metalVolumesMg.XAU,{directBuy:0,directSell:0,marketplace:200});
     });
     await t.test('dos operadores con igual clave y comprador generan eventos únicos y consultas desambiguadas',async()=>{
       const shared=randomUUID(),command={action:'delivery_quote',buyerId:f.b.id,deliveryId:f.activeDelivery.id,jurisdiction:'DEMO_LOCAL',requestId:shared};
@@ -40,6 +42,7 @@ test('PostgreSQL gerencia: KPIs privados, histórico completo, cursores y aislam
       while(before){const next=await b.getManagement(f.op.id,new URLSearchParams({...query,before}));seen.push(...next.history.items);before=next.history.nextCursor;assert.equal(next.history.total,36);}
       assert.equal(seen.length,35);assert.equal(new Set(seen.map(item=>item.id)).size,35);assert.equal(seen.some(item=>item.receipt.id===inserted.receipt.id),false);
       const period=await a.getManagement(f.op.id,new URLSearchParams({...query,limit:'50',from:seen.at(-1).at,to:first.history.items[0].at}));assert.equal(period.history.total,35);assert.equal(period.kpis.directBuys,35);assert.equal(period.kpis.tradingFeesMinor,35);
+      assert.deepEqual(period.kpis.metalVolumesMg.XAG,{directBuy:3500,directSell:0,marketplace:0});
       await assert.rejects(a.getManagement(f.op.id,new URLSearchParams({metal:'XAU',before:first.history.nextCursor})),{code:'INVALID_MANAGEMENT_QUERY'});
       await assert.rejects(b.getManagement(f.op.id,new URLSearchParams('action=deposit')),{code:'INVALID_MANAGEMENT_QUERY'});
       await assert.rejects(b.getManagement(f.op.id,new URLSearchParams('limit=51')),{code:'INVALID_MANAGEMENT_QUERY'});

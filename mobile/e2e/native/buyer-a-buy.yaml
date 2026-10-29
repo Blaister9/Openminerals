@@ -1,0 +1,67 @@
+appId: com.openminerals.demo.mobile
+name: Buyer A buys2g and checks lot certificate
+---
+- tapOn: ^Mercado$
+- scrollUntilVisible:
+    element:
+      text: Cantidad de metal en gramos
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Cantidad de metal en gramos
+- eraseText
+- inputText: "2"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: ^Confirmar compra simulada$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Confirmar compra simulada$
+- tapOn: ^Confirmar demo$
+- extendedWaitUntil:
+    visible: ^Comprobante$
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: ^USDT 157,10$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Cerrar comprobante
+- tapOn: ^Metales$
+- scrollUntilVisible:
+    element:
+      text: ^Lotes y certificados$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Lotes y certificados$
+- scrollUntilVisible:
+    element:
+      text: ^Ver certificado demo$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Ver certificado demo$
+- extendedWaitUntil:
+    visible: ^Registro demo consultado$
+    timeout: 30000
+- tapOn: Cerrar certificado demo
+- scrollUntilVisible:
+    element:
+      text: ^Ver movimientos del lote$
+    direction: UP
+    timeout: 30000
+- tapOn: ^Ver movimientos del lote$
+- extendedWaitUntil:
+    visible: ^Historial del lote DEMO$
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: ^Compra directa$
+    direction: DOWN
+    timeout: 30000
+- assertVisible: ^2,000 g$
+- tapOn: Cerrar historial del lote

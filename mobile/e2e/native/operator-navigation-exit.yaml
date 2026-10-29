@@ -1,0 +1,11 @@
+appId: com.openminerals.demo.mobile
+name: Exit operator deliveries using native account tab
+---
+- tapOn:
+    text: ^Cuenta$
+    index: 1
+- extendedWaitUntil:
+    visible: ^ACCESO A LA DEMOSTRACIÓN$
+    timeout: 30000
+- assertNotVisible: ^Gestionar entregas demo$
+- assertVisible: ^Operador ·.*

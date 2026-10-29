@@ -1,0 +1,8 @@
+appId: com.openminerals.demo.mobile
+name: Operator navigation isolated login
+---
+- runFlow:
+    file: login.yaml
+- extendedWaitUntil:
+    visible: ^Operador ·.*
+    timeout: 30000
