@@ -11,7 +11,7 @@ El cliente inicial de la presentación es el operador o propietario de una mina.
 - Proyecto **DEMO**, sin dinero, USDT, metales, reservas, precios o entregas reales.
 - La API conserva sesiones anteriores sin cuenta: `x-demo-session` **no** es credencial segura. Las cuentas nuevas tienen alias ficticio, clave demo y token revocable; no verifican identidad ni son autenticación apta para producción financiera. No utilizar con clientes reales ni datos personales sensibles.
 - No existe KYC, AML, custodia física, emisión de tokens, blockchain, integración bancaria, precios en tiempo real ni ledger contable de doble entrada.
-- La animación actual de lingote es 2.5D aproximada: el **scrollytelling 3D** está especificado pero NO terminado.
+- Android 0.2.0 incorpora malla 3D con ExpoGL, omisión y movimiento reducido. Distinguir las pruebas WebGL de software, la ejecución Android emulada y la aceptación en teléfono; consultar la evidencia vigente en `docs/14-demo-android-integral.md` antes de reconstruir o dar por terminado el recorrido.
 - No describir como probado lo que no se haya ejecutado. No inventar enlaces de builds, despliegues o credenciales.
 - No comenzar producción financiera ni conectar saldos reales. Requiere análisis legal y de negocio aparte.
 
@@ -66,6 +66,12 @@ Hay un importador multiplataforma `tools/import_to_github.py` que evita sobrescr
 3. Generar **build iOS de prueba** vía EAS/TestFlight o distribución interna autorizada. Requiere certificados/provisionamiento y, normalmente, cuenta Apple Developer. Si se trabaja en Windows, EAS Build permite compilar iOS en la nube; el simulador iOS local requiere macOS/Xcode.
 4. Verificar cambio USD→USDT, compra de 2 g de oro, descuento de USDT, portafolio, venta, oferta, entrega, historial, recarga de app, saldos insuficientes y repetición de solicitud. Registrar evidencia y fallos.
 5. Implementar mejoras visuales **después** de validar la cadena de datos. Scrollytelling/3D no debe bloquear compra y estado de billetera; ofrecer modo con movimiento reducido.
+
+## Actualizaciones compatibles de Android
+
+Android 0.2.0 usa EAS Update, canal `demo`, entorno `preview` y runtime derivado de `app.json.version`. Los cambios compatibles de JavaScript/estilos/recursos pueden publicarse sin reinstalar mediante `eas update --channel demo --platform android --environment preview`. Cambiar módulos nativos, permisos, SDK o configuración nativa requiere incrementar la versión y el código Android y generar otro APK con la firma existente. No forzar una recarga durante operaciones pendientes; conservar embedded/anti-bricking. Registrar ID real y evidencia de aplicación de cada revisión. El alcance de finalización actual es Android; no invertir trabajo en iOS sin un nuevo encargo.
+
+Blockchain, documentos jurídicos y custodia física son planificación futura: ver `docs/15-custodia-documental-y-web3-colombia.md`. El modo legacy sin cuenta y el operador público siguen siendo exclusivos de la demo.
 
 ## Criterios verificables de cierre
 

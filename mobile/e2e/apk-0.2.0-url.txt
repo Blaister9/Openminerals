@@ -1,1 +1,1 @@
-https://expo.dev/artifacts/eas/FObu7mu8JThmfysya_NGzNdpCtQJrPWL_CB_MojONqQ.apk
+https://github.com/Blaister9/Openminerals/releases/download/v0.2.0-demo/Openminerals-Demo-0.2.0-android.apk
