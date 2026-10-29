@@ -7,14 +7,18 @@
 - [x] API de simulación con compras, ventas, conversiones y reservas.
 - [x] Código React Native/Expo con cinco áreas y vista gerencial ilustrativa.
 - [x] Tests unitarios HTTP/dominio sin DB externa y script de aceptación API para Railway.
-- [ ] Instalar dependencias del móvil y compilar en iOS/Android.
-- [ ] Crear repositorio GitHub del cliente o equipo.
-- [ ] Desplegar API + PostgreSQL en cuenta Railway real.
-- [ ] Probar persistencia y concurrencia sobre PostgreSQL Railway.
-- [ ] Publicar build interno de Android/iOS y probar en dos teléfonos físicos.
+- [x] Instalar y validar dependencias; compilar APK Android e iOS para simulador. El build de simulador no equivale a probar iPhone.
+- [x] Publicar el código en el repositorio GitHub oficial.
+- [x] Desplegar API + PostgreSQL de demostración en Railway.
+- [x] Probar persistencia y concurrencia sobre PostgreSQL Railway.
+- [x] Publicar APK Android: el propietario confirmó operaciones parciales en 0.1.0 y actualización sin desinstalar, historial conservado y valores visibles en 0.1.1.
+- [ ] Completar el recorrido de aceptación Android y resolver la experiencia de scrollytelling no aceptada.
+- [ ] Instalar y ejecutar en iPhone físico; bloqueado por firma Apple. El simulador compilado tampoco se ha ejecutado.
 - [ ] Validar UI con usuario de mina y definir contenido/documentación auténticos.
 
 ## Entrega 1 · Demo comercial verificable
+
+Estado actualizado tras la prueba del propietario: la infraestructura y las operaciones básicas tienen evidencia; el recorrido comercial completo todavía no. El [backlog priorizado](09-prioridades-demo.md) separa funciones existentes con límites, funciones pendientes y pruebas pendientes. No se marcará toda esta entrega como aprobada por tener un APK.
 
 Criterios obligatorios para considerar **demo montada**:
 

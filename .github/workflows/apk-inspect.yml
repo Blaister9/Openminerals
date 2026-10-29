@@ -1,0 +1,79 @@
+name: Inspect the Android demo artifact
+on:
+  push:
+    branches: [codex/mobile-overview-scroll-20261028]
+    paths:
+      - .github/workflows/apk-inspect.yml
+      - mobile/e2e/apk-0.1.3-url.txt
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  artifact-source:
+    if: github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      available: ${{ steps.apk-source.outputs.available }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      # hashFiles requires a checked-out workspace and is valid in step.if,
+      # not jobs.<job>.if. Skip the inspection job until a real URL is committed.
+      - id: apk-source
+        if: hashFiles('mobile/e2e/apk-0.1.3-url.txt') != ''
+        run: echo 'available=true' >> "$GITHUB_OUTPUT"
+  apk-integrity:
+    needs: artifact-source
+    if: github.event.repository.private == false && needs.artifact-source.outputs.available == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Inspect the APK, signing certificate and embedded API
+        shell: bash
+        run: |
+          set -euo pipefail
+          result="$RUNNER_TEMP/apk-inspection"
+          mkdir -p "$result"
+          python3 - <<'PY'
+          import os, pathlib, re
+          url = pathlib.Path('mobile/e2e/apk-0.1.3-url.txt').read_text().strip()
+          assert re.fullmatch(r'https://expo\.dev/artifacts/eas/[A-Za-z0-9_-]+\.apk', url)
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'apk-url.txt').write_text(url)
+          PY
+          curl --fail --location --proto '=https' --proto-redir '=https' \
+            --retry 2 --max-time 180 --max-filesize 200000000 \
+            -o "$result/app.apk" "$(cat "$RUNNER_TEMP/apk-url.txt")"
+          sha256sum "$result/app.apk" > "$result/sha256.txt"
+          signer="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "$signer"
+          "$signer" verify --verbose --print-certs "$result/app.apk" > "$result/signature.txt"
+          digest="$(sed -nE 's/^.*certificate SHA-256 digest: ([0-9a-fA-F]{64})[[:space:]]*$/\1/p' "$result/signature.txt" | sort -u)"
+          test "$digest" = "$(tr -d '[:space:]' < mobile/e2e/android-certificate.sha256)"
+          "$(dirname "$signer")/aapt" dump badging "$result/app.apk" > "$result/manifest.txt"
+          python3 - <<'PY'
+          import os, pathlib, zipfile
+          result = pathlib.Path(os.environ['RUNNER_TEMP'], 'apk-inspection')
+          manifest = (result / 'manifest.txt').read_text()
+          assert "name='com.openminerals.demo.mobile'" in manifest
+          assert "versionCode='4'" in manifest and "versionName='0.1.3'" in manifest
+          with zipfile.ZipFile(result / 'app.apk') as apk:
+              bundle = apk.read('assets/index.android.bundle')
+          for value in [b'https://openminerals-api-demo.up.railway.app', b'/api/demo/history', b'/api/demo/receipts/', b'/api/demo/accounts/login', b'/api/demo/mine/summary', b'Comprobante']:
+              assert value in bundle, value
+          # Stock uses the same dynamic /api/demo/${action} transport as trades.
+          assert b'/api/demo/' in bundle and b'mine/stock' in bundle
+          (result / 'checks.txt').write_text('PASS signature, baseline certificate, package/version 0.1.3/4, account login, mine summary, stock transport fragments, receipt routes and HTTPS API. Native UI was not executed.\n')
+          PY
+          rm "$result/app.apk"
+          cat "$result/checks.txt" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: apk-inspection-${{ github.run_id }}
+          path: ${{ runner.temp }}/apk-inspection/*.txt
+          retention-days: 1

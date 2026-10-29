@@ -13,7 +13,7 @@
                  |
    Sesiones demo JSONB + transacciones SQL FOR UPDATE
 
-  GitHub: repositorio privado, CI, revisión de cambios
+  GitHub: repositorio público oficial, CI, revisión de cambios
 ```
 
 La app no almacena saldos oficiales: consulta el servidor. API con sesiones independientes mediante `X-Demo-Session`. **Este header es un identificador de prueba, NO autenticación.** Nunca utilizar este mecanismo con datos personales o dinero real.
@@ -58,7 +58,7 @@ La app no almacena saldos oficiales: consulta el servidor. API con sesiones inde
 
 Una tabla `demo_sessions` contiene un objeto JSONB por sesión. Aporta atomicidad de **simulación** mediante transacciones y bloqueo de fila. Las cifras representan centésimas de moneda y miligramos para evitar errores básicos de coma flotante. Los cálculos de tarifas y conversiones utilizan enteros y `BigInt`.
 
-**No usar el JSONB de sesiones como libro mayor final.** Es deliberadamente simple para un pitch. Los movimientos se limitan a 100 eventos recientes y el resumen gerencial es ilustrativo.
+**No usar el JSONB de sesiones como libro mayor final.** Es deliberadamente simple para un pitch. Los movimientos se limitan a 100 eventos recientes y el resumen gerencial es ilustrativo. Desde la revisión 0.1.2, el historial paginado consulta el mapa de comprobantes persistidos, que no tiene ese recorte. Los comprobantes nuevos guardan saldos posteriores; los antiguos no reciben saldos históricos inventados.
 
 ## API de demostración
 
@@ -68,6 +68,8 @@ Requieren cabecera `x-demo-session: <identificador aleatorio de al menos 16 cara
 
 - `GET /api/demo/state`
 - `GET /api/demo/operator/summary`
+- `GET /api/demo/history?limit=20&before=<receiptId>` → página de comprobantes; omitir `before` en la primera consulta
+- `GET /api/demo/receipts/<receiptId>` → detalle de comprobante de la misma sesión
 - `POST /api/demo/deposit` → `{ "currency":"USD", "amount":"100.00" }`
 - `POST /api/demo/withdraw` → `{ "currency":"USD", "amount":"50.00" }`
 - `POST /api/demo/convert` → `{ "from":"USD", "to":"USDT", "amount":"200.00" }`
@@ -88,4 +90,4 @@ Todas las peticiones POST de operaciones necesitan una cabecera **`Idempotency-K
 - API sin autenticación: apta solo para acceso controlado de demostración y datos ficticios. Antes de exposiciones públicas masivas: autenticación de demostración, límites por IP, cuotas, retención y monitoreo.
 - Claves API y `DATABASE_URL` solo en variables del servidor; nunca en `EXPO_PUBLIC_*`, Git o app instalada.
 - `EXPO_PUBLIC_API_URL` es públicamente visible en el binario, como corresponde a una dirección de servicio.
-- PostgreSQL en Railway está previsto; las pruebas automatizadas actuales no incluyen conexión PostgreSQL real ni verificación de copias de seguridad.
+- PostgreSQL en Railway está desplegado y se ejecutaron pruebas con conexión real, concurrencia y persistencia tras reiniciar la API; ver [informe de verificación](07-verificacion-2026-10-28.md). No se ha verificado restauración de copias de seguridad.

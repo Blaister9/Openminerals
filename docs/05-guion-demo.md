@@ -39,7 +39,7 @@ Para una sesión nueva, USD comienza en 600,00 y USDT en 250,00. Si la sesión y
 | 5 | Publicar oferta de oro 0.500 g | Reservado 0,500 g; disponible 1,000 g; no existe comprador real |
 | 6 | Solicitar cotización de entrega de 0.500 g | Reservado total 1,000 g; disponible 0,500 g; sin envío real |
 | 7 | Cancelar oferta y solicitud de entrega | Disponible otra vez 1,500 g; el saldo USDT no cambia |
-| 8 | Intentar comprar oro 9.000 g | Rechazo por saldo insuficiente; sin cambios en saldos ni metales |
+| 8 | Intentar comprar oro 9.000 g | En 0.1.1, aviso de saldo insuficiente y botón deshabilitado; sin cambios en saldos ni metales. La API conserva su rechazo de solicitudes sin saldo |
 | 9 | Más: historial y panel operador | Comprobantes consistentes; panel identificado como datos de esta sesión |
 | 10 | Cerrar la app y abrirla de nuevo | Misma sesión, saldos, posiciones e historial |
 | 11 | Desconectar la red e intentar una operación | Timeout/error; operación pendiente identificada; otras operaciones bloqueadas |

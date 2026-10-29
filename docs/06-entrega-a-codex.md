@@ -1,5 +1,7 @@
 # Openminerals · Continuidad del trabajo con Codex
 
+> Entrega inicial conservada como historial. La guía vigente para retomar el trabajo es [continuar desde otro equipo](12-continuar-desde-otro-equipo.md); clonar su rama indicada, no volver a importar el ZIP.
+
 Actualizado el **28 de octubre de 2026**. El proyecto sigue siendo una simulación: saldos, operaciones, metales, cotizaciones y entregas ficticios.
 
 ## Código sincronizado

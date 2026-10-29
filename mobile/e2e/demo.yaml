@@ -1,0 +1,152 @@
+appId: com.openminerals.demo.mobile
+name: Simulated overview and scroll story
+---
+# This clears only the newly installed app in GitHub's disposable emulator.
+# It does not reset Railway sessions or touch the owner's physical phone.
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: 'USDT 250,00'
+    timeout: 30000
+- assertVisible: 'USDT 0,00'
+- takeScreenshot: 01-initial-overview
+
+# Check each native scroll scene with normal motion enabled by the runner.
+- scrollUntilVisible:
+    element:
+      text: 'Reducir movimiento del recorrido'
+    direction: DOWN
+    centerElement: true
+- assertVisible:
+    text: 'Reducir movimiento del recorrido'
+    checked: false
+- scrollUntilVisible:
+    element:
+      text: 'Todo comienza en el origen'
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: 02-origin
+- scrollUntilVisible:
+    element:
+      text: 'Del mineral al lingote'
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: 03-refining
+- scrollUntilVisible:
+    element:
+      text: 'Una custodia que se debe acreditar'
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: 04-custody
+- scrollUntilVisible:
+    element:
+      text: 'Gramos en tu portafolio'
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: 05-fraction
+
+# The native accessibility switch must expose the reduced-motion state.
+- scrollUntilVisible:
+    element:
+      text: 'Reducir movimiento del recorrido'
+    direction: UP
+    centerElement: true
+- tapOn: 'Reducir movimiento del recorrido'
+- assertVisible:
+    text: 'Reducir movimiento del recorrido'
+    checked: true
+- takeScreenshot: 06-reduced-motion
+
+# Convert only 20 fictitious USD, then prove the overview includes USDT even
+# though no metal has been bought. Text selectors use existing accessibility
+# labels in the APK; no test-only native code or IDs are required.
+- tapOn: '^Billetera$'
+- scrollUntilVisible:
+    element:
+      text: 'Cantidad de dinero para convertir'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Cantidad de dinero para convertir'
+- eraseText
+- inputText: '20'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: 'Convertir en demo'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Convertir en demo'
+- tapOn: '(?i)^confirmar demo$'
+- extendedWaitUntil:
+    visible: 'Operación simulada'
+    timeout: 20000
+- tapOn: '(?i)^ok$'
+- tapOn: '^Inicio$'
+- extendedWaitUntil:
+    visible: 'USDT 270,00'
+    timeout: 20000
+- assertVisible: 'USDT 0,00'
+- takeScreenshot: 07-usdt-after-conversion
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: 'USDT 270,00'
+    timeout: 20000
+- assertVisible: 'USDT 0,00'
+- takeScreenshot: 08-session-after-relaunch
+
+# Exercise the corrected quantity and fee presentation on the actual APK.
+- tapOn: '^Mercado$'
+- scrollUntilVisible:
+    element:
+      text: 'Cantidad de metal en gramos'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Cantidad de metal en gramos'
+- eraseText
+- inputText: '0.5'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: 'Confirmar compra simulada'
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'USDT 73,23'
+- assertVisible: 'USDT 0,73'
+- takeScreenshot: 09-buy-quote
+- tapOn: 'Confirmar compra simulada'
+- tapOn: '(?i)^confirmar demo$'
+- extendedWaitUntil:
+    visible: 'Operación simulada'
+    timeout: 20000
+- tapOn: '(?i)^ok$'
+- tapOn: '^Metales$'
+- assertVisible: '0,500 g.*disponible 0,500 g'
+- assertVisible: 'USDT 72,50'
+- takeScreenshot: 10-gold-holding
+- tapOn: '^Inicio$'
+- assertVisible: 'USDT 269,27'
+- assertVisible: 'USDT 72,50'
+- takeScreenshot: 11-usdt-and-metals
+- tapOn: '^Metales$'
+- scrollUntilVisible:
+    element:
+      text: 'Simular venta'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Simular venta'
+- tapOn: '(?i)^confirmar demo$'
+- extendedWaitUntil:
+    visible: 'Operación simulada'
+    timeout: 20000
+- tapOn: '(?i)^ok$'
+- tapOn: '^Inicio$'
+- assertVisible: 'USDT 268,40'
+- assertVisible: 'USDT 0,00'
+- takeScreenshot: 12-after-selling
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: 'USDT 268,40'
+    timeout: 20000
+- takeScreenshot: 13-persisted-roundtrip

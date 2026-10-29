@@ -21,3 +21,5 @@
 **/build/
 **/ios/Pods/
 /artifacts/
+**/Openminerals-acceso-operador-PRIVADO.json
+**/openminerals-demo-access-restored.json

@@ -1,0 +1,8 @@
+{
+  "format": "openminerals.demo-access-backup",
+  "version": 1,
+  "algorithm": "aes-256-gcm",
+  "ivBase64": "psR6Fij9i2Xo6rPs",
+  "tagBase64": "KkvRhARh3ev1476BLmtxTg==",
+  "ciphertextBase64": "afuZUZh/D3yBhzaw3MhaY9CmpRcJpyXVz9hbbFFZG7k/ejQO9lkOIV0zErNgKJhN392twxgFdTrI/huJg+qATX0L4kT3s+BkDFRZc44EvGwB3y1EbMwPWzAIvQQN80xMvskuVgKdOetOMwAHAWAb3NGzbmKk2BvuV3C/wuA/8HlrCu37Eei+4I7r0ul0/x9FQ8q8MtOMZwF/IXG/Ss/7e0cTngaWnnyu6cUo+rgzx/S8imJws1x+/hzAaGRA9yHU24+BxSoTztJIQ7b9HE832GGrHLiVOAmntfUgQUcmGqachqwOhKTe6oPS1cSqUxEBiGu9UQQvLI8FYp0bG7Cqq0sLo2lC1CV3UG0="
+}

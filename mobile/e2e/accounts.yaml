@@ -1,0 +1,304 @@
+appId: com.openminerals.demo.mobile
+name: Demo accounts, migration and shared mine roles 0.1.3
+---
+# PREPARED ONLY: this flow has not been executed against an APK yet.
+# Use ONLY a disposable Android emulator: clearState removes its local identity.
+# Never run this reset flow on the owner's physical phone.
+# Requires APK >= 0.1.3 connected to the demo API with shared accounts enabled.
+#
+# Supply these shell environment variables to Maestro CLI; never commit values:
+# MAESTRO_BUYER_ALIAS: fresh lowercase alias per run, 3..40 [a-z0-9_-].
+# MAESTRO_BUYER_PASSWORD: exclusive fictitious password, 10..128 ASCII chars.
+# MAESTRO_OPERATOR_ALIAS / MAESTRO_OPERATOR_PASSWORD: existing demo operator.
+# The operator must belong to the default mine used by public buyer registration.
+# Then run: maestro test mobile/e2e/accounts.yaml
+# Maestro CLI reads MAESTRO_* directly from the process environment:
+# https://docs.maestro.dev/maestro-flows/flow-control-and-logic/parameters-and-constants
+# Do not publish raw Maestro debug logs containing input parameters/credentials.
+# No real identity, funds, metal or external payment/custody service is involved.
+- assertTrue: ${typeof MAESTRO_BUYER_ALIAS === 'string' && /^[a-z0-9_-]{3,40}$/.test(MAESTRO_BUYER_ALIAS)}
+- assertTrue: ${typeof MAESTRO_BUYER_PASSWORD === 'string' && MAESTRO_BUYER_PASSWORD.length >= 10 && MAESTRO_BUYER_PASSWORD.length <= 128}
+- assertTrue: ${typeof MAESTRO_OPERATOR_ALIAS === 'string' && /^[a-z0-9_-]{3,40}$/.test(MAESTRO_OPERATOR_ALIAS)}
+- assertTrue: ${typeof MAESTRO_OPERATOR_PASSWORD === 'string' && MAESTRO_OPERATOR_PASSWORD.length >= 10 && MAESTRO_OPERATOR_PASSWORD.length <= 128}
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: '^USDT 250,00$'
+    timeout: 30000
+- assertVisible: '^Sesión sin cuenta$'
+
+# Seed one legacy receipt so migration proves history survives exactly once.
+- tapOn: '^Billetera$'
+- scrollUntilVisible:
+    element:
+      text: 'Cantidad de dinero para convertir'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Cantidad de dinero para convertir'
+- eraseText
+- inputText: '1'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: '^Convertir en demo$'
+    direction: DOWN
+    centerElement: true
+- tapOn: '^Convertir en demo$'
+- tapOn: '^Confirmar demo$'
+- extendedWaitUntil:
+    visible: '^Comprobante$'
+    timeout: 20000
+- assertVisible: '^Conversión USD → USDT$'
+- tapOn: 'Cerrar comprobante'
+- tapOn: '^Inicio$'
+- assertVisible: '^USDT 251,00$'
+
+# Public registration creates only a buyer. The import switch is explicit.
+- tapOn: '^Crear cuenta demo$'
+- scrollUntilVisible:
+    element:
+      text: 'Alias de cuenta demo'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Alias de cuenta demo'
+- inputText:
+    text: ${MAESTRO_BUYER_ALIAS}
+    label: 'Alias ficticio nuevo recibido del entorno'
+- tapOn: 'Clave de cuenta demo'
+- inputText:
+    text: ${MAESTRO_BUYER_PASSWORD}
+    label: 'Clave demo de comprador recibida del entorno'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: '^Conservar mi sesión anterior$'
+    direction: DOWN
+    centerElement: true
+- assertVisible:
+    text: '^Conservar mi sesión anterior$'
+    checked: true
+- scrollUntilVisible:
+    element:
+      text: '^Crear y vincular mi sesión$'
+    direction: DOWN
+    centerElement: true
+- tapOn: '^Crear y vincular mi sesión$'
+- extendedWaitUntil:
+    visible: ${'^Comprador · ' + MAESTRO_BUYER_ALIAS + '$'}
+    timeout: 30000
+- assertVisible: '^USDT 251,00$'
+- assertNotVisible: '^Mina$'
+- assertNotVisible: '^Actualizar panel de mina$'
+- takeScreenshot: accounts-01-imported-buyer
+- tapOn: '^Actividad$'
+- scrollUntilVisible:
+    element:
+      text: '^Mostrando\s+1\s+de\s+1\s+operaciones registradas\.$'
+    direction: DOWN
+    centerElement: true
+- assertVisible: '(?i)^Ver comprobante: Conversión USD → USDT,.*'
+- takeScreenshot: accounts-02-history-imported-once
+
+# A process relaunch must restore the buyer token/identity and original history.
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: ${'^Comprador · ' + MAESTRO_BUYER_ALIAS + '$'}
+    timeout: 30000
+- assertVisible: '^USDT 251,00$'
+- tapOn: '^Actividad$'
+- scrollUntilVisible:
+    element:
+      text: '^Mostrando\s+1\s+de\s+1\s+operaciones registradas\.$'
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: accounts-03-restored-buyer-history
+
+# Record a new shared-inventory purchase for this buyer, distinct from legacy.
+- tapOn: '^Mercado$'
+- assertVisible: '^Inventario compartido$'
+- scrollUntilVisible:
+    element:
+      text: 'Cantidad de metal en gramos'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Cantidad de metal en gramos'
+- eraseText
+- inputText: '0.1'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: '^Confirmar compra simulada$'
+    direction: DOWN
+    centerElement: true
+- tapOn: '^Confirmar compra simulada$'
+- assertVisible: '^Comprar 0,100 g de Oro$'
+- tapOn: '^Confirmar demo$'
+- extendedWaitUntil:
+    visible: '^Comprobante$'
+    timeout: 20000
+- assertVisible: '(?i)^Compra de oro$'
+- tapOn: 'Cerrar comprobante'
+- tapOn: '^Inicio$'
+- assertVisible: '^USDT 236,35$'
+- assertVisible: '^USDT 14,50$'
+- takeScreenshot: accounts-04-buyer-shared-purchase
+
+# Logging out restores the original legacy session in read-only mode, without
+# copying the new purchase backwards or permitting the same import again.
+- tapOn: '^Cuenta$'
+- scrollUntilVisible:
+    element:
+      text: '^Cerrar sesión$'
+    direction: UP
+    centerElement: true
+- tapOn: '^Cerrar sesión$'
+- extendedWaitUntil:
+    visible: '^Sesión anterior · solo consulta$'
+    timeout: 20000
+- assertVisible: '^USDT 251,00$'
+- assertVisible: '^USDT 0,00$'
+- assertNotVisible: '^Crear cuenta demo$'
+- takeScreenshot: accounts-05-legacy-preserved-read-only
+
+# The operator role comes from the API; there is no public role selector.
+- tapOn: '^Cuenta$'
+- scrollUntilVisible:
+    element:
+      text: 'Alias de cuenta demo'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Alias de cuenta demo'
+- eraseText
+- inputText:
+    text: ${MAESTRO_OPERATOR_ALIAS}
+    label: 'Alias de operador demo recibido del entorno'
+- tapOn: 'Clave de cuenta demo'
+- inputText:
+    text: ${MAESTRO_OPERATOR_PASSWORD}
+    label: 'Clave de operador demo recibida del entorno'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: '^Entrar en mi cuenta$'
+    direction: DOWN
+    centerElement: true
+- tapOn: '^Entrar en mi cuenta$'
+- extendedWaitUntil:
+    visible: ${'^Operador · ' + MAESTRO_OPERATOR_ALIAS + '$'}
+    timeout: 30000
+- assertVisible: '^Mina$'
+- assertNotVisible: '^Billetera$'
+- assertNotVisible: '^Mercado$'
+- assertVisible: '^OPERADOR · INVENTARIO COMPARTIDO$'
+- scrollUntilVisible:
+    element:
+      text: '^Disponible \+ asignado coincide con el total registrado en esta demo\.$'
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: accounts-06-operator-reconciled
+
+# Operator sees the buyer's shared-mine receipt, without entering the wallet.
+- scrollUntilVisible:
+    element:
+      text: "${'(?i)^Ver operación de ' + MAESTRO_BUYER_ALIAS + ': Compra de oro$'}"
+    direction: DOWN
+    centerElement: true
+- tapOn: "${'(?i)^Ver operación de ' + MAESTRO_BUYER_ALIAS + ': Compra de oro$'}"
+- extendedWaitUntil:
+    visible: '^Comprobante$'
+    timeout: 20000
+- assertVisible: '(?i)^Compra de oro$'
+- scrollUntilVisible:
+    element:
+      text: '^Privacidad del comprador$'
+    direction: DOWN
+    centerElement: true
+- assertVisible: '^Los saldos de su billetera no se comparten con el operador\.$'
+- assertNotVisible: '^Saldo USDT después$'
+- takeScreenshot: accounts-07-operator-shared-receipt
+- tapOn: 'Cerrar comprobante'
+
+# A fictitious stock addition yields its own receipt, with no operator wallet.
+- scrollUntilVisible:
+    element:
+      text: 'Gramos para ingreso de mina'
+    direction: UP
+    centerElement: true
+- tapOn: 'Gramos para ingreso de mina'
+- eraseText
+- inputText: '0.1'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: 'Motivo del ingreso de mina'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Motivo del ingreso de mina'
+- inputText: ${'E2E demo ' + MAESTRO_BUYER_ALIAS}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: '^Revisar ingreso ficticio$'
+    direction: DOWN
+    centerElement: true
+- tapOn: '^Revisar ingreso ficticio$'
+- assertVisible: '^Registrar ingreso ficticio$'
+- tapOn: '^Confirmar demo$'
+- extendedWaitUntil:
+    visible: '^Ingreso registrado$'
+    timeout: 20000
+- assertVisible: '^Ingreso ficticio de oro$'
+- assertVisible: '^0,100 g$'
+- assertVisible: ${MAESTRO_OPERATOR_ALIAS}
+- takeScreenshot: accounts-08-stock-receipt
+- tapOn: 'Cerrar comprobante de ingreso'
+
+# Switching back restores exactly the buyer's own balance and two receipts.
+- tapOn:
+    text: '^Cuenta$'
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: '^Cerrar sesión$'
+    direction: UP
+    centerElement: true
+- tapOn: '^Cerrar sesión$'
+- extendedWaitUntil:
+    visible: '^Sesión anterior · solo consulta$'
+    timeout: 20000
+- tapOn: '^Cuenta$'
+- scrollUntilVisible:
+    element:
+      text: 'Alias de cuenta demo'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Alias de cuenta demo'
+- eraseText
+- inputText:
+    text: ${MAESTRO_BUYER_ALIAS}
+    label: 'Alias del comprador original recibido del entorno'
+- tapOn: 'Clave de cuenta demo'
+- inputText:
+    text: ${MAESTRO_BUYER_PASSWORD}
+    label: 'Clave del comprador original recibida del entorno'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: '^Entrar en mi cuenta$'
+    direction: DOWN
+    centerElement: true
+- tapOn: '^Entrar en mi cuenta$'
+- extendedWaitUntil:
+    visible: ${'^Comprador · ' + MAESTRO_BUYER_ALIAS + '$'}
+    timeout: 30000
+- assertVisible: '^USDT 236,35$'
+- assertVisible: '^USDT 14,50$'
+- assertNotVisible: '^Mina$'
+- tapOn: '^Actividad$'
+- scrollUntilVisible:
+    element:
+      text: '^Mostrando\s+2\s+de\s+2\s+operaciones registradas\.$'
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: accounts-09-buyer-restored-after-operator

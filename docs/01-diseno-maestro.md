@@ -33,6 +33,8 @@ Barra inferior (cinco secciones):
 
 **Técnica sugerida:** secuencia animada 3D optimizada exportada para dispositivo o motor 3D solo en onboarding; transiciones Rive/Reanimated y controles reducidos de movimiento. El prototipo adjunto incluye un lingote con movimiento básico y una historia de cuatro pasos, **no** la secuencia 3D final.
 
+La revisión móvil 0.1.1 sustituye los botones de pasos por cuatro escenas vinculadas al desplazamiento vertical, con transformaciones 2.5D nativas y reducción de movimiento. El motor 3D y la secuencia cinematográfica final siguen pendientes. La compilación y la comprobación visual en dispositivo se registran por separado en el informe de revisión.
+
 ## Reglas de interacción y accesibilidad
 
 - Botones táctiles de mínimo 44×44 puntos; pantallas para 360–430 dp de ancho inicialmente.
