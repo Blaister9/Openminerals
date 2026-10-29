@@ -15,12 +15,12 @@ const source=path=>readFile(new URL(path,import.meta.url),'utf8');
 const node=(text,attributes='')=>`<node text="${text}" class="android.widget.TextView" bounds="[10,20][200,60]" enabled="true" clickable="true" selected="false" ${attributes}/>`;
 
 test('operator navigation: scenario allowlist fails closed before CLI or runner files',async()=>{
-  assert.equal(nativeScenario(undefined),'full');assert.equal(nativeScenario(''),'full');assert.equal(nativeScenario('full'),'full');assert.equal(nativeScenario('operator-navigation'),'operator-navigation');
+  assert.equal(nativeScenario(undefined),'full');assert.equal(nativeScenario(''),'full');assert.equal(nativeScenario('full'),'full');assert.equal(nativeScenario('operator-navigation'),'operator-navigation');assert.equal(nativeScenario('profile-relaunch'),'profile-relaunch');
   for(const value of [null,0,{},'operator-navigation; echo unsafe','Full',' full','operator-navigation\n'])assert.throws(()=>nativeScenario(value));
   const directory=await mkdtemp(join(tmpdir(),'openminerals-native-scenario-'));
   assert.ok(resolve(directory).startsWith(resolve(tmpdir())+sep+'openminerals-native-scenario-'));
   try{
-    for(const env of [{NATIVE_INPUT_SCENARIO:'$(private_payload)'},{NATIVE_INPUT_SCENARIO:'operator-navigation',OTA_INPUT_UPDATE_ID:''}]){
+    for(const env of [{NATIVE_INPUT_SCENARIO:'$(private_payload)'},{NATIVE_INPUT_SCENARIO:'operator-navigation',OTA_INPUT_UPDATE_ID:''},{NATIVE_INPUT_SCENARIO:'profile-relaunch',OTA_INPUT_UPDATE_ID:''}]){
       const result=spawnSync(process.execPath,[fileURLToPath(new URL('../e2e/ci-android.mjs',import.meta.url)),'download'],{encoding:'utf8',timeout:10000,env:{...process.env,PATH:directory,GITHUB_ACTIONS:'true',RUNNER_OS:'Linux',RUNNER_TEMP:directory,OTA_INPUT_UPDATE_ID:'',...env}});
       assert.equal(result.status,1);assert.match(result.stderr,/stage: configuration/);assert.doesNotMatch(result.stderr+result.stdout,/private_payload/);
       assert.deepEqual(await readdir(directory),[]);
@@ -97,4 +97,28 @@ test('delivery lifecycle starts at the restored top and finds its first form bel
   const entry=commands.findIndex(command=>command.tapOn==='^Entregas DEMO$');assert.ok(entry>=0);
   const wait=commands[entry+1];assert.equal(wait.extendedWaitUntil.visible,'^Gestionar entregas demo$');
   const field=commands[entry+2].scrollUntilVisible;assert.equal(field.element.text,'Motivo ficticio del cambio de entrega');assert.equal(field.direction,'DOWN');
+});
+
+test('profile continuation installs fresh, edits only profile, then verifies commercial data across cold OTA opens',async()=>{
+  const text=await source('../e2e/ci-android.mjs'),ast=ts.createSourceFile('ci-android.mjs',text,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS);
+  const fn=ast.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='profileRelaunch');assert.ok(fn);
+  const flows=[],checks=[],adbCalls=[];
+  const context=vm.createContext({root:'/fixture',PACKAGE,join:(...args)=>args.join('/'),requireSafe:(condition)=>assert.ok(condition),
+    runStage:async(name,work)=>{await work();},maestro:async(...args)=>flows.push(args),verifyNative:async()=>checks.push('verified'),
+    adb:(...args)=>{adbCalls.push(args);return args[0]==='shell'&&args[1]==='dumpsys'?'versionCode=5':'';}});
+  vm.runInContext(fn.getText(ast)+'\nthis.execute=profileRelaunch;',context);await context.execute();
+  assert.deepEqual(flows,[['operator-navigation-ota'],['profile','a'],['ota','a']]);assert.equal(checks.length,2);
+  assert.deepEqual(adbCalls.filter(args=>args[0]==='install'),[['install','/fixture/new.apk']]);
+  const guard=ast.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='scenarioFixtures');
+  let completed=0,unused=0;const guards=vm.createContext({scenario:'profile-relaunch',verifyCompletedTrades:async()=>{completed++;},unusedFixtures:async()=>{unused++;}});
+  vm.runInContext(guard.getText(ast)+'\nthis.execute=scenarioFixtures;',guards);await guards.execute();assert.equal(completed,1);assert.equal(unused,0);
+  assert.match(text,/if\(scenario==='profile-relaunch'\)\{await profileRelaunch\(\);return;\}/);
+});
+
+test('profile replacement positions cursor past the whole name and checks the edited value before saving',async()=>{
+  const commands=yaml.parseAllDocuments(await source('../e2e/native/profile.yaml'))[1].toJSON();
+  const index=commands.findIndex(command=>command.inputText==='Comprador QA DEMO');assert.ok(index>=2);
+  assert.deepEqual(commands[index-2],{tapOn:{text:'Nombre visible ficticio',point:'95%,50%'}});
+  assert.deepEqual(commands[index-1],{eraseText:40});
+  assert.equal(commands[index+1],'hideKeyboard');assert.deepEqual(commands[index+2],{assertVisible:'^Comprador QA DEMO$'});
 });

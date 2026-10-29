@@ -3,13 +3,14 @@ on:
   workflow_dispatch:
     inputs:
       scenario:
-        description: Full acceptance or read-only operator navigation reproduction
+        description: Full acceptance, operator navigation or completed-trade profile continuation
         type: choice
         required: true
         default: full
         options:
           - full
           - operator-navigation
+          - profile-relaunch
       apk_url:
         description: Public HTTPS APK URL (Expo or this repository release)
         type: string
@@ -48,7 +49,7 @@ jobs:
           OTA_INPUT_UPDATE_ID: ${{ inputs.ota_update_id }}
           NATIVE_INPUT_SCENARIO: ${{ inputs.scenario }}
         run: node mobile/e2e/ci-android.mjs download
-      - name: Require unused isolated QA fixtures and PostgreSQL API 0.2.0
+      - name: Require scenario-specific isolated QA fixtures and PostgreSQL API 0.2.0
         env:
           OTA_INPUT_UPDATE_ID: ${{ inputs.ota_update_id }}
           NATIVE_INPUT_SCENARIO: ${{ inputs.scenario }}

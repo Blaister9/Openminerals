@@ -6,7 +6,7 @@ import {copyFile,mkdir,readFile,readdir,writeFile} from 'node:fs/promises';
 import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,certificate,cleanFixture,emulatorGuard,fixtures,hash,manifest,nativeScenario,otaUpdateId,publicJunit,requireSafe,sha} from './ci-safety.mjs';
-import {verifyNativeSnapshot} from './ci-result.mjs';
+import {verifyNativeCommercialSnapshot,verifyNativeSnapshot} from './ci-result.mjs';
 import {flowSelectors,collectFailureDiagnostic} from './ci-diagnostics.mjs';
 import {captureLegacyFailure} from './ci-legacy-failure.mjs';
 import {withLegacyNavigation} from './ci-legacy-navigation.mjs';
@@ -137,7 +137,7 @@ async function download(){
   await writeFile(join(published,'apk-verification.json'),JSON.stringify({demoOnly:true,commit:process.env.GITHUB_SHA,run:process.env.GITHUB_RUN_ID,apks:metadata},null,2)+'\n');
   console.log('PASS APK hashes, mandatory signatures, package, versions and x86_64 ABI');
 }
-async function verifyNative(){
+async function collectNativeSnapshot(){
   const [a,b,summary,ca,cb,cm,management,profile,history]=await Promise.all([
     request('/api/demo/state',users.a.token),request('/api/demo/state',users.b.token),
     request('/api/demo/mine/summary',users.op.token),
@@ -149,7 +149,24 @@ async function verifyNative(){
   requireSafe(typeof lotId==='string'&&/^lot-[a-f0-9]{32}$/.test(lotId),'Native gold lot was not available.');
   const lotPath=`/api/demo/custody/lots/${lotId}/history?limit=20`;
   const [ha,hb,hm]=await Promise.all([request(lotPath,users.a.token),request(lotPath,users.b.token),request(lotPath,users.op.token)]);
-  verifyNativeSnapshot({a,b,summary,ca,cb,cm,management,profile,history,ha,hb,hm});
+  return {a,b,summary,ca,cb,cm,management,profile,history,ha,hb,hm};
+}
+async function verifyNative(){verifyNativeSnapshot(await collectNativeSnapshot());}
+async function verifyCompletedTrades(){verifyNativeCommercialSnapshot(await collectNativeSnapshot());}
+async function scenarioFixtures(){if(scenario==='profile-relaunch')await verifyCompletedTrades();else await unusedFixtures();}
+async function profileRelaunch(){
+  // Resume only after independently checking every completed trade/lot/fee.
+  // Existing financial records are never reset or seeded through the API.
+  await runStage('install-profile-apk',async()=>{
+    requireSafe(!adb('shell','pm','list','packages',PACKAGE),'Profile continuation requires a fresh disposable emulator.');
+    adb('install',join(root,'new.apk'));
+    requireSafe(adb('shell','dumpsys','package',PACKAGE).includes('versionCode=5'),'Installed profile APK versionCode mismatch.');
+  });
+  await runStage('profile-compatible-ota-before-login',()=>maestro('operator-navigation-ota'));
+  await runStage('buyer-history-profile-relaunch',()=>maestro('profile','a'));
+  await runStage('api-verifies-native-wallets-lots-fees',verifyNative);
+  await runStage('buyer-compatible-ota-cold-launch',()=>maestro('ota','a'));
+  await runStage('api-verifies-data-after-compatible-ota',verifyNative);
 }
 async function operatorNavigation(){
   // No baseline seed, registration, financial action, quote or configuration.
@@ -179,8 +196,9 @@ async function run(){
   emulatorGuard(process.env,devices,candidate?command('adb',['-s',candidate,'shell','getprop','ro.kernel.qemu']):'');
   serial=candidate;
   progress.stageEnd('emulator-preconditions',true);
-  await runStage('qa-isolation-preconditions',async()=>{await connectFixtures();await unusedFixtures();});
+  await runStage('qa-isolation-preconditions',async()=>{await connectFixtures();await scenarioFixtures();});
   if(scenario==='operator-navigation'){await operatorNavigation();return;}
+  if(scenario==='profile-relaunch'){await profileRelaunch();return;}
   users.register={alias:'native_'+randomBytes(9).toString('hex'),password:randomBytes(24).toString('base64url')};
   mask(users.register.alias);mask(users.register.password);
   await runStage('install-baseline-013',async()=>{
@@ -250,11 +268,11 @@ try{
   // Reject malformed workflow input before curl, adb, Maestro or API access.
   expectedOtaId=otaUpdateId(process.env.OTA_INPUT_UPDATE_ID);
   scenario=nativeScenario(process.env.NATIVE_INPUT_SCENARIO);
-  requireSafe(scenario!=='operator-navigation'||expectedOtaId!==null,'Operator navigation requires an exact published OTA update ID.');
+  requireSafe(scenario==='full'||expectedOtaId!==null,'Focused native scenarios require a published OTA update ID.');
   const mode=process.argv[2];
   if(['download','preflight','run'].includes(mode))progress=createProgress(published,mode,()=>[...privateValues]);
   if(mode==='download'){progress.stageStart('download-apks');await download();progress.stageEnd('download-apks',true);}
-  else if(mode==='preflight'){progress.stageStart('qa-preflight');await connectFixtures();await unusedFixtures();progress.stageEnd('qa-preflight',true);console.log('PASS clean isolated QA accounts and PostgreSQL API 0.2.0');}
+  else if(mode==='preflight'){progress.stageStart('qa-preflight');await connectFixtures();await scenarioFixtures();progress.stageEnd('qa-preflight',true);console.log('PASS scenario-specific isolated QA accounts and PostgreSQL API 0.2.0');}
   else if(mode==='run'){progress.stageStart('emulator-preconditions');await run();}
   else throw new Error('Unknown native CI mode.');
 }catch{

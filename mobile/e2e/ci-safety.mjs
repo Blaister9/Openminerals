@@ -25,7 +25,7 @@ export function otaUpdateId(value){
 }
 export function nativeScenario(value){
   if(value===undefined||value==='')return 'full';
-  requireSafe(value==='full'||value==='operator-navigation','Expected a supported native scenario.');
+  requireSafe(value==='full'||value==='operator-navigation'||value==='profile-relaunch','Expected a supported native scenario.');
   return value;
 }
 export const hash=data=>createHash('sha256').update(data).digest('hex');

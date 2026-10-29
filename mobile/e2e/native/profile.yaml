@@ -44,10 +44,13 @@ name: Buyer history profile saving and SecureStore relaunch
     direction: DOWN
     centerElement: true
     timeout: 30000
-- tapOn: Nombre visible ficticio
-- eraseText
+- tapOn:
+    text: Nombre visible ficticio
+    point: "95%,50%"
+- eraseText: 40
 - inputText: Comprador QA DEMO
 - hideKeyboard
+- assertVisible: ^Comprador QA DEMO$
 - scrollUntilVisible:
     element:
       text: ^EUR$

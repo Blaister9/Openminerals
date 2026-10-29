@@ -9,7 +9,7 @@ import {join,resolve,sep} from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
 import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,sha,nativeScenario,otaUpdateId,fixtures,emulatorGuard,publicJunit,manifest,certificate,cleanFixture} from '../e2e/ci-safety.mjs';
-import {verifyNativeSnapshot} from '../e2e/ci-result.mjs';
+import {verifyNativeCommercialSnapshot,verifyNativeSnapshot} from '../e2e/ci-result.mjs';
 import {flowSelectors,failureDiagnostic} from '../e2e/ci-diagnostics.mjs';
 import {createStore} from '../../api/src/store.js';
 import {createApiServer} from '../../api/src/server.js';
@@ -110,7 +110,7 @@ test('Android CI: workflow is manual KVM-only bounded public upload and no secre
   const raw=await source('../../.github/workflows/android-ui.yml'),workflow=yaml.parse(raw);
   assert.deepEqual(Object.keys(workflow.on),['workflow_dispatch']);
   assert.deepEqual(Object.keys(workflow.on.workflow_dispatch.inputs),['scenario','apk_url','apk_sha256','ota_update_id']);
-  assert.deepEqual(workflow.on.workflow_dispatch.inputs.scenario,{description:'Full acceptance or read-only operator navigation reproduction',type:'choice',required:true,default:'full',options:['full','operator-navigation']});
+  assert.deepEqual(workflow.on.workflow_dispatch.inputs.scenario,{description:'Full acceptance, operator navigation or completed-trade profile continuation',type:'choice',required:true,default:'full',options:['full','operator-navigation','profile-relaunch']});
   assert.deepEqual(workflow.on.workflow_dispatch.inputs.ota_update_id,{description:'Optional full published Android update UUID for runtime 0.2.0 on channel demo',type:'string',required:false,default:''});
   const job=workflow.jobs['android-ui'];assert.equal(job['runs-on'],'ubuntu-24.04');
   assert.equal(job.if,'github.event.repository.private == false');
@@ -156,7 +156,7 @@ test('Android CI: workflow is manual KVM-only bounded public upload and no secre
 
 test('Android CI: new Maestro documents preserve data and only anonymous phases capture screenshots',async()=>{
   const folder=new URL('../e2e/native/',import.meta.url),files=await readdir(folder);
-  const actions=new Set(['tapOn','scrollUntilVisible','extendedWaitUntil','assertVisible','assertNotVisible','inputText','runFlow','takeScreenshot','swipe']);
+  const actions=new Set(['tapOn','scrollUntilVisible','extendedWaitUntil','assertVisible','assertNotVisible','inputText','runFlow','takeScreenshot','swipe','eraseText']);
   for(const file of files){
     const text=await readFile(new URL(file,folder),'utf8'),documents=yaml.parseAllDocuments(text);
     assert.equal(documents.length,2);assert.ok(documents.every(document=>document.errors.length===0));
@@ -237,6 +237,9 @@ test('Android CI: planned native postconditions match real isolated HTTP API DTO
   const lotId=snapshot.ca.allocations.find(item=>item.mg>0).lotId,path=`custody/lots/${lotId}/history?limit=20`;
   snapshot.ha=await http('a',path);snapshot.hb=await http('b',path);snapshot.hm=await http('op',path);
   assert.doesNotThrow(()=>verifyNativeSnapshot(snapshot));
+  const profilePending=structuredClone(snapshot);profilePending.profile.profile.displayName='Nombre previo ficticio';
+  assert.doesNotThrow(()=>verifyNativeCommercialSnapshot(profilePending));
+  assert.throws(()=>verifyNativeSnapshot(profilePending));
   const extraFee=structuredClone(snapshot);extraFee.management.kpis.tradingFeesMinor+=84;
   assert.throws(()=>verifyNativeSnapshot(extraFee));
   const privateLeak=structuredClone(snapshot);privateLeak.management.walletMinor={USDT:1};
@@ -245,6 +248,8 @@ test('Android CI: planned native postconditions match real isolated HTTP API DTO
   assert.throws(()=>verifyNativeSnapshot(doubled));
   const lostJournal=structuredClone(snapshot);lostJournal.hm.items=lostJournal.hm.items.filter(item=>item.kind!=='DELIVERY');
   assert.throws(()=>verifyNativeSnapshot(lostJournal));
+  assert.throws(()=>verifyNativeCommercialSnapshot(lostJournal));
   const leakedIdentity=structuredClone(snapshot);leakedIdentity.hb.items[0].counterparty={id:accounts.a.id,alias:accounts.a.alias};
   assert.throws(()=>verifyNativeSnapshot(leakedIdentity));
+  assert.throws(()=>verifyNativeCommercialSnapshot(leakedIdentity));
 });
