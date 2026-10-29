@@ -1,0 +1,49 @@
+appId: com.openminerals.demo.mobile
+name: Buyer A reviews requirements and accepts quoted simulated costs
+---
+- runFlow:
+    file: login.yaml
+- tapOn: ^Metales$
+- scrollUntilVisible:
+    element:
+      text: ^Entregas DEMO$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Entregas DEMO$
+- scrollUntilVisible:
+    element:
+      text: "Leí el requisito ficticio: Usar exclusivamente alias e identificadores
+        ficticios"
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: "Leí el requisito ficticio: Usar exclusivamente alias e identificadores
+    ficticios"
+- scrollUntilVisible:
+    element:
+      text: "Leí el requisito ficticio: Confirmar que no se enviará metal ni se
+        aportará una dirección real"
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: "Leí el requisito ficticio: Confirmar que no se enviará metal ni se
+    aportará una dirección real"
+- scrollUntilVisible:
+    element:
+      text: ^Revisar aceptación y pago demo$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Revisar aceptación y pago demo$
+- tapOn: ^Confirmar demo$
+- extendedWaitUntil:
+    visible: ^Comprobante$
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: ^USDT 287,89$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Cerrar comprobante

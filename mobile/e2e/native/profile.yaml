@@ -1,0 +1,112 @@
+appId: com.openminerals.demo.mobile
+name: Buyer history profile saving and SecureStore relaunch
+---
+- runFlow:
+    file: login.yaml
+- tapOn: ^Actividad$
+- scrollUntilVisible:
+    element:
+      text: "(?i)^Ver comprobante: Compra de oro,.*"
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: "(?i)^Ver comprobante: Compra de oro,.*"
+- extendedWaitUntil:
+    visible: ^Comprobante$
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: ^USDT 157,10$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^Saldo USDT después$
+- tapOn: Cerrar comprobante
+- tapOn:
+    text: ^Cuenta$
+    index: 0
+- extendedWaitUntil:
+    visible: ^Cuenta demo$
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: ^Perfil y recuperación$
+    direction: UP
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Perfil y recuperación$
+- extendedWaitUntil:
+    visible: ^Perfil de demostración$
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: Nombre visible ficticio
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Nombre visible ficticio
+- eraseText
+- inputText: Comprador QA DEMO
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: ^EUR$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^EUR$
+- scrollUntilVisible:
+    element:
+      text: ^Jurisdicción DEMO B$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Jurisdicción DEMO B$
+- scrollUntilVisible:
+    element:
+      text: ^Guardar perfil ficticio$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Guardar perfil ficticio$
+- extendedWaitUntil:
+    visible: Perfil ficticio guardado.*
+    timeout: 30000
+- tapOn: ^Cerrar$
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: ^Comprador ·.*
+    timeout: 30000
+- tapOn: ^Billetera$
+- scrollUntilVisible:
+    element:
+      text: ^USDT 287,89$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^USDT 287,89$
+- tapOn:
+    text: ^Cuenta$
+    index: 0
+- extendedWaitUntil:
+    visible: ^Cuenta demo$
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: ^Perfil y recuperación$
+    direction: UP
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Perfil y recuperación$
+- extendedWaitUntil:
+    visible: ^Perfil de demostración$
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: Nombre visible ficticio
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^Comprador QA DEMO$
+- tapOn: ^Cerrar$

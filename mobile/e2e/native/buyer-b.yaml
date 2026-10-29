@@ -1,0 +1,57 @@
+appId: com.openminerals.demo.mobile
+name: Buyer B buys entire peer offer and checks its lot certificate
+---
+- runFlow:
+    file: login.yaml
+- tapOn: ^Mercado$
+- scrollUntilVisible:
+    element:
+      text: ^Marketplace$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Marketplace$
+- scrollUntilVisible:
+    element:
+      text: ^USDT 70,00$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^USDT 70,00$
+- scrollUntilVisible:
+    element:
+      text: ^Revisar compra completa$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Revisar compra completa$
+- tapOn: ^Confirmar demo$
+- extendedWaitUntil:
+    visible: ^Comprobante$
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: ^USDT 180,00$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Cerrar comprobante
+- tapOn: ^Metales$
+- scrollUntilVisible:
+    element:
+      text: ^Lotes y certificados$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Lotes y certificados$
+- scrollUntilVisible:
+    element:
+      text: ^Ver certificado demo$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Ver certificado demo$
+- extendedWaitUntil:
+    visible: ^Registro demo consultado$
+    timeout: 30000
+- tapOn: Cerrar certificado demo

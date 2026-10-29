@@ -2,11 +2,12 @@ import React,{useEffect,useState} from 'react';
 import {ActivityIndicator,Pressable,StyleSheet,Text,TextInput,View} from 'react-native';
 import {normalizeDecimalInput,parsePositiveDecimal} from '../lib/presentation';
 import {receiptSummary,receiptTitle,type Receipt} from '../lib/receipt-presentation';
+import {deliveryStatusLabel,type DeliveryStatus} from '../lib/delivery';
 
 type Metal='XAU'|'XAG'|'XPT'|'XPD';
 type Account={id:string;alias:string};
 type Reservation={id:string;metal:Metal;mg:number;status:string};
-export type StockReceipt={id:string;action:'stock';status:string;at:string;demoOnly:true;metal:Metal;mg:number;reason:string;inventoryAfterMg:Record<Metal,number>;totalSupplyAfterMg:Record<Metal,number>;actor:Account;replayed?:boolean};
+export type StockReceipt={id:string;action:'stock';status:string;at:string;demoOnly:true;metal:Metal;mg:number;reason:string;lotId?:string;inventoryAfterMg:Record<Metal,number>;totalSupplyAfterMg:Record<Metal,number>;actor:Account;replayed?:boolean};
 export type MineSummary={
   demoOnly:boolean;mine:{id:string;name:string};inventoryMg:Record<Metal,number>;totalSupplyMg:Record<Metal,number>;allocatedMg:Record<Metal,number>;reservedMg:Record<Metal,number>;
   accountCount:number;transactionCount:number;demoFeesCollectedMinor:number;offersOpen:number;deliveriesPending:number;reconciled:boolean;
@@ -15,7 +16,7 @@ export type MineSummary={
   pendingDeliveries:{account:Account;delivery:Reservation}[];
   stockAdjustments:StockReceipt[];
 };
-type Props={summary:MineSummary|null;loading:boolean;error:string;blocked:boolean;lastStockId?:string;onRefresh:()=>void;onRestock:(body:{metal:Metal;grams:string;reason:string})=>void;onReceipt:(accountId:string,receipt:Receipt)=>void;onStockReceipt:(receipt:StockReceipt)=>void};
+type Props={summary:MineSummary|null;loading:boolean;error:string;blocked:boolean;lastStockId?:string;onRefresh:()=>void;onRestock:(body:{metal:Metal;grams:string;reason:string;purityBps:string;location:string;documentTitle:string;documentContent:string})=>void;onReceipt:(accountId:string,receipt:Receipt)=>void;onStockReceipt:(receipt:StockReceipt)=>void};
 const metals:{code:Metal;name:string}[]=[{code:'XAU',name:'Oro'},{code:'XAG',name:'Plata'},{code:'XPT',name:'Platino'},{code:'XPD',name:'Paladio'}];
 const gram=(mg:number)=>`${(mg/1000).toLocaleString('es-CO',{minimumFractionDigits:3,maximumFractionDigits:3})} g`;
 const money=(value:number)=>`USDT ${(value/100).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
@@ -24,11 +25,15 @@ function Row({label,value}:{label:string;value:string}){return <View style={styl
 
 export function MineDashboard({summary,loading,error,blocked,lastStockId,onRefresh,onRestock,onReceipt,onStockReceipt}:Props){
   const [metal,setMetal]=useState<Metal>('XAU');const [grams,setGrams]=useState('1.000');const [reason,setReason]=useState('');
+  const [purity,setPurity]=useState('9999');const [location,setLocation]=useState('Bóveda de presentación');
+  const [documentTitle,setDocumentTitle]=useState('Registro de lote DEMO');const [documentContent,setDocumentContent]=useState('Documento ficticio de presentación sin valor legal ni acreditación de custodia física.');
+  useEffect(()=>setPurity(({XAU:'9999',XAG:'9990',XPT:'9995',XPD:'9995'})[metal]),[metal]);
   useEffect(()=>{if(lastStockId)setReason('');},[lastStockId]);
   const units=parsePositiveDecimal(grams,3);const mg=units===null?null:Math.round(units*1000);
   const invalid=mg===null||mg<100;const overflow=!!summary&&mg!==null&&summary.totalSupplyMg[metal]+mg>1_000_000_000;
   const balanced=summary?.reconciled&&metals.every(item=>summary.inventoryMg[item.code]+summary.allocatedMg[item.code]===summary.totalSupplyMg[item.code]&&summary.reservedMg[item.code]<=summary.allocatedMg[item.code]);
-  const canSubmit=!!balanced&&!blocked&&!loading&&!invalid&&!overflow&&reason.trim().length>=3&&reason.trim().length<=160;
+  const metadataValid=/^[1-9]\d{0,4}$/.test(purity)&&Number(purity)<=10000&&location.trim().length>=3&&location.trim().length<=120&&documentTitle.trim().length>=3&&documentContent.trim().length>=3;
+  const canSubmit=!!balanced&&!blocked&&!loading&&!invalid&&!overflow&&metadataValid&&reason.trim().length>=3&&reason.trim().length<=160;
   return <>
     <Text style={styles.eyebrow}>OPERADOR · INVENTARIO COMPARTIDO</Text>
     <Text accessibilityRole="header" style={styles.title}>{summary?.mine.name||'Panel de mina'}</Text>
@@ -45,7 +50,7 @@ export function MineDashboard({summary,loading,error,blocked,lastStockId,onRefre
       {metals.map(item=><View key={item.code} style={styles.card}><Text style={styles.cardTitle}>{item.name}</Text><Row label="Disponible para compras" value={gram(summary.inventoryMg[item.code])}/><Row label="Asignado a compradores" value={gram(summary.allocatedMg[item.code])}/><Row label="Reservado dentro de esas posiciones" value={gram(summary.reservedMg[item.code])}/><Row label="Total registrado" value={gram(summary.totalSupplyMg[item.code])}/></View>)}
       <Text accessibilityRole="header" style={styles.section}>Ingreso ficticio de metal</Text>
       <View style={styles.card}>
-        <Text style={styles.copy}>Registra una reposición para la demostración. Este registro no acredita una recepción física, un lote ni custodia real.</Text>
+        <Text style={styles.copy}>Crea un lote ficticio con asignaciones trazables dentro de la demo. El registro no acredita recepción ni custodia física real.</Text>
         <View style={styles.chips}>{metals.map(item=><Pressable key={item.code} accessibilityRole="button" disabled={blocked} onPress={()=>setMetal(item.code)} style={[styles.chip,metal===item.code&&styles.chipOn]}><Text style={styles.chipText}>{item.name}</Text></Pressable>)}</View>
         <Text style={styles.label}>Cantidad en gramos</Text><TextInput accessibilityLabel="Gramos para ingreso de mina" style={styles.input} value={grams} onChangeText={setGrams} editable={!blocked} keyboardType="decimal-pad"/>
         {!invalid&&mg!==null&&<Row label="Cantidad interpretada" value={gram(mg)}/>}
@@ -53,7 +58,11 @@ export function MineDashboard({summary,loading,error,blocked,lastStockId,onRefre
         {overflow&&<Text accessibilityRole="alert" style={styles.note}>La cantidad superaría el límite de existencias de la demostración.</Text>}
         <Text style={styles.label}>Motivo ficticio</Text><TextInput accessibilityLabel="Motivo del ingreso de mina" style={styles.input} value={reason} onChangeText={setReason} editable={!blocked} maxLength={160} placeholder="Reposición para la demostración" placeholderTextColor="#667385"/>
         <Text style={styles.note}>De 3 a 160 caracteres. No incluyas datos personales.</Text>
-        <Pressable accessibilityRole="button" disabled={!canSubmit} onPress={()=>onRestock({metal,grams:normalizeDecimalInput(grams),reason:reason.trim()})} style={[styles.primary,!canSubmit&&styles.disabled]}><Text style={styles.primaryText}>Revisar ingreso ficticio</Text></Pressable>
+        <Text style={styles.label}>Pureza ficticia en centésimas de porcentaje</Text><TextInput accessibilityLabel="Pureza del lote demo" style={styles.input} value={purity} onChangeText={setPurity} editable={!blocked} keyboardType="number-pad" maxLength={5}/><Text style={styles.note}>9999 equivale a 99,99 %. Metadato de demostración; no es un ensayo.</Text>
+        <Text style={styles.label}>Ubicación de custodia simulada</Text><TextInput accessibilityLabel="Ubicación ficticia del lote" style={styles.input} value={location} onChangeText={setLocation} editable={!blocked} maxLength={120}/>
+        <Text style={styles.label}>Título del documento DEMO</Text><TextInput accessibilityLabel="Título documento de lote demo" style={styles.input} value={documentTitle} onChangeText={setDocumentTitle} editable={!blocked} maxLength={100}/>
+        <Text style={styles.label}>Contenido ficticio del documento</Text><TextInput accessibilityLabel="Contenido documento de lote demo" style={styles.input} value={documentContent} onChangeText={setDocumentContent} editable={!blocked} multiline maxLength={2000}/>
+        <Pressable accessibilityRole="button" disabled={!canSubmit} onPress={()=>onRestock({metal,grams:normalizeDecimalInput(grams),reason:reason.trim(),purityBps:purity,location:location.trim(),documentTitle:documentTitle.trim(),documentContent:documentContent.trim()})} style={[styles.primary,!canSubmit&&styles.disabled]}><Text style={styles.primaryText}>Revisar ingreso ficticio</Text></Pressable>
       </View>
       <Text accessibilityRole="header" style={styles.section}>Últimas 20 operaciones de compradores</Text>
       <Text style={styles.note}>Compras, ventas y reservas del inventario compartido. Las conversiones y los ingresos a billeteras personales no aparecen aquí.</Text>
@@ -68,7 +77,7 @@ export function MineDashboard({summary,loading,error,blocked,lastStockId,onRefre
       <Text accessibilityRole="header" style={styles.section}>Solicitudes de cotización</Text>
       <Text style={styles.note}>Mostrando {summary.pendingDeliveries.length} de {summary.deliveriesPending} solicitudes pendientes, hasta 100 en este panel.</Text>
       {!summary.pendingDeliveries.length&&<Text style={styles.note}>Sin cotizaciones de entrega pendientes.</Text>}
-      {summary.pendingDeliveries.map(item=><View key={`${item.account.id}-${item.delivery.id}`} style={styles.card}><Text style={styles.cardTitle}>{item.account.alias}</Text><Row label={name(item.delivery.metal)} value={gram(item.delivery.mg)}/><Text style={styles.note}>Pendiente de cotización. No hay un envío real ni aceptación de costes.</Text></View>)}
+      {summary.pendingDeliveries.map(item=><View key={`${item.account.id}-${item.delivery.id}`} style={styles.card}><Text style={styles.cardTitle}>{item.account.alias}</Text><Row label={name(item.delivery.metal)} value={gram(item.delivery.mg)}/><Text style={styles.note}>{deliveryStatusLabel(item.delivery.status as DeliveryStatus)}. Consulta el trámite en Entregas DEMO; no hay un envío real.</Text></View>)}
       <Text accessibilityRole="header" style={styles.section}>Últimos 20 ingresos registrados</Text>
       {!summary.stockAdjustments.length&&<Text style={styles.note}>Aún no se han registrado reposiciones.</Text>}
       {summary.stockAdjustments.map(item=><Pressable key={item.id} accessibilityRole="button" accessibilityLabel={`Ver ingreso de ${name(item.metal)}: ${gram(item.mg)}`} onPress={()=>onStockReceipt(item)} style={styles.card}><Row label={`Ingreso de ${name(item.metal)}`} value={gram(item.mg)}/><Text style={styles.copy}>{item.reason}</Text><Text style={styles.note}>{item.actor?.alias||'Operador'} · {new Date(item.at).toLocaleString('es-CO')}</Text><Text style={styles.link}>Consultar ingreso →</Text></Pressable>)}

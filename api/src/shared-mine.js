@@ -1,4 +1,5 @@
-import {METALS,DEMO_RATES,DomainError,seedState,applyCommand,parseGrams} from './domain.js';
+import {METALS,DEMO_RATES,DomainError,seedState,applyCommand,parseGrams,deliveryIsActive} from './domain.js';
+import {stockMetadata} from './custody.js';
 
 export const DEFAULT_MINE_ID='openminerals-demo-v1';
 const MAX_MG=1_000_000_000;
@@ -85,7 +86,9 @@ export function applyStockCommand(mine,command,{accountId,alias}={},now=new Date
   fail(typeof reason==='string'&&reason.trim().length>=3&&reason.trim().length<=160,
     'Escribe un motivo ficticio de 3 a 160 caracteres','INVALID_OPERATION');
   const mg=parseGrams(grams);
-  const signature=JSON.stringify([metal,grams,reason,accountId]);
+  const metadata=stockMetadata(command);
+  // Preserve signatures from 0.1.3 for commands that have no new metadata.
+  const signature=JSON.stringify([metal,grams,reason,accountId,...(Object.keys(metadata).length?[metadata]:[])]);
   if(Object.hasOwn(mine.stockReceipts,requestId)){
     fail(mine.stockSignatures[requestId]===signature,
       'Identificador reutilizado con otros parámetros','INVALID_OPERATION');
@@ -107,7 +110,7 @@ export function applyStockCommand(mine,command,{accountId,alias}={},now=new Date
 
 function reservations(state,metal){
   return state.offers.filter(o=>o.metal===metal&&o.status==='OPEN').reduce((n,o)=>n+o.mg,0)+
-    state.custodyRequests.filter(d=>d.metal===metal&&d.status==='PENDING_QUOTE').reduce((n,d)=>n+d.mg,0);
+    state.custodyRequests.filter(d=>d.metal===metal&&deliveryIsActive(d.status)).reduce((n,d)=>n+d.mg,0);
 }
 
 export function summarizeMine(mine,accounts){
@@ -123,18 +126,19 @@ export function summarizeMine(mine,accounts){
   const allOperations=buyers.flatMap(a=>Object.values(a.state.receipts)
     .filter(r=>r.mineId===mine.id&&r.accountId===a.id)
     .map(receipt=>({account:{id:a.id,alias:a.alias},receipt:operatorReceiptView(receipt)})));
-  const trades=allOperations.filter(o=>['buy','sell'].includes(o.receipt.action));
-  const operations=allOperations.filter(o=>['buy','sell','offer','cancel_offer','delivery','cancel_delivery'].includes(o.receipt.action))
+  const trades=allOperations.filter(o=>['buy','sell','market_buy'].includes(o.receipt.action));
+  const fees=allOperations.filter(o=>['buy','sell','market_sell'].includes(o.receipt.action));
+  const operations=allOperations.filter(o=>['buy','sell','offer','cancel_offer','delivery','cancel_delivery','market_buy','market_sell','delivery_quote','delivery_accept','delivery_reject','delivery_transition'].includes(o.receipt.action))
     .sort((a,b)=>newest(a.receipt,b.receipt)||b.account.id.localeCompare(a.account.id)).slice(0,20);
   const pendingOffers=buyers.flatMap(a=>a.state.offers.filter(o=>o.status==='OPEN')
     .map(offer=>({account:{id:a.id,alias:a.alias},offer:copy(offer)})));
-  const pendingDeliveries=buyers.flatMap(a=>a.state.custodyRequests.filter(d=>d.status==='PENDING_QUOTE')
+  const pendingDeliveries=buyers.flatMap(a=>a.state.custodyRequests.filter(d=>deliveryIsActive(d.status))
     .map(delivery=>({account:{id:a.id,alias:a.alias},delivery:copy(delivery)})));
   return {
     mine:{id:mine.id,name:mine.name},demoOnly:true,reconciled:true,
     inventoryMg:copy(mine.inventoryMg),totalSupplyMg:copy(mine.totalSupplyMg),allocatedMg,reservedMg,
     accountCount:buyers.length,transactionCount:trades.length,
-    demoFeesCollectedMinor:trades.reduce((n,o)=>n+(o.receipt.feeMinor||0),0),
+    demoFeesCollectedMinor:fees.reduce((n,o)=>n+(o.receipt.feeMinor||0),0),
     operations,offersOpen:pendingOffers.length,deliveriesPending:pendingDeliveries.length,
     pendingOffers:pendingOffers.slice(0,100),pendingDeliveries:pendingDeliveries.slice(0,100),
     stockAdjustments:Object.values(mine.stockReceipts).sort(newest).slice(0,20).map(copy),

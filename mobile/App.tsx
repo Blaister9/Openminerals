@@ -1,5 +1,6 @@
 import React, {useEffect,useRef,useState} from 'react';
-import {ActivityIndicator,Animated,Pressable,SafeAreaView,StatusBar,StyleSheet,Text,TextInput,View} from 'react-native';
+import {ActivityIndicator,Animated,Modal,Pressable,ScrollView,StatusBar,StyleSheet,Text,TextInput,View} from 'react-native';
+import {SafeAreaProvider,SafeAreaView,initialWindowMetrics} from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
 import {RequestError,type PendingOperation} from './lib/demo-client';
@@ -13,6 +14,12 @@ import {OperationConfirmation} from './components/OperationConfirmation';
 import {AccountAccess} from './components/AccountAccess';
 import {MineDashboard,type MineSummary,type StockReceipt} from './components/MineDashboard';
 import {StockReceiptDetails} from './components/StockReceiptDetails';
+import {CustodyPanel} from './components/CustodyPanel';
+import {MarketplacePanel} from './components/MarketplacePanel';
+import {DeliveryPanel} from './components/DeliveryPanel';
+import {ManagementPanel} from './components/ManagementPanel';
+import {AccountSettings} from './components/AccountSettings';
+import {DemoUpdates} from './components/DemoUpdates';
 
 // DEMO: todas las cifras, inventarios y solicitudes son simulados.
 // Cuentas de demostración; no hay KYC, pagos, exchange ni bóveda real.
@@ -88,11 +95,16 @@ export default function App(){
  const [operatorVisible,setOperatorVisible]=useState(false);
  const [metalAction,setMetalAction]=useState<'sell'|'offer'|'delivery'>('sell');
  const [sellGrams,setSellGrams]=useState('0.500');
+ const [offerPrice,setOfferPrice]=useState('145.00');
  const [pending,setPending]=useState<PendingOperation|null>(null);
  const [account,setAccount]=useState<Account|null>(null);
  const [mineIdentity,setMineIdentity]=useState<{id:string;name:string}|null>(null);
  const [authExpired,setAuthExpired]=useState(false);
  const [authVisible,setAuthVisible]=useState(false);
+ const [settingsVisible,setSettingsVisible]=useState(false);
+ const [storyVisible,setStoryVisible]=useState(false);
+ const presentationScrollY=useRef(new Animated.Value(0)).current;
+ const [presentationHeight,setPresentationHeight]=useState(600);
  const [authMode,setAuthMode]=useState<'login'|'register'>('login');
  const [authBusy,setAuthBusy]=useState(false);
  const [authError,setAuthError]=useState('');
@@ -106,6 +118,10 @@ export default function App(){
  const mineRequest=useRef(0);
  const [stockReceipt,setStockReceipt]=useState<StockReceipt|null>(null);
  const [lastStockId,setLastStockId]=useState('');
+ const [operationRevision,setOperationRevision]=useState(0);
+ const [mineSection,setMineSection]=useState<'management'|'inventory'|'custody'|'delivery'>('management');
+ const [metalsSection,setMetalsSection]=useState<'positions'|'custody'|'delivery'>('positions');
+ const [marketSection,setMarketSection]=useState<'mine'|'peers'>('mine');
  const [historyItems,setHistoryItems]=useState<Receipt[]>([]);
  const [historyCursor,setHistoryCursor]=useState<string|null>(null);
  const [historyTotal,setHistoryTotal]=useState(0);
@@ -128,6 +144,7 @@ export default function App(){
  const isOperator=account?.role==='operator';
  const sections=isOperator?operatorSections:buyerSections;
  const tradingBlocked=busy||authBusy||!!pending||authExpired||!!accountRecovery||(!account&&!!state?.legacyReadOnly);
+ useEffect(()=>{setOfferPrice(((state?.priceCentsPerGram[currentMetal]||14500)/100).toFixed(2));},[currentMetal,state?.priceCentsPerGram[currentMetal]]);
  async function load(loadSummary=false){
   const version=identityVersion.current;
   if(client.getAccount()?.role==='operator'){await loadMine();return;}
@@ -159,6 +176,10 @@ export default function App(){
   setHistoryItems([]);setHistoryCursor(null);setHistoryTotal(0);setHistoryLoaded(false);setHistoryLoading(false);setHistoryError('');
   setSelectedReceipt(null);setReceiptVisible(false);setReceiptLoading(false);setReceiptError('');receiptToFetch.current='';receiptOwner.current=null;
   setStockReceipt(null);setLastStockId('');setOperatorVisible(false);
+  setMetalAction('sell');
+  setMineSection('management');setMetalsSection('positions');setMarketSection('mine');
+  setSettingsVisible(false);
+  setStoryVisible(false);
  }
  function acceptIdentity(initial:{session:string;pending:PendingOperation|null;account:Account|null;mine?:{id:string;name:string}|null;authExpired?:boolean}){
   setSession(initial.session);setPending(initial.pending);setAccount(initial.account);setMineIdentity(initial.mine??null);setAuthExpired(!!initial.authExpired);
@@ -167,6 +188,14 @@ export default function App(){
  function openAccount(mode:'login'|'register'='login'){
   if(busy||authBusy||actionLock.current||authLock.current||client.isSending())return;
   setAuthMode(mode);setAuthError('');setAuthVisible(true);
+ }
+ function openSettings(){
+  if(!account||busy||authBusy||!!pending||authExpired||client.isSending())return;
+  setAuthVisible(false);setSettingsVisible(true);
+ }
+ async function recoveredAccount(alias:string){
+  try{acceptIdentity(await client.initialize());setRecoveryAlias(alias);setAuthMode('login');setAuthError('');setAuthVisible(true);}
+  catch(error){setAuthError(messageError(error));setRecoveryAlias(alias);setAuthMode('login');setAuthVisible(true);}
  }
  async function submitAccount(mode:'login'|'register',alias:string,password:string,importLegacy:boolean){
   if(busy||authLock.current||actionLock.current||client.isSending())return;
@@ -221,10 +250,11 @@ export default function App(){
   setSelectedReceipt(cached??(selectedReceipt?.id===id?selectedReceipt:null));
   setReceiptVisible(true);setReceiptLoading(true);setReceiptError('');
   try{
-   const path=ownerId?`/api/demo/mine/receipts/${encodeURIComponent(ownerId)}/${encodeURIComponent(id)}`:`/api/demo/receipts/${encodeURIComponent(id)}`;
+   const snapshot=cached??(selectedReceipt?.id===id?selectedReceipt:null),actor=snapshot?.actor?.id;
+   const path=ownerId==='mine'?`/api/demo/mine/commands/${encodeURIComponent(id)}?kind=${snapshot?.action==='stock'?'stock':'command'}${actor?`&actor=${encodeURIComponent(actor)}`:''}`:ownerId?`/api/demo/mine/receipts/${encodeURIComponent(ownerId)}/${encodeURIComponent(id)}`:`/api/demo/receipts/${encodeURIComponent(id)}`;
    const receipt=await client.get<Receipt>(path);
    if(receipt.id!==id||receipt.demoOnly!==true||typeof receipt.action!=='string'||typeof receipt.at!=='string')throw new Error('El comprobante devolvió una respuesta incompleta.');
-   if(request===receiptRequest.current)setSelectedReceipt(receipt);
+   if(request===receiptRequest.current)setSelectedReceipt(ownerId?{...receipt,operatorView:true}:receipt);
   }catch(error){if(request===receiptRequest.current){setReceiptError(error instanceof RequestError&&error.status===405?
    'El servicio de demostración necesita actualizarse para consultar este comprobante. Puedes cerrar esta pantalla y reintentarlo después.':`No pudimos consultar el comprobante. ${messageError(error)}`);noticeExpired(error);}}
   finally{if(request===receiptRequest.current)setReceiptLoading(false);}
@@ -244,11 +274,15 @@ export default function App(){
  async function runOperation(send:()=>ReturnType<typeof client.retry>){
   actionLock.current=true;setBusy(true);
   try{
-   const data=await send();setSummary(null);setOperatorVisible(false);setProblem('');
+   const data=await send();setSummary(null);setOperatorVisible(false);setProblem('');setOperationRevision(value=>value+1);
    if(data.receipt.action==='stock'){
     mineRequest.current++;setMineLoading(false);
     setStockReceipt(data.receipt as unknown as StockReceipt);setLastStockId(data.receipt.id);
     try{setMineSummary(checkedMine(data.mine));}catch(error){setMineError(`El ingreso quedó registrado. Actualiza el panel para consultar las existencias. ${messageError(error)}`);}
+   }else if(data.mine){
+    mineRequest.current++;setMineLoading(false);setMineSummary(checkedMine(data.mine));
+    receiptRequest.current++;receiptToFetch.current=data.receipt.id;receiptOwner.current='mine';
+    setSelectedReceipt({...data.receipt,operatorView:true});setReceiptVisible(true);setReceiptLoading(false);setReceiptError('');
    }else{
     setState(data.state as State);receiptRequest.current++;receiptToFetch.current=data.receipt.id;receiptOwner.current=null;
     setSelectedReceipt(data.receipt);setReceiptVisible(true);setReceiptLoading(false);setReceiptError('');
@@ -294,15 +328,15 @@ export default function App(){
   void runOperation(()=>client.submit(operation.action,operation.body,operation.title));
  }
  const portfolio=state?summarizePortfolio(state):{metalsValueMinor:0,usdtAvailableMinor:0,totalUsdtAndMetalsMinor:0};
- const reserved=(metal:Metal)=>state?state.offers.filter(o=>o.metal===metal&&o.status==='OPEN').reduce((a,o)=>a+o.mg,0)+state.custodyRequests.filter(d=>d.metal===metal&&d.status==='PENDING_QUOTE').reduce((a,d)=>a+d.mg,0):0;
+ const reserved=(metal:Metal)=>state?state.offers.filter(o=>o.metal===metal&&o.status==='OPEN').reduce((a,o)=>a+o.mg,0)+state.custodyRequests.filter(d=>d.metal===metal&&['PENDING_QUOTE','QUOTED','APPROVED','PREPARING','DISPATCHED_DEMO'].includes(d.status)).reduce((a,d)=>a+d.mg,0):0;
  function accountCard(){return <Card>
   <Text style={styles.cardTitle}>{account?account.alias:state?.legacyReadOnly?'Sesión anterior vinculada':'Tu cuenta de demostración'}</Text>
-  {account?<><Row left="Rol" right={account.role==='operator'?'Operador de mina':'Comprador'}/><Text style={styles.copy}>{mineIdentity?.name||'Mina de demostración'} · datos ficticios</Text><Button label="Abrir mi cuenta" secondary disabled={busy||authBusy} onPress={()=>openAccount('login')}/></>:<>
+  {account?<><Row left="Rol" right={account.role==='operator'?'Operador de mina':'Comprador'}/><Text style={styles.copy}>{mineIdentity?.name||'Mina de demostración'} · datos ficticios</Text><Button label="Abrir mi cuenta" secondary disabled={busy||authBusy} onPress={()=>openAccount('login')}/><Button label="Perfil y recuperación" secondary disabled={busy||authBusy||!!pending||authExpired} onPress={openSettings}/></>:<>
    <Text style={styles.copy}>{state?.legacyReadOnly?'Esta sesión permanece en consulta. Entra en la cuenta vinculada para continuar con sus saldos e historial.':'Crea una cuenta para recuperar tus datos en otro dispositivo y operar con el inventario compartido de la mina. Puedes conservar esta sesión al crearla.'}</Text>
    <View style={styles.hRow}>{!state?.legacyReadOnly&&<Button label="Crear cuenta demo" disabled={busy||authBusy||!!pending} onPress={()=>openAccount('register')}/>}<Button label="Entrar en una cuenta" secondary disabled={busy||authBusy} onPress={()=>openAccount('login')}/></View>
   </>}
  </Card>}
- function accountPage(){return <><Text style={styles.eyebrow}>ACCESO A LA DEMOSTRACIÓN</Text><Text style={styles.pageTitle}>Cuenta</Text>{accountCard()}<Text style={styles.copy}>Los roles y el inventario son de prueba. No hay verificación de identidad, pagos, reservas físicas ni custodio conectado.</Text><Text style={styles.copy}>Para usar la misma cuenta en otro dispositivo, entra con el mismo alias y su clave exclusiva de demostración.</Text></>}
+ function accountPage(){return <><Text style={styles.eyebrow}>ACCESO A LA DEMOSTRACIÓN</Text><Text style={styles.pageTitle}>Cuenta</Text>{accountCard()}<Text style={styles.copy}>Los roles y el inventario son de prueba. No hay verificación de identidad, pagos, reservas físicas ni custodio conectado.</Text><Text style={styles.copy}>Para usar la misma cuenta en otro dispositivo, entra con el mismo alias y su clave exclusiva de demostración.</Text><DemoUpdates disabled={busy||authBusy||!!pending||authExpired||!!accountRecovery}/></>}
  function home(){return <>
   {!account&&accountCard()}
   <Text style={styles.eyebrow}>USDT + METALES · SIMULACIÓN</Text>
@@ -315,7 +349,7 @@ export default function App(){
    <Pressable onPress={()=>setTab('Mercado')} style={styles.quick}><Text style={styles.quickText}>Comprar metales  →</Text></Pressable>
    <Pressable onPress={()=>setTab('Billetera')} style={styles.quick}><Text style={styles.quickText}>Abrir billetera  →</Text></Pressable>
   </View>
-  <MetalStory scrollY={homeScrollY} viewportHeight={viewportHeight}/>
+  <MetalStory scrollY={homeScrollY} viewportHeight={viewportHeight} onSkip={()=>setTab('Mercado')}/>
   <Sub>Mercado ilustrativo</Sub>
   {metals.map(m=><Pressable key={m.code} onPress={()=>{setCurrentMetal(m.code);setTab('Mercado');}} style={styles.metalRow}>
    <View style={[styles.metalIcon,{borderColor:m.color}]}><Text style={[styles.metalText,{color:m.color}]}>{m.symbol}</Text></View>
@@ -323,10 +357,13 @@ export default function App(){
    <Text style={styles.rowValue}>{money(state?.priceCentsPerGram[m.code]||0)}/g</Text>
   </Pressable>)}
  </>}
+ function marketNavigation(){return <View style={styles.chips}><Chip label="Comprar a la mina" active={marketSection==='mine'} onPress={()=>setMarketSection('mine')}/><Chip label="Marketplace" active={marketSection==='peers'} onPress={()=>setMarketSection('peers')}/></View>}
  function market(){const m=meta(currentMetal);const quote=state?quoteBuy(grams,state.priceCentsPerGram[currentMetal],state.feesBps.buy):null;
+  if(account&&marketSection==='peers')return <><Text style={styles.eyebrow}>COMERCIO ENTRE CUENTAS DEMO</Text><Text style={styles.pageTitle}>Marketplace</Text>{marketNavigation()}<Text style={styles.copy}>Explora ofertas de compradores de tu mina. Cada liquidación intercambia USDT y derechos simulados sobre lotes; no mueve dinero ni metales reales.</Text><Button label="Publicar una oferta de mis metales" secondary disabled={tradingBlocked} onPress={()=>{setMetalsSection('positions');setMetalAction('offer');setTab('Metales');}}/><MarketplacePanel key={account.id} identityKey={account.id} get={client.get} submit={perform} disabled={tradingBlocked} usdtMinor={state?.walletMinor.USDT||0} refreshKey={String(operationRevision)} onHistory={()=>setTab('Más')} onReceipt={receipt=>void openReceipt(receipt.id,receipt)}/></>;
   const insufficient=!!quote&&quote.totalMinor>(state?.walletMinor.USDT||0);
   const unavailable=!!quote&&quote.milligrams>(state?.inventoryMg[currentMetal]||0);
   return <><Text style={styles.eyebrow}>COMPRAVENTA DE METALES</Text><Text style={styles.pageTitle}>Mercado</Text><Text style={styles.copy}>Compra fracciones de oro, plata, platino o paladio. La liquidación simulada se realiza en USDT.</Text>
+   {account&&marketNavigation()}
    {account&&<Card><Text style={styles.cardTitle}>Inventario compartido</Text><Text style={styles.copy}>{mineIdentity?.name||'Mina de demostración'}. Las compras de otras cuentas reducen la misma disponibilidad.</Text><Row left={`${m.name} disponible en la mina`} right={gram(state?.inventoryMg[currentMetal]||0)}/><Button label="Actualizar mercado" secondary disabled={busy} onPress={refresh}/></Card>}
    <View style={styles.metalGrid}>{metals.map(v=><Pressable key={v.code} onPress={()=>setCurrentMetal(v.code)} style={[styles.metalChoice,currentMetal===v.code&&styles.metalChoiceOn]}>
     <Text style={[styles.choiceSymbol,{color:v.color}]}>{v.symbol}</Text><Text style={styles.choiceName}>{v.name}</Text><Text style={styles.mutedSmall}>{money(state?.priceCentsPerGram[v.code]||0)}/g</Text>
@@ -345,6 +382,7 @@ export default function App(){
     <Button label={busy?'Procesando...':'Confirmar compra simulada'} disabled={tradingBlocked||!quote||insufficient||unavailable} onPress={()=>{if(quote)perform('buy',{metal:currentMetal,grams:quote.normalizedGrams},`Comprar ${gram(quote.milligrams)} de ${m.name}`,`Metal: ${money(quote.baseMinor)}. Comisión: ${money(quote.feeMinor)}.\nTotal estimado: ${money(quote.totalMinor)}.\nUSDT después de comprar: ${money((state?.walletMinor.USDT||0)-quote.totalMinor)}.`);}}/>
    </Card>
    <Text style={styles.disclaimer}>Ningún gramo en esta pantalla representa una existencia física acreditada.</Text>
+   {account&&<Button label="Explorar ofertas del marketplace" secondary onPress={()=>setMarketSection('peers')}/>}
   </>;
  }
  function wallet(){
@@ -382,25 +420,32 @@ export default function App(){
    <View style={styles.hRow}><Button label="Simular ingreso" disabled={tradingBlocked||depositMinor===null||depositOverflow} onPress={()=>perform('deposit',{currency,amount},'Simular ingreso',`Abono ficticio: ${amount} ${currency}.`)}/>
    <Button label="Simular retiro" secondary disabled={tradingBlocked||depositMinor===null||withdrawalInsufficient} onPress={()=>perform('withdraw',{currency,amount},'Simular retiro',`Cargo ficticio: ${amount} ${currency}.`)}/></View>
   </Card></>}
+ function metalsNavigation(){return <View style={styles.chips}><Chip label="Posiciones" active={metalsSection==='positions'} onPress={()=>setMetalsSection('positions')}/><Chip label="Lotes y certificados" active={metalsSection==='custody'} onPress={()=>setMetalsSection('custody')}/><Chip label="Entregas DEMO" active={metalsSection==='delivery'} onPress={()=>setMetalsSection('delivery')}/></View>}
  function holdings(){const m=meta(currentMetal);const available=(state?.holdingsMg[currentMetal]||0)-reserved(currentMetal);
+  if(account&&metalsSection==='custody')return <>{metalsNavigation()}<CustodyPanel key={account.id} identityKey={account.id} operator={false} get={client.get} disabled={tradingBlocked} refreshKey={String(operationRevision)}/></>;
+  if(account&&metalsSection==='delivery')return <>{metalsNavigation()}<DeliveryPanel key={account.id} identityKey={account.id} operator={false} get={client.get} submit={perform} disabled={tradingBlocked} refreshKey={String(operationRevision)} usdtMinor={state?.walletMinor.USDT||0}/></>;
   const quantity=parsePositiveDecimal(sellGrams,3);
   const operationMg=quantity===null?null:Math.round(quantity*1000);
   const invalid=operationMg===null||operationMg<100;
   const unavailable=operationMg!==null&&operationMg>available;
   const quote=state?quoteSell(sellGrams,state.priceCentsPerGram[currentMetal],state.feesBps.sell):null;
+  const offerPriceUnits=parsePositiveDecimal(offerPrice,2);
+  const offerQuote=state&&offerPriceUnits!==null?quoteSell(sellGrams,Math.round(offerPriceUnits*100),state.feesBps.sell):null;
   const overflow=!!quote&&(state?.walletMinor.USDT||0)+quote.outputMinor>MAX_BALANCE_MINOR;
   return <><Text style={styles.eyebrow}>MIS POSICIONES</Text><Text style={styles.pageTitle}>Mis metales</Text><Text style={styles.copy}>Consulta las cantidades adquiridas y su valor de referencia.</Text>
+   {account&&metalsNavigation()}
    {metals.map(v=><Pressable key={v.code} onPress={()=>setCurrentMetal(v.code)} style={[styles.metalRow,currentMetal===v.code&&{borderColor:accent}]}>
     <View style={[styles.metalIcon,{borderColor:v.color}]}><Text style={[styles.metalText,{color:v.color}]}>{v.symbol}</Text></View>
     <View style={{flex:1}}><Text style={styles.cardTitle}>{v.name}</Text><Text style={styles.mutedSmall}>{gram(state?.holdingsMg[v.code]||0)} · disponible {gram((state?.holdingsMg[v.code]||0)-reserved(v.code))}</Text></View>
     <Text style={styles.rowValue}>{money(Math.ceil((state?.holdingsMg[v.code]||0)*(state?.priceCentsPerGram[v.code]||0)/1000))}</Text>
    </Pressable>)}
    <Sub>Gestionar {m.name.toLowerCase()}</Sub><Card><Row left="Disponible para operar" right={gram(available)}/><Row left="Reservado en ofertas/entrega" right={gram(reserved(currentMetal))}/>
-    <View style={styles.chips}><Chip label="Vender" active={metalAction==='sell'} onPress={()=>setMetalAction('sell')}/><Chip label="Publicar oferta" active={metalAction==='offer'} onPress={()=>setMetalAction('offer')}/><Chip label="Entrega física" active={metalAction==='delivery'} onPress={()=>setMetalAction('delivery')}/></View>
+    <View style={styles.chips}><Chip label="Vender" active={metalAction==='sell'} onPress={()=>setMetalAction('sell')}/><Chip label="Publicar oferta" active={metalAction==='offer'} onPress={()=>setMetalAction('offer')}/>{!account&&<Chip label="Entrega física" active={metalAction==='delivery'} onPress={()=>setMetalAction('delivery')}/>}</View>
     <Text style={styles.inputLabel}>Gramos</Text><TextInput accessibilityLabel="Gramos para operación" style={styles.input} value={sellGrams} onChangeText={setSellGrams} keyboardType="decimal-pad"/>
     {!invalid&&operationMg!==null&&<Row left="Cantidad interpretada" right={gram(operationMg)}/>}
     {invalid&&<Text style={styles.disclaimer}>Introduce al menos 0,1 g y hasta tres decimales. Puedes usar coma o punto decimal.</Text>}
     {unavailable&&<Text accessibilityRole="alert" style={styles.disclaimer}>La cantidad supera tus gramos disponibles. Los gramos reservados no se pueden vender ni reservar otra vez.</Text>}
+    {metalAction==='offer'&&account&&<><Text style={styles.inputLabel}>Precio de venta por gramo en USDT simulado</Text><TextInput accessibilityLabel="Precio por gramo de oferta marketplace" style={styles.input} value={offerPrice} onChangeText={setOfferPrice} keyboardType="decimal-pad"/>{offerQuote?<><Row left="Total que pagará la contraparte" right={money(offerQuote.baseMinor)}/><Row left="Comisión descontada al vendedor" right={money(offerQuote.feeMinor)}/><Row left="Recibirás si se liquida" right={money(offerQuote.outputMinor)}/></>:<Text style={styles.disclaimer}>Introduce un precio positivo con hasta dos decimales y una cantidad válida.</Text>}</>}
     {metalAction==='sell'&&quote&&<View style={styles.quoteBox}>
      <Text style={styles.cardTitle}>Antes de vender</Text>
      <Row left="Precio ficticio por gramo" right={money(state?.priceCentsPerGram[currentMetal]||0)}/>
@@ -412,17 +457,18 @@ export default function App(){
     </View>}
     {metalAction==='sell'&&overflow&&<Text style={styles.disclaimer}>El saldo USDT resultante superaría el límite de la demostración.</Text>}
     <Text style={styles.mutedSmall}>{metalAction==='delivery'?'Se solicita una cotización; no se genera un envío ni un impuesto real.':metalAction==='offer'?'La cantidad queda reservada. Publicar no significa que exista un comprador.':'La comisión se descuenta del valor bruto. El servidor valida el importe definitivo.'}</Text>
-    <Button label={metalAction==='sell'?'Simular venta':metalAction==='offer'?'Publicar oferta demo':'Solicitar cotización de entrega'} disabled={tradingBlocked||invalid||unavailable||(metalAction==='sell'&&(!quote||overflow))} onPress={()=>{
+    <Button label={metalAction==='sell'?'Simular venta':metalAction==='offer'?'Publicar oferta demo':'Solicitar cotización de entrega'} disabled={tradingBlocked||invalid||unavailable||(metalAction==='sell'&&(!quote||overflow))||(metalAction==='offer'&&!!account&&!offerQuote)} onPress={()=>{
      const detail=metalAction==='sell'&&quote?`${gram(quote.milligrams)} de ${m.name}.\nValor bruto: ${money(quote.baseMinor)}.\nComisión: ${money(quote.feeMinor)}.\nRecibes neto: ${money(quote.outputMinor)}.\nUSDT después: ${money((state?.walletMinor.USDT||0)+quote.outputMinor)}.`:`${operationMg===null?sellGrams:gram(operationMg)} de ${m.name}. Se reservará esta cantidad.`;
-     perform(metalAction,{metal:currentMetal,grams:normalizeDecimalInput(sellGrams)},metalAction==='sell'?'Confirmar venta simulada':'Confirmar reserva simulada',detail);
+     perform(metalAction,{metal:currentMetal,grams:normalizeDecimalInput(sellGrams),...(metalAction==='offer'&&account?{price:normalizeDecimalInput(offerPrice)}:{})},metalAction==='sell'?'Confirmar venta simulada':'Confirmar reserva simulada',`${detail}${metalAction==='offer'&&account&&offerQuote?`\nPrecio: ${money(Math.round((offerPriceUnits||0)*100))}/g.\nTotal contraparte: ${money(offerQuote.baseMinor)}. Neto vendedor: ${money(offerQuote.outputMinor)}.`:''}`);
     }}/>
    </Card>
    <Sub>Solicitudes y ofertas</Sub>
    {state?.offers.filter(o=>o.status==='OPEN').map(o=><Card key={o.id}><Row left={`Oferta ${meta(o.metal).name}`} right={gram(o.mg)}/><Button label="Cancelar oferta" secondary disabled={tradingBlocked} onPress={()=>perform('cancel_offer',{offerId:o.id},'Cancelar oferta',`Se liberan ${gram(o.mg)}.`)}/></Card>)}
-   {state?.custodyRequests.filter(d=>d.status==='PENDING_QUOTE').map(d=><Card key={d.id}><Row left={`Entrega ${meta(d.metal).name}`} right={gram(d.mg)}/><Text style={styles.mutedSmall}>Pendiente de cotización · sin envío real.</Text><Button label="Cancelar solicitud" secondary disabled={tradingBlocked} onPress={()=>perform('cancel_delivery',{deliveryId:d.id},'Cancelar entrega',`Se liberan ${gram(d.mg)}.`)}/></Card>)}
+   {!account&&state?.custodyRequests.filter(d=>d.status==='PENDING_QUOTE').map(d=><Card key={d.id}><Row left={`Entrega ${meta(d.metal).name}`} right={gram(d.mg)}/><Text style={styles.mutedSmall}>Pendiente de cotización · sin envío real.</Text><Button label="Cancelar solicitud" secondary disabled={tradingBlocked} onPress={()=>perform('cancel_delivery',{deliveryId:d.id},'Cancelar entrega',`Se liberan ${gram(d.mg)}.`)}/></Card>)}
+   {account&&<View style={styles.hRow}><Button label="Consultar mis certificados" secondary onPress={()=>setMetalsSection('custody')}/><Button label="Solicitar o seguir entrega DEMO" secondary onPress={()=>setMetalsSection('delivery')}/></View>}
   </>}
  function more(){return <><Text style={styles.eyebrow}>CONTROL Y TRANSPARENCIA</Text><Text style={styles.pageTitle}>Actividad</Text>
-  {accountCard()}<Button label="Actualizar datos" secondary disabled={busy||authBusy} onPress={refresh}/>
+  {accountCard()}<Button label="Actualizar datos" secondary disabled={busy||authBusy} onPress={refresh}/><DemoUpdates disabled={busy||authBusy||!!pending||authExpired||!!accountRecovery}/>
   <Sub>Historial de operaciones</Sub>
   <Text style={styles.copy}>Abre una operación para consultar su comprobante, importes y saldos registrados en ese momento.</Text>
   <Button label="Actualizar historial" secondary disabled={historyLoading} onPress={()=>void loadHistory(true)}/>
@@ -447,7 +493,17 @@ export default function App(){
    </>}
   </Card><Text style={styles.disclaimer}>Para consultar la mina compartida se necesita una cuenta de operador de demostración.</Text></>}
   </>}
- return <SafeAreaView style={styles.screen}><StatusBar barStyle="light-content" backgroundColor="#090F15"/>
+ function operatorMine(){
+  if(!account)return null;
+  const blocked=busy||authBusy||!!pending||authExpired||!!accountRecovery;
+  return <><Button label="Ver presentación Openminerals" secondary onPress={()=>{presentationScrollY.setValue(0);setStoryVisible(true);}}/><View style={styles.chips}><Chip label="Panel gerencial" active={mineSection==='management'} onPress={()=>setMineSection('management')}/><Chip label="Inventario" active={mineSection==='inventory'} onPress={()=>setMineSection('inventory')}/><Chip label="Lotes" active={mineSection==='custody'} onPress={()=>setMineSection('custody')}/><Chip label="Entregas DEMO" active={mineSection==='delivery'} onPress={()=>setMineSection('delivery')}/></View>
+   {mineSection==='management'?<ManagementPanel key={account.id} identityKey={account.id} get={client.get} disabled={blocked} refreshKey={String(operationRevision)} onReceipt={(receipt,ownerId)=>void openReceipt(receipt.id,receipt,ownerId)}/>:
+    mineSection==='custody'?<CustodyPanel key={account.id} identityKey={account.id} operator get={client.get} disabled={blocked} refreshKey={String(operationRevision)}/>:
+    mineSection==='delivery'?<DeliveryPanel key={account.id} identityKey={account.id} operator get={client.get} submit={perform} disabled={blocked} refreshKey={String(operationRevision)}/>:
+    <MineDashboard summary={mineSummary} loading={mineLoading} error={mineError} blocked={blocked} lastStockId={lastStockId} onRefresh={()=>void loadMine()} onReceipt={(ownerId,receipt)=>void openReceipt(receipt.id,receipt,ownerId)} onStockReceipt={setStockReceipt} onRestock={body=>perform('mine/stock',body,'Crear lote de demostración',`${gram(Math.round((parsePositiveDecimal(body.grams,3)||0)*1000))} de ${meta(body.metal).name}.\nPureza ficticia: ${(Number(body.purityBps)/100).toFixed(2)} %.\nUbicación DEMO: ${body.location}.\nDocumento: ${body.documentTitle}.\nMotivo: ${body.reason}.\nSe añadirá al inventario compartido de esta demostración.`)}/>
+   }</>;
+ }
+ return <SafeAreaProvider initialMetrics={initialWindowMetrics}><SafeAreaView style={styles.screen}><StatusBar barStyle="light-content"/>
   <View style={styles.header}><View><Text style={styles.logo}>OPEN<Text style={{color:accent}}>MINERALS</Text></Text><Text style={styles.logoSub}>METALS · OWNERSHIP · TECHNOLOGY</Text></View><View style={styles.badge}><Text style={styles.badgeText}>DEMO</Text></View></View>
   <View style={styles.identityBar}><View style={{flex:1}}><Text numberOfLines={1} style={styles.identityTitle}>{account?`${account.role==='operator'?'Operador':'Comprador'} · ${account.alias}`:state?.legacyReadOnly?'Sesión anterior · solo consulta':'Sesión sin cuenta'}</Text><Text numberOfLines={1} style={styles.identityNote}>{account?mineIdentity?.name||'Mina de demostración':'Datos ficticios · tu historial permanece guardado'}</Text></View><Pressable accessibilityRole="button" disabled={busy||authBusy} onPress={()=>openAccount('login')} style={styles.accountLink}><Text style={styles.accountLinkText}>Cuenta</Text></Pressable></View>
   {!!problem&&<Pressable accessibilityRole="button" onPress={refresh} style={styles.errorBox}><Text style={styles.errorText}>{problem}\nToca aquí para actualizar los datos.</Text></Pressable>}
@@ -458,7 +514,7 @@ export default function App(){
   <Animated.ScrollView key={tab} style={{flex:1}} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
    onLayout={event=>setViewportHeight(Math.max(1,event.nativeEvent.layout.height))}
    onScroll={Animated.event([{nativeEvent:{contentOffset:{y:homeScrollY}}}],{useNativeDriver:true})} scrollEventThrottle={16}>
-   {isOperator?(tab==='Cuenta'?accountPage():<MineDashboard summary={mineSummary} loading={mineLoading} error={mineError} blocked={busy||authBusy||!!pending||authExpired||!!accountRecovery} lastStockId={lastStockId} onRefresh={()=>void loadMine()} onReceipt={(ownerId,receipt)=>void openReceipt(receipt.id,receipt,ownerId)} onStockReceipt={setStockReceipt} onRestock={body=>perform('mine/stock',body,'Registrar ingreso ficticio',`${gram(Math.round((parsePositiveDecimal(body.grams,3)||0)*1000))} de ${meta(body.metal).name}.\nMotivo: ${body.reason}.\nSe añadirá a las existencias compartidas de esta demostración.`)}/>):tab==='Inicio'?home():tab==='Mercado'?market():tab==='Billetera'?wallet():tab==='Metales'?holdings():more()}
+   {isOperator?(tab==='Cuenta'?accountPage():operatorMine()):tab==='Inicio'?home():tab==='Mercado'?market():tab==='Billetera'?wallet():tab==='Metales'?holdings():more()}
   </Animated.ScrollView>}
   <View style={styles.tabs}>{sections.map(t=><Pressable accessibilityRole="tab" accessibilityState={{selected:tab===t}} key={t} onPress={()=>setTab(t)} style={styles.tab}><View style={[styles.tabDot,tab===t&&styles.tabDotActive]}/><Text style={[styles.tabLabel,tab===t&&styles.tabLabelActive]}>{t==='Más'?'Actividad':t}</Text></Pressable>)}</View>
   <OperationConfirmation visible={confirmation!==null} title={confirmation?.title||''} detail={confirmation?.detail||''} onCancel={cancelConfirmation} onConfirm={confirmOperation}/>
@@ -466,9 +522,11 @@ export default function App(){
    onClose={closeReceipt} onRetry={()=>{if(receiptToFetch.current)void openReceipt(receiptToFetch.current,undefined,receiptOwner.current??undefined);}}
    onHistory={()=>{closeReceipt();setTab(isOperator?'Mina':'Más');}}/>
   <StockReceiptDetails receipt={stockReceipt} onClose={()=>setStockReceipt(null)}/>
+  {settingsVisible&&account&&<Modal visible onRequestClose={()=>setSettingsVisible(false)} animationType="none" presentationStyle="pageSheet"><SafeAreaProvider><SafeAreaView style={styles.screen}><View style={styles.identityBar}><Text style={[styles.cardTitle,{flex:1}]}>Perfil de demostración</Text><Pressable accessibilityRole="button" style={styles.accountLink} onPress={()=>setSettingsVisible(false)}><Text style={styles.accountLinkText}>Cerrar</Text></Pressable></View><ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled"><AccountSettings key={account.id} identityKey={account.id} account={account} disabled={busy||authBusy||!!pending||authExpired} getProfile={client.getProfile} saveProfile={client.updateProfile} setupRecovery={client.setupRecovery} onAuthExpired={()=>{setSettingsVisible(false);setAuthExpired(true);}}/></ScrollView></SafeAreaView></SafeAreaProvider></Modal>}
+  {storyVisible&&<Modal visible onRequestClose={()=>setStoryVisible(false)} animationType="none"><SafeAreaProvider><SafeAreaView style={styles.screen}><View style={styles.identityBar}><Text style={[styles.cardTitle,{flex:1}]}>OPENMINERALS · DEMO</Text><Pressable accessibilityRole="button" style={styles.accountLink} onPress={()=>setStoryVisible(false)}><Text style={styles.accountLinkText}>Cerrar presentación</Text></Pressable></View><Animated.ScrollView contentContainerStyle={styles.body} onLayout={event=>setPresentationHeight(event.nativeEvent.layout.height)} onScroll={Animated.event([{nativeEvent:{contentOffset:{y:presentationScrollY}}}],{useNativeDriver:true})} scrollEventThrottle={16}><MetalStory scrollY={presentationScrollY} viewportHeight={presentationHeight} onSkip={()=>setStoryVisible(false)}/><Button label="Volver al panel de mina" onPress={()=>setStoryVisible(false)}/></Animated.ScrollView></SafeAreaView></SafeAreaProvider></Modal>}
   <AccountAccess visible={authVisible} initialMode={authMode} account={account} mineName={mineIdentity?.name} recoveryAlias={recoveryAlias} expired={authExpired} busy={authBusy} pending={!!pending} canImportLegacy={!account&&!!state&&!state.legacyReadOnly} legacyReadOnly={!!state?.legacyReadOnly}
-   error={authError} onClose={()=>{if(!authBusy){setAuthVisible(false);setAuthError('');}}} onLogout={()=>void signOut()} onSubmit={(mode,alias,password,importLegacy)=>void submitAccount(mode,alias,password,importLegacy)}/>
- </SafeAreaView>;
+   error={authError} onClose={()=>{if(!authBusy){setAuthVisible(false);setAuthError('');}}} onLogout={()=>void signOut()} onSubmit={(mode,alias,password,importLegacy)=>void submitAccount(mode,alias,password,importLegacy)} onSettings={openSettings} startRecovery={client.startRecovery} completeRecovery={client.completeRecovery} cancelRecovery={client.cancelRecovery} onRecoveryDone={alias=>void recoveredAccount(alias)}/>
+ </SafeAreaView></SafeAreaProvider>;
 }
 const accent='#DCBC7F';
 const styles=StyleSheet.create({

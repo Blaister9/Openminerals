@@ -1,0 +1,31 @@
+appId: com.openminerals.demo.mobile
+name: Operator quotes its mine delivery without buyer wallets
+---
+- runFlow:
+    file: login.yaml
+- scrollUntilVisible:
+    element:
+      text: ^Entregas DEMO$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Entregas DEMO$
+- scrollUntilVisible:
+    element:
+      text: ^Revisar cotización demo$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Revisar cotización demo$
+- tapOn: ^Confirmar demo$
+- extendedWaitUntil:
+    visible: ^Comprobante$
+    timeout: 30000
+- assertNotVisible: ^Saldo USDT después$
+- scrollUntilVisible:
+    element:
+      text: ^USDT 10,00$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Cerrar comprobante

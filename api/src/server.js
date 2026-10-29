@@ -1,10 +1,12 @@
 import http from 'node:http';
 import {fileURLToPath} from 'node:url';
+import {readFileSync} from 'node:fs';
 import {createStore,validateSessionId} from './store.js';
 import {DomainError,METALS,operatorSummary} from './domain.js';
 import {historyPage,parseHistoryQuery,readReceipt} from './receipt-history.js';
 import {accountError,bearerToken,adminMatches,createAuthLimiter} from './account-auth.js';
 
+const API_VERSION=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8')).version;
 const ACTIONS=new Set(['deposit','withdraw','convert','buy','sell','offer','cancel_offer','delivery','cancel_delivery']);
 async function readJson(req){
   let body='';
@@ -27,7 +29,7 @@ export function createApiServer(store,config={}){
       let url;
       try{url=new URL(req.url||'/', 'http://127.0.0.1');}catch{throw accountError(400,'Ruta inválida.','INVALID_URL');}
       const path=url.pathname;
-      if(req.method==='GET'&&path==='/health'){await store.ping();return send(res,200,{ok:true,mode:store.mode,demoOnly:true});}
+      if(req.method==='GET'&&path==='/health'){await store.ping();return send(res,200,{ok:true,mode:store.mode,demoOnly:true,apiVersion:API_VERSION});}
       if(!path.startsWith('/api/demo/'))return send(res,404,{error:'Ruta no disponible'});
       if(req.method==='POST'&&path==='/api/demo/accounts/register'){
         allowAuth(req.socket.remoteAddress||'unknown');
@@ -40,6 +42,16 @@ export function createApiServer(store,config={}){
         allowAuth(req.socket.remoteAddress||'unknown');
         const body=await readJson(req);onlyKeys(body,['alias','password']);
         return send(res,200,await store.loginAccount(body.alias,body.password));
+      }
+      if(req.method==='POST'&&path==='/api/demo/accounts/recovery/start'){
+        allowAuth(req.socket.remoteAddress||'unknown');
+        const body=await readJson(req);onlyKeys(body,['alias','recoveryKey']);
+        return send(res,200,await store.startRecovery(body.alias,body.recoveryKey));
+      }
+      if(req.method==='POST'&&path==='/api/demo/accounts/recovery/complete'){
+        allowAuth(req.socket.remoteAddress||'unknown');
+        const body=await readJson(req);onlyKeys(body,['token','password']);
+        return send(res,200,await store.completeRecovery(body.token,body.password));
       }
       if(req.method==='POST'&&path==='/api/demo/accounts/logout'){
         const token=bearerToken(req.headers.authorization);
@@ -62,11 +74,64 @@ export function createApiServer(store,config={}){
       const token=bearerToken(req.headers.authorization);
       const identity=token?await store.authenticate(token):null;
       if(req.method==='GET'&&path==='/api/demo/accounts/me')return send(res,200,requireIdentity(identity));
+      if(req.method==='GET'&&path==='/api/demo/accounts/profile'){
+        const {account}=requireIdentity(identity);return send(res,200,await store.getProfile(account.id));
+      }
+      if(req.method==='POST'&&path==='/api/demo/accounts/profile'){
+        const {account}=requireIdentity(identity),body=await readJson(req);onlyKeys(body,['displayName','preferredCurrency','jurisdiction']);
+        return send(res,200,await store.updateProfile(account.id,body));
+      }
+      if(req.method==='POST'&&path==='/api/demo/accounts/recovery/setup'){
+        const {account}=requireIdentity(identity),body=await readJson(req);onlyKeys(body,['password']);
+        return send(res,200,await store.setupRecovery(account.id,body.password));
+      }
+      if(req.method==='GET'&&path==='/api/demo/marketplace'){
+        const {account}=requireIdentity(identity);
+        return send(res,200,await store.getMarketplace(account.id));
+      }
+      if(req.method==='GET'&&path==='/api/demo/deliveries'){
+        const {account}=requireIdentity(identity);
+        return send(res,200,await store.getDeliveries(account.id));
+      }
+      if(req.method==='POST'&&['/api/demo/delivery_accept','/api/demo/delivery_reject'].includes(path)){
+        const {account}=requireIdentity(identity),body=await readJson(req);
+        const action=path.slice('/api/demo/'.length);onlyKeys(body,action==='delivery_accept'?['deliveryId','quoteId']:['deliveryId']);
+        const result=await store.mutateAccount(account.id,{...body,action,requestId:req.headers['idempotency-key']});
+        return send(res,200,{receipt:result.receipt,state:{...result.state,metals:METALS}});
+      }
+      if(req.method==='POST'&&path==='/api/demo/market_buy'){
+        const {account}=requireIdentity(identity),body=await readJson(req);onlyKeys(body,['sellerId','offerId']);
+        const result=await store.mutateAccount(account.id,{...body,action:'market_buy',requestId:req.headers['idempotency-key']});
+        return send(res,200,{receipt:result.receipt,state:{...result.state,metals:METALS}});
+      }
+      if(req.method==='GET'&&path==='/api/demo/custody'){
+        const {account}=requireIdentity(identity);
+        return send(res,200,await store.getCustody(account.id,'buyer'));
+      }
+      if(req.method==='GET'&&path.startsWith('/api/demo/certificates/')){
+        const {account}=requireIdentity(identity);
+        const certificateId=path.slice('/api/demo/certificates/'.length);
+        if(!/^[A-Za-z0-9_-]{8,100}$/.test(certificateId))throw accountError(400,'Identificador de certificado DEMO inválido.');
+        return send(res,200,await store.getCertificate(account.id,certificateId));
+      }
       if(path.startsWith('/api/demo/mine/')){
         const {account}=requireIdentity(identity);
         if(req.method==='GET'&&path==='/api/demo/mine/summary')return send(res,200,await store.getMineSummary(account.id));
+        if(req.method==='GET'&&path==='/api/demo/mine/custody')return send(res,200,await store.getCustody(account.id,'operator'));
+        if(req.method==='GET'&&path==='/api/demo/mine/deliveries')return send(res,200,await store.getDeliveries(account.id,'operator'));
+        if(req.method==='GET'&&path==='/api/demo/mine/management')return send(res,200,await store.getManagement(account.id,url.searchParams));
+        if(req.method==='GET'&&path.startsWith('/api/demo/mine/commands/')){
+          for(const key of url.searchParams.keys())if(!['actor','kind'].includes(key)||url.searchParams.getAll(key).length!==1)throw accountError(400,'Parámetros de comprobante DEMO inválidos.');
+          return send(res,200,await store.getMineCommand(account.id,path.slice('/api/demo/mine/commands/'.length),{actorId:url.searchParams.get('actor')??undefined,kind:url.searchParams.get('kind')??undefined}));
+        }
+        if(req.method==='POST'&&['/api/demo/mine/delivery_quote','/api/demo/mine/delivery_transition','/api/demo/mine/delivery_config'].includes(path)){
+          const action=path.slice('/api/demo/mine/'.length),body=await readJson(req);
+          const fields={delivery_quote:['buyerId','deliveryId','jurisdiction'],delivery_transition:['buyerId','deliveryId','status','reason'],delivery_config:['jurisdiction','label','taxBps','service','preparation','transport','insuranceBps','quoteValidityHours','requirements','reason']};
+          onlyKeys(body,fields[action]);const result=await store.mutateDelivery(account.id,{...body,action,requestId:req.headers['idempotency-key']});
+          return send(res,200,{receipt:result.receipt,mine:result.mine});
+        }
         if(req.method==='POST'&&path==='/api/demo/mine/stock'){
-          const body=await readJson(req);onlyKeys(body,['metal','grams','reason']);
+          const body=await readJson(req);onlyKeys(body,['metal','grams','reason','purityBps','location','documents','documentTitle','documentContent']);
           const result=await store.mutateStock(account.id,{...body,requestId:req.headers['idempotency-key']});
           return send(res,200,{receipt:result.receipt,mine:result.mine,demoOnly:true});
         }

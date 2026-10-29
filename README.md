@@ -2,13 +2,15 @@
 
 **Estado: prototipo técnico de simulación, no plataforma financiera en producción.**
 
-**Auditoría actual del 28 de octubre de 2026:** [informe de estado y aceptación móvil](docs/13-auditoria-demo-2026-10-28.md), base `0223326`. Código publicado y árbol inicial limpio; 31 pruebas API y 45 móviles aprobadas, Doctor 21/21, tres smokes HTTPS y persistencia tras un nuevo reinicio Railway comprobados. Android 0.1.3 sigue pendiente de recorrido nativo completo e iPhone de firma/build instalable. Marketplace entre compradores y custodia por lotes todavía requieren desarrollo. El supuesto fallo de coma decimal del informe anterior no se reproduce en el cliente actual.
+**Implementación Android integral en curso:** [avance por fases y evidencia](docs/14-demo-android-integral.md), rama `codex/android-complete-20261028`, [PR #3](https://github.com/Blaister9/Openminerals/pull/3). Custodia por lotes, marketplace, entrega, gerencia y recuperación ya tienen código y pruebas locales; el nuevo 3D tiene verificación de software. El despliegue, APK y aceptación nativa de esta revisión se registrarán al cerrar la integración. Se conserva el APK 0.1.3 anterior; no acredita los módulos nuevos. No se está desarrollando iOS.
 
-**Para continuar desde otro equipo:** [guía de traspaso](docs/12-continuar-desde-otro-equipo.md). El trabajo vigente está en `codex/mobile-overview-scroll-20261028`; `main` conserva una versión anterior. [APK alternativo en GitHub](https://github.com/Blaister9/Openminerals/releases/tag/v0.1.3-demo).
+**Punto de partida del 28 de octubre de 2026:** [auditoría histórica sobre 0223326](docs/13-auditoria-demo-2026-10-28.md). Sus resultados corresponden a 0.1.3 y no acreditan los módulos de 0.2.0. El supuesto fallo de coma decimal del informe anterior no se reproduce en el cliente existente.
+
+**Para continuar desde otro equipo:** clonar el remoto oficial y consultar [el avance vigente de Android](docs/14-demo-android-integral.md). Los PR #2 y #1 ya están integrados en `main`; la revisión 0.2.0 está en el PR #3. La [guía de traspaso anterior](docs/12-continuar-desde-otro-equipo.md) y el [APK 0.1.3 conservado](https://github.com/Blaister9/Openminerals/releases/tag/v0.1.3-demo) documentan la base histórica.
 
 Repositorio inicial para presentar la plataforma Openminerals a un operador de mina: aplicación nativa iOS/Android con React Native + Expo; API Node.js desplegable en Railway; sesiones de demostración persistentes en PostgreSQL de Railway; documentos maestros del producto. No requiere HTML anterior.
 
-## Disponible · 0.1.3, cuentas y mina compartida
+## Evidencia anterior · 0.1.3, cuentas y mina compartida
 
 La revisión 0.1.3 incorpora cuentas ficticias de **comprador** y **operador**, acceso desde otro dispositivo, vinculación explícita de la sesión anterior e inventario compartido por mina. El registro público crea únicamente compradores; el operador se provisiona por administración. Por autorización expresa del propietario, el alias y la clave de la cuenta de operador demo están en [el archivo de acceso público](demo-access/operator-public.json). Las claves de cada comprador permanecen privadas. Las sesiones anteriores siguen disponibles: una actualización no las convierte automáticamente en cuentas ni borra su historial.
 
@@ -16,7 +18,7 @@ La vinculación copia saldos, posiciones y comprobantes en una transacción y de
 
 **[Descargar APK Android 0.1.3](https://expo.dev/artifacts/eas/MG34boaq4KCKSOqvkDsUIj_q8J_rp-xADGup1B9M2hs.apk)**. Instalar como actualización sin desinstalar; al crear el comprador, conservar la sesión anterior. El [informe 0.1.3](docs/11-cuentas-e-inventario-compartido.md) contiene instrucciones, contratos, evidencia y límites. Para entrar como operador, consultar [el acceso público de prueba](demo-access/README.md).
 
-## Estado verificado · 28 de octubre de 2026
+## Verificación anterior · 0.1.3
 
 - Fuente de cuentas/app: [fb1f590](https://github.com/Blaister9/Openminerals/commit/fb1f590f665fc5e7bb3dcc11217c7481446c7183); EAS Android `269f285b-f16b-4c82-9c9a-35a3a5082bc5`, versión 0.1.3/código 4. [Firma, certificado, versión y API del APK comprobados](https://github.com/Blaister9/Openminerals/actions/runs/40770949478). **Recorrido nativo 0.1.3 pendiente de confirmación en teléfono**; la inspección binaria no lo sustituye.
 - API: 31 pruebas locales aprobadas y 14 comprobaciones PostgreSQL remotas aprobadas sin omisiones. Tres smokes HTTPS aprobados, incluidos dos compradores concurrentes sobre la misma mina. Reinicio verificado con cuentas, tokens, historiales, stock, reservas e idempotencia conservados; compatibilidad legacy preservada.
@@ -58,13 +60,18 @@ Openminerals/
 - Compras y ventas ficticias con saldo USDT y metal expresado en miligramos.
 - Cuatro metales: oro, plata, platino y paladio.
 - Portafolio con cantidades, valoración, saldos disponibles y reservas.
-- Publicación/cancelación de ofertas (sin emparejamiento real de compradores).
-- Solicitud/cancelación de **cotización** de entrega física (sin envíos reales).
+- Publicación con precio, catálogo, cancelación y liquidación entre compradores con comisión, reservas y transferencia de lotes simulados.
+- Custodia DEMO por lotes, asignaciones y certificados verificables dentro del sistema; sin acreditación física.
+- Cotización desglosada, aceptación y preparación/despacho/entrega simulados, con reservas y costes configurables por escenarios ficticios.
 - Historial y comprobantes simulados; compatibilidad con sesiones anteriores sin cuenta.
 - Cuentas demo de comprador y operador en 0.1.3, con inventario de mina compartido y reposiciones ficticias. Su aceptación se registra por separado en el informe de esa revisión.
 - Idempotencia por operación y transacciones en PostgreSQL; los pendientes de cuentas están separados por identidad.
+- Panel gerencial de mina con indicadores, historial filtrable, compradores, obligaciones y ajustes registrados, sin acceso a billeteras privadas.
+- Perfil ficticio y recuperación por clave privada y token temporal de un solo uso, con límites y revocación de sesiones.
+- Presentación con malla 3D, omisión y movimiento reducido; su evidencia nativa se registra por separado.
+- Configuración EAS Update para cambios compatibles sin reinstalar. Los cambios nativos requieren subir versión y generar otro APK con la misma firma.
 
-**No existe** KYC, identidad verificada, acceso apto para producción financiera, integración bancaria, blockchain, contratos de custodia, inventario auditado, precio en tiempo real, certificados de título, envío físico, registro contable de doble entrada ni motor de órdenes de producción. La animación de lingote es una aproximación visual; el scrollytelling 3D cinematográfico queda en el diseño maestro, no está implementado todavía.
+**No existe** KYC, identidad verificada, acceso apto para producción financiera, integración bancaria, blockchain, contratos de custodia, inventario auditado, precio en tiempo real, certificados de título, envío físico, registro contable de doble entrada ni motor de órdenes de producción. La presencia del código y las pruebas de software no sustituyen los recorridos Android documentados.
 
 ## Prueba local de la API
 
