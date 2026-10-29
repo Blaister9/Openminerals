@@ -145,7 +145,11 @@ async function verifyNative(){
     request('/api/demo/mine/management?limit=50',users.op.token),request('/api/demo/accounts/profile',users.a.token),
     request('/api/demo/history?limit=50',users.a.token),
   ]);
-  verifyNativeSnapshot({a,b,summary,ca,cb,cm,management,profile,history});
+  const lotId=ca.allocations.find(item=>item.mg>0)?.lotId;
+  requireSafe(typeof lotId==='string'&&/^lot-[a-f0-9]{32}$/.test(lotId),'Native gold lot was not available.');
+  const lotPath=`/api/demo/custody/lots/${lotId}/history?limit=20`;
+  const [ha,hb,hm]=await Promise.all([request(lotPath,users.a.token),request(lotPath,users.b.token),request(lotPath,users.op.token)]);
+  verifyNativeSnapshot({a,b,summary,ca,cb,cm,management,profile,history,ha,hb,hm});
 }
 async function operatorNavigation(){
   // No baseline seed, registration, financial action, quote or configuration.

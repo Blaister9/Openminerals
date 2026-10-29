@@ -97,6 +97,12 @@ name: Operator restock and private management
 - assertVisible: ^Actividad y control$
 - scrollUntilVisible:
     element:
+      text: ^Gramos negociados por metal$
+    direction: DOWN
+    timeout: 30000
+- assertVisible: ^Gramos negociados por metal$
+- scrollUntilVisible:
+    element:
       text: (?i)^Ver comprobante de mina:.*
     direction: DOWN
     centerElement: true

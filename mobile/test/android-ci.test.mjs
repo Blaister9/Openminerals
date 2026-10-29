@@ -234,9 +234,17 @@ test('Android CI: planned native postconditions match real isolated HTTP API DTO
     ca:await http('a','custody'),cb:await http('b','custody'),cm:await http('op','mine/custody'),
     management:await http('op','mine/management?limit=50'),profile:await http('a','accounts/profile'),history:await http('a','history?limit=50'),
   };
+  const lotId=snapshot.ca.allocations.find(item=>item.mg>0).lotId,path=`custody/lots/${lotId}/history?limit=20`;
+  snapshot.ha=await http('a',path);snapshot.hb=await http('b',path);snapshot.hm=await http('op',path);
   assert.doesNotThrow(()=>verifyNativeSnapshot(snapshot));
   const extraFee=structuredClone(snapshot);extraFee.management.kpis.tradingFeesMinor+=84;
   assert.throws(()=>verifyNativeSnapshot(extraFee));
   const privateLeak=structuredClone(snapshot);privateLeak.management.walletMinor={USDT:1};
   assert.throws(()=>verifyNativeSnapshot(privateLeak));
+  const doubled=structuredClone(snapshot);doubled.management.kpis.metalVolumesMg.XAU.marketplace=1000;
+  assert.throws(()=>verifyNativeSnapshot(doubled));
+  const lostJournal=structuredClone(snapshot);lostJournal.hm.items=lostJournal.hm.items.filter(item=>item.kind!=='DELIVERY');
+  assert.throws(()=>verifyNativeSnapshot(lostJournal));
+  const leakedIdentity=structuredClone(snapshot);leakedIdentity.hb.items[0].counterparty={id:accounts.a.id,alias:accounts.a.alias};
+  assert.throws(()=>verifyNativeSnapshot(leakedIdentity));
 });
