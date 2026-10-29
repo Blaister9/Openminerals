@@ -1,3 +1,4 @@
+import type {DeliveryQuote} from './delivery';
 export type ReceiptCurrency='COP'|'EUR'|'USD'|'USDT';
 export type ReceiptMetal='XAU'|'XAG'|'XPT'|'XPD';
 type Reservation={id:string;metal:ReceiptMetal;mg:number;status:string;createdAt?:string};
@@ -30,6 +31,11 @@ export type Receipt={
   certificateIds?:string[];
   delivery?:Reservation;
   deliveryId?:string;
+  quote?:DeliveryQuote;
+  deliveryStatus?:string;
+  paidMinor?:number;
+  actor?:{id:string;alias:string};
+  reason?:string;
   balancesAfter?:{
     walletMinor:Record<ReceiptCurrency,number>;
     holdingsMg:Record<ReceiptMetal,number>;
@@ -63,6 +69,11 @@ export function receiptTitle(receipt:Receipt):string {
     case 'cancel_offer':return 'Oferta cancelada';
     case 'delivery':return 'Cotización de entrega solicitada';
     case 'cancel_delivery':return 'Solicitud de entrega cancelada';
+    case 'delivery_accept':return 'Cotización DEMO aceptada';
+    case 'delivery_reject':return 'Cotización DEMO rechazada';
+    case 'delivery_quote':return 'Cotización de entrega DEMO';
+    case 'delivery_transition':return 'Avance de entrega simulada';
+    case 'delivery_config':return 'Política de entrega DEMO actualizada';
     default:return 'Operación simulada';
   }
 }
@@ -83,6 +94,8 @@ export function receiptSummary(receipt:Receipt):string {
     case 'cancel_offer':
     case 'cancel_delivery':return quantity?`${quantity} liberados`:'Reserva liberada';
     case 'delivery':return quantity?`${quantity} · pendiente de cotización`:'Pendiente de cotización';
+    case 'delivery_accept':return amountRecorded(receipt.totalMinor)?`−${money(receipt.totalMinor)} · costes DEMO`:quantity||'Cotización aceptada';
+    case 'delivery_quote':case 'delivery_transition':case 'delivery_reject':return quantity||'Entrega simulada registrada';
     default:return quantity||'Ver comprobante';
   }
 }
@@ -113,6 +126,17 @@ export function receiptDetails(receipt:Receipt):ReceiptDetail[] {
   if(receipt.counterparty)rows.push({label:'Contraparte ficticia',value:receipt.counterparty.alias});
   if(receipt.certificateIds?.length)rows.push({label:'Certificados DEMO verificables en Custodia',value:receipt.certificateIds.join('\n')});
   if(receipt.deliveryId||receipt.delivery?.id)rows.push({label:'Solicitud de cotización',value:receipt.deliveryId??receipt.delivery!.id});
+  if(receipt.deliveryStatus)rows.push({label:'Estado de entrega simulada',value:receipt.deliveryStatus});
+  if(receipt.actor)rows.push({label:'Responsable de la operación',value:receipt.actor.alias});
+  if(receipt.reason)rows.push({label:'Motivo registrado',value:receipt.reason});
+  if(receipt.quote){
+    const quote=receipt.quote;
+    rows.push({label:'Cotización DEMO',value:quote.id},{label:'Escenario ficticio',value:quote.jurisdiction.label});
+    for(const [label,value] of [['Servicio',quote.serviceMinor],['Fabricación o preparación',quote.preparationMinor],['Transporte',quote.transportMinor],['Seguro',quote.insuranceMinor],['Impuesto configurable DEMO',quote.taxMinor],['Total de costes de entrega',quote.totalMinor]] as const){
+      rows.push({label,value:amountRecorded(value)?money(value):missing});
+    }
+    rows.push({label:'Validez de la propuesta',value:new Date(quote.expiresAt).toLocaleString('es-CO')});
+  }
 
   if(receipt.operatorView){
     rows.push({label:'Privacidad del comprador',value:'Los saldos de su billetera no se comparten con el operador.'});

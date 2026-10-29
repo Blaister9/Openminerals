@@ -7,6 +7,8 @@ export const METALS = {
   XPD: { name: 'Paladio', symbol: 'Pd', quoteCentsPerGram: 5200, inventoryMg: 280000 },
 };
 export const CURRENCIES = ['COP', 'EUR', 'USD', 'USDT'];
+export const ACTIVE_DELIVERY_STATUSES=['PENDING_QUOTE','QUOTED','APPROVED','PREPARING','DISPATCHED_DEMO'];
+export const deliveryIsActive=status=>ACTIVE_DELIVERY_STATUSES.includes(status);
 export const DEMO_RATES = {
   COP:  { EUR: 230, USD: 250, USDT: 250 },
   EUR:  { COP: 4347826087, USD: 1086957, USDT: 1086957 },
@@ -52,7 +54,7 @@ function move(state, type, label, details, now) {
 }
 function reservedMg(state, metal) {
   const offers = state.offers.filter(o=>o.metal===metal && o.status==='OPEN').reduce((a,o)=>a+o.mg,0);
-  const deliveries = state.custodyRequests.filter(o=>o.metal===metal && o.status==='PENDING_QUOTE').reduce((a,o)=>a+o.mg,0);
+  const deliveries = state.custodyRequests.filter(o=>o.metal===metal && deliveryIsActive(o.status)).reduce((a,o)=>a+o.mg,0);
   return offers+deliveries;
 }
 export function availableHoldingMg(state, metal) { return state.holdingsMg[metal]-reservedMg(state,metal); }
@@ -82,7 +84,7 @@ export function operatorSummary(s) {
     sellCount: trades.filter(x=>x.type==='SELL').length,
     demoFeesCollectedMinor: trades.reduce((x,m)=>x+(m.feeMinor||0),0),
     offersOpen: s.offers.filter(x=>x.status==='OPEN').length,
-    deliveriesPending: s.custodyRequests.filter(x=>x.status==='PENDING_QUOTE').length,
+    deliveriesPending: s.custodyRequests.filter(x=>deliveryIsActive(x.status)).length,
   };
 }
 export function applyCommand(current, cmd, now=new Date().toISOString()) {
@@ -172,15 +174,19 @@ export function applyCommand(current, cmd, now=new Date().toISOString()) {
     validMetal(cmd.metal);
     const mg=parseGrams(cmd.grams);
     assert(availableHoldingMg(s,cmd.metal)>=mg,'Posición disponible insuficiente','INSUFFICIENT_HOLDING');
-    const delivery={id:`delivery-${s.sequence++}`,metal:cmd.metal,mg,status:'PENDING_QUOTE',createdAt:now};
+    const jurisdiction=cmd.jurisdiction??'DEMO_LOCAL';
+    assert(['DEMO_LOCAL','DEMO_REGIONAL','DEMO_INTERNATIONAL'].includes(jurisdiction),'Jurisdicción DEMO inválida');
+    const delivery={id:`delivery-${s.sequence++}`,metal:cmd.metal,mg,status:'PENDING_QUOTE',createdAt:now,jurisdiction,
+      timeline:[{status:'PENDING_QUOTE',at:now,label:'Solicitud de cotización DEMO registrada'}]};
     s.custodyRequests.unshift(delivery);
     receipt={...receipt,delivery};
     move(s,'DELIVERY_REQUEST',`Solicitud de cotización de entrega de ${METALS[cmd.metal].name}`,{metal:cmd.metal,mg,deliveryId:delivery.id},now);
   }
   if(action==='cancel_delivery') {
     const delivery=s.custodyRequests.find(d=>d.id===cmd.deliveryId);
-    assert(delivery && delivery.status==='PENDING_QUOTE','Solicitud no disponible');
+    assert(delivery && ['PENDING_QUOTE','QUOTED'].includes(delivery.status),'Solicitud no disponible para cancelar');
     delivery.status='CANCELLED';
+    delivery.timeline=[...(delivery.timeline??[]),{status:'CANCELLED',at:now,label:'Solicitud DEMO cancelada por el comprador'}];
     receipt={...receipt,deliveryId:delivery.id,metal:delivery.metal,mg:delivery.mg};
     move(s,'CANCEL_DELIVERY','Solicitud de entrega cancelada',{metal:delivery.metal,mg:delivery.mg},now);
   }

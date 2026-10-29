@@ -2,7 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {ActivityIndicator,Modal,Pressable,SafeAreaView,ScrollView,StyleSheet,Text,TextInput,View} from 'react-native';
 import {certificatePath,custodyDocumentKind,custodyGrams,custodyMetalName,custodyMetals,custodyStatus,parseCustodyCertificate,parseCustodySummary,validCertificateId,type CustodyCertificate,type CustodyDocument,type CustodySummary} from '../lib/custody';
 
-type Props={operator:boolean;identityKey:string;get:<T>(path:string)=>Promise<T>;disabled?:boolean};
+type Props={operator:boolean;identityKey:string;get:<T>(path:string)=>Promise<T>;disabled?:boolean;refreshKey?:string};
 type Scoped<T>={scope:string;value:T};
 const message=(error:unknown)=>error instanceof Error?error.message:'No se pudo consultar la custodia demo. Reintenta.';
 function Row({label,value}:{label:string;value:string}){return <View style={styles.row}><Text style={styles.label}>{label}</Text><Text selectable style={styles.value}>{value}</Text></View>}
@@ -22,7 +22,7 @@ function Documents({items}:{items:CustodyDocument[]}){
 
 // identityKey must be the authenticated account id. Also mount with key={account.id}
 // so a different identity never receives another account's visible documents.
-export function CustodyPanel({operator,identityKey,get,disabled=false}:Props){
+export function CustodyPanel({operator,identityKey,get,disabled=false,refreshKey=''}:Props){
   const scope=`${operator?'operator':'buyer'}:${identityKey}`;
   const currentScope=useRef(scope);currentScope.current=scope;
   const getRef=useRef(get);getRef.current=get;
@@ -61,8 +61,9 @@ export function CustodyPanel({operator,identityKey,get,disabled=false}:Props){
     return ()=>{summaryRequest.current++;certificateRequest.current++;};
   },[scope]);
   useEffect(()=>{
-    if(!disabled&&initialized.current!==scope){initialized.current=scope;void refresh();}
-  },[scope,disabled]);
+    const update=`${scope}:${refreshKey}`;
+    if(!disabled&&initialized.current!==update){initialized.current=update;void refresh();}
+  },[scope,disabled,refreshKey]);
 
   function closeCertificate(){certificateRequest.current++;setCertificateId(null);setCertificate(null);setCertificateError(null);setCertificateLoading(null);setVerifiedAt(null);}
   async function verify(rawId:string){
@@ -90,14 +91,15 @@ export function CustodyPanel({operator,identityKey,get,disabled=false}:Props){
       <Text style={styles.smallHeading}>{data.mine.name}</Text>
       <Text style={styles.note}>{data.disclaimer}</Text>
       <View style={styles.card}><Text style={styles.cardTitle}>{operator?'Total de lotes registrados':'Resumen de los lotes vinculados'}</Text>
-        {custodyMetals.map(metal=><Row key={metal} label={custodyMetalName(metal)} value={custodyGrams(data.totals[metal].weightMg)}/>)}
+        {custodyMetals.map(metal=><View key={metal}><Row label={custodyMetalName(metal)} value={custodyGrams(data.totals[metal].activeWeightMg)}/>{data.totals[metal].deliveredMg>0&&<Text style={styles.note}>{custodyGrams(data.totals[metal].deliveredMg)} entregados en la simulación; peso registrado original {custodyGrams(data.totals[metal].weightMg)}.</Text>}</View>)}
       </View>
       {!data.lots.length&&<View style={styles.card}><Text style={styles.cardTitle}>{operator?'No hay lotes registrados':'Todavía no tienes lotes vinculados'}</Text><Text style={styles.note}>{operator?'Los ingresos ficticios de metal permiten registrar lotes para esta demostración.':'Tus compras simuladas podrán vincular gramos a lotes de la mina. Tus saldos anteriores permanecen en el portafolio.'}</Text></View>}
       {data.lots.map(lot=>{
         const allocations=data.allocations.filter(entry=>entry.lotId===lot.id);
         return <View key={lot.id} style={styles.card}>
           <Text style={styles.eyebrow}>LOTE DEMO</Text><Text style={styles.cardTitle}>{custodyMetalName(lot.metal)}</Text><Text selectable style={styles.identifier}>{lot.id}</Text>
-          <Row label="Pureza declarada de prueba" value={lot.purity}/><Row label="Peso del lote" value={custodyGrams(lot.weightMg)}/>
+          <Row label="Pureza declarada de prueba" value={lot.purity}/><Row label="Peso original del lote" value={custodyGrams(lot.originalWeightMg)}/>
+          <Row label="Entregado en la simulación" value={custodyGrams(lot.deliveredMg)}/><Row label="Peso que sigue en custodia demo" value={custodyGrams(lot.activeWeightMg)}/>
           <Row label="Ubicación ficticia" value={lot.location}/><Row label="Estado" value={custodyStatus(lot.status)}/>
           <Row label={operator?'Asignado en el lote':'Asignado a mi cuenta'} value={custodyGrams(lot.allocatedMg)}/><Row label="Disponible en el lote" value={custodyGrams(lot.availableMg)}/>
           <Documents items={lot.documents}/>

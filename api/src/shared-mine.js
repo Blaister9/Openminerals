@@ -1,4 +1,4 @@
-import {METALS,DEMO_RATES,DomainError,seedState,applyCommand,parseGrams} from './domain.js';
+import {METALS,DEMO_RATES,DomainError,seedState,applyCommand,parseGrams,deliveryIsActive} from './domain.js';
 import {stockMetadata} from './custody.js';
 
 export const DEFAULT_MINE_ID='openminerals-demo-v1';
@@ -110,7 +110,7 @@ export function applyStockCommand(mine,command,{accountId,alias}={},now=new Date
 
 function reservations(state,metal){
   return state.offers.filter(o=>o.metal===metal&&o.status==='OPEN').reduce((n,o)=>n+o.mg,0)+
-    state.custodyRequests.filter(d=>d.metal===metal&&d.status==='PENDING_QUOTE').reduce((n,d)=>n+d.mg,0);
+    state.custodyRequests.filter(d=>d.metal===metal&&deliveryIsActive(d.status)).reduce((n,d)=>n+d.mg,0);
 }
 
 export function summarizeMine(mine,accounts){
@@ -128,11 +128,11 @@ export function summarizeMine(mine,accounts){
     .map(receipt=>({account:{id:a.id,alias:a.alias},receipt:operatorReceiptView(receipt)})));
   const trades=allOperations.filter(o=>['buy','sell','market_buy'].includes(o.receipt.action));
   const fees=allOperations.filter(o=>['buy','sell','market_sell'].includes(o.receipt.action));
-  const operations=allOperations.filter(o=>['buy','sell','offer','cancel_offer','delivery','cancel_delivery','market_buy','market_sell'].includes(o.receipt.action))
+  const operations=allOperations.filter(o=>['buy','sell','offer','cancel_offer','delivery','cancel_delivery','market_buy','market_sell','delivery_quote','delivery_accept','delivery_reject','delivery_transition'].includes(o.receipt.action))
     .sort((a,b)=>newest(a.receipt,b.receipt)||b.account.id.localeCompare(a.account.id)).slice(0,20);
   const pendingOffers=buyers.flatMap(a=>a.state.offers.filter(o=>o.status==='OPEN')
     .map(offer=>({account:{id:a.id,alias:a.alias},offer:copy(offer)})));
-  const pendingDeliveries=buyers.flatMap(a=>a.state.custodyRequests.filter(d=>d.status==='PENDING_QUOTE')
+  const pendingDeliveries=buyers.flatMap(a=>a.state.custodyRequests.filter(d=>deliveryIsActive(d.status))
     .map(delivery=>({account:{id:a.id,alias:a.alias},delivery:copy(delivery)})));
   return {
     mine:{id:mine.id,name:mine.name},demoOnly:true,reconciled:true,

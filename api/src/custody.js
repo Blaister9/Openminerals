@@ -10,6 +10,7 @@ const fail=(condition,message='La asignación de custodia DEMO no concuerda.')=>
 const integer=value=>Number.isSafeInteger(value)&&value>=0&&value<=1_000_000_000;
 const record=fn=>Object.fromEntries(metals.map(metal=>[metal,fn(metal)]));
 const has=(object,key)=>Object.hasOwn(object,key);
+const delivered=lot=>has(lot,'deliveredMg')?lot.deliveredMg:0;
 const defaultPurity={XAU:9999,XAG:9990,XPT:9995,XPD:9995};
 const documentKinds=['DEMO_ASSAY','DEMO_ORIGIN','DEMO_RECORD'];
 
@@ -46,7 +47,7 @@ function makeLot(mine,metal,weightMg,source,metadata={},createdAt=new Date().toI
   const documents=(metadata.documents?.length?metadata.documents:[
     {title:'Registro ilustrativo DEMO',kind:'DEMO_RECORD',content:'Registro sintético de demostración. No representa ensayo, recepción física, título de propiedad ni reserva auditada.'},
   ]).map((document,index)=>({id:id('document',lotId,index),...document,demoOnly:true}));
-  return {id:lotId,metal,purityBps:metadata.purityBps??defaultPurity[metal],weightMg,
+  return {id:lotId,metal,purityBps:metadata.purityBps??defaultPurity[metal],weightMg,deliveredMg:0,
     location:`DEMO · ${metadata.location??'Bóveda ilustrativa sin ubicación física'}`,status:'REGISTERED_DEMO',documents,createdAt,demoOnly:true};
 }
 
@@ -57,7 +58,7 @@ export function allocateCustody(mine,account,metal,mg,source,now=new Date().toIS
   for(const lot of next.custody.lots.filter(lot=>lot.metal===metal)){
     if(!remaining)break;
     const allocated=next.custody.allocations.filter(allocation=>allocation.lotId===lot.id).reduce((sum,allocation)=>sum+allocation.mg,0);
-    const amount=Math.min(remaining,lot.weightMg-allocated);
+    const amount=Math.min(remaining,lot.weightMg-delivered(lot)-allocated);
     if(amount<=0)continue;
     const allocationId=id('allocation',account.id,lot.id,source),certificateId=id('certificate',allocationId);
     fail(!next.custody.allocations.some(allocation=>allocation.id===allocationId),'La asignación DEMO ya existe.');
@@ -102,6 +103,21 @@ export function transferCustody(mine,sellerId,buyer,metal,mg,source,now){
   return {mine:next,allocations:copy(created)};
 }
 
+export function deliverCustody(mine,accountId,metal,mg){
+  const next=copy(mine),pieces=[];let remaining=mg;
+  fail(integer(mg)&&has(METALS,metal));
+  for(const allocation of next.custody.allocations){
+    if(allocation.accountId!==accountId||allocation.metal!==metal||!remaining)continue;
+    const amount=Math.min(allocation.mg,remaining);if(!amount)continue;
+    const lot=next.custody.lots.find(item=>item.id===allocation.lotId);
+    allocation.mg-=amount;lot.deliveredMg=delivered(lot)+amount;remaining-=amount;
+    pieces.push({lotId:lot.id,mg:amount});
+  }
+  fail(remaining===0,'La entrega no tiene asignaciones de lote DEMO suficientes.');
+  next.totalSupplyMg[metal]-=mg;
+  return {mine:next,deliveredLots:pieces};
+}
+
 export function addStockLot(mine,command,now){
   const next=copy(mine),lot=makeLot(mine,command.metal,parseGrams(command.grams),`stock:${command.requestId}`,stockMetadata(command),now);
   fail(!next.custody.lots.some(existing=>existing.id===lot.id),'El lote DEMO ya existe.');
@@ -115,6 +131,7 @@ export function validateCustody(mine,accounts){
   const lots=new Map(),allocations=new Map(),certificates=new Map();
   for(const lot of custody.lots){
     fail(typeof lot.id==='string'&&!lots.has(lot.id)&&has(METALS,lot.metal)&&integer(lot.weightMg)&&lot.weightMg>0);
+    fail(integer(delivered(lot))&&delivered(lot)<=lot.weightMg);
     fail(Number.isSafeInteger(lot.purityBps)&&lot.purityBps>0&&lot.purityBps<=10000&&typeof lot.location==='string'&&lot.location.startsWith('DEMO · ')&&lot.status==='REGISTERED_DEMO'&&lot.demoOnly===true);
     fail(Array.isArray(lot.documents)&&lot.documents.length>0&&lot.documents.every(document=>document.demoOnly===true&&documentKinds.includes(document.kind)&&typeof document.id==='string'&&typeof document.title==='string'&&typeof document.content==='string'));
     lots.set(lot.id,lot);
@@ -131,9 +148,9 @@ export function validateCustody(mine,accounts){
   }
   fail(custody.certificates.length===custody.allocations.length);
   for(const allocation of custody.allocations)fail(certificates.has(allocation.certificateId));
-  for(const lot of custody.lots)fail(custody.allocations.filter(allocation=>allocation.lotId===lot.id).reduce((sum,allocation)=>sum+allocation.mg,0)<=lot.weightMg);
+  for(const lot of custody.lots)fail(custody.allocations.filter(allocation=>allocation.lotId===lot.id).reduce((sum,allocation)=>sum+allocation.mg,0)<=lot.weightMg-delivered(lot));
   for(const metal of metals){
-    const total=custody.lots.filter(lot=>lot.metal===metal).reduce((sum,lot)=>sum+lot.weightMg,0);
+    const total=custody.lots.filter(lot=>lot.metal===metal).reduce((sum,lot)=>sum+lot.weightMg-delivered(lot),0);
     const allocated=custody.allocations.filter(allocation=>allocation.metal===metal).reduce((sum,allocation)=>sum+allocation.mg,0);
     fail(integer(mine.totalSupplyMg?.[metal])&&integer(mine.inventoryMg?.[metal])&&total===mine.totalSupplyMg[metal]&&total-allocated===mine.inventoryMg[metal]);
     for(const account of buyers.values()){
@@ -146,7 +163,12 @@ export function validateCustody(mine,accounts){
 
 // Run only while the mine row is locked. No old state or receipt is rewritten.
 export function ensureCustody(mine,accounts,now=new Date().toISOString()){
-  if(has(mine,'custody')){validateCustody(mine,accounts);return {mine,changed:false};}
+  if(has(mine,'custody')){
+    validateCustody(mine,accounts);
+    if(mine.custody.lots.every(lot=>has(lot,'deliveredMg')))return {mine,changed:false};
+    const upgraded=copy(mine);for(const lot of upgraded.custody.lots)if(!has(lot,'deliveredMg'))lot.deliveredMg=0;
+    return {mine:upgraded,changed:true};
+  }
   let next=copy(mine);const buyers=accounts.filter(account=>account.role==='buyer').sort((a,b)=>a.id.localeCompare(b.id));
   for(const metal of metals){
     const allocated=buyers.reduce((sum,account)=>{fail(integer(account.state.holdingsMg?.[metal]));return sum+account.state.holdingsMg[metal];},0);
@@ -162,7 +184,8 @@ export function ensureCustody(mine,accounts,now=new Date().toISOString()){
 function lotView(lot,custody,accountId){
   const all=custody.allocations.filter(allocation=>allocation.lotId===lot.id);
   const allocatedMg=all.filter(allocation=>!accountId||allocation.accountId===accountId).reduce((sum,allocation)=>sum+allocation.mg,0);
-  return {...copy(lot),purity:`${(lot.purityBps/100).toFixed(2)}% DEMO`,allocatedMg,availableMg:lot.weightMg-all.reduce((sum,allocation)=>sum+allocation.mg,0)};
+  const deliveredMg=delivered(lot),activeWeightMg=lot.weightMg-deliveredMg;
+  return {...copy(lot),originalWeightMg:lot.weightMg,deliveredMg,activeWeightMg,purity:`${(lot.purityBps/100).toFixed(2)}% DEMO`,allocatedMg,availableMg:activeWeightMg-all.reduce((sum,allocation)=>sum+allocation.mg,0)};
 }
 export function custodyView(mine,accounts,viewer){
   validateCustody(mine,accounts);
@@ -171,7 +194,7 @@ export function custodyView(mine,accounts,viewer){
   const lots=mine.custody.lots.filter(lot=>operator||selected.some(allocation=>allocation.lotId===lot.id)).map(lot=>lotView(lot,mine.custody,operator?undefined:viewer.id));
   const allocations=selected.map(allocation=>{const account=accountMap.get(allocation.accountId);const {accountId,...rest}=copy(allocation);return {...rest,account:{id:account.id,alias:account.alias},status:allocation.mg>0?'ACTIVE':'RELEASED',demoOnly:true};});
   return {demoOnly:true,disclaimer:CUSTODY_DISCLAIMER,mine:{id:mine.id,name:mine.name},view:operator?'operator':'buyer',lots,allocations,
-    totals:record(metal=>({weightMg:lots.filter(lot=>lot.metal===metal).reduce((sum,lot)=>sum+lot.weightMg,0),allocatedMg:allocations.filter(allocation=>allocation.metal===metal).reduce((sum,allocation)=>sum+allocation.mg,0),availableMg:lots.filter(lot=>lot.metal===metal).reduce((sum,lot)=>sum+lot.availableMg,0)}))};
+    totals:record(metal=>({weightMg:lots.filter(lot=>lot.metal===metal).reduce((sum,lot)=>sum+lot.weightMg,0),deliveredMg:lots.filter(lot=>lot.metal===metal).reduce((sum,lot)=>sum+lot.deliveredMg,0),activeWeightMg:lots.filter(lot=>lot.metal===metal).reduce((sum,lot)=>sum+lot.activeWeightMg,0),allocatedMg:allocations.filter(allocation=>allocation.metal===metal).reduce((sum,allocation)=>sum+allocation.mg,0),availableMg:lots.filter(lot=>lot.metal===metal).reduce((sum,lot)=>sum+lot.availableMg,0)}))};
 }
 export function custodyCertificate(mine,accounts,viewer,certificateId){
   validateCustody(mine,accounts);

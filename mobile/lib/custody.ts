@@ -1,7 +1,7 @@
 export type CustodyMetal='XAU'|'XAG'|'XPT'|'XPD';
 export type CustodyDocument={id:string;title:string;kind:'DEMO_ASSAY'|'DEMO_ORIGIN'|'DEMO_RECORD';content:string;demoOnly:true};
 export type CustodyLot={
-  id:string;metal:CustodyMetal;purityBps:number;purity:string;weightMg:number;location:string;
+  id:string;metal:CustodyMetal;purityBps:number;purity:string;weightMg:number;originalWeightMg:number;deliveredMg:number;activeWeightMg:number;location:string;
   status:'REGISTERED_DEMO';documents:CustodyDocument[];allocatedMg:number;availableMg:number;demoOnly:true;
 };
 export type CustodyAllocation={
@@ -11,7 +11,7 @@ export type CustodyAllocation={
 export type CustodySummary={
   demoOnly:true;disclaimer:string;mine:{id:string;name:string};view:'buyer'|'operator';
   lots:CustodyLot[];allocations:CustodyAllocation[];
-  totals:Record<CustodyMetal,{weightMg:number;allocatedMg:number;availableMg:number}>;
+  totals:Record<CustodyMetal,{weightMg:number;deliveredMg:number;activeWeightMg:number;allocatedMg:number;availableMg:number}>;
 };
 export type CustodyCertificate={
   id:string;demoOnly:true;label:string;disclaimer:string;mine:{id:string;name:string};account:{id:string;alias:string};
@@ -59,16 +59,20 @@ function document(value:unknown):CustodyDocument {
 }
 function quantities(item:RecordValue){
   const weightMg=number(item.weightMg),allocatedMg=number(item.allocatedMg),availableMg=number(item.availableMg);
+  const hasDelivery=item.deliveredMg!==undefined||item.activeWeightMg!==undefined;
+  const deliveredMg=hasDelivery?number(item.deliveredMg):0,activeWeightMg=hasDelivery?number(item.activeWeightMg):weightMg;
   // Buyer allocatedMg includes only that account. Other buyers' allocations
   // are intentionally omitted, so their visible figures need not sum to weight.
-  if(allocatedMg+availableMg>weightMg)throw invalid();
-  return {weightMg,allocatedMg,availableMg};
+  if(deliveredMg+activeWeightMg!==weightMg||allocatedMg+availableMg>activeWeightMg)throw invalid();
+  return {weightMg,deliveredMg,activeWeightMg,allocatedMg,availableMg};
 }
 function lot(value:unknown):CustodyLot {
   const item=object(value);demo(item);
   const purityBps=number(item.purityBps);
   if(purityBps<=0||purityBps>10000||item.status!=='REGISTERED_DEMO')throw invalid();
-  return {id:id(item.id),metal:metal(item.metal),purityBps,purity:text(item.purity,80),...quantities(item),
+  const amounts=quantities(item),originalWeightMg=item.originalWeightMg===undefined?amounts.weightMg:number(item.originalWeightMg);
+  if(originalWeightMg!==amounts.weightMg)throw invalid();
+  return {id:id(item.id),metal:metal(item.metal),purityBps,purity:text(item.purity,80),...amounts,originalWeightMg,
     location:text(item.location,200),status:'REGISTERED_DEMO',documents:list(item.documents,document),demoOnly:true};
 }
 function allocation(value:unknown):CustodyAllocation {
@@ -90,13 +94,13 @@ export function parseCustodySummary(value:unknown,operator:boolean,accountId:str
   const view=operator?'operator':'buyer';
   if(item.view!==view)throw invalid();
   const lots=list(item.lots,lot),allocations=list(item.allocations,allocation);
-  if(operator&&lots.some(entry=>entry.allocatedMg+entry.availableMg!==entry.weightMg))throw invalid();
+  if(operator&&lots.some(entry=>entry.allocatedMg+entry.availableMg!==entry.activeWeightMg))throw invalid();
   const ids=new Set(lots.map(entry=>entry.id));
   if(ids.size!==lots.length||new Set(allocations.map(entry=>entry.id)).size!==allocations.length||
     allocations.some(entry=>!ids.has(entry.lotId)||lots.find(candidate=>candidate.id===entry.lotId)?.metal!==entry.metal||(!operator&&entry.account.id!==accountId)))throw invalid();
   const totals=object(item.totals);
   const checkedTotals=Object.fromEntries(custodyMetals.map(key=>[key,quantities(object(totals[key]))])) as CustodySummary['totals'];
-  if(operator&&custodyMetals.some(key=>checkedTotals[key].allocatedMg+checkedTotals[key].availableMg!==checkedTotals[key].weightMg))throw invalid();
+  if(operator&&custodyMetals.some(key=>checkedTotals[key].allocatedMg+checkedTotals[key].availableMg!==checkedTotals[key].activeWeightMg))throw invalid();
   return {demoOnly:true,disclaimer:text(item.disclaimer,2000),mine:mine(item.mine),view,lots,allocations,totals:checkedTotals};
 }
 export function parseCustodyCertificate(value:unknown,requestedId:string,operator:boolean,accountId:string):CustodyCertificate {

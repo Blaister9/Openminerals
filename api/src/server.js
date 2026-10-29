@@ -66,6 +66,16 @@ export function createApiServer(store,config={}){
         const {account}=requireIdentity(identity);
         return send(res,200,await store.getMarketplace(account.id));
       }
+      if(req.method==='GET'&&path==='/api/demo/deliveries'){
+        const {account}=requireIdentity(identity);
+        return send(res,200,await store.getDeliveries(account.id));
+      }
+      if(req.method==='POST'&&['/api/demo/delivery_accept','/api/demo/delivery_reject'].includes(path)){
+        const {account}=requireIdentity(identity),body=await readJson(req);
+        const action=path.slice('/api/demo/'.length);onlyKeys(body,action==='delivery_accept'?['deliveryId','quoteId']:['deliveryId']);
+        const result=await store.mutateAccount(account.id,{...body,action,requestId:req.headers['idempotency-key']});
+        return send(res,200,{receipt:result.receipt,state:{...result.state,metals:METALS}});
+      }
       if(req.method==='POST'&&path==='/api/demo/market_buy'){
         const {account}=requireIdentity(identity),body=await readJson(req);onlyKeys(body,['sellerId','offerId']);
         const result=await store.mutateAccount(account.id,{...body,action:'market_buy',requestId:req.headers['idempotency-key']});
@@ -85,6 +95,14 @@ export function createApiServer(store,config={}){
         const {account}=requireIdentity(identity);
         if(req.method==='GET'&&path==='/api/demo/mine/summary')return send(res,200,await store.getMineSummary(account.id));
         if(req.method==='GET'&&path==='/api/demo/mine/custody')return send(res,200,await store.getCustody(account.id,'operator'));
+        if(req.method==='GET'&&path==='/api/demo/mine/deliveries')return send(res,200,await store.getDeliveries(account.id,'operator'));
+        if(req.method==='GET'&&path.startsWith('/api/demo/mine/commands/'))return send(res,200,await store.getMineCommand(account.id,path.slice('/api/demo/mine/commands/'.length)));
+        if(req.method==='POST'&&['/api/demo/mine/delivery_quote','/api/demo/mine/delivery_transition','/api/demo/mine/delivery_config'].includes(path)){
+          const action=path.slice('/api/demo/mine/'.length),body=await readJson(req);
+          const fields={delivery_quote:['buyerId','deliveryId','jurisdiction'],delivery_transition:['buyerId','deliveryId','status','reason'],delivery_config:['jurisdiction','label','taxBps','service','preparation','transport','insuranceBps','quoteValidityHours','requirements','reason']};
+          onlyKeys(body,fields[action]);const result=await store.mutateDelivery(account.id,{...body,action,requestId:req.headers['idempotency-key']});
+          return send(res,200,{receipt:result.receipt,mine:result.mine});
+        }
         if(req.method==='POST'&&path==='/api/demo/mine/stock'){
           const body=await readJson(req);onlyKeys(body,['metal','grams','reason','purityBps','location','documents','documentTitle','documentContent']);
           const result=await store.mutateStock(account.id,{...body,requestId:req.headers['idempotency-key']});

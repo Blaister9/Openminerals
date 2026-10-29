@@ -105,3 +105,21 @@ test('parser conserva únicamente el contrato de custodia y no altera el DTO ori
   parsed.lots[0].documents[0].content='changed';
   assert.equal(raw.lots[0].documents[0].content,before.lots[0].documents[0].content);
 });
+
+test('peso original, entregado y activo deben conciliar sin sumar otra vez el metal entregado',()=>{
+  const f=fixture(),raw=custodyView(f.mine,f.accounts,f.operator);
+  for(const mutate of [
+    value=>{value.lots[0].deliveredMg=1;},
+    value=>{value.lots[0].activeWeightMg--;},
+    value=>{value.lots[0].originalWeightMg++;},
+    value=>{value.totals.XAU.deliveredMg=1;},
+  ]){const changed=structuredClone(raw);mutate(changed);assert.throws(()=>parseCustodySummary(changed,true,f.operator.id));}
+});
+
+test('DTO anterior sin entregas sigue consultable al incorporar metadatos de peso',()=>{
+  const f=fixture(),raw=custodyView(f.mine,f.accounts,f.operator);
+  for(const lot of raw.lots){delete lot.originalWeightMg;delete lot.deliveredMg;delete lot.activeWeightMg;}
+  for(const totals of Object.values(raw.totals)){delete totals.deliveredMg;delete totals.activeWeightMg;}
+  const parsed=parseCustodySummary(raw,true,f.operator.id);
+  for(const lot of parsed.lots){assert.equal(lot.originalWeightMg,lot.weightMg);assert.equal(lot.deliveredMg,0);assert.equal(lot.activeWeightMg,lot.weightMg);}
+});
