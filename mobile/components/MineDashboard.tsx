@@ -3,6 +3,7 @@ import {ActivityIndicator,Pressable,StyleSheet,Text,TextInput,View} from 'react-
 import {normalizeDecimalInput,parsePositiveDecimal} from '../lib/presentation';
 import {receiptSummary,receiptTitle,type Receipt} from '../lib/receipt-presentation';
 import {deliveryStatusLabel,type DeliveryStatus} from '../lib/delivery';
+import {institutional} from '../lib/visual-theme';
 
 type Metal='XAU'|'XAG'|'XPT'|'XPD';
 type Account={id:string;alias:string};
@@ -36,7 +37,7 @@ export function MineDashboard({summary,loading,error,blocked,lastStockId,onRefre
   const canSubmit=!!balanced&&!blocked&&!loading&&!invalid&&!overflow&&metadataValid&&reason.trim().length>=3&&reason.trim().length<=160;
   return <>
     <Text style={styles.eyebrow}>OPERADOR · INVENTARIO COMPARTIDO</Text>
-    <Text accessibilityRole="header" style={styles.title}>{summary?.mine.name||'Panel de mina'}</Text>
+    <Text accessibilityRole="header" style={[styles.title,institutional.heading]}>{summary?.mine.name||'Panel de mina'}</Text>
     <Text style={styles.copy}>Compradores distintos operan sobre estas mismas existencias ficticias. Los saldos personales permanecen separados.</Text>
     <Pressable accessibilityRole="button" disabled={loading} onPress={onRefresh} style={[styles.secondary,loading&&styles.disabled]}><Text style={styles.secondaryText}>Actualizar panel de mina</Text></Pressable>
     {loading&&<View style={styles.loading}><ActivityIndicator color="#DCBC7F"/><Text style={styles.copy}>Consultando mina…</Text></View>}
@@ -51,7 +52,7 @@ export function MineDashboard({summary,loading,error,blocked,lastStockId,onRefre
       <Text accessibilityRole="header" style={styles.section}>Ingreso ficticio de metal</Text>
       <View style={styles.card}>
         <Text style={styles.copy}>Crea un lote ficticio con asignaciones trazables dentro de la demo. El registro no acredita recepción ni custodia física real.</Text>
-        <View style={styles.chips}>{metals.map(item=><Pressable key={item.code} accessibilityRole="button" disabled={blocked} onPress={()=>setMetal(item.code)} style={[styles.chip,metal===item.code&&styles.chipOn]}><Text style={styles.chipText}>{item.name}</Text></Pressable>)}</View>
+        <View style={styles.chips}>{metals.map(item=><Pressable key={item.code} testID={`stock-metal-${item.code}`} accessibilityRole="button" disabled={blocked} onPress={()=>setMetal(item.code)} style={[styles.chip,metal===item.code&&styles.chipOn]}><Text style={styles.chipText}>{item.name}</Text></Pressable>)}</View>
         <Text style={styles.label}>Cantidad en gramos</Text><TextInput accessibilityLabel="Gramos para ingreso de mina" style={styles.input} value={grams} onChangeText={setGrams} editable={!blocked} keyboardType="decimal-pad"/>
         {!invalid&&mg!==null&&<Row label="Cantidad interpretada" value={gram(mg)}/>}
         {invalid&&<Text style={styles.note}>Introduce al menos 0,1 g y hasta tres decimales, con coma o punto.</Text>}

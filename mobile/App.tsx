@@ -1,5 +1,5 @@
 import React, {useEffect,useLayoutEffect,useRef,useState} from 'react';
-import {ActivityIndicator,Animated,Modal,Pressable,ScrollView,StatusBar,StyleSheet,Text,TextInput,View} from 'react-native';
+import {ActivityIndicator,Animated,Modal,Platform,Pressable,ScrollView,StatusBar,StyleSheet,Text,TextInput,View} from 'react-native';
 import {SafeAreaProvider,SafeAreaView,initialWindowMetrics} from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
@@ -20,6 +20,7 @@ import {DeliveryPanel} from './components/DeliveryPanel';
 import {ManagementPanel} from './components/ManagementPanel';
 import {AccountSettings} from './components/AccountSettings';
 import {DemoUpdates} from './components/DemoUpdates';
+import {MetalEmblem,PortfolioComposition} from './components/PortfolioComposition';
 
 // DEMO: todas las cifras, inventarios y solicitudes son simulados.
 // Cuentas de demostración; no hay KYC, pagos, exchange ni bóveda real.
@@ -68,8 +69,8 @@ function checkedMine(value:unknown):MineSummary{
  return mine;
 }
 
-function Chip({label,active,onPress,compact=false}:{label:string;active:boolean;onPress:()=>void;compact?:boolean}){
- return <Pressable accessibilityRole="button" accessibilityState={{selected:active}} onPress={onPress} style={[styles.chip,compact&&styles.mineNavigationChip,active&&styles.chipOn]}><Text style={[styles.chipText,active&&styles.chipTextOn]}>{label}</Text></Pressable>;
+function Chip({label,active,onPress,compact=false,testID}:{label:string;active:boolean;onPress:()=>void;compact?:boolean;testID?:string}){
+ return <Pressable testID={testID} accessibilityRole="button" accessibilityState={{selected:active}} onPress={onPress} style={[styles.chip,compact&&styles.mineNavigationChip,active&&styles.chipOn]}><Text style={[styles.chipText,active&&styles.chipTextOn]}>{label}</Text></Pressable>;
 }
 function Button({label,onPress,secondary=false,disabled=false}:{label:string;onPress:()=>void;secondary?:boolean;disabled?:boolean}){
  return <Pressable accessibilityRole="button" accessibilityState={{disabled}} disabled={disabled} onPress={onPress} style={[styles.button,secondary&&styles.buttonSecondary,disabled&&{opacity:.45}]}><Text style={[styles.buttonText,secondary&&styles.buttonSecondaryText]}>{label}</Text></Pressable>;
@@ -334,6 +335,7 @@ export default function App(){
  }
  const portfolio=state?summarizePortfolio(state):{metalsValueMinor:0,usdtAvailableMinor:0,totalUsdtAndMetalsMinor:0};
  const reserved=(metal:Metal)=>state?state.offers.filter(o=>o.metal===metal&&o.status==='OPEN').reduce((a,o)=>a+o.mg,0)+state.custodyRequests.filter(d=>d.metal===metal&&['PENDING_QUOTE','QUOTED','APPROVED','PREPARING','DISPATCHED_DEMO'].includes(d.status)).reduce((a,d)=>a+d.mg,0):0;
+ const composition=metals.map(item=>({...item,mg:state?.holdingsMg[item.code]||0,reservedMg:reserved(item.code),valueMinor:Math.ceil((state?.holdingsMg[item.code]||0)*(state?.priceCentsPerGram[item.code]||0)/1000)}));
  function accountCard(){return <Card>
   <Text style={styles.cardTitle}>{account?account.alias:state?.legacyReadOnly?'Sesión anterior vinculada':'Tu cuenta de demostración'}</Text>
   {account?<><Row left="Rol" right={account.role==='operator'?'Operador de mina':'Comprador'}/><Text style={styles.copy}>{mineIdentity?.name||'Mina de demostración'} · datos ficticios</Text><Button label="Abrir mi cuenta" secondary disabled={busy||authBusy} onPress={()=>openAccount('login')}/><Button label="Perfil y recuperación" secondary disabled={busy||authBusy||!!pending||authExpired} onPress={openSettings}/></>:<>
@@ -344,12 +346,15 @@ export default function App(){
  function accountPage(){return <><Text style={styles.eyebrow}>ACCESO A LA DEMOSTRACIÓN</Text><Text style={styles.pageTitle}>Cuenta</Text>{accountCard()}<Text style={styles.copy}>Los roles y el inventario son de prueba. No hay verificación de identidad, pagos, reservas físicas ni custodio conectado.</Text><Text style={styles.copy}>Para usar la misma cuenta en otro dispositivo, entra con el mismo alias y su clave exclusiva de demostración.</Text><DemoUpdates disabled={busy||authBusy||!!pending||authExpired||!!accountRecovery}/></>}
  function home(){return <>
   {!account&&accountCard()}
-  <Text style={styles.eyebrow}>USDT + METALES · SIMULACIÓN</Text>
+  <Text style={styles.eyebrow}>TU RELACIÓN CON EL METAL</Text>
+  <Text style={styles.homeTitle}>Propiedad.{`\n`}Gramo a gramo.</Text>
+  <Text style={styles.balanceLabel}>USDT + METALES · VALOR SIMULADO</Text>
   <Text style={styles.heroNumber}>{money(portfolio.totalUsdtAndMetalsMinor)}</Text>
   <Text style={styles.muted}>USDT disponible más valoración de metales. No incluye tus saldos COP, EUR y USD.</Text>
   <Card><Row left="USDT disponible" right={money(portfolio.usdtAvailableMinor)}/><Row left="Valor de tus metales" right={money(portfolio.metalsValueMinor)}/>
    <Text style={styles.mutedSmall}>{portfolio.metalsValueMinor===0?'Aún no tienes metales. Tu dinero simulado sigue disponible en USDT.':'Valor de referencia ficticio; las comisiones se muestran al operar.'}</Text>
   </Card>
+  <PortfolioComposition positions={composition}/>
   <View style={styles.hRow}>
    <Pressable onPress={()=>setTab('Mercado')} style={styles.quick}><Text style={styles.quickText}>Comprar metales  →</Text></Pressable>
    <Pressable onPress={()=>setTab('Billetera')} style={styles.quick}><Text style={styles.quickText}>Abrir billetera  →</Text></Pressable>
@@ -358,7 +363,7 @@ export default function App(){
   {!storyVisible&&<MetalStory scrollY={homeScrollY} viewportHeight={viewportHeight} onSkip={()=>setTab('Mercado')}/>}
   <Sub>Mercado ilustrativo</Sub>
   {metals.map(m=><Pressable key={m.code} onPress={()=>{setCurrentMetal(m.code);setTab('Mercado');}} style={styles.metalRow}>
-   <View style={[styles.metalIcon,{borderColor:m.color}]}><Text style={[styles.metalText,{color:m.color}]}>{m.symbol}</Text></View>
+   <MetalEmblem symbol={m.symbol} color={m.color} small/>
    <View style={{flex:1}}><Text style={styles.cardTitle}>{m.name}</Text><Text style={styles.mutedSmall}>Cotización simulada por gramo</Text></View>
    <Text style={styles.rowValue}>{money(state?.priceCentsPerGram[m.code]||0)}/g</Text>
   </Pressable>)}
@@ -371,8 +376,8 @@ export default function App(){
   return <><Text style={styles.eyebrow}>COMPRAVENTA DE METALES</Text><Text style={styles.pageTitle}>Mercado</Text><Text style={styles.copy}>Compra fracciones de oro, plata, platino o paladio. La liquidación simulada se realiza en USDT.</Text>
    {account&&marketNavigation()}
    {account&&<Card><Text style={styles.cardTitle}>Inventario compartido</Text><Text style={styles.copy}>{mineIdentity?.name||'Mina de demostración'}. Las compras de otras cuentas reducen la misma disponibilidad.</Text><Row left={`${m.name} disponible en la mina`} right={gram(state?.inventoryMg[currentMetal]||0)}/><Button label="Actualizar mercado" secondary disabled={busy} onPress={refresh}/></Card>}
-   <View style={styles.metalGrid}>{metals.map(v=><Pressable key={v.code} onPress={()=>setCurrentMetal(v.code)} style={[styles.metalChoice,currentMetal===v.code&&styles.metalChoiceOn]}>
-    <Text style={[styles.choiceSymbol,{color:v.color}]}>{v.symbol}</Text><Text style={styles.choiceName}>{v.name}</Text><Text style={styles.mutedSmall}>{money(state?.priceCentsPerGram[v.code]||0)}/g</Text>
+   <View style={styles.metalGrid}>{metals.map(v=><Pressable key={v.code} testID={`market-metal-${v.code}`} accessibilityRole="button" accessibilityLabel={`Seleccionar ${v.name}`} accessibilityState={{selected:currentMetal===v.code}} onPress={()=>setCurrentMetal(v.code)} style={[styles.metalChoice,currentMetal===v.code&&styles.metalChoiceOn]}>
+    <MetalEmblem symbol={v.symbol} color={v.color}/><Text style={styles.choiceName}>{v.name}</Text><Text style={styles.mutedSmall}>{money(state?.priceCentsPerGram[v.code]||0)}/g</Text>
    </Pressable>)}</View>
    <Card><Text style={styles.eyebrow}>{m.name.toUpperCase()} · {m.symbol}</Text><Text style={styles.cardTitle}>Comprar gramos</Text><Text style={styles.copy}>Referencia del demo: {money(state?.priceCentsPerGram[currentMetal]||0)} / g</Text>
     <Text style={styles.inputLabel}>Cantidad en gramos</Text><TextInput accessibilityLabel="Cantidad de metal en gramos" style={styles.input} value={grams} keyboardType="decimal-pad" onChangeText={setGrams} placeholder="2.000" placeholderTextColor="#667385"/>
@@ -400,9 +405,9 @@ export default function App(){
   const depositOverflow=depositMinor!==null&&(state?.walletMinor[currency]||0)+depositMinor>MAX_BALANCE_MINOR;
   const withdrawalInsufficient=depositMinor!==null&&depositMinor>(state?.walletMinor[currency]||0);
   return <><Text style={styles.eyebrow}>CUENTAS MULTIDIVISA</Text><Text style={styles.pageTitle}>Billetera</Text><Text style={styles.copy}>Cuatro saldos independientes con movimientos y conversiones simuladas.</Text>
-  <View style={styles.walletGrid}>{currencies.map(c=><View key={c} style={styles.walletCard}><Text style={styles.eyebrow}>{c}</Text><Text style={styles.walletValue}>{money(state?.walletMinor[c]||0,c)}</Text></View>)}</View>
-  <Sub>Convertir saldo</Sub><Card><Text style={styles.inputLabel}>De</Text><View style={styles.chips}>{currencies.map(c=><Chip key={c} label={c} active={from===c} onPress={()=>{setFrom(c);if(c===to)setTo(c==='USD'?'USDT':'USD');}}/>)}</View>
-   <Text style={styles.inputLabel}>A</Text><View style={styles.chips}>{currencies.map(c=><Chip key={c} label={c} active={to===c} onPress={()=>{setTo(c);if(c===from)setFrom(c==='USD'?'USDT':'USD');}}/>)}</View>
+  <View style={styles.walletGrid}>{currencies.map(c=><View key={c} style={styles.walletCard}><View style={styles.walletTop}><Text style={styles.eyebrow}>{c}</Text><Text style={styles.walletBadge}>DEMO</Text></View><Text numberOfLines={2} style={styles.walletValue}>{money(state?.walletMinor[c]||0,c)}</Text><Text style={styles.mutedSmall}>{{COP:'Peso colombiano',EUR:'Euro',USD:'Dólar estadounidense',USDT:'Unidad simulada USDT'}[c]}</Text></View>)}</View>
+  <Sub>Convertir saldo</Sub><Card><Text style={styles.inputLabel}>De</Text><View style={styles.chips}>{currencies.map(c=><Chip key={c} testID={`convert-from-${c}`} label={c} active={from===c} onPress={()=>{setFrom(c);if(c===to)setTo(c==='USD'?'USDT':'USD');}}/>)}</View>
+   <Text style={styles.inputLabel}>A</Text><View style={styles.chips}>{currencies.map(c=><Chip key={c} testID={`convert-to-${c}`} label={c} active={to===c} onPress={()=>{setTo(c);if(c===from)setFrom(c==='USD'?'USDT':'USD');}}/>)}</View>
    <Text style={styles.inputLabel}>Importe</Text><TextInput accessibilityLabel="Cantidad de dinero para convertir" style={styles.input} value={amount} onChangeText={setAmount} keyboardType="decimal-pad"/>
    {quote?<View style={styles.quoteBox}>
     <Text style={styles.cardTitle}>Antes de convertir</Text>
@@ -419,7 +424,7 @@ export default function App(){
    <Button label="Convertir en demo" disabled={tradingBlocked||!quote||insufficient||overflow} onPress={()=>{if(quote)perform('convert',{from,to,amount:quote.normalizedAmount},`Convertir ${from} a ${to}`,`Entregas: ${money(quote.amountMinor,from)}.\nRecibes: ${money(quote.outputMinor,to)}.\nComisión: ${money(quote.feeMinor,to)}.\nSaldo ${to} después: ${money((state?.walletMinor[to]||0)+quote.outputMinor,to)}.`);}}/>
   </Card>
   <Sub>Ingresos y retiros simulados</Sub><Card><Text style={styles.copy}>Estos movimientos son pruebas de saldo: no conectan bancos ni redes blockchain.</Text>
-   <View style={styles.chips}>{currencies.map(c=><Chip key={c} label={c} active={currency===c} onPress={()=>setCurrency(c)}/>)}</View>
+   <View style={styles.chips}>{currencies.map(c=><Chip key={c} testID={`transfer-currency-${c}`} label={c} active={currency===c} onPress={()=>setCurrency(c)}/>)}</View>
    <TextInput accessibilityLabel="Cantidad para ingresar o retirar" style={styles.input} value={amount} onChangeText={setAmount} keyboardType="decimal-pad"/>
    {depositOverflow&&<Text style={styles.disclaimer}>El ingreso superaría el límite de saldo de la demostración.</Text>}
    {withdrawalInsufficient&&<Text style={styles.disclaimer}>El saldo {currency} no alcanza para este retiro.</Text>}
@@ -440,8 +445,9 @@ export default function App(){
   const overflow=!!quote&&(state?.walletMinor.USDT||0)+quote.outputMinor>MAX_BALANCE_MINOR;
   return <><Text style={styles.eyebrow}>MIS POSICIONES</Text><Text style={styles.pageTitle}>Mis metales</Text><Text style={styles.copy}>Consulta las cantidades adquiridas y su valor de referencia.</Text>
    {account&&metalsNavigation()}
-   {metals.map(v=><Pressable key={v.code} onPress={()=>setCurrentMetal(v.code)} style={[styles.metalRow,currentMetal===v.code&&{borderColor:accent}]}>
-    <View style={[styles.metalIcon,{borderColor:v.color}]}><Text style={[styles.metalText,{color:v.color}]}>{v.symbol}</Text></View>
+   <PortfolioComposition positions={composition}/>
+   {metals.map(v=><Pressable key={v.code} testID={`portfolio-metal-${v.code}`} accessibilityRole="button" accessibilityLabel={`Gestionar ${v.name}`} accessibilityState={{selected:currentMetal===v.code}} onPress={()=>setCurrentMetal(v.code)} style={[styles.metalRow,currentMetal===v.code&&{borderColor:accent}]}>
+    <MetalEmblem symbol={v.symbol} color={v.color} small/>
     <View style={{flex:1}}><Text style={styles.cardTitle}>{v.name}</Text><Text style={styles.mutedSmall}>{gram(state?.holdingsMg[v.code]||0)} · disponible {gram((state?.holdingsMg[v.code]||0)-reserved(v.code))}</Text></View>
     <Text style={styles.rowValue}>{money(Math.ceil((state?.holdingsMg[v.code]||0)*(state?.priceCentsPerGram[v.code]||0)/1000))}</Text>
    </Pressable>)}
@@ -545,17 +551,17 @@ const styles=StyleSheet.create({
  logo:{fontSize:19,fontWeight:'800',color:'#F7F6F2',letterSpacing:2},logoSub:{fontSize:8,color:'#88949D',letterSpacing:2.1,marginTop:5},badge:{paddingHorizontal:10,paddingVertical:6,borderColor:'#8E7350',borderWidth:1,borderRadius:5},badgeText:{color:accent,fontSize:10,fontWeight:'800',letterSpacing:1.5},
  body:{paddingHorizontal:21,paddingTop:25,paddingBottom:50},center:{flex:1,justifyContent:'center',alignItems:'center',gap:15},
  identityBar:{flexDirection:'row',alignItems:'center',gap:14,paddingHorizontal:21,paddingVertical:10,backgroundColor:'#111E28',borderBottomWidth:1,borderColor:'#273541'},identityTitle:{fontSize:12,color:'#E1D3B3',fontWeight:'700'},identityNote:{fontSize:10,color:'#98A5B0',marginTop:5},accountLink:{paddingHorizontal:14,paddingVertical:12,minHeight:44,borderRadius:8,borderWidth:1,borderColor:'#806948',justifyContent:'center'},accountLinkText:{fontSize:12,color:accent,fontWeight:'700'},archiveBanner:{backgroundColor:'#343025',paddingHorizontal:21,paddingVertical:12},archiveText:{fontSize:12,lineHeight:20,color:'#E7D7B6'},
- eyebrow:{fontSize:10,color:accent,fontWeight:'800',letterSpacing:2,marginBottom:10},heroNumber:{fontSize:35,color:'#F7F7F5',fontWeight:'700',letterSpacing:-1},pageTitle:{fontSize:31,color:'#F9F6F0',fontWeight:'700',marginBottom:10},
+ eyebrow:{fontSize:10,color:accent,fontWeight:'700',letterSpacing:1.7,marginBottom:10},homeTitle:{fontFamily:Platform.OS==='android'?'serif':'Georgia',fontSize:42,lineHeight:46,fontWeight:'400',letterSpacing:-1,color:'#F2EEE5',marginBottom:25},balanceLabel:{fontSize:9,lineHeight:17,letterSpacing:1.4,color:'#BDA77D',marginBottom:8},heroNumber:{fontSize:35,lineHeight:44,color:'#F7F7F5',fontWeight:'500',letterSpacing:-1,fontVariant:['tabular-nums'],marginBottom:8},pageTitle:{fontFamily:Platform.OS==='android'?'serif':'Georgia',fontSize:34,lineHeight:42,color:'#F2EEE5',fontWeight:'400',letterSpacing:-.6,marginBottom:10},
  muted:{color:'#92A0AC',fontSize:12,lineHeight:20},mutedSmall:{color:'#98A5B0',fontSize:11,lineHeight:18,marginTop:4},copy:{fontSize:13,color:'#BAC4CE',lineHeight:21,marginBottom:13},
- subhead:{fontSize:18,color:'#F3F2EE',fontWeight:'700',marginTop:24,marginBottom:14},card:{backgroundColor:'#141E28',borderWidth:1,borderColor:'#273541',borderRadius:16,padding:18,marginBottom:12},cardTitle:{fontSize:16,fontWeight:'700',color:'#F6F5F1',marginBottom:6},
+ subhead:{fontSize:18,color:'#F3F2EE',fontWeight:'600',marginTop:28,marginBottom:14},card:{backgroundColor:'#11191D',borderWidth:1,borderColor:'#343A3A',borderRadius:17,padding:19,marginBottom:14},cardTitle:{fontSize:16,lineHeight:24,fontWeight:'600',color:'#F6F5F1',marginBottom:6},
  row:{flexDirection:'row',justifyContent:'space-between',alignItems:'flex-start',gap:10,marginVertical:8},rowValue:{color:'#F3F3EF',fontWeight:'700',fontSize:12,flexShrink:1,textAlign:'right'},
  barSpace:{height:180,justifyContent:'center',alignItems:'center'},barBack:{backgroundColor:'#8D6535',width:210,height:115,borderRadius:14,borderWidth:3,borderColor:'#EED09B',alignItems:'center',justifyContent:'center',shadowColor:'#D9AD69',shadowOpacity:.55,shadowRadius:22,elevation:12},barTop:{position:'absolute',top:0,left:9,right:9,height:26,backgroundColor:'#CE9E55',borderTopLeftRadius:10,borderTopRightRadius:10},barSymbol:{color:'#FFF0CB',fontSize:35,fontWeight:'900'},barWord:{fontSize:12,color:'#FFF1CB',fontWeight:'900',letterSpacing:2},barFine:{fontSize:8,color:'#FFF0CC',letterSpacing:2,marginTop:7},
  hRow:{flexDirection:'row',gap:10,marginTop:14},quick:{flex:1,borderWidth:1,borderColor:'#806948',padding:14,borderRadius:12},quickText:{color:accent,fontSize:12,fontWeight:'700'},
  button:{backgroundColor:accent,paddingVertical:14,paddingHorizontal:15,borderRadius:10,alignItems:'center',justifyContent:'center',marginTop:13,flex:1,minHeight:47},buttonSecondary:{backgroundColor:'#1D2B37',borderWidth:1,borderColor:'#4E6576'},buttonText:{fontSize:12,fontWeight:'800',color:'#15212B',textAlign:'center'},buttonSecondaryText:{color:'#EDF1F3'},
  metalRow:{backgroundColor:'#141E28',borderWidth:1,borderColor:'#25333F',flexDirection:'row',padding:12,borderRadius:13,alignItems:'center',gap:12,marginBottom:9},metalIcon:{borderWidth:1.5,width:48,height:48,borderRadius:12,alignItems:'center',justifyContent:'center'},metalText:{fontWeight:'800',fontSize:19},
- metalGrid:{flexDirection:'row',flexWrap:'wrap',gap:10,marginVertical:17},metalChoice:{width:'48%',flexGrow:1,padding:14,borderRadius:13,backgroundColor:'#141E28',borderWidth:1,borderColor:'#293846'},metalChoiceOn:{borderColor:accent,backgroundColor:'#242B2E'},choiceSymbol:{fontSize:23,fontWeight:'800'},choiceName:{color:'#F4F3EE',fontSize:14,fontWeight:'700',marginTop:8},
+ metalGrid:{flexDirection:'row',flexWrap:'wrap',gap:10,marginVertical:19},metalChoice:{width:'48%',flexGrow:1,padding:16,borderRadius:15,backgroundColor:'#11191D',borderWidth:1,borderColor:'#343A3A'},metalChoiceOn:{borderColor:accent,backgroundColor:'#262820'},choiceSymbol:{fontSize:23,fontWeight:'700'},choiceName:{color:'#F4F3EE',fontSize:16,fontWeight:'600',marginTop:9},
  inputLabel:{color:'#C1CBD2',fontSize:12,fontWeight:'600',marginTop:15,marginBottom:8},input:{color:'#FAF9F3',fontSize:18,fontWeight:'600',paddingHorizontal:15,paddingVertical:13,backgroundColor:'#09131C',borderColor:'#3C4B56',borderWidth:1,borderRadius:10,marginTop:6,marginBottom:8},
- walletGrid:{flexDirection:'row',flexWrap:'wrap',gap:10,marginTop:20},walletCard:{width:'48%',flexGrow:1,borderWidth:1,borderColor:'#36444D',backgroundColor:'#172530',padding:16,borderRadius:13},walletValue:{fontSize:16,fontWeight:'700',color:'#FFF9EB'},
+ walletGrid:{flexDirection:'row',flexWrap:'wrap',gap:10,marginTop:20},walletTop:{flexDirection:'row',justifyContent:'space-between',gap:6,alignItems:'flex-start'},walletBadge:{fontSize:8,lineHeight:16,letterSpacing:1,color:'#9E9C8F'},walletCard:{width:'48%',flexGrow:1,minHeight:144,borderWidth:1,borderColor:'#4B4739',backgroundColor:'#171D20',padding:16,borderRadius:15},walletValue:{fontSize:20,lineHeight:29,fontWeight:'500',color:'#FFF9EB',fontVariant:['tabular-nums'],marginVertical:7},
  mineNavigation:{flexDirection:'row',gap:7,paddingHorizontal:21,paddingVertical:8,borderTopWidth:1,borderColor:'#283540',backgroundColor:'#101922'},mineNavigationChip:{flex:1,paddingHorizontal:6},
  chips:{flexDirection:'row',flexWrap:'wrap',gap:7,marginVertical:6},chip:{minHeight:44,minWidth:44,justifyContent:'center',paddingVertical:9,paddingHorizontal:11,borderRadius:8,borderWidth:1,borderColor:'#465766'},chipOn:{backgroundColor:'#665233',borderColor:accent},chipText:{color:'#AAB5BD',fontSize:11,fontWeight:'700',textAlign:'center'},chipTextOn:{color:'#FFE9B8'},
  disclaimer:{fontSize:11,lineHeight:18,color:'#98A5B0',marginVertical:15},historyRow:{padding:16,borderWidth:1,borderColor:'#273541',borderRadius:12,backgroundColor:'#141E28',marginTop:12},

@@ -73,7 +73,12 @@ export function transformPoint(matrix:ArrayLike<number>,point:Vec3):[number,numb
 export function scrollProgress(scroll:number,start:number,end:number):number {
   return Number.isFinite(start)&&Number.isFinite(end)&&end>start?clamp((finite(scroll,start)-start)/(end-start),0,1):0;
 }
-export const storyStage=(progress:number)=>Math.round(clamp(progress,0,1)*4);
+export const storyStage=(progress:number,count=5)=>Math.round(clamp(progress,0,1)*(Math.max(1,Math.floor(finite(count,5)))-1));
+// Bound fragment work on high-density Android displays, retaining logical size.
+export function goldRenderScale(width:number,height:number,pixelRatio:number){
+  if(![width,height,pixelRatio].every(value=>Number.isFinite(value)&&value>0))return 1;
+  return Math.min(1,1024/(Math.max(width,height)*pixelRatio));
+}
 export const horizontalDrag=(dx:number,dy:number,touches=1)=>Number.isFinite(dx)&&Number.isFinite(dy)&&touches===1&&Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)*1.4;
 
 const cameraFrames:GoldBarPose[]=[
@@ -101,11 +106,14 @@ export function goldBarMatrices(pose:GoldBarPose,aspect:number):{model:Mat4;mvp:
 
 // Demand rendering: input changes coalesce into at most one queued frame.
 // No idle RAF loop, and disabled/disposed renderers cannot submit a frame.
-export function createFrameScheduler({request,cancel,draw,onError}:{request:(callback:()=>void)=>number;cancel:(id:number)=>void;draw:()=>void;onError:(error:unknown)=>void}){
-  let pending:number|null=null,enabled=true,dirty=false,disposed=false;
+export function createFrameScheduler({request,cancel,draw,onError,maxFps=0,now=Date.now}:{request:(callback:()=>void)=>number;cancel:(id:number)=>void;draw:()=>void;onError:(error:unknown)=>void;maxFps?:number;now?:()=>number}){
+  let pending:number|null=null,enabled=true,dirty=false,disposed=false,lastDraw=-Infinity;
+  const interval=Number.isFinite(maxFps)&&maxFps>0?1000/maxFps:0;
   const schedule=()=>{if(!disposed&&enabled&&dirty&&pending===null)pending=request(frame);};
   const frame=()=>{
-    pending=null;if(disposed||!enabled||!dirty)return;dirty=false;
+    pending=null;if(disposed||!enabled||!dirty)return;
+    const time=now();if(time-lastDraw<interval){schedule();return;}
+    dirty=false;lastDraw=time;
     try{draw();}catch(error){enabled=false;onError(error);}
     schedule();
   };

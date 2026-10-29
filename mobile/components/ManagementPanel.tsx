@@ -1,4 +1,5 @@
 import React,{useEffect,useRef,useState} from 'react';
+import {institutional} from '../lib/visual-theme';
 import {ActivityIndicator,Pressable,StyleSheet,Text,TextInput,View} from 'react-native';
 import {createManagementQuery,emptyManagementFilters,managementActionLabel,managementInventoryReconciled,managementStatusLabel,mergeManagementEvents,parseManagementSummary,type ManagementFilters,type ManagementSummary} from '../lib/management';
 import {custodyGrams,custodyMetalName,custodyMetals} from '../lib/custody';
@@ -99,7 +100,7 @@ export function ManagementPanel({identityKey,get,disabled=false,refreshKey,onRec
   function clear(){const empty=emptyManagementFilters();setDraft(empty);if(createManagementQuery(empty).path===baseQuery.path)void fetchPage(true);else setApplied(empty);}
   const filterDescription=[applied.metal?custodyMetalName(applied.metal as typeof custodyMetals[number]):'',applied.action?managementActionLabel(applied.action):'',applied.status?managementStatusLabel(applied.status):'',applied.buyer?filterOptions?.options.buyers.find(buyer=>buyer.id===applied.buyer)?.alias??'Comprador seleccionado':'',applied.fromDate?`Desde ${applied.fromDate}`:'',applied.toDate?`Hasta ${applied.toDate}`:''].filter(Boolean).join(' · ');
   return <>
-    <Text style={styles.eyebrow}>ADMINISTRACIÓN DE MINA · DEMO</Text><Text accessibilityRole="header" style={styles.title}>Actividad y control</Text>
+    <Text style={styles.eyebrow}>ADMINISTRACIÓN DE MINA · DEMO</Text><Text accessibilityRole="header" style={[styles.title,institutional.heading]}>Actividad y control</Text>
     <View style={styles.notice}><Text style={styles.noticeTitle}>DATOS SIMULADOS · SIN FONDOS NI METALES REALES</Text><Text style={styles.note}>Consulta operaciones de esta mina, inventario y compromisos ficticios. Este panel no acredita existencias físicas ni permite editar saldos o aplicar ajustes libres.</Text></View>
     <Filters draft={draft} setDraft={setDraft} summary={filterOptions} disabled={disabled||!!busy} onApply={apply} onClear={clear}/>
     <Text style={styles.note}>Filtro aplicado: {filterDescription||'todo el historial de la mina'}.</Text>

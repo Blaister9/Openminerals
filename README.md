@@ -2,6 +2,8 @@
 
 **Estado: prototipo técnico de simulación, no plataforma financiera en producción.**
 
+**Candidata Android en preparación:** [cobertura de cuatro divisas/metales, presentación de siete escenas y datos iniciales aislados](docs/18-candidata-android-2026-10-29.md). Esta revisión continúa sobre `main` `0f07113`. Las pruebas locales pasan; OTA y matriz Android ampliada siguen pendientes de ejecución. La aceptación física se registra por separado.
+
 **Sprint del 29 de octubre:** [implementación, reproducción Android y aceptación vigente](docs/16-sprint-android-2026-10-29.md). Añade historial persistente por lote, cantidades negociadas por metal y menú fijo de Mina. Recorrido comercial Android emulado: 17 etapas aprobadas; continuación de perfil, sesión y OTA: 7/7. La aceptación física de la revisión sigue pendiente. [Guía de presentación en teléfono](docs/17-recorrido-demo-android.md).
 
 **Android 0.2.0 disponible para aceptación:** [descargar APK firmado](https://github.com/Blaister9/Openminerals/releases/download/v0.2.0-demo/Openminerals-Demo-0.2.0-android.apk), código 5, misma firma que 0.1.3. Instalar sobre la versión existente, sin desinstalar ni borrar datos. Incluye billetera, custodia, marketplace, entrega, gerencia, recuperación, presentación 3D y EAS Update para cambios compatibles. OTA vigente `01a188eb`, fuente móvil `e5bba79`, aplicada y conservada al reabrir en Android emulado. La API 0.2.0 está desplegada en Railway/PostgreSQL y pasó los smokes y la verificación tras reinicio. La aceptación completa en teléfono sigue pendiente; no se está desarrollando iOS.

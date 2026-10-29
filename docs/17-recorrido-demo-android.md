@@ -49,6 +49,6 @@ Cerrar y reabrir la app. Confirmar cuenta, saldos, posiciones, oferta vendida, e
 
 Al cerrar una cuenta, revisar el rótulo de identidad. La sesión legacy guardada en el dispositivo conserva su historial y puede reaparecer; la cuenta cerrada debe desaparecer de la vista. El modo sin cuenta es una compatibilidad exclusiva de la demo.
 
-Registrar: fecha, modelo/Android, revisión aplicada, pasos aprobados y cualquier error literal sin credenciales. Comprobar también arrastre del lingote, las cinco escenas, omisión y movimiento reducido. La ejecución emulada y los tests de API no sustituyen esta aceptación física ni sus medidas de rendimiento.
+Registrar: fecha, modelo/Android, revisión aplicada, pasos aprobados y cualquier error literal sin credenciales. La candidata amplía la presentación a siete escenas: consultar [su revisión y evidencia](18-candidata-android-2026-10-29.md) antes de actualizar. Comprobar también arrastre del lingote, omisión y movimiento reducido. La ejecución emulada y los tests de API no sustituyen esta aceptación física ni sus medidas de rendimiento.
 
 [Evidencia técnica y pendientes del sprint](16-sprint-android-2026-10-29.md).

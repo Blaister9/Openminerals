@@ -1,5 +1,5 @@
 appId: com.openminerals.demo.mobile
-name: Native five-scene story and reduced motion before credentials
+name: Native seven-scene story and reduced motion before credentials
 ---
 - tapOn: ^Inicio$
 - scrollUntilVisible:
@@ -27,20 +27,28 @@ name: Native five-scene story and reduced motion before credentials
 - takeScreenshot: safe-story-2
 - scrollUntilVisible:
     element:
+      text: ^Cada gramo, vinculado a su lote$
+    direction: DOWN
+    centerElement: false
+    timeout: 30000
+- assertVisible: ^Cada gramo, vinculado a su lote$
+- takeScreenshot: safe-story-3
+- scrollUntilVisible:
+    element:
       text: ^Tu compra, gramo a gramo$
     direction: DOWN
     centerElement: false
     timeout: 30000
 - assertVisible: ^Tu compra, gramo a gramo$
-- takeScreenshot: safe-story-3
+- takeScreenshot: safe-story-4
 - scrollUntilVisible:
     element:
-      text: ^Una custodia que se debe acreditar$
+      text: ^Un portafolio con trazabilidad$
     direction: DOWN
     centerElement: false
     timeout: 30000
-- assertVisible: ^Una custodia que se debe acreditar$
-- takeScreenshot: safe-story-4
+- assertVisible: ^Un portafolio con trazabilidad$
+- takeScreenshot: safe-story-5
 - scrollUntilVisible:
     element:
       text: ^De tu portafolio al marketplace$
@@ -48,7 +56,15 @@ name: Native five-scene story and reduced motion before credentials
     centerElement: false
     timeout: 30000
 - assertVisible: ^De tu portafolio al marketplace$
-- takeScreenshot: safe-story-5
+- takeScreenshot: safe-story-6
+- scrollUntilVisible:
+    element:
+      text: ^La entrega cierra el recorrido$
+    direction: DOWN
+    centerElement: false
+    timeout: 30000
+- assertVisible: ^La entrega cierra el recorrido$
+- takeScreenshot: safe-story-7
 - scrollUntilVisible:
     element:
       text: Reducir movimiento del recorrido

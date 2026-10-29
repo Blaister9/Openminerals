@@ -3,6 +3,16 @@ import {join} from 'node:path';
 
 // Only repository-defined selectors are returned. Never return a raw log line.
 export function flowSelectors(text){
+  // Generated account flows use a JSON sequence, which is valid YAML. Only
+  // selector properties are collected; inputText and env values are excluded.
+  try{
+    const commands=JSON.parse(text.split(/\r?\n---\r?\n/)[1]),selectors=[];
+    const visit=value=>{if(!value||typeof value!=='object')return;for(const [key,item] of Object.entries(value)){
+      if(key==='inputText')continue;
+      if(['text','visible','notVisible','tapOn','assertVisible','assertNotVisible'].includes(key)&&typeof item==='string'&&item.length<=240&&!item.includes('$'+'{'))selectors.push(item);
+      else if(item&&typeof item==='object')visit(item);
+    }};visit(commands);return [...new Set(selectors)];
+  }catch{ /* Existing hand-written YAML keeps its line-based selector parser. */ }
   return [...new Set(text.split(/\r?\n/).flatMap(line=>{
     const match=line.match(/^\s*(?:-\s*)?(?:tapOn|text|visible|notVisible|assertVisible|assertNotVisible):\s*(.+)$/);
     if(!match)return [];
