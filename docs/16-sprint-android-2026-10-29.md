@@ -20,8 +20,8 @@ El escenario focalizado conserva la búsqueda original, entra, sale a Cuenta y v
 
 ## Validación de código
 
-- API completa sobre PostgreSQL local aislado: **126/126 aprobadas, sin omisiones**. Incluye diario durable tras reconexión, migración concurrente, replay por dos pools, dos compradores por una oferta, transferencia que cruza dos asignaciones del mismo lote, importación y rollback ante evidencia inconsistente.
-- Runner PostgreSQL obligatorio: **59/59 aprobadas, sin omisiones**, incluyendo la nueva suite en el mismo comando que CI.
+- API completa sobre PostgreSQL local aislado: **127/127 aprobadas, sin omisiones**. Incluye diario durable tras reconexión, migración concurrente, replay por dos pools, dos compradores por una oferta, transferencia que cruza dos asignaciones del mismo lote, negociación concurrente de los cuatro metales, importación y rollback ante evidencia inconsistente.
+- Runner PostgreSQL obligatorio: **60/60 aprobadas, sin omisiones**, incluyendo la nueva suite en el mismo comando que CI. [CI de la cobertura ampliada](https://github.com/Blaister9/Openminerals/actions/runs/40923957261), fuente `8b0e624`: suite general68 aprobadas/9 grupos PG omitidos en ese primer comando, seguida del runner obligatorio60/60 sin omisiones. No sumar ejecuciones repetidas como casos nuevos.
 - Móvil: **181 aprobadas, una WebGL opcional omitida**, sin fallos; TypeScript y export Android/Hermes de 645 módulos aprobados. Los shaders no cambiaron en este sprint.
 - Cliente HTTP del historial: entrada/salida en marketplace, comprador sin acceso al lote, referencias propias y consulta de operador sin billeteras. Parsers rechazan respuestas ajenas, duplicados, cantidades o cursores inválidos.
 - Recuperación, perfil y mitigación de dependencias: regresión conservada; auditoría con cero críticas/altas y siete bajas residuales de la herramienta deepmerge ya mitigada. No se cambió el SDK ni se añadió un módulo nativo.
@@ -36,7 +36,9 @@ El smoke HTTPS específico aprobó **169/169** sobre una mina nueva aislada: tra
 
 OTA compatible publicada: update Android `01a188b0-9875-7eaf-bbd6-872e782af8ec`, grupo `170791a8-2cf5-45af-b2b7-ca65dd403e55`, fuente `19b6207`, runtime `0.2.0`, canal `demo`, entorno `preview`. No se regeneró la firma ni se cambió el APK. Aplicación acreditada en el emulador; aplicación de esta revisión en el teléfono del propietario aún no confirmada.
 
-[Recorrido Android completo](https://github.com/Blaister9/Openminerals/actions/runs/40922146693), fuente de pruebas `5ea0a33`, en ejecución. Además del recorrido comercial previo, abre el historial nativo de la compra y verifica en la API los movimientos del lote y gramos negociados por metal. No se atribuye aceptación completa hasta obtener su resultado.
+[Recorrido Android 40922146693](https://github.com/Blaister9/Openminerals/actions/runs/40922146693), fuente de pruebas `5ea0a33`: **15 etapas aprobadas**. Incluye consulta nativa del diario después de comprar, marketplace y certificados de ambas cuentas, venta directa, solicitud, cotización del operador y aceptación con pago único de costes. Se detuvo en `operator-delivery-lifecycle`, primer campo de motivo, antes de registrar una transición: la prueba buscaba hacia UP pese al nuevo inicio de la sección en y=0. El campo está debajo de la cotización. La solicitud queda APPROVED, comprador A287,89 USDT/1g y B180 USDT/0,5g; los registros se conservan.
+
+Se corrigió la prueba en `bda945e`: esperar el encabezado de Entregas y buscar el primer campo hacia DOWN; los siguientes cambios conservan el desplazamiento de su formulario. Validadores20/20 aprobados. [Nueva ejecución completa](https://github.com/Blaister9/Openminerals/actions/runs/40926226905), con otra mina y cuentas nuevas, en curso. No se reinició ni borró la mina anterior para repetirla. No se atribuye aceptación integral hasta terminar las etapas pendientes.
 
 En el navegador **integrado de Codex**, previsualización local con relay HTTPS fijo de QA: se consultaron el nuevo desglose por metal y el historial de un lote anterior. El lote de oro y su asignación de 200 g se conservan; el diario muestra apertura explícita, sin inventar los movimientos previos. Esta consulta fue de lectura, sin cotizar ni modificar solicitudes del propietario. Evidencia local ignorada por Git: `artifacts/browser-review/iab-lot-history-20261029.jpg`. La previsualización web no sustituye la validación Android.
 
@@ -44,8 +46,8 @@ En el navegador **integrado de Codex**, previsualización local con relay HTTPS 
 
 | Estado | Alcance |
 | --- | --- |
-| Implementado y probado | Reglas de custodia, marketplace, reservas, entrega, roles y recuperación en API/PostgreSQL; diario y cliente HTTP; navegación de operador y aplicación OTA en Android emulado; persistencia HTTPS tras reinicio. Ver la evidencia anterior para las comprobaciones físicas parciales. |
-| Implementado pero pendiente de pruebas | Consulta nativa del diario, recorrido comercial completo y aplicación de esta OTA en teléfono; aceptación visual y rendimiento en GPU física. |
+| Implementado y probado | Reglas de custodia, marketplace, reservas, entrega, roles y recuperación en API/PostgreSQL; diario y cliente HTTP; compra/venta, marketplace, certificados/diario, solicitud/cotización/aceptación, navegación de operador y OTA en Android emulado; persistencia HTTPS tras reinicio. Ver la evidencia anterior para las comprobaciones físicas parciales. |
+| Implementado pero pendiente de pruebas | Preparación/despacho/entrega, reposición, gerencia ampliada y perfil/reapertura del recorrido Android completo; aplicación de esta OTA en teléfono, aceptación visual y rendimiento en GPU física. |
 | Todavía no desarrollado | Fondos, metales, custodia o logística reales, documentos jurídicos válidos, integración bancaria, KYC/AML, ledger financiero y blockchain. Fuera del alcance de esta demo; iOS excluido del sprint. |
 
 El [APK 0.2.0 firmado](https://github.com/Blaister9/Openminerals/releases/download/v0.2.0-demo/Openminerals-Demo-0.2.0-android.apk) conserva runtime 0.2.0. Estos cambios JavaScript son compatibles con OTA; no requieren reinstalar ni borrar los datos de la instalación existente. No se declara terminada la aceptación Android.

@@ -1,6 +1,6 @@
 # Android nativo en CI, actualización 0.1.3 → 0.2.0
 
-Este recorrido está preparado; su presencia y las pruebas de sus validadores **no prueban instalación ni aceptación nativa**. Solo una ejecución posterior del workflow con un APK real puede aportar esa evidencia. No se ha iniciado un emulador local ni se usa control de pantalla.
+La presencia del recorrido y las pruebas de sus validadores **no prueban instalación ni aceptación nativa**. Solo una ejecución del workflow con un APK real aporta esa evidencia; consultar [los resultados vigentes del sprint](../../docs/16-sprint-android-2026-10-29.md). No se ha iniciado un emulador local ni se usa control de pantalla.
 
 El workflow Android UI verification es exclusivamente manual, en ubuntu-24.04 estándar y repositorio público, con concurrencia de una ejecución. Repara permisos KVM mediante udev y exige aceleración accesible; no continúa con CPU sin aceleración. El renderizador gráfico SwiftShader del emulador es independiente de KVM. No acredita rendimiento en un teléfono.
 
@@ -33,6 +33,8 @@ El helper rechaza equipos físicos, múltiples dispositivos, otros sistemas oper
 El cuarto run observó launcher tras el fallo al buscar el primer campo de Billetera. Eso no demuestra falta de etiqueta ni prueba todavía si hubo superposición con Home o un crash. Como ensayo diagnóstico A/B, únicamente la siembra del APK antiguo solicita immersive.navigation para com.openminerals.demo.mobile: exige código 4 y policy_control inicial null; elimina la política en finally incluso si el flujo falla y verifica null. Otra guarda impide install-r mientras no estén restauradas las barras normales. legacy-navigation.json registra el resultado y marca explícitamente la hipótesis. El APK 0.2.0 se prueba siempre con navegación normal; no se presenta la adaptación como aceptación de 0.1.3 con sus barras originales.
 
 Después se ejecuta **adb install -r** del APK nuevo, sin desinstalar, borrar almacenamiento ni clearState. Se verifican código 5, wallet anterior, historial 3 y snapshot antiguo. Se recorren las cinco escenas, disponibilidad del renderizador 3D, arrastre, movimiento reducido y salida a Mercado. Las imágenes públicas se limitan a estas fases anónimas anteriores a cualquier credencial.
+
+La revisión del sprint añade la consulta nativa del historial del lote después de comprar 2 g y verificar el certificado. Gerencia debe mostrar «Gramos negociados por metal». Al final, la lectura API comprueba BUY2000/SELL500/MARKET_TRANSFER500/DELIVERY500 mg, una fila por operación en el lote original, entrada/salida propia de cada comprador y ausencia de billeteras privadas para el operador. Los volúmenes esperados de oro son compra directa2000/venta directa500/marketplace500 mg; los demás metales no tienen negociación en ese recorrido. La prueba PostgreSQL separada cubre negociación concurrente de los cuatro metales.
 
 El registro nativo usa alias/clave nuevos solo en RAM, desactiva explícitamente la importación y no realiza operaciones. Al cerrar sesión recuperaUSDT 268,40. La cuenta pública nueva inicia sin historial/metales y no consume inventario del propietario. **La importación nativa de una sesión a una cuenta sigue siendo una aceptación distinta**; no se presenta este registro como prueba de importación.
 
