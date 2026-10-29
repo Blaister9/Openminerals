@@ -10,6 +10,11 @@ on:
         description: Verified lowercase SHA256 of the new versionCode 5 APK
         type: string
         required: true
+      ota_update_id:
+        description: Optional full published Android update UUID for runtime 0.2.0 on channel demo
+        type: string
+        required: false
+        default: ''
 permissions:
   contents: read
 concurrency:
@@ -32,6 +37,7 @@ jobs:
         env:
           APK_INPUT_URL: ${{ inputs.apk_url }}
           APK_INPUT_SHA256: ${{ inputs.apk_sha256 }}
+          OTA_INPUT_UPDATE_ID: ${{ inputs.ota_update_id }}
         run: node mobile/e2e/ci-android.mjs download
       - name: Require unused isolated QA fixtures and PostgreSQL API 0.2.0
         env:
@@ -79,6 +85,7 @@ jobs:
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         timeout-minutes: 35
         env:
+          OTA_INPUT_UPDATE_ID: ${{ inputs.ota_update_id }}
           OPENMINERALS_QA_BUYER_A_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_A_ALIAS }}
           OPENMINERALS_QA_BUYER_A_PASSWORD: ${{ secrets.OPENMINERALS_QA_BUYER_A_PASSWORD }}
           OPENMINERALS_QA_BUYER_B_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_B_ALIAS }}

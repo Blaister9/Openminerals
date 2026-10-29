@@ -15,7 +15,7 @@ El workflow Android UI verification es exclusivamente manual, en ubuntu-24.04 es
    - OPENMINERALS_QA_BUYER_B_PASSWORD
    - OPENMINERALS_QA_OPERATOR_ALIAS
    - OPENMINERALS_QA_OPERATOR_PASSWORD
-4. Introducir como inputs públicos apk_url y apk_sha256 de un APK 0.2.0/versionCode 5 real. Se aceptan únicamente URLs HTTPS públicas de artefactos Expo o releases de Blaister9/Openminerals, sin credenciales, query ni fragmento. Firma, paquete, hash, versión y ABI x86_64 son obligatorios antes de arrancar.
+4. Introducir como inputs públicos apk_url y apk_sha256 de un APK 0.2.0/versionCode 5 real. Se aceptan únicamente URLs HTTPS públicas de artefactos Expo o releases de Blaister9/Openminerals, sin credenciales, query ni fragmento. Firma, paquete, hash, versión y ABI x86_64 son obligatorios antes de arrancar. El input opcional ota_update_id acepta el UUID completo de una actualización Android ya publicada y verificada, compatible con runtime 0.2.0 y canal demo; dejarlo vacío omite la etapa OTA. El helper exige UUID canónico en minúsculas antes de usar CLI o API.
 5. Disparar manualmente desde código revisado. Retirar los seis secretos tras la aceptación. GitHub no proporciona caducidad automática: el propietario realiza esta retirada. Una repetición necesita fixtures nuevos; no se reinicia ni borra una mina ya utilizada.
 
 No introducir DEMO_ADMIN_TOKEN, DATABASE_URL, claves EAS/Railway, claves de recuperación ni credenciales del operador público en este workflow. La provisión administrativa se realiza fuera de GitHub Actions. No guardar archivos de credenciales en Git.
@@ -53,6 +53,8 @@ Las pruebas locales de android-ci.test.mjs validan URLs, límites, guardia adb, 
 
 ## OTA posterior opcional
 
-native/ota.yaml queda fuera del runner inicial. Tras publicar y verificar una actualización compatible real, puede añadirse como última etapa en el mismo emulador desechable y sin operaciones pendientes. MAESTRO_EXPECTED_OTA_ID recibe el ID completo publicado; la aserción compara sus primeros ocho caracteres con el indicador de la app. Busca/fetch, realiza dos aperturas en frío y conserva wallet. No se inventa un ID ni se fuerza recarga durante una operación.
+Al proporcionar ota_update_id, el runner ejecuta native/ota.yaml después de verificar todos los recorridos anteriores, con el comprador A en el mismo emulador desechable y sin operaciones pendientes. MAESTRO_EXPECTED_OTA_ID recibe el ID completo validado solo mediante el entorno del proceso, nunca interpolado en comandos. La aserción compara sus primeros ocho caracteres con el indicador de la app. Busca/fetch, realiza dos aperturas en frío y conserva wallet; después se repiten las lecturas API de saldos, posiciones, lotes, comisiones, historial y perfil, sin generar nuevas operaciones. El resumen público indica si se solicitó OTA y su UUID esperado. No se inventa un ID ni se fuerza recarga durante una operación.
+
+Con el input vacío se conservan las etapas iniciales sin ejecutar OTA. La descarga automática al abrir el APK puede aplicar una actualización publicada antes de llegar a esta etapa; la aceptación comprueba el ID visible después de ambas aperturas y los datos conservados, sin afirmar que la descarga comenzó en el botón.
 
 La aceptación de iPhone, un dispositivo Android físico, la importación nativa y los casos adversariales de recuperación no quedan acreditados por este workflow. Conservar esos pendientes hasta ejecutarlos y registrar evidencia.

@@ -6,14 +6,14 @@ import {closeSync,openSync} from 'node:fs';
 import {copyFile,mkdir,readFile,readdir,writeFile} from 'node:fs/promises';
 import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,certificate,cleanFixture,emulatorGuard,fixtures,hash,manifest,publicJunit,requireSafe,sha} from './ci-safety.mjs';
+import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,certificate,cleanFixture,emulatorGuard,fixtures,hash,manifest,otaUpdateId,publicJunit,requireSafe,sha} from './ci-safety.mjs';
 import {verifyNativeSnapshot} from './ci-result.mjs';
 import {flowSelectors,failureDiagnostic} from './ci-diagnostics.mjs';
 
 const repo=resolve(dirname(fileURLToPath(import.meta.url)),'..'),root=resolve(process.env.RUNNER_TEMP||'.','openminerals-native');
 const published=join(root,'public'),privateRoot=join(root,'private');
 const results=[],privateValues=new Set(),sessions=[];
-let stage='configuration',users,serial;
+let stage='configuration',users,serial,expectedOtaId=null;
 const request=async(path,token,body)=>{
   const response=await fetch(API+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(20000),redirect:'error'});
   requireSafe(response.status===200,'API precondition or native result could not be verified.');
@@ -73,7 +73,7 @@ async function saveDiagnostic(name,consoleFile,definitions){
 async function maestro(name,role){
   const directory=join(privateRoot,name);await mkdir(directory,{recursive:true,mode:0o700});
   const user=role==='register'?users.register:users[role];
-  const env={...process.env,MAESTRO_CLI_NO_ANALYTICS:'1',MAESTRO_LOGIN_ALIAS:user?.alias||'',MAESTRO_LOGIN_PASSWORD:user?.password||''};
+  const env={...process.env,MAESTRO_CLI_NO_ANALYTICS:'1',MAESTRO_LOGIN_ALIAS:user?.alias||'',MAESTRO_LOGIN_PASSWORD:user?.password||'',MAESTRO_EXPECTED_OTA_ID:name==='ota'?(expectedOtaId??''):''};
   try{
     command('maestro',['--no-ansi','--device',serial,'test','--format','JUNIT','--output',join(directory,'raw-report.xml'),'--debug-output',join(directory,'debug'),'--test-output-dir',join(directory,'screenshots'),join(repo,'e2e/native',name+'.yaml')],{env,timeout:420000,output:join(directory,'console.txt')});
   }catch(error){
@@ -180,6 +180,10 @@ async function run(){
   await runStage('operator-delivery-stock-management',()=>maestro('operator','op'));
   await runStage('buyer-history-profile-relaunch',()=>maestro('profile','a'));
   await runStage('api-verifies-native-wallets-lots-fees',verifyNative);
+  if(expectedOtaId){
+    await runStage('buyer-compatible-ota-cold-launch',()=>maestro('ota','a'));
+    await runStage('api-verifies-data-after-compatible-ota',verifyNative);
+  }
 }
 async function report(){
   if(!results.length)return;
@@ -187,12 +191,14 @@ async function report(){
   await writeFile(join(published,'report.xml'),publicJunit(results,[...privateValues]));
   // Fixed labels and counts only. No raw Maestro XML, stderr, hierarchy, logcat,
   // failure screenshot, account alias, password, token or recovery key is copied.
-  const summary={demoOnly:true,environment:'disposable Android CI emulator',phoneAcceptance:false,realCustody:false,completed:results.filter(item=>item.ok).map(item=>item.name),failed:results.filter(item=>!item.ok).map(item=>item.name),safeScreenshots:'Anonymous legacy/story before credentials only',privateDiagnosticsPublished:false};
+  const summary={demoOnly:true,environment:'disposable Android CI emulator',phoneAcceptance:false,realCustody:false,ota:{requested:expectedOtaId!==null,expectedUpdateId:expectedOtaId},completed:results.filter(item=>item.ok).map(item=>item.name),failed:results.filter(item=>!item.ok).map(item=>item.name),safeScreenshots:'Anonymous legacy/story before credentials only',privateDiagnosticsPublished:false};
   const text=JSON.stringify(summary,null,2)+'\n';
   requireSafe([...privateValues].every(value=>!text.includes(value)),'Refusing to publish private values.');
   await writeFile(join(published,'summary.json'),text);
 }
 try{
+  // Reject malformed workflow input before curl, adb, Maestro or API access.
+  expectedOtaId=otaUpdateId(process.env.OTA_INPUT_UPDATE_ID);
   const mode=process.argv[2];
   if(mode==='download')await download();
   else if(mode==='preflight'){await connectFixtures();await unusedFixtures();console.log('PASS clean isolated QA accounts and PostgreSQL API 0.2.0');}
