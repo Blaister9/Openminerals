@@ -1,5 +1,6 @@
-// Isolated synthetic mines only. Credentials stay in memory or an optional private
-// snapshot outside Git; never print them or use the owner's shared demo account.
+// Isolated synthetic mines only. Passwords, recovery keys and the admin token
+// stay in memory; an optional snapshot outside Git contains fixture auth tokens.
+// Never print credentials or use the owner's shared demo account.
 // node scripts/integral-smoke.mjs [smoke] [URL]
 // node scripts/integral-smoke.mjs prepare|verify URL SNAPSHOT_OUTSIDE_GIT
 import assert from 'node:assert/strict';
@@ -65,12 +66,21 @@ try{
   const health=await request('/health');
   check(health.ok===true&&health.demoOnly===true,'A healthy simulation API is required.');
   if(process.env.REQUIRE_POSTGRES==='true'||phase!=='smoke')check(health.mode==='postgres-demo','PostgreSQL demo mode is required.');
-  let users={},commands=[];
+  let users={},commands=[],fixtureTag;
+  const passwords={},privateValues=new Set(process.env.DEMO_ADMIN_TOKEN?[process.env.DEMO_ADMIN_TOKEN]:[]);
+  const managementSnapshot=async token=>{
+    const first=await request('/api/demo/mine/management?limit=50',{token}),items=[...first.history.items];let before=first.history.nextCursor;
+    while(before){const page=await request(`/api/demo/mine/management?limit=50&before=${encodeURIComponent(before)}`,{token});items.push(...page.history.items);before=page.history.nextCursor;}
+    check(items.length===first.history.total&&new Set(items.map(item=>item.id)).size===items.length,'Management history is incomplete or repeats operations.');
+    return {...first,history:{items,total:first.history.total,nextCursor:null}};
+  };
   const capture=async()=>{
-    const result={states:{},custodies:{},mines:{},deliveries:{}};
+    const result={states:{},custodies:{},mines:{},deliveries:{},profiles:{},management:{}};
     for(const [name,user] of Object.entries(users)){
       const me=await request('/api/demo/accounts/me',{token:user.token});
-      check(me.demoOnly===true&&me.account.id===user.account.id&&me.account.role===user.account.role&&me.mine.id===user.mineId,'Fixture identity changed.');
+      check(me.demoOnly===true&&me.account.id===user.account.id&&me.account.alias===user.account.alias&&me.account.role===user.account.role&&me.mine.id===user.mineId,'Fixture identity changed.');
+      check(me.account.alias===`int_${fixtureTag}_${name.toLowerCase()}`&&me.mine.name===`${name.startsWith('other')?'Isolation':'Integral'} DEMO ${fixtureTag}`,'Only the original synthetic fixture accounts and mines may be used.');
+      result.profiles[name]=await request('/api/demo/accounts/profile',{token:user.token});
       if(user.account.role==='buyer'){
         result.states[name]=await request('/api/demo/state',{token:user.token});
         result.custodies[name]=await request('/api/demo/custody',{token:user.token});
@@ -79,6 +89,7 @@ try{
         result.mines[name]=await request('/api/demo/mine/summary',{token:user.token});
         result.custodies[name]=await request('/api/demo/mine/custody',{token:user.token});
         result.deliveries[name]=await request('/api/demo/mine/deliveries',{token:user.token});
+        result.management[name]=await managementSnapshot(user.token);
       }
     }
     return result;
@@ -93,27 +104,30 @@ try{
   if(phase==='verify'){
     stage='private snapshot validation';
     const snapshot=JSON.parse(await readFile(snapshotPath,'utf8'));
-    check(snapshot.format==='openminerals.integral-smoke.snapshot'&&snapshot.version===2&&snapshot.base===base,'Snapshot format or API origin mismatch.');
+    check(snapshot.format==='openminerals.integral-smoke.snapshot'&&snapshot.version===3&&snapshot.base===base,'Snapshot format or API origin mismatch.');
     check(snapshot.users&&Array.isArray(snapshot.commands)&&snapshot.data&&snapshot.dataHash===hash(snapshot.data),'Incomplete snapshot.');
-    users=snapshot.users;commands=snapshot.commands;
+    users=snapshot.users;commands=snapshot.commands;fixtureTag=snapshot.fixtureTag;
+    check(typeof fixtureTag==='string'&&/^[a-f0-9]{18}$/.test(fixtureTag),'Invalid synthetic fixture tag.');
     check(Object.keys(users).length===6,'Expected six isolated fixture accounts.');
-    for(const user of Object.values(users))check(/^[A-Za-z0-9_-]{43}$/.test(user.token)&&validId(user.account?.id)&&['buyer','operator'].includes(user.account?.role)&&validId(user.mineId),'Invalid fixture identity.');
+    for(const [name,user] of Object.entries(users))check(['seller','a','b','op','otherBuyer','otherOp'].includes(name)&&Object.keys(user).every(key=>['token','account','mineId'].includes(key))&&/^[A-Za-z0-9_-]{43}$/.test(user.token)&&validId(user.account?.id)&&['buyer','operator'].includes(user.account?.role)&&validId(user.mineId)&&user.account.alias===`int_${fixtureTag}_${name.toLowerCase()}`,'Invalid fixture identity.');
     for(const command of commands)check(Object.hasOwn(users,command.user)&&replayActions.has(command.action)&&validId(command.key)&&command.body&&typeof command.body==='object'&&!Array.isArray(command.body)&&command.receipt?.id===command.key,'Invalid replay command.');
     stage='state and custody after external restart';
     same(await capture(),snapshot.data,'Fixture states, receipts, mine summaries or custody changed since prepare.');
     await replayAll();
     same(await capture(),snapshot.data,'Replays changed persisted state or custody.');
-    pass('private fixture identities, states, receipts, custody, mine summaries and all replays preserved');
+    pass('private fixture identities, profiles, recovery flags, full management history, custody, deliveries and all replays preserved');
     console.log('A restart must be confirmed separately in Railway; this script does not perform or prove it.');
   }else{
     check(Boolean(process.env.DEMO_ADMIN_TOKEN),'DEMO_ADMIN_TOKEN is required in the process environment.');
     const tag=randomUUID().replaceAll('-','').slice(0,18);
+    fixtureTag=tag;
     stage='isolated mines and accounts';
     const initialInventoryMg={XAU:1000,XAG:0,XPT:0,XPD:0};
     const mine=await request('/api/demo/admin/mines',{admin:true,body:{name:`Integral DEMO ${tag}`,initialInventoryMg},expected:201});
     const otherMine=await request('/api/demo/admin/mines',{admin:true,body:{name:`Isolation DEMO ${tag}`,initialInventoryMg:{XAU:0,XAG:0,XPT:0,XPD:0}},expected:201});
     for(const [name,role,mineId] of [['seller','buyer',mine.id],['a','buyer',mine.id],['b','buyer',mine.id],['op','operator',mine.id],['otherBuyer','buyer',otherMine.id],['otherOp','operator',otherMine.id]]){
       const alias=`int_${tag}_${name.toLowerCase()}`,password=`Demo-${randomBytes(24).toString('base64url')}`;
+      passwords[name]=password;privateValues.add(password);
       const created=await request('/api/demo/admin/accounts',{admin:true,body:{alias,password,role,mineId},expected:201});
       const login=await request('/api/demo/accounts/login',{body:{alias,password}});
       check(login.demoOnly===true&&login.account.id===created.account.id&&login.account.role===role&&login.mine.id===mineId,'Fixture account provisioning failed.');
@@ -322,9 +336,103 @@ try{
     for(const metal of metals)check(final.mines.op.inventoryMg[metal]+final.mines.op.allocatedMg[metal]===final.mines.op.totalSupplyMg[metal],'Final active mine reconciliation failed.');
     await replayAll();same(await capture(),final,'Delivery replay duplicated a charge, transition, supply decrement or receipt.');
     pass('unpaid cancellations/rejections, private delivery views and every original delivery command replay');
+
+    stage='complete management history, filters and privacy';
+    const management=await get('op','mine/management?limit=5');
+    check(management.demoOnly===true&&management.kpisScope==='filtered_history'&&management.snapshotScope==='current_mine','Management scopes or simulation marker are incorrect.');
+    check(management.history.total>20&&management.history.items.length===5&&management.history.nextCursor,'Management must expose the complete history beyond twenty events.');
+    const operations=[...management.history.items];let before=management.history.nextCursor;
+    while(before){
+      const page=await get('op',`mine/management?limit=5&before=${encodeURIComponent(before)}`);
+      check(page.history.total===management.history.total&&page.kpis.eventsMatched===management.history.total,'Management pagination changed the matched history total.');
+      operations.push(...page.history.items);before=page.history.nextCursor;
+    }
+    check(operations.length===management.history.total&&new Set(operations.map(item=>item.id)).size===operations.length,'Management pages lost or duplicated an operation.');
+    check(management.kpis.directBuys===1&&management.kpis.directSells===1&&management.kpis.marketplaceTrades===1,'Management counted a peer settlement twice.');
+    check(management.kpis.tradingFeesMinor===finalDeliverySummary.demoFeesCollectedMinor&&management.kpis.deliveryCostsCollectedMinor===1081&&management.kpis.stockEntries===1&&management.kpis.stockMg===2000&&management.kpis.policyChanges===1,'Management fees, delivery costs or audit counts do not reconcile.');
+    for(const metal of metals){
+      const values=management.metals[metal];
+      check(values.reconciled&&values.availableMg+values.allocatedMg===values.activeSupplyMg&&values.activeSupplyMg+values.deliveredMg===values.originalWeightMg,'Management active and historical supply does not reconcile.');
+    }
+    check(management.metals.XAU.activeSupplyMg===2800&&management.metals.XAU.deliveredMg===200&&management.obligations.offersOpen===0&&management.obligations.deliveriesActive===0,'Management obligations or delivered totals differ from the completed flows.');
+    const privateManagement=JSON.stringify(management);
+    for(const key of ['walletMinor','balancesAfter','passwordSalt','passwordHash','recoveryKey'])check(!privateManagement.includes(`"${key}"`),'Management exposed a private account field.');
+    check(management.buyers.length===3&&management.buyers.every(buyer=>[users.seller.account.id,users.a.account.id,users.b.account.id].includes(buyer.id)),'Management buyer scope is incorrect.');
+    await request('/api/demo/mine/management',{token:users[winner].token,expected:403});
+    const isolatedManagement=await get('otherOp','mine/management');
+    check(isolatedManagement.history.total===0&&isolatedManagement.buyers.length===1&&!JSON.stringify(isolatedManagement).includes(users.seller.account.id),'Another mine received management activity or buyer metadata.');
+    const filteredMarket=await get('op',`mine/management?${new URLSearchParams({action:'market_buy',status:'FILLED',metal:'XAU',buyer:users[winner].account.id})}`);
+    check(filteredMarket.history.total===1&&filteredMarket.kpis.marketplaceTrades===1&&filteredMarket.kpis.tradingFeesMinor===168,'Combined management filters or single-trade fee calculation failed.');
+    const deliveredManagement=await get('op','mine/management?action=delivery_transition&status=DELIVERED_DEMO');
+    check(deliveredManagement.history.total===1&&deliveredManagement.history.items[0].scope==='command','Delivery command copies were duplicated in management.');
+    const byDate=await get('op',`mine/management?${new URLSearchParams({from:operations.at(-1).at,to:operations[0].at,limit:'50'})}`);
+    check(byDate.history.total===operations.length,'Inclusive management date filtering lost operations.');
+    for(const query of ['action=deposit','wallet=true','limit=51','metal=XAU&metal=XAG'])await request(`/api/demo/mine/management?${query}`,{token:users.op.token,expected:400});
+    for(const operation of operations){
+      const receipt=await request(operation.receiptPath,{token:users.op.token});
+      check(receipt.id===operation.receipt.id&&receipt.action===operation.action&&!Object.hasOwn(receipt,'balancesAfter'),'A management operation cannot retrieve its safe original receipt.');
+      await request(operation.receiptPath,{token:users.otherOp.token,expected:404});
+    }
+    pass('complete management pagination, strict combined filters, unique trade fees, current supply and private mine-only receipts');
+
+    stage='fictitious account profiles and operator recovery protection';
+    const buyerPreferences={displayName:'Comprador integral DEMO',preferredCurrency:'EUR',jurisdiction:'DEMO_REGIONAL'};
+    const operatorPreferences={displayName:'Operador integral DEMO',preferredCurrency:'USD',jurisdiction:'DEMO_LOCAL'};
+    const buyerProfile=await request('/api/demo/accounts/profile',{token:users[winner].token,body:buyerPreferences});
+    const operatorProfile=await request('/api/demo/accounts/profile',{token:users.op.token,body:operatorPreferences});
+    same(buyerProfile.profile,buyerPreferences,'Buyer profile preferences were not persisted.');
+    same(operatorProfile.profile,operatorPreferences,'Operator profile preferences were not persisted.');
+    check(buyerProfile.account.id===users[winner].account.id&&buyerProfile.recovery.selfService===true&&!buyerProfile.recovery.enabled,'Buyer profile identity or initial recovery state is incorrect.');
+    same(operatorProfile.recovery,{enabled:false,selfService:false},'Public demo operators must not offer self-service credential recovery.');
+    await request('/api/demo/accounts/profile',{token:users[winner].token,body:{...buyerPreferences,role:'operator'},expected:400});
+    const operatorRecovery=await request('/api/demo/accounts/recovery/setup',{token:users.op.token,body:{password:passwords.op},expected:403});
+    check(operatorRecovery.code==='RECOVERY_DISABLED','Operator credential recovery was not explicitly blocked.');
+    const incorrectProof=await request('/api/demo/accounts/recovery/setup',{token:users[winner].token,body:{password:'Incorrect synthetic proof only'},expected:403});
+    check(incorrectProof.code==='INVALID_RECOVERY_PROOF','Wrong recovery proof must not be treated as an expired auth session.');
+    check((await get(winner,'accounts/me')).account.id===users[winner].account.id,'Wrong recovery proof revoked a valid auth session.');
+    pass('fictitious profiles for both roles, immutable role/mine fields and managed operator credentials');
+
+    stage='one-time recovery key, temporary challenge and generic failures';
+    const recoveryState=await get(winner,'state'),recoveryCustody=await get(winner,'custody'),recoveryManagement=await managementSnapshot(users.op.token);
+    const previousToken=users[winner].token,oldPassword=passwords[winner];
+    const secondSession=await request('/api/demo/accounts/login',{body:{alias:users[winner].account.alias,password:oldPassword}});
+    privateValues.add(previousToken);privateValues.add(secondSession.token);
+    const setup=await request('/api/demo/accounts/recovery/setup',{token:previousToken,body:{password:oldPassword}});
+    check(setup.demoOnly===true&&setup.recoveryEnabled===true&&/^[A-Za-z0-9_-]{43}$/.test(setup.recoveryKey),'Recovery setup did not issue a 32-byte one-time key.');
+    privateValues.add(setup.recoveryKey);
+    const wrongRecoveryKey=randomBytes(32).toString('base64url');privateValues.add(wrongRecoveryKey);
+    const knownFailure=await request('/api/demo/accounts/recovery/start',{body:{alias:users[winner].account.alias,recoveryKey:wrongRecoveryKey},expected:401});
+    const unknownFailure=await request('/api/demo/accounts/recovery/start',{body:{alias:`int_${tag}_missing`,recoveryKey:wrongRecoveryKey},expected:401});
+    same(knownFailure,unknownFailure,'Recovery start enumerated an existing alias.');
+    check(knownFailure.code==='RECOVERY_INVALID','Recovery proof failure code is incorrect.');
+    const challenge=await request('/api/demo/accounts/recovery/start',{body:{alias:users[winner].account.alias,recoveryKey:setup.recoveryKey}});
+    check(challenge.demoOnly===true&&/^[A-Za-z0-9_-]{43}$/.test(challenge.token)&&Date.parse(challenge.expiresAt)>Date.now()+540_000&&Date.parse(challenge.expiresAt)<=Date.now()+600_000,'Recovery challenge entropy or ten-minute expiry is incorrect.');
+    privateValues.add(challenge.token);
+    const newPassword=`Demo-${randomBytes(24).toString('base64url')}`;privateValues.add(newPassword);
+    const completed=await request('/api/demo/accounts/recovery/complete',{body:{token:challenge.token,password:newPassword}});
+    check(completed.demoOnly===true&&completed.ok===true&&completed.sessionsRevoked===true&&/^[A-Za-z0-9_-]{43}$/.test(completed.recoveryKey)&&completed.recoveryKey!==setup.recoveryKey&&!completed.token&&!completed.account,'Recovery completion did not rotate the key or incorrectly returned an auth session.');
+    privateValues.add(completed.recoveryKey);
+    for(const token of [previousToken,secondSession.token])await request('/api/demo/accounts/me',{token,expected:401});
+    await request('/api/demo/accounts/login',{body:{alias:users[winner].account.alias,password:oldPassword},expected:401});
+    await request('/api/demo/accounts/recovery/complete',{body:{token:challenge.token,password:newPassword},expected:401});
+    await request('/api/demo/accounts/recovery/start',{body:{alias:users[winner].account.alias,recoveryKey:setup.recoveryKey},expected:401});
+    const recovered=await request('/api/demo/accounts/login',{body:{alias:users[winner].account.alias,password:newPassword}});
+    check(recovered.account.id===users[winner].account.id&&recovered.account.alias===users[winner].account.alias&&recovered.account.mineId===users[winner].mineId,'Recovery changed the account identity or mine.');
+    users[winner].token=recovered.token;passwords[winner]=newPassword;
+    same(await get(winner,'state'),recoveryState,'Credential recovery changed wallet, holdings or original receipts.');
+    same(await get(winner,'custody'),recoveryCustody,'Credential recovery changed source lot allocations or certificates.');
+    same(await managementSnapshot(users.op.token),recoveryManagement,'Credential recovery changed mine inventory, history or indicators.');
+    const recoveredProfile=await get(winner,'accounts/profile');
+    same(recoveredProfile.profile,buyerPreferences,'Credential recovery lost profile preferences.');
+    same(recoveredProfile.recovery,{enabled:true,selfService:true},'Recovery enabled flag was not preserved.');
+    check((await get('op','accounts/me')).account.id===users.op.account.id,'Buyer recovery revoked an unrelated operator session.');
+    final=await capture();await replayAll();same(await capture(),final,'Recovery or original-key replays changed persisted account, profile, management or custody data.');
+    pass('buyer recovery, generic failures, all-session revocation, same-alias login and intact profiles/history/lot allocations');
     if(phase==='prepare'){
-      const snapshot={format:'openminerals.integral-smoke.snapshot',version:2,base,preparedAt:new Date().toISOString(),users,commands,data:final,dataHash:hash(final)};
-      await writeFile(snapshotPath,JSON.stringify(snapshot,null,2)+'\n',{flag:'wx',mode:0o600});
+      const snapshot={format:'openminerals.integral-smoke.snapshot',version:3,base,fixtureTag,preparedAt:new Date().toISOString(),users,commands,data:final,dataHash:hash(final)};
+      const serialized=JSON.stringify(snapshot,null,2)+'\n';
+      for(const secret of privateValues)check(!serialized.includes(secret),'Snapshot would contain a password, admin token, recovery key, recovery token or revoked auth token.');
+      await writeFile(snapshotPath,serialized,{flag:'wx',mode:0o600});
       pass('private snapshot created outside Git; it contains synthetic auth tokens and must not be published');
       console.log('Confirm the API restart separately, then run verify with the same origin and snapshot.');
     }else{
