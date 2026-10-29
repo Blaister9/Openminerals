@@ -15,7 +15,7 @@ export function sanitizeLegacyHierarchy(xml,selectors){
   const env=Object.fromEntries(Object.entries(process.env).filter(([key])=>!key.startsWith('OPENMINERALS_QA_')&&!key.startsWith('MAESTRO_')&&!/TOKEN|PASSWORD|SECRET/.test(key)));
   env.PYTHONIOENCODING='utf-8';
   const result=spawnSync(process.platform==='win32'?'python':'python3',[fileURLToPath(new URL('./legacy-ui.py',import.meta.url))],{
-    input:JSON.stringify({xml,selectors}),encoding:'utf8',timeout:10000,maxBuffer:2000000,windowsHide:true,env,
+    input:JSON.stringify({xml,selectors}),encoding:'utf8',timeout:10000,killSignal:'SIGKILL',maxBuffer:2000000,windowsHide:true,env,
   });
   if(result.error||result.status!==0)throw new Error('Legacy hierarchy could not be safely parsed.');
   return JSON.parse(result.stdout);
@@ -72,7 +72,7 @@ export async function captureLegacyFailure({stage,completedStages,serial,definit
   if(!/clearState:\s*true/.test(definitions)||/\b(?:accounts?|alias|password|login|register|recovery|cuenta|claves?)\b|recuperaci[oó]n/i.test(definitions))throw new Error('Legacy flow does not satisfy the anonymous capture policy.');
   await mkdir(privateDirectory,{recursive:true,mode:0o700});
   await mkdir(publishDirectory,{recursive:true});
-  const adbRaw=(args)=>invoke('adb',['-s',serial,...args],{timeout:15000,maxBuffer:12000000,windowsHide:true,stdio:['ignore','pipe','pipe']});
+  const adbRaw=(args)=>invoke('adb',['-s',serial,...args],{timeout:15000,killSignal:'SIGKILL',maxBuffer:12000000,windowsHide:true,stdio:['ignore','pipe','pipe']});
   const adb=(args)=>checked(adbRaw(args));
   const capture={stage,screenshot:'unavailable',hierarchy:'unavailable',runtime:'unavailable',walletScreenshots:[],rawXmlPublished:false,rawLogsPublished:false};
   try{capture.walletScreenshots=await copyLegacyScreenshots(privateDirectory,publishDirectory);}catch{ /* Never broaden the screenshot allowlist. */ }

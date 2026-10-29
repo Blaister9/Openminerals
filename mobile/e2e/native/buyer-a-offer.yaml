@@ -1,0 +1,56 @@
+appId: com.openminerals.demo.mobile
+name: Buyer A publishes priced05g peer offer
+---
+- scrollUntilVisible:
+    element:
+      text: ^Posiciones$
+    direction: UP
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Posiciones$
+- scrollUntilVisible:
+    element:
+      text: ^Publicar oferta$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Publicar oferta$
+- scrollUntilVisible:
+    element:
+      text: Gramos para operación
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Gramos para operación
+- eraseText
+- inputText: "0.5"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: Precio por gramo de oferta marketplace
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Precio por gramo de oferta marketplace
+- eraseText
+- inputText: "140"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: ^Publicar oferta demo$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Publicar oferta demo$
+- tapOn: ^Confirmar demo$
+- extendedWaitUntil:
+    visible: ^Comprobante$
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: ^Oferta publicada$
+    direction: UP
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^Oferta publicada$
+- tapOn: Cerrar comprobante

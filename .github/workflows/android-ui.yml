@@ -73,6 +73,12 @@ jobs:
         run: |
           set -euo pipefail
           acceleration_log="$RUNNER_TEMP/openminerals-native/public/acceleration.txt"
+          node <<'NODE'
+          const fs=require('node:fs'),os=require('node:os');
+          const resource={availableCpus:os.availableParallelism(),totalMemoryMiB:Math.floor(os.totalmem()/1048576),guestCpus:4,guestMemoryMiB:4096};
+          fs.writeFileSync(process.env.RUNNER_TEMP+'/openminerals-native/public/host-resources.json',JSON.stringify(resource,null,2)+'\n');
+          if(resource.availableCpus<4||resource.totalMemoryMiB<8192){console.error('STANDARD_HOST_RESOURCES_INSUFFICIENT');process.exit(1);}
+          NODE
           printf 'KVM preflight on disposable public Ubuntu runner\n' > "$acceleration_log"
           id >> "$acceleration_log"
           if ! test -c /dev/kvm; then
@@ -113,8 +119,8 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_2
-          cores: 2
-          ram-size: 2048M
+          cores: 4
+          ram-size: 4096M
           emulator-boot-timeout: 360
           disable-linux-hw-accel: false
           emulator-options: -accel on -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim

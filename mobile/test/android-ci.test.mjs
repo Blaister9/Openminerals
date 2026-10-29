@@ -116,6 +116,8 @@ test('Android CI: workflow is manual KVM-only bounded public upload and no secre
   assert.equal(workflow.concurrency['cancel-in-progress'],false);
   assert.match(raw,/udevadm trigger --name-match=kvm/);
   const runner=job.steps.find(step=>step.uses?.startsWith('ReactiveCircus/'));
+  assert.equal(runner.with.cores,4);assert.equal(runner.with['ram-size'],'4096M');
+  assert.match(raw,/host-resources\.json/);assert.match(raw,/availableParallelism/);assert.match(raw,/STANDARD_HOST_RESOURCES_INSUFFICIENT/);
   const runnerIndex=job.steps.indexOf(runner);
   // Regression for run40807688104: Ubuntu has /dev/kvm but no emulator binary
   // until this action installs it. No earlier step may execute -accel-check.
@@ -175,7 +177,7 @@ test('Android CI: new Maestro documents preserve data and only anonymous phases 
 
 test('Android CI: optional OTA follows native verification, passes ID only by env and verifies unchanged results again',async()=>{
   const runner=await source('../e2e/ci-android.mjs');
-  assert.match(runner,/MAESTRO_EXPECTED_OTA_ID:name==='ota'\?\(expectedOtaId\?\?''\):''/);
+  assert.match(runner,/MAESTRO_EXPECTED_OTA_ID:\['ota','ota-before-story'\]\.includes\(name\)\?\(expectedOtaId\?\?''\):''/);
   assert.match(runner,/await runStage\('api-verifies-native-wallets-lots-fees',verifyNative\);\s+if\(expectedOtaId\)\{\s+await runStage\('buyer-compatible-ota-cold-launch',\(\)=>maestro\('ota','a'\)\);\s+await runStage\('api-verifies-data-after-compatible-ota',verifyNative\);\s+\}/);
   assert.match(runner,/try\{\s+\/\/[^\n]+\n\s+expectedOtaId=otaUpdateId\(process.env.OTA_INPUT_UPDATE_ID\);\s+const mode=/);
   const cli=runner.slice(runner.indexOf("command('maestro'"),runner.indexOf("async function captureSafeScreens"));
@@ -185,6 +187,17 @@ test('Android CI: optional OTA follows native verification, passes ID only by en
   assert.equal((ota.match(/^- stopApp$/gm)||[]).length,2);
   assert.doesNotMatch(JSON.stringify(yaml.parseAllDocuments(ota).map(document=>document.toJSON())),/clearState|clearKeychain|reloadAsync|inputText|runFlow|takeScreenshot/);
   assert.match(ota,/text: \^USDT 287,89\$/);
+});
+
+test('Android CI: requested studio OTA is verified anonymously before story without financial or auth actions',async()=>{
+  const runner=await source('../e2e/ci-android.mjs');
+  const pre=runner.indexOf("if(expectedOtaId)await runStage('anonymous-compatible-ota-before-story'");
+  assert.ok(runner.indexOf("'preserve-legacy-after-update'")<pre&&pre<runner.indexOf("'native-story-and-reduced-motion'"));
+  const raw=await source('../e2e/native/ota-before-story.yaml'),commands=yaml.parseAllDocuments(raw)[1].toJSON();
+  assert.equal((raw.match(/MAESTRO_EXPECTED_OTA_ID\.slice\(0,8\)/g)||[]).length,2);
+  assert.equal(commands.filter(command=>command==='stopApp').length,2);
+  assert.match(raw,/\^Sesión sin cuenta\$/);assert.match(raw,/\^USDT 268,40\$/);
+  assert.doesNotMatch(JSON.stringify(commands),/clearState|inputText|runFlow|takeScreenshot|Confirmar demo|login.yaml|Clave/);
 });
 
 // Execute the exact intended business amounts against the actual HTTP serializer,

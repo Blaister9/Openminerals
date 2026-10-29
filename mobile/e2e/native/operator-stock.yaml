@@ -1,0 +1,109 @@
+appId: com.openminerals.demo.mobile
+name: Operator restock and private management
+---
+- scrollUntilVisible:
+    element:
+      text: ^Inventario$
+    direction: UP
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Inventario$
+- scrollUntilVisible:
+    element:
+      text: Gramos para ingreso de mina
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Gramos para ingreso de mina
+- eraseText
+- inputText: "1"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: Motivo del ingreso de mina
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Motivo del ingreso de mina
+- eraseText
+- inputText: Lote ficticio del recorrido nativo QA
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: Pureza del lote demo
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Pureza del lote demo
+- eraseText
+- inputText: "9999"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: Ubicación ficticia del lote
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Ubicación ficticia del lote
+- eraseText
+- inputText: DEMO QA sin ubicación real
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: Título documento de lote demo
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Título documento de lote demo
+- eraseText
+- inputText: Registro ficticio QA
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: Contenido documento de lote demo
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Contenido documento de lote demo
+- eraseText
+- inputText: Documento DEMO sin recepción física.
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: ^Revisar ingreso ficticio$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Revisar ingreso ficticio$
+- assertVisible: ^Crear lote de demostración$
+- tapOn: ^Confirmar demo$
+- extendedWaitUntil:
+    visible: ^Ingreso registrado$
+    timeout: 30000
+- tapOn: Cerrar comprobante de ingreso
+- scrollUntilVisible:
+    element:
+      text: ^Panel gerencial$
+    direction: UP
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Panel gerencial$
+- scrollUntilVisible:
+    element:
+      text: ^Actividad y control$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^Actividad y control$
+- scrollUntilVisible:
+    element:
+      text: (?i)^Ver comprobante de mina:.*
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: (?i)^Ver comprobante de mina:.*
+- extendedWaitUntil:
+    visible: ^Comprobante$
+    timeout: 30000
+- assertNotVisible: ^Saldo USDT después$
+- tapOn: Cerrar comprobante

@@ -4,6 +4,8 @@ Este recorrido está preparado; su presencia y las pruebas de sus validadores **
 
 El workflow Android UI verification es exclusivamente manual, en ubuntu-24.04 estándar y repositorio público, con concurrencia de una ejecución. Repara permisos KVM mediante udev y exige aceleración accesible; no continúa con CPU sin aceleración. El renderizador gráfico SwiftShader del emulador es independiente de KVM. No acredita rendimiento en un teléfono.
 
+El huésped usa 4 cores y 4096 MiB en ese mismo runner estándar. La [tabla oficial de GitHub para repositorios públicos](https://docs.github.com/en/actions/how-tos/write-workflows/choose-where-workflows-run/choose-the-runner-for-a-job) asigna 4 CPU y 16 GB a ubuntu-24.04; no se solicita un larger runner. host-resources.json registra los recursos disponibles y el job aborta si no dispone al menos de 4 CPU y 8 GiB de RAM.
+
 ## Preparación del propietario
 
 1. Publicar la API 0.2.0 con PostgreSQL. El helper exige health.apiVersion=0.2.0, demoOnly=true y mode=postgres-demo.
@@ -40,11 +42,14 @@ Las tres identidades aisladas recorren:
 
 Las aserciones nativas se complementan con lecturas API de esas mismas cuentas: posiciones finales A/B 500 mg, lotes origen transferidos, inventario 4500 mg + asignado 1000 mg = activo 5500 mg, peso original 6000 mg y entregado 500 mg, cero reservas, una reposición, una liquidación peer y 461 centésimas de comisiones de trading sin duplicación. El coste de entrega es 1000 centésimas separado. Se comprueba también que la gestión no exponga billeteras. Estas lecturas no sustituyen las aserciones de interfaz.
 
+La conversión de A, su compra/certificado y su oferta son tres subflujos consecutivos con un solo login; el operador divide entrega y reposición/gestión conservando la misma identidad y pantalla. No se repite una orden al cambiar de subflujo. Cada invocación Maestro conserva siete minutos de margen: el timeout usa SIGKILL, sin esperar indefinidamente una JVM que maneje SIGTERM. ADB tiene límites de 180 segundos para instalar, 30 para dumpsys/pull/push y 20 para el resto; los diagnósticos tienen 15 segundos. Los límites globales continúan en 35 minutos para la acción nativa y 45 para el job.
+
 ## Evidencia y diagnóstico público
 
 Solo se sube openminerals-native/public, retención un día:
 
 - Metadatos públicos de APKs y certificados, aceleración y versión Maestro.
+- progress.json y progress.ndjson se escriben antes de cada etapa/comando y después de su resultado, con nombres fijos, timestamps, programas/operaciones permitidos, deadline y resultado seguro. No contienen argumentos, entorno, alias, claves, salida de procesos ni errores raw. Una cancelación puede dejar RUNNING: no se transforma en aprobación. lastFailure conserva un timeout o error de proceso aunque la limpieza ADB posterior pase.
 - JUnit regenerado desde el resultado real de cada etapa/ejecución Maestro; etiquetas fijas y fallos conservados. No contiene detalles XML originales.
 - Resumen de etapas y, si falla Maestro, failure-context.json con categoría cerrada y selectores/últimos comandos que coinciden exclusivamente con textos estáticos del YAML. Jamás se copia una línea raw.
 - PNGs con nombres permitidos, capturados únicamente antes de autenticación.
@@ -61,8 +66,12 @@ Las pruebas locales de android-ci.test.mjs validan URLs, límites, guardia adb, 
 
 ## OTA posterior opcional
 
-Al proporcionar ota_update_id, el runner ejecuta native/ota.yaml después de verificar todos los recorridos anteriores, con el comprador A en el mismo emulador desechable y sin operaciones pendientes. MAESTRO_EXPECTED_OTA_ID recibe el ID completo validado solo mediante el entorno del proceso, nunca interpolado en comandos. La aserción compara sus primeros ocho caracteres con el indicador de la app. Busca/fetch, realiza dos aperturas en frío y conserva wallet; después se repiten las lecturas API de saldos, posiciones, lotes, comisiones, historial y perfil, sin generar nuevas operaciones. El resumen público indica si se solicitó OTA y su UUID esperado. No se inventa un ID ni se fuerza recarga durante una operación.
+Al proporcionar ota_update_id, el runner ejecuta primero native/ota-before-story.yaml tras preservar los datos anteriores y antes de la presentación: todavía sin cuenta, busca/fetch, realiza dos aperturas en frío, exige el prefijo del ID publicado y conserva USDT268,40. Si no aplica esa actualización se detiene antes de tomar imágenes de las escenas; no se atribuye al estudio nuevo un render anterior. Después de las operaciones de cuentas, native/ota.yaml repite el chequeo con el comprador A, sin operaciones pendientes, y verifica USDT287,89; las lecturas API finales vuelven a comprobar saldos, posiciones, lotes, comisiones, historial y perfil.
+
+Ambos flujos reciben MAESTRO_EXPECTED_OTA_ID completo validado solo mediante el entorno del proceso, nunca interpolado en comandos. La aserción compara sus primeros ocho caracteres con el indicador de la app. No generan operaciones ni cambian identidades. El resumen público indica si se solicitó OTA y su UUID esperado. No se inventa un ID ni se fuerza recarga durante una operación.
 
 Con el input vacío se conservan las etapas iniciales sin ejecutar OTA. La descarga automática al abrir el APK puede aplicar una actualización publicada antes de llegar a esta etapa; la aceptación comprueba el ID visible después de ambas aperturas y los datos conservados, sin afirmar que la descarga comenzó en el botón.
 
 La aceptación de iPhone, un dispositivo Android físico, la importación nativa y los casos adversariales de recuperación no quedan acreditados por este workflow. Conservar esos pendientes hasta ejecutarlos y registrar evidencia.
+
+El run 40814480970 fue cancelado por el agente tras aprobar siembra legacy, actualización sin borrar datos, preservación del snapshot anterior, cinco escenas/movimiento reducido y registro sin importar. El último PASS fue el registro a las 04:02:22Z; se canceló a las 04:05:39Z mientras se ejecutaba el siguiente flujo de A, sin alcanzar su timeout de siete minutos. No acredita aceptación integral ni demuestra un bloqueo de la App. Los checkpoints posteriores permiten observar esa distinción sin esperar al cierre ni publicar datos privados.
