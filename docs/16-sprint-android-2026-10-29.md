@@ -1,5 +1,7 @@
 # Sprint Android · 29 de octubre de 2026
 
+**Continuación posterior:** [candidata Android, cuatro divisas/metales y siete escenas](18-candidata-android-2026-10-29.md). Este informe conserva los resultados de la base integrada `0f07113`.
+
 Continuación de la [PR #4](https://github.com/Blaister9/Openminerals/pull/4), sobre Expo SDK 57 y la API existente. Todo es simulado. No se desarrolló iOS ni se eliminaron registros de la demo.
 
 ## Implementación de este sprint

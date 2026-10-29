@@ -1,54 +1,81 @@
 # Candidata Android · 29 de octubre de 2026
 
-Continuación de `main` `0f07113` en `codex/android-demo-candidate-20261029`. Todo sigue siendo **SIMULADO**. No se reconstruyeron los módulos comerciales ni se cambiaron SDK, permisos, módulos nativos o firma. Se conserva el APK Android 0.2.0/código 5 y el runtime OTA 0.2.0.
+La candidata permite completar el recorrido comercial y operativo de la demo en Android emulado. Las seis ejecuciones definitivas aprobaron **95 etapas**, que incluyen acciones nativas y comprobaciones API. La aceptación de esta revisión en teléfono físico sigue pendiente. Todo es **SIMULADO**.
 
-## Cambios y evidencia local
+Continuación de `main` `0f07113`, publicada mediante [PR #5](https://github.com/Blaister9/Openminerals/pull/5). Fuente móvil: `c2d674bd83b1f7b942a16396ecee88ab4b8c9a03`; controlador final de pruebas: `1c4b2b56aaf28e1356bcd038be96c07e8f21e356`. No se reconstruyeron los módulos comerciales ni se cambiaron SDK, permisos, módulos nativos, firma o esquema SQL. El registro de integración, CI y verificaciones posteriores al despliegue se adjunta al PR.
 
-- Presentación ampliada a siete escenas: Mina → Lingote → Custodia → Compra fraccionada → Portafolio → Marketplace → Entrega física. Omisión, lectura sin movimiento y preferencia del sistema conservadas.
-- Inicio, Mercado, Billetera, Metales y Mina comparten tipografía institucional, jerarquía y colores. La composición del portafolio usa las posiciones existentes; no incorpora saldos de billetera ni métricas inventadas.
-- Un único contexto 3D, dibujo bajo demanda con límite de 30 fps y lado máximo de render de 1024 píxeles. Se corrigió el lienzo vacío al cambiar el tamaño: ExpoGL limpiaba el buffer después del dibujo. El contexto se reconstruye y libera al cambiar las dimensiones. Los límites no constituyen una medición de rendimiento en teléfono.
-- Navegador **integrado**: revisión visual a 360×800 y 412×850, cuatro divisas legibles, cuatro metales y lingote real WebGL después de redimensionar. No acredita ejecución Android.
-- API con PostgreSQL 17 local: **150/150**, sin omisiones; runner PostgreSQL obligatorio **71/71**. Matriz de 12 conversiones, ingresos/retiros en cuatro divisas, compras/ventas/intercambio/custodia/entrega de cuatro metales, idempotencia concurrente entre dos conexiones, importación, recuperación, perfil y reconexión persistente. Cada suite PostgreSQL crea y elimina exclusivamente su esquema temporal.
-- Móvil: **198 aprobadas y una prueba opcional de GL omitida**, TypeScript correcto, compatibilidad Expo correcta y Doctor **21/21**. API sin avisos npm; móvil con siete bajos y ninguno moderado, alto o crítico. La mitigación `check:toolchain` verifica sus tres entradas de `deepmerge`.
+## Resultado por estado
 
-## Ejecución Android de esta candidata
+| Estado | Evidencia y alcance |
+| --- | --- |
+| **Implementado y probado** | COP/EUR/USD/USDT: ingresos, retiros y 12 conversiones. Oro/plata/platino/paladio: compra, venta, oferta, aceptación desde otro comprador, comprobantes, custodia y certificados DEMO, cotización y ciclo de entrega, reposición, inventario, comisiones y permisos de Mina. Importación explícita, origen en consulta, perfil, recuperación, revocación, apertura en frío y reintento después de desconexión sin duplicación. API/PostgreSQL y Android emulado indicados abajo. Siete escenas, arrastre, omisión, movimiento reducido y actualización conservando datos comprobados en emulador. |
+| **Implementado, pendiente de pruebas** | Recorrido completo de esta revisión en teléfono físico; fluidez, temperatura y preferencias del sistema en Android de gama media y alta. No había dispositivo conectado por ADB. La revisión visual en navegador integrado se registra por separado. |
+| **Todavía no desarrollado** | Dinero, bancos, custodia y transporte reales, KYC/AML, identidad verificada, blockchain, documentos jurídicos, inventario auditado y backoffice empresarial de producción. Fuera de esta demo. iOS excluido del sprint. |
 
-Fuente publicada `c75c40dbbe98ff2ff03c2c8b2857eaba895d8126`, [PR #5](https://github.com/Blaister9/Openminerals/pull/5), [CI aprobado](https://github.com/Blaister9/Openminerals/actions/runs/40947944750). OTA Android `01a18951-9730-7bb9-bc2c-89ca01275bfc`, grupo `1ce353a3-12ee-45eb-9f87-31c1347926cd`, runtime 0.2.0, canal `demo`, publicada el 29 de octubre a las 20:19 UTC. No se generó un APK adicional.
+## Versión instalable y actualización
 
-[Matriz Android inicial](https://github.com/Blaister9/Openminerals/actions/runs/40948276994): platino y paladio aprobaron **16/16** etapas cada uno. [Oro, repetición 40950963158](https://github.com/Blaister9/Openminerals/actions/runs/40950963158), aprobó **21/21**, incluidas las siete escenas, movimiento reducido, actualización desde 0.1.3 y conservación de datos. Estos resultados corresponden a la OTA `01a18951`.
+- [APK firmado Android 0.2.0](https://github.com/Blaister9/Openminerals/releases/download/v0.2.0-demo/Openminerals-Demo-0.2.0-android.apk), código 5, paquete `com.openminerals.demo.mobile`, Android mínimo API 24. Instalar como actualización, sin desinstalar ni borrar datos.
+- SHA-256 APK: `c35719bf44fdc5a1237249be7e80d6d3102e57ee58f0cd0d9b5af3c66f32d83f`.
+- Certificado: `3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c`, igual al de 0.1.3.
+- OTA **`01a18988-e68e-7456-8977-81b269628010`**, grupo `fabb49e1-62f6-4a60-a3fd-a2dd64015ce5`, publicada el 29 de octubre de 2026 a las 21:20 UTC. Canal `demo`, entorno `preview`, runtime `0.2.0`.
+- No hace falta otro APK para estos cambios. En Actividad o Cuenta, buscar actualización sin operaciones pendientes; cerrar completamente y volver a abrir. Verificar **Actualización aplicada · 01a18988**. Se conserva embedded/anti-bricking; no se fuerza recarga durante una operación.
 
-Plata se detuvo dos veces al buscar Mercado tras entrar con el segundo comprador: proceso vivo y sin fallos Java/nativos registrados, pero jerarquía de accesibilidad vacía. Cuentas se detuvo después de ingresar y retirar COP al buscar el destino de conversión; una captura anónima confirmó el regreso de la vista al campo de ingreso tras seleccionar la divisa. No se declaró aprobada ninguna ejecución fallida ni se borraron sus registros.
+## Evidencia reproducible
 
-La revisión siguiente normaliza el foco al desplazar, seleccionar divisas, confirmar operaciones y cerrar el acceso. El visor espera a medir su posición y cabecera antes de activarse, evitando crear un contexto fuera de pantalla con coordenadas iniciales. Se repetirán los recorridos con esa OTA; no se da por resuelto el fallo Android únicamente por estos cambios de código.
+| Ejecución definitiva | Resultado | Cobertura |
+| --- | --- | --- |
+| [Oro · 40957109951](https://github.com/Blaister9/Openminerals/actions/runs/40957109951/job/123739943157) | 21/21 | Recorrido comercial, siete escenas, movimiento reducido y actualización 0.1.3 → 0.2.0 con datos conservados. |
+| [Plata · 40957109951](https://github.com/Blaister9/Openminerals/actions/runs/40957109951/job/123739943108) | 16/16 | Dos compradores y operador, intercambio, custodia, entrega, comisiones e inventario. |
+| [Platino · 40957109951](https://github.com/Blaister9/Openminerals/actions/runs/40957109951/job/123739942714) | 16/16 | Mismo recorrido sobre su propio metal y mina aislada. |
+| [Paladio · 40957109951](https://github.com/Blaister9/Openminerals/actions/runs/40957109951/job/123739943017) | 16/16 | Mismo recorrido sobre su propio metal y mina aislada. |
+| [Cuentas · 40963811481](https://github.com/Blaister9/Openminerals/actions/runs/40963811481) | 16/16 | Cuatro billeteras y 12 conversiones, importación, perfil, recuperación y aislamiento. |
+| [Desconexión · 40962399056](https://github.com/Blaister9/Openminerals/actions/runs/40962399056) | 10/10 | Saldo insuficiente, pendiente sin débito con red cortada, apertura en frío, reintento único y permisos 403. |
 
-La matriz manual de `.github/workflows/android-ui.yml` permite `case_scope=all`: cuatro minas privadas independientes para XAU/XAG/XPT/XPD y un caso de cuentas. El caso oro conserva actualización de APK anterior y recorrido completo; los otros metales repiten el recorrido comercial con cantidades, precios, saldos, comisiones, lotes e inventario comprobados por API. Cuentas verifica ingresos/retiros con coma decimal, las 12 conversiones, importación explícita, origen de solo consulta, perfil, clave de recuperación incorrecta, confirmación de contraseña, revocación, reingreso y apertura en frío.
+Los seis casos usaron la OTA `01a18988`. El resultado global de `40957109951` fue fallido por su caso de cuentas; sus cuatro trabajos de metales están aprobados. La repetición definitiva de cuentas está enlazada por separado. No se presenta aquella matriz completa como aprobada.
 
-El escenario independiente `case_scope=single`, `scenario=quality-network` prueba saldo insuficiente, retiro de una centésima con Wi-Fi/datos desactivados en el emulador, ausencia de débito mientras está desconectado, conservación del pendiente al abrir en frío y reintento sin duplicación. Luego ingresa esa centésima para conservar los saldos iniciales; mantiene sus dos comprobantes. No se altera la red del PC ni la de un teléfono. Las pruebas de respuesta perdida, concurrencia y repetición del cliente/API se registran por separado de esta prueba nativa.
+Los artefactos contienen `summary.json`, `report.xml`, `apk-verification.json` y capturas anónimas permitidas. El [resumen público versionado](evidence/android-candidate-20261029.json) conserva etapas, fuentes y hashes sin credenciales. La retención de artefactos de Actions es limitada.
 
-Las claves del caso de recuperación se extraen de dos campos identificados dentro del emulador, se enmascaran inmediatamente y se mantienen en memoria. Los flujos no solicitan capturas de recuperación. Los diagnósticos automáticos de Maestro permanecen privados en el runner; solo se publican resultados revisados y capturas anónimas anteriores a introducir credenciales. El administrador de Railway y la conexión PostgreSQL no se entregan a GitHub Actions.
+Validación local del 29 de octubre:
 
-## Preparación reproducible de presentación
+- API con PostgreSQL 17: **150/150**, sin omisiones; runner PostgreSQL obligatorio **71/71**. Concurrencia entre conexiones independientes, saldos insuficientes, repetición, aislamiento y persistencia. Cada suite elimina solo su esquema temporal.
+- Móvil: **199 aprobadas y una prueba opcional de GL de escritorio omitida**. TypeScript, compatibilidad Expo y Doctor **21/21** aprobados. La omisión local no sustituye la prueba del visor Android.
+- Auditoría npm: API sin avisos; móvil con **siete bajos**, ninguno moderado, alto o crítico. `check:toolchain` verifica las tres entradas de `deepmerge`; la mitigación no elimina el aviso upstream.
+- [CI del controlador final](https://github.com/Blaister9/Openminerals/actions/runs/40962407910) aprobado. El PR registra también CI de entrega e integración.
 
-Con `DEMO_ADMIN_TOKEN` configurado en el entorno de un proceso privado, desde la raíz:
+## Fallos corregidos y acabado visual
+
+La presentación comunica Mina → Lingote → Custodia → Compra fraccionada → Portafolio → Marketplace → Entrega física. Inicio, Mercado, Billetera, Metales y Mina comparten tipografía institucional, jerarquía y colores; la composición del portafolio procede de las posiciones existentes.
+
+Se corrigió el retorno del scroll al campo de importe al seleccionar divisas: la app normaliza el foco al desplazar, seleccionar, confirmar y cerrar el acceso. El visor espera a medir su posición y cabecera antes de activarse. Mantiene un contexto 3D, dibujo bajo demanda, máximo de 30 fps y lado de render de 1024 píxeles. Al cambiar dimensiones libera y reconstruye el contexto, evitando el lienzo vacío. Estos límites no son una medición de rendimiento en teléfono.
+
+Las primeras ejecuciones detectaron foco/jerarquía vacía en plata y desplazamiento de COP. La revisión móvil `c2d674b` superó sus repeticiones. Otro fallo pertenecía al observador de CI: tras bloquear el bucle Node al ejecutar Maestro, reutilizaba una conexión HTTP inactiva cerrada por el servidor. Se reprodujo con un servidor independiente y se corrigió usando conexiones nuevas en el observador. Las repeticiones definitivas de cuentas y desconexión aprobaron; no se borraron registros ni se convirtió una ejecución fallida en aprobada.
+
+Se revisó la UI en el **navegador integrado**, a 360×800 y 412×850: cuatro divisas legibles, cuatro metales y WebGL después de redimensionar. Evidencia local: `artifacts/browser-review/rc-candidate-3d-20261029.jpg`. Se registra como navegador, separadamente del APK emulado.
+
+## Datos de presentación y seguridad
+
+Se prepararon catorce minas y 42 cuentas ficticias independientes para repeticiones y presentación, conservando los registros anteriores. El conjunto privado de **presentación** mantiene sus saldos iniciales y 5 g de cada metal. Usar sus dos compradores y su operador mediante inicio de sesión; no volver a registrarlos en otra mina. El [guion comercial](17-recorrido-demo-android.md) indica cantidades, saldos esperados y recorrido.
+
+Para preparar otro conjunto, configurar `DEMO_ADMIN_TOKEN` en el entorno de un proceso privado y ejecutar desde la raíz:
 
 ```powershell
 node api/scripts/prepare-demo.mjs --out "C:\demo-privada\presentacion-nueva" --label presentacion-nueva --kind presentation
 ```
 
-El directorio padre debe existir y el destino debe ser nuevo y estar fuera del repositorio. El programa resuelve la ruta física, aplica permisos privados y guarda `credentials.json` antes de crear registros. Crea una mina nueva con 5 g de cada metal, dos compradores y un operador; verifica sus roles y saldos iniciales. No imprime claves, no guarda el token administrativo, no reinicia cuentas y no borra registros. Si se interrumpe, conserva la preparación parcial para revisión; no volver a usar ciegamente la misma ruta.
+El padre debe existir; el destino debe ser nuevo y estar fuera del repositorio. Se resuelve la ruta física, se aplican permisos privados y se guarda `credentials.json` antes de crear registros. No se imprimen claves, no se guarda el token administrativo, no se reinician cuentas y no se borran registros. Una interrupción conserva la preparación parcial para revisión; no reutilizar ciegamente su ruta.
 
-La preparación inicial creó seis minas y 18 cuentas sin reiniciar registros: cinco conjuntos de QA para la matriz y un conjunto privado de presentación. Las repeticiones crean otros conjuntos de QA y conservan los anteriores. La presentación permanece sin movimientos. Sus credenciales se entregan localmente al propietario; no se publican en este documento. Las 36 credenciales temporales de CI se retirarán al terminar sus ejecuciones.
+Las claves de recuperación nativas se extrajeron de dos campos identificados, se enmascararon inmediatamente y se conservaron en memoria. No se publicaron capturas de recuperación ni diagnósticos privados de Maestro. Railway admin, conexión PostgreSQL y credenciales EAS no se entregaron a Actions. Los secretos temporales de QA se retiran al terminar las ejecuciones y el resultado se registra en el PR. Las credenciales de presentación se entregan en un archivo local privado. El [operador público autorizado](../demo-access/operator-public.json) sigue siendo compartido; el modo legacy sigue siendo una compatibilidad sin autenticación financiera.
 
-Usar las tres cuentas de la misma preparación privada en el [guion comercial](17-recorrido-demo-android.md), mediante inicio de sesión, sin volver a registrarlas. Conservar sus datos después de la presentación. Para repetir desde los saldos iniciales, crear otra preparación nueva; no restablecer la anterior. El operador público autorizado sigue disponible en [su archivo](../demo-access/operator-public.json), pero comparte historial con otras demostraciones.
+## Railway y persistencia
+
+Proyecto `openminerals-demo`, entorno `demo`, API `00e2d919-2cd1-4293-befd-d8af58df8069`, PostgreSQL `4cedb5b6-dbf2-4a3c-8a97-4c11df009e44`. [Health HTTPS](https://openminerals-api-demo.up.railway.app/health): `ok:true`, `demoOnly:true`, `mode:postgres-demo`.
+
+La API sigue conectada a `Blaister9/Openminerals`, rama `main`, raíz `/api`, Dockerfile `/api/Dockerfile`, vigilancia `/api/**` y espera de CI. No se modifican variables ni el servicio PostgreSQL. No hay migración SQL nueva.
+
+Antes de integrar se verificaron las cuatro minas de metales, desconexión y presentación intacta. Huella canónica de dominio guardada privadamente: `16f766e00fe1415949020f3998c705490ec22e87306d158280dd51dee792eea1`. Después del despliegue se compara la misma huella y se ejecutan las 89 comprobaciones del snapshot HTTPS anterior, sin reiniciar registros. El ID real del despliegue, su fuente y resultados se adjuntan al [registro de integración del PR #5](https://github.com/Blaister9/Openminerals/pull/5).
 
 ## Aceptación física pendiente
 
-En esta ejecución ADB no tenía teléfono ni emulador conectado. No se utilizó control de pantalla del PC. Registrar por separado en un Android físico: revisión OTA aplicada, modelo/versión Android, recorrido de las tres cuentas, persistencia al cerrar, importación de la sesión del propietario si la elige, arrastre/omisión de siete escenas, movimiento reducido y fluidez/temperatura. No desinstalar ni borrar datos. No publicar claves o capturas de recuperación.
+No había teléfono conectado por ADB y no se utilizó control de pantalla del PC. En Android físico: verificar revisión OTA, modelo/Android, recorrido de las tres cuentas, conservación al cerrar, importación de la sesión anterior si el propietario la elige, arrastre/omisión, movimiento reducido y fluidez/temperatura. No desinstalar ni borrar datos. No publicar claves o capturas de recuperación.
 
-| Estado | Alcance actual |
-| --- | --- |
-| Implementado y probado | Lógica comercial de las cuatro divisas/metales en memoria y PostgreSQL, aislamiento, permisos, idempotencia, importación, recuperación, perfil y persistencia; revisión visual web integrada. |
-| Implementado, pendiente de pruebas | Esta revisión visual y la matriz ampliada en Android emulado; recorrido completo y rendimiento en teléfono físico. Se actualizará esta fila con los resultados reales. |
-| Todavía no desarrollado | KYC/AML, dinero o custodia física reales, bancos, blockchain, documentos jurídicos y backoffice empresarial. Quedan fuera del alcance de la demo; iOS excluido. |
-
-No se declara finalizada la aceptación Android mientras falte la ejecución de sus recorridos principales y la evidencia indicada.
+La candidata está comprobada con APK instalable en emulador. No se declara completada su aceptación en teléfono físico.
