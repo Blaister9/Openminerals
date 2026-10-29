@@ -2,6 +2,7 @@ import React,{useEffect,useState} from 'react';
 import {ActivityIndicator,Pressable,StyleSheet,Text,TextInput,View} from 'react-native';
 import {normalizeDecimalInput,parsePositiveDecimal} from '../lib/presentation';
 import {receiptSummary,receiptTitle,type Receipt} from '../lib/receipt-presentation';
+import {deliveryStatusLabel,type DeliveryStatus} from '../lib/delivery';
 
 type Metal='XAU'|'XAG'|'XPT'|'XPD';
 type Account={id:string;alias:string};
@@ -76,7 +77,7 @@ export function MineDashboard({summary,loading,error,blocked,lastStockId,onRefre
       <Text accessibilityRole="header" style={styles.section}>Solicitudes de cotización</Text>
       <Text style={styles.note}>Mostrando {summary.pendingDeliveries.length} de {summary.deliveriesPending} solicitudes pendientes, hasta 100 en este panel.</Text>
       {!summary.pendingDeliveries.length&&<Text style={styles.note}>Sin cotizaciones de entrega pendientes.</Text>}
-      {summary.pendingDeliveries.map(item=><View key={`${item.account.id}-${item.delivery.id}`} style={styles.card}><Text style={styles.cardTitle}>{item.account.alias}</Text><Row label={name(item.delivery.metal)} value={gram(item.delivery.mg)}/><Text style={styles.note}>Pendiente de cotización. No hay un envío real ni aceptación de costes.</Text></View>)}
+      {summary.pendingDeliveries.map(item=><View key={`${item.account.id}-${item.delivery.id}`} style={styles.card}><Text style={styles.cardTitle}>{item.account.alias}</Text><Row label={name(item.delivery.metal)} value={gram(item.delivery.mg)}/><Text style={styles.note}>{deliveryStatusLabel(item.delivery.status as DeliveryStatus)}. Consulta el trámite en Entregas DEMO; no hay un envío real.</Text></View>)}
       <Text accessibilityRole="header" style={styles.section}>Últimos 20 ingresos registrados</Text>
       {!summary.stockAdjustments.length&&<Text style={styles.note}>Aún no se han registrado reposiciones.</Text>}
       {summary.stockAdjustments.map(item=><Pressable key={item.id} accessibilityRole="button" accessibilityLabel={`Ver ingreso de ${name(item.metal)}: ${gram(item.mg)}`} onPress={()=>onStockReceipt(item)} style={styles.card}><Row label={`Ingreso de ${name(item.metal)}`} value={gram(item.mg)}/><Text style={styles.copy}>{item.reason}</Text><Text style={styles.note}>{item.actor?.alias||'Operador'} · {new Date(item.at).toLocaleString('es-CO')}</Text><Text style={styles.link}>Consultar ingreso →</Text></Pressable>)}

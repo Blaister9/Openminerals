@@ -96,7 +96,11 @@ export function createApiServer(store,config={}){
         if(req.method==='GET'&&path==='/api/demo/mine/summary')return send(res,200,await store.getMineSummary(account.id));
         if(req.method==='GET'&&path==='/api/demo/mine/custody')return send(res,200,await store.getCustody(account.id,'operator'));
         if(req.method==='GET'&&path==='/api/demo/mine/deliveries')return send(res,200,await store.getDeliveries(account.id,'operator'));
-        if(req.method==='GET'&&path.startsWith('/api/demo/mine/commands/'))return send(res,200,await store.getMineCommand(account.id,path.slice('/api/demo/mine/commands/'.length)));
+        if(req.method==='GET'&&path==='/api/demo/mine/management')return send(res,200,await store.getManagement(account.id,url.searchParams));
+        if(req.method==='GET'&&path.startsWith('/api/demo/mine/commands/')){
+          for(const key of url.searchParams.keys())if(!['actor','kind'].includes(key)||url.searchParams.getAll(key).length!==1)throw accountError(400,'Parámetros de comprobante DEMO inválidos.');
+          return send(res,200,await store.getMineCommand(account.id,path.slice('/api/demo/mine/commands/'.length),{actorId:url.searchParams.get('actor')??undefined,kind:url.searchParams.get('kind')??undefined}));
+        }
         if(req.method==='POST'&&['/api/demo/mine/delivery_quote','/api/demo/mine/delivery_transition','/api/demo/mine/delivery_config'].includes(path)){
           const action=path.slice('/api/demo/mine/'.length),body=await readJson(req);
           const fields={delivery_quote:['buyerId','deliveryId','jurisdiction'],delivery_transition:['buyerId','deliveryId','status','reason'],delivery_config:['jurisdiction','label','taxBps','service','preparation','transport','insuranceBps','quoteValidityHours','requirements','reason']};

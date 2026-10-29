@@ -16,6 +16,7 @@ import {StockReceiptDetails} from './components/StockReceiptDetails';
 import {CustodyPanel} from './components/CustodyPanel';
 import {MarketplacePanel} from './components/MarketplacePanel';
 import {DeliveryPanel} from './components/DeliveryPanel';
+import {ManagementPanel} from './components/ManagementPanel';
 
 // DEMO: todas las cifras, inventarios y solicitudes son simulados.
 // Cuentas de demostración; no hay KYC, pagos, exchange ni bóveda real.
@@ -111,6 +112,8 @@ export default function App(){
  const [stockReceipt,setStockReceipt]=useState<StockReceipt|null>(null);
  const [lastStockId,setLastStockId]=useState('');
  const [operationRevision,setOperationRevision]=useState(0);
+ const [mineSection,setMineSection]=useState<'management'|'inventory'|'custody'|'delivery'>('management');
+ const [metalsSection,setMetalsSection]=useState<'positions'|'custody'|'delivery'>('positions');
  const [historyItems,setHistoryItems]=useState<Receipt[]>([]);
  const [historyCursor,setHistoryCursor]=useState<string|null>(null);
  const [historyTotal,setHistoryTotal]=useState(0);
@@ -166,6 +169,7 @@ export default function App(){
   setSelectedReceipt(null);setReceiptVisible(false);setReceiptLoading(false);setReceiptError('');receiptToFetch.current='';receiptOwner.current=null;
   setStockReceipt(null);setLastStockId('');setOperatorVisible(false);
   setMetalAction('sell');
+  setMineSection('management');setMetalsSection('positions');
  }
  function acceptIdentity(initial:{session:string;pending:PendingOperation|null;account:Account|null;mine?:{id:string;name:string}|null;authExpired?:boolean}){
   setSession(initial.session);setPending(initial.pending);setAccount(initial.account);setMineIdentity(initial.mine??null);setAuthExpired(!!initial.authExpired);
@@ -228,7 +232,8 @@ export default function App(){
   setSelectedReceipt(cached??(selectedReceipt?.id===id?selectedReceipt:null));
   setReceiptVisible(true);setReceiptLoading(true);setReceiptError('');
   try{
-   const path=ownerId==='mine'?`/api/demo/mine/commands/${encodeURIComponent(id)}`:ownerId?`/api/demo/mine/receipts/${encodeURIComponent(ownerId)}/${encodeURIComponent(id)}`:`/api/demo/receipts/${encodeURIComponent(id)}`;
+   const snapshot=cached??(selectedReceipt?.id===id?selectedReceipt:null),actor=snapshot?.actor?.id;
+   const path=ownerId==='mine'?`/api/demo/mine/commands/${encodeURIComponent(id)}?kind=${snapshot?.action==='stock'?'stock':'command'}${actor?`&actor=${encodeURIComponent(actor)}`:''}`:ownerId?`/api/demo/mine/receipts/${encodeURIComponent(ownerId)}/${encodeURIComponent(id)}`:`/api/demo/receipts/${encodeURIComponent(id)}`;
    const receipt=await client.get<Receipt>(path);
    if(receipt.id!==id||receipt.demoOnly!==true||typeof receipt.action!=='string'||typeof receipt.at!=='string')throw new Error('El comprobante devolvió una respuesta incompleta.');
    if(request===receiptRequest.current)setSelectedReceipt(receipt);
@@ -394,7 +399,10 @@ export default function App(){
    <View style={styles.hRow}><Button label="Simular ingreso" disabled={tradingBlocked||depositMinor===null||depositOverflow} onPress={()=>perform('deposit',{currency,amount},'Simular ingreso',`Abono ficticio: ${amount} ${currency}.`)}/>
    <Button label="Simular retiro" secondary disabled={tradingBlocked||depositMinor===null||withdrawalInsufficient} onPress={()=>perform('withdraw',{currency,amount},'Simular retiro',`Cargo ficticio: ${amount} ${currency}.`)}/></View>
   </Card></>}
+ function metalsNavigation(){return <View style={styles.chips}><Chip label="Posiciones" active={metalsSection==='positions'} onPress={()=>setMetalsSection('positions')}/><Chip label="Lotes y certificados" active={metalsSection==='custody'} onPress={()=>setMetalsSection('custody')}/><Chip label="Entregas DEMO" active={metalsSection==='delivery'} onPress={()=>setMetalsSection('delivery')}/></View>}
  function holdings(){const m=meta(currentMetal);const available=(state?.holdingsMg[currentMetal]||0)-reserved(currentMetal);
+  if(account&&metalsSection==='custody')return <>{metalsNavigation()}<CustodyPanel key={account.id} identityKey={account.id} operator={false} get={client.get} disabled={tradingBlocked} refreshKey={String(operationRevision)}/></>;
+  if(account&&metalsSection==='delivery')return <>{metalsNavigation()}<DeliveryPanel key={account.id} identityKey={account.id} operator={false} get={client.get} submit={perform} disabled={tradingBlocked} refreshKey={String(operationRevision)} usdtMinor={state?.walletMinor.USDT||0}/></>;
   const quantity=parsePositiveDecimal(sellGrams,3);
   const operationMg=quantity===null?null:Math.round(quantity*1000);
   const invalid=operationMg===null||operationMg<100;
@@ -404,6 +412,7 @@ export default function App(){
   const offerQuote=state&&offerPriceUnits!==null?quoteSell(sellGrams,Math.round(offerPriceUnits*100),state.feesBps.sell):null;
   const overflow=!!quote&&(state?.walletMinor.USDT||0)+quote.outputMinor>MAX_BALANCE_MINOR;
   return <><Text style={styles.eyebrow}>MIS POSICIONES</Text><Text style={styles.pageTitle}>Mis metales</Text><Text style={styles.copy}>Consulta las cantidades adquiridas y su valor de referencia.</Text>
+   {account&&metalsNavigation()}
    {metals.map(v=><Pressable key={v.code} onPress={()=>setCurrentMetal(v.code)} style={[styles.metalRow,currentMetal===v.code&&{borderColor:accent}]}>
     <View style={[styles.metalIcon,{borderColor:v.color}]}><Text style={[styles.metalText,{color:v.color}]}>{v.symbol}</Text></View>
     <View style={{flex:1}}><Text style={styles.cardTitle}>{v.name}</Text><Text style={styles.mutedSmall}>{gram(state?.holdingsMg[v.code]||0)} · disponible {gram((state?.holdingsMg[v.code]||0)-reserved(v.code))}</Text></View>
@@ -435,7 +444,7 @@ export default function App(){
    <Sub>Solicitudes y ofertas</Sub>
    {state?.offers.filter(o=>o.status==='OPEN').map(o=><Card key={o.id}><Row left={`Oferta ${meta(o.metal).name}`} right={gram(o.mg)}/><Button label="Cancelar oferta" secondary disabled={tradingBlocked} onPress={()=>perform('cancel_offer',{offerId:o.id},'Cancelar oferta',`Se liberan ${gram(o.mg)}.`)}/></Card>)}
    {!account&&state?.custodyRequests.filter(d=>d.status==='PENDING_QUOTE').map(d=><Card key={d.id}><Row left={`Entrega ${meta(d.metal).name}`} right={gram(d.mg)}/><Text style={styles.mutedSmall}>Pendiente de cotización · sin envío real.</Text><Button label="Cancelar solicitud" secondary disabled={tradingBlocked} onPress={()=>perform('cancel_delivery',{deliveryId:d.id},'Cancelar entrega',`Se liberan ${gram(d.mg)}.`)}/></Card>)}
-   {account&&<><CustodyPanel key={`custody-${account.id}`} identityKey={account.id} operator={false} get={client.get} disabled={tradingBlocked} refreshKey={String(operationRevision)}/><DeliveryPanel key={`delivery-${account.id}`} identityKey={account.id} operator={false} get={client.get} submit={perform} disabled={tradingBlocked} refreshKey={String(operationRevision)} usdtMinor={state?.walletMinor.USDT||0}/></>}
+   {account&&<View style={styles.hRow}><Button label="Consultar mis certificados" secondary onPress={()=>setMetalsSection('custody')}/><Button label="Solicitar o seguir entrega DEMO" secondary onPress={()=>setMetalsSection('delivery')}/></View>}
   </>}
  function more(){return <><Text style={styles.eyebrow}>CONTROL Y TRANSPARENCIA</Text><Text style={styles.pageTitle}>Actividad</Text>
   {accountCard()}<Button label="Actualizar datos" secondary disabled={busy||authBusy} onPress={refresh}/>
@@ -463,6 +472,16 @@ export default function App(){
    </>}
   </Card><Text style={styles.disclaimer}>Para consultar la mina compartida se necesita una cuenta de operador de demostración.</Text></>}
   </>}
+ function operatorMine(){
+  if(!account)return null;
+  const blocked=busy||authBusy||!!pending||authExpired||!!accountRecovery;
+  return <><View style={styles.chips}><Chip label="Panel gerencial" active={mineSection==='management'} onPress={()=>setMineSection('management')}/><Chip label="Inventario" active={mineSection==='inventory'} onPress={()=>setMineSection('inventory')}/><Chip label="Lotes" active={mineSection==='custody'} onPress={()=>setMineSection('custody')}/><Chip label="Entregas DEMO" active={mineSection==='delivery'} onPress={()=>setMineSection('delivery')}/></View>
+   {mineSection==='management'?<ManagementPanel key={account.id} identityKey={account.id} get={client.get} disabled={blocked} refreshKey={String(operationRevision)} onReceipt={(receipt,ownerId)=>void openReceipt(receipt.id,receipt,ownerId)}/>:
+    mineSection==='custody'?<CustodyPanel key={account.id} identityKey={account.id} operator get={client.get} disabled={blocked} refreshKey={String(operationRevision)}/>:
+    mineSection==='delivery'?<DeliveryPanel key={account.id} identityKey={account.id} operator get={client.get} submit={perform} disabled={blocked} refreshKey={String(operationRevision)}/>:
+    <MineDashboard summary={mineSummary} loading={mineLoading} error={mineError} blocked={blocked} lastStockId={lastStockId} onRefresh={()=>void loadMine()} onReceipt={(ownerId,receipt)=>void openReceipt(receipt.id,receipt,ownerId)} onStockReceipt={setStockReceipt} onRestock={body=>perform('mine/stock',body,'Crear lote de demostración',`${gram(Math.round((parsePositiveDecimal(body.grams,3)||0)*1000))} de ${meta(body.metal).name}.\nPureza ficticia: ${(Number(body.purityBps)/100).toFixed(2)} %.\nUbicación DEMO: ${body.location}.\nDocumento: ${body.documentTitle}.\nMotivo: ${body.reason}.\nSe añadirá al inventario compartido de esta demostración.`)}/>
+   }</>;
+ }
  return <SafeAreaView style={styles.screen}><StatusBar barStyle="light-content" backgroundColor="#090F15"/>
   <View style={styles.header}><View><Text style={styles.logo}>OPEN<Text style={{color:accent}}>MINERALS</Text></Text><Text style={styles.logoSub}>METALS · OWNERSHIP · TECHNOLOGY</Text></View><View style={styles.badge}><Text style={styles.badgeText}>DEMO</Text></View></View>
   <View style={styles.identityBar}><View style={{flex:1}}><Text numberOfLines={1} style={styles.identityTitle}>{account?`${account.role==='operator'?'Operador':'Comprador'} · ${account.alias}`:state?.legacyReadOnly?'Sesión anterior · solo consulta':'Sesión sin cuenta'}</Text><Text numberOfLines={1} style={styles.identityNote}>{account?mineIdentity?.name||'Mina de demostración':'Datos ficticios · tu historial permanece guardado'}</Text></View><Pressable accessibilityRole="button" disabled={busy||authBusy} onPress={()=>openAccount('login')} style={styles.accountLink}><Text style={styles.accountLinkText}>Cuenta</Text></Pressable></View>
@@ -474,8 +493,7 @@ export default function App(){
   <Animated.ScrollView key={tab} style={{flex:1}} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
    onLayout={event=>setViewportHeight(Math.max(1,event.nativeEvent.layout.height))}
    onScroll={Animated.event([{nativeEvent:{contentOffset:{y:homeScrollY}}}],{useNativeDriver:true})} scrollEventThrottle={16}>
-   {isOperator?(tab==='Cuenta'?accountPage():<MineDashboard summary={mineSummary} loading={mineLoading} error={mineError} blocked={busy||authBusy||!!pending||authExpired||!!accountRecovery} lastStockId={lastStockId} onRefresh={()=>void loadMine()} onReceipt={(ownerId,receipt)=>void openReceipt(receipt.id,receipt,ownerId)} onStockReceipt={setStockReceipt} onRestock={body=>perform('mine/stock',body,'Registrar ingreso ficticio',`${gram(Math.round((parsePositiveDecimal(body.grams,3)||0)*1000))} de ${meta(body.metal).name}.\nMotivo: ${body.reason}.\nSe añadirá a las existencias compartidas de esta demostración.`)}/>):tab==='Inicio'?home():tab==='Mercado'?market():tab==='Billetera'?wallet():tab==='Metales'?holdings():more()}
-   {isOperator&&tab==='Mina'&&account&&<><CustodyPanel key={`custody-${account.id}`} identityKey={account.id} operator get={client.get} disabled={busy||authBusy||authExpired||!!accountRecovery} refreshKey={String(operationRevision)}/><DeliveryPanel key={`delivery-${account.id}`} identityKey={account.id} operator get={client.get} submit={perform} disabled={busy||authBusy||!!pending||authExpired||!!accountRecovery} refreshKey={String(operationRevision)}/></>}
+   {isOperator?(tab==='Cuenta'?accountPage():operatorMine()):tab==='Inicio'?home():tab==='Mercado'?market():tab==='Billetera'?wallet():tab==='Metales'?holdings():more()}
   </Animated.ScrollView>}
   <View style={styles.tabs}>{sections.map(t=><Pressable accessibilityRole="tab" accessibilityState={{selected:tab===t}} key={t} onPress={()=>setTab(t)} style={styles.tab}><View style={[styles.tabDot,tab===t&&styles.tabDotActive]}/><Text style={[styles.tabLabel,tab===t&&styles.tabLabelActive]}>{t==='Más'?'Actividad':t}</Text></Pressable>)}</View>
   <OperationConfirmation visible={confirmation!==null} title={confirmation?.title||''} detail={confirmation?.detail||''} onCancel={cancelConfirmation} onConfirm={confirmOperation}/>

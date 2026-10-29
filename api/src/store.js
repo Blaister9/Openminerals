@@ -6,6 +6,7 @@ import {readReceipt} from './receipt-history.js';
 import {ensureCustody,validateCustody,allocateCustody,releaseCustody,addStockLot,custodyView,custodyCertificate} from './custody.js';
 import {marketplaceCatalog,marketReplay,settleMarketplace} from './marketplace.js';
 import {ensureDelivery,deliveryView,applyBuyerDelivery,operatorDeliveryReplay,applyOperatorDelivery} from './delivery.js';
+import {parseManagementQuery,managementView} from './management.js';
 
 const ID_PATTERN=/^[A-Za-z0-9_-]{16,100}$/;
 const clone=value=>structuredClone(value);
@@ -238,6 +239,12 @@ function makeStore(adapter){
         return deliveryView(mine,await tx.accountsForMine(account.mineId),account);
       });
     },
+    async getManagement(accountId,params=new URLSearchParams()){
+      return adapter.tx(async tx=>{
+        const {account,mine}=await authenticatedContext(tx,accountId,'operator');
+        return managementView(mine,await tx.accountsForMine(account.mineId),account,parseManagementQuery(params));
+      });
+    },
     async mutateDelivery(accountId,command){
       return adapter.tx(async tx=>{
         const {account,mine}=await authenticatedContext(tx,accountId,'operator');
@@ -257,12 +264,20 @@ function makeStore(adapter){
         return {receipt:clone(result.receipt),mine:summarizeMine(result.mine,accounts),changed:true,demoOnly:true};
       });
     },
-    async getMineCommand(accountId,receiptId){
+    async getMineCommand(accountId,receiptId,{actorId,kind}={}){
       return adapter.tx(async tx=>{
         const {account,mine}=await authenticatedContext(tx,accountId,'operator');
         if(typeof receiptId!=='string'||!/^[A-Za-z0-9_-]{8,100}$/.test(receiptId))throw accountError(400,'Identificador de comprobante DEMO inválido.');
-        const receipt=mine.commandReceipts[`${account.id}:${receiptId}`];
-        if(!receipt)throw accountError(404,'Comprobante de comando DEMO no disponible.');return clone(receipt);
+        if(kind!==undefined&&!['command','stock'].includes(kind))throw accountError(400,'Tipo de comprobante DEMO inválido.');
+        if(actorId!==undefined){
+          if(typeof actorId!=='string'||!/^[A-Za-z0-9_-]{8,100}$/.test(actorId))throw accountError(400,'Operador de comprobante DEMO inválido.');
+          const actor=await tx.account(actorId);if(!actor||actor.role!=='operator'||actor.mineId!==account.mineId)throw accountError(404,'Comprobante de comando DEMO no disponible.');
+        }
+        const candidates=[...(kind==='stock'?[]:Object.values(mine.commandReceipts)),...(kind==='command'?[]:Object.values(mine.stockReceipts))].filter(receipt=>receipt.id===receiptId&&(!actorId||receipt.actor?.id===actorId));
+        const own=candidates.filter(receipt=>receipt.actor?.id===account.id);
+        const receipt=candidates.length===1?candidates[0]:!actorId&&own.length===1?own[0]:undefined;
+        if(!receipt){if(candidates.length>1)throw accountError(409,'Especifica operador y tipo para este comprobante DEMO.');throw accountError(404,'Comprobante de comando DEMO no disponible.');}
+        const result=clone(receipt);delete result.balancesAfter;return result;
       });
     },
     async getCertificate(accountId,certificateId){

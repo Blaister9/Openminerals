@@ -8,6 +8,7 @@ const copy=value=>structuredClone(value),MAX_MINOR=10_000_000_000;
 const jurisdictions=['DEMO_LOCAL','DEMO_REGIONAL','DEMO_INTERNATIONAL'];
 const fail=(condition,message,code='INVALID_DELIVERY')=>{if(!condition)throw new DomainError(message,code);};
 const digest=(...parts)=>createHash('sha256').update(JSON.stringify(parts)).digest('hex').slice(0,32);
+export const deliveryBuyerReceiptId=(actorId,requestId)=>`delivery-command-${digest(actorId,requestId)}`;
 const signature=command=>JSON.stringify(Object.keys(command).filter(key=>key!=='requestId').sort().map(key=>[key,command[key]]));
 const ceil=(a,b)=>Number((a+b-1n)/b);
 const preaccept=status=>['PENDING_QUOTE','QUOTED'].includes(status);
@@ -117,7 +118,7 @@ export function applyOperatorDelivery(mine,actor,buyer,command,now=new Date().to
       receipt={...common,label:`Entrega DEMO: ${command.status}`,reason:transitionReason,quote:request.quote?copy(request.quote):null,...(deliveredLots?{deliveredLots}: {})};
     }
     receipt={...receipt,metal:request.metal,mg:request.mg,deliveryId:request.id,deliveryStatus:request.status,delivery:copy(request)};
-    const buyerReceipt={...receipt,id:`delivery-command-${digest(actor.id,command.requestId)}`};
+    const buyerReceipt={...receipt,id:deliveryBuyerReceiptId(actor.id,command.requestId)};
     fail(!Object.hasOwn(state.receipts,buyerReceipt.id),'El identificador del comprobante de entrega DEMO ya existe.','RECEIPT_CONFLICT');
     history(state,buyerReceipt,JSON.stringify([['operatorCommand',actor.id],['requestId',command.requestId]]));
   }
