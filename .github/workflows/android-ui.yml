@@ -76,10 +76,10 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-          test -r /dev/kvm && test -w /dev/kvm
-          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
-          test -n "$sdk_root"
-          "$sdk_root/emulator/emulator" -accel-check > "$RUNNER_TEMP/openminerals-native/public/acceleration.txt" 2>&1
+          test -r /dev/kvm
+          test -w /dev/kvm
+          # The next action installs the emulator binary; it is not present yet.
+          printf 'PASS KVM character device is readable and writable by this runner.\n' > "$RUNNER_TEMP/openminerals-native/public/acceleration.txt"
           echo 'PASS KVM is accessible; software CPU acceleration fallback is disabled.'
       - name: Install old APK update in place and execute native demo journeys
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
@@ -103,7 +103,10 @@ jobs:
           disable-linux-hw-accel: false
           emulator-options: -accel on -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim
           disable-animations: false
-          script: node mobile/e2e/ci-android.mjs run
+          # This script runs after the action installs the Android SDK and boots
+          # with -accel on. A failed SDK check stops before all native commands.
+          script: >-
+            "$ANDROID_HOME/emulator/emulator" -accel-check >> "$RUNNER_TEMP/openminerals-native/public/acceleration.txt" 2>&1 && node mobile/e2e/ci-android.mjs run
       - name: Upload only sanitized JUnit metadata and anonymous pre-login images
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

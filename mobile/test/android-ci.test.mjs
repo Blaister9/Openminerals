@@ -114,8 +114,19 @@ test('Android CI: workflow is manual KVM-only bounded public upload and no secre
   const job=workflow.jobs['android-ui'];assert.equal(job['runs-on'],'ubuntu-24.04');
   assert.equal(job.if,'github.event.repository.private == false');
   assert.equal(workflow.concurrency['cancel-in-progress'],false);
-  assert.match(raw,/udevadm trigger --name-match=kvm/);assert.match(raw,/test -r \/dev\/kvm && test -w \/dev\/kvm/);
+  assert.match(raw,/udevadm trigger --name-match=kvm/);
   const runner=job.steps.find(step=>step.uses?.startsWith('ReactiveCircus/'));
+  const runnerIndex=job.steps.indexOf(runner);
+  // Regression for run40807688104: Ubuntu has /dev/kvm but no emulator binary
+  // until this action installs it. No earlier step may execute -accel-check.
+  for(const step of job.steps.slice(0,runnerIndex))assert.doesNotMatch(step.run??'',/-accel-check|\/emulator\/emulator/);
+  assert.match(runner.with.script,/"\$ANDROID_HOME\/emulator\/emulator" -accel-check/);
+  assert.match(runner.with.script,/-accel-check[^\n]* 2>&1 && node mobile\/e2e\/ci-android.mjs run$/);
+  assert.equal(runner.with.script.includes('\n'),false);
+  assert.ok(runner.with.script.indexOf('-accel-check')<runner.with.script.indexOf('node mobile/e2e/ci-android.mjs run'));
+  const preflight=job.steps.slice(0,runnerIndex).find(step=>step.run?.includes('udevadm trigger --name-match=kvm'));
+  assert.match(preflight.run,/test -c \/dev\/kvm/);
+  assert.match(preflight.run,/test -r \/dev\/kvm\n\s*test -w \/dev\/kvm/);
   assert.equal(runner.with['disable-linux-hw-accel'],false);assert.match(runner.with['emulator-options'],/-accel on/);assert.doesNotMatch(raw,/-accel off|software-acceleration fallback/);
   assert.deepEqual(Object.keys(runner.env).sort(),[...SECRET_NAMES,'OTA_INPUT_UPDATE_ID'].sort());
   assert.equal(runner.env.OTA_INPUT_UPDATE_ID,'$'+'{{ inputs.ota_update_id }}');
