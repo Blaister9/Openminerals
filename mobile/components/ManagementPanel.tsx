@@ -54,6 +54,7 @@ function Kpis({summary}:{summary:ManagementSummary}){
     <Row label="Comisiones ficticias de negociación" value={deliveryMoney(value.tradingFeesMinor)}/><Row label="Costes demo cobrados por entregas" value={deliveryMoney(value.deliveryCostsCollectedMinor)}/>
     <Row label="Ingresos de metal" value={String(value.stockEntries)}/><Row label="Gramos ingresados en el filtro" value={custodyGrams(value.stockMg)}/><Row label="Cambios de política" value={String(value.policyChanges)}/>
     <Text style={styles.note}>Cada liquidación de marketplace se cuenta una vez, aunque tenga comprobante de compra y de venta. Estos importes son simulados.</Text>
+    {value.metalVolumesMg&&<><Text style={styles.section}>Gramos negociados por metal</Text><Text style={styles.note}>Cantidades de los comprobantes persistidos que coinciden con el filtro. Cada intercambio entre compradores se cuenta una vez.</Text>{custodyMetals.map(metal=>{const volumes=value.metalVolumesMg![metal];return <View key={metal} style={styles.subcard}><Text style={styles.cardTitle}>{custodyMetalName(metal)}</Text><Row label="Compras directas" value={custodyGrams(volumes.directBuy)}/><Row label="Ventas directas" value={custodyGrams(volumes.directSell)}/><Row label="Marketplace entre compradores" value={custodyGrams(volumes.marketplace)}/></View>;})}</>}
   </View>;
 }
 function Snapshot({summary}:{summary:ManagementSummary}){

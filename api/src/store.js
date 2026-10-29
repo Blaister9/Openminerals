@@ -8,6 +8,7 @@ import {marketplaceCatalog,marketReplay,settleMarketplace} from './marketplace.j
 import {ensureDelivery,deliveryView,applyBuyerDelivery,operatorDeliveryReplay,applyOperatorDelivery} from './delivery.js';
 import {parseManagementQuery,managementView} from './management.js';
 import {accountServices} from './account-services.js';
+import {lotHistoryView,parseLotHistoryQuery} from './custody-history.js';
 
 const ID_PATTERN=/^[A-Za-z0-9_-]{16,100}$/;
 const clone=value=>structuredClone(value);
@@ -195,12 +196,12 @@ function makeStore(adapter){
         const result=applyAccountCommand(account.state,mine,command,{accountId:account.id});
         if(result.changed){
           if(command.action==='buy'){
-            const allocation=allocateCustody(result.mine,account,command.metal,result.receipt.mg,`buy:${command.requestId}`,result.receipt.at);
+            const allocation=allocateCustody(result.mine,account,command.metal,result.receipt.mg,`buy:${command.requestId}`,result.receipt.at,{referenceId:command.requestId});
             result.mine=allocation.mine;
             result.receipt.certificateIds=allocation.allocations.map(item=>item.certificateId);
             result.state.receipts[command.requestId]=clone(result.receipt);
           }
-          if(command.action==='sell')result.mine=releaseCustody(result.mine,account.id,command.metal,result.receipt.mg);
+          if(command.action==='sell')result.mine=releaseCustody(result.mine,account.id,command.metal,result.receipt.mg,{referenceId:command.requestId,at:result.receipt.at});
           const accounts=(await tx.accountsForMine(account.mineId)).map(item=>item.id===account.id?{...item,state:result.state}:item);
           validateCustody(result.mine,accounts);
           await tx.saveMine(result.mine);await tx.saveAccountState(account.id,result.state);
@@ -237,6 +238,15 @@ function makeStore(adapter){
       return adapter.tx(async tx=>{
         const {account,mine}=await authenticatedContext(tx,accountId,'buyer');
         return marketplaceCatalog(mine,await tx.accountsForMine(account.mineId),account);
+      });
+    },
+    async getLotHistory(accountId,lotId,params=new URLSearchParams()){
+      const query=parseLotHistoryQuery(params);
+      if(typeof lotId!=='string'||!/^lot-[a-f0-9]{32}$/.test(lotId))throw accountError(400,'Identificador de lote DEMO inválido.');
+      return adapter.tx(async tx=>{
+        const first=await tx.account(accountId);if(!first)throw unauthorized();
+        const {account,mine}=await authenticatedContext(tx,accountId,first.role);
+        return lotHistoryView(mine,await tx.accountsForMine(account.mineId),account,lotId,query);
       });
     },
     async getDeliveries(accountId,role='buyer'){

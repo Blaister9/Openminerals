@@ -1,6 +1,7 @@
 import {createHash} from 'node:crypto';
 import {DomainError,METALS,parseGrams} from './domain.js';
 import {accountError} from './account-auth.js';
+import {ensureLotHistory,recordLotMovement,validateLotHistory} from './custody-history.js';
 
 // This is a simulated allocation record, never proof of physical custody.
 export const CUSTODY_DISCLAIMER='SIMULADO · Lotes, documentos y certificados DEMO sin valor legal. No acreditan metal, propiedad ni custodia física.';
@@ -51,7 +52,7 @@ function makeLot(mine,metal,weightMg,source,metadata={},createdAt=new Date().toI
     location:`DEMO · ${metadata.location??'Bóveda ilustrativa sin ubicación física'}`,status:'REGISTERED_DEMO',documents,createdAt,demoOnly:true};
 }
 
-export function allocateCustody(mine,account,metal,mg,source,now=new Date().toISOString()){
+export function allocateCustody(mine,account,metal,mg,source,now=new Date().toISOString(),context={}){
   const next=copy(mine),created=[];
   fail(integer(mg)&&has(METALS,metal));
   let remaining=mg;
@@ -66,25 +67,28 @@ export function allocateCustody(mine,account,metal,mg,source,now=new Date().toIS
     next.custody.allocations.push(allocation);
     next.custody.certificates.push({id:certificateId,allocationId,issuedMg:amount,issuedAt:now,demoOnly:true});
     created.push(allocation);remaining-=amount;
+    recordLotMovement(next,source.startsWith('import:')?'IMPORT':'BUY',lot.id,amount,{...context,at:now,accountId:account.id});
   }
   fail(remaining===0,'No hay capacidad de lotes DEMO para asignar los gramos.');
   return {mine:next,allocations:copy(created)};
 }
 
-export function releaseCustody(mine,accountId,metal,mg){
-  const next=copy(mine);let remaining=mg;
+export function releaseCustody(mine,accountId,metal,mg,context={}){
+  const next=copy(mine),releasedLots=new Map();let remaining=mg;
   fail(integer(mg)&&has(METALS,metal));
   for(const allocation of next.custody.allocations){
     if(allocation.accountId!==accountId||allocation.metal!==metal||!remaining)continue;
     const released=Math.min(allocation.mg,remaining);allocation.mg-=released;remaining-=released;
+    if(released)releasedLots.set(allocation.lotId,(releasedLots.get(allocation.lotId)??0)+released);
   }
   fail(remaining===0,'La posición no tiene asignación DEMO suficiente para vender.');
+  for(const [lotId,amount] of releasedLots)recordLotMovement(next,'SELL',lotId,amount,{...context,accountId});
   return next;
 }
 
 // A marketplace transfer preserves the seller's exact source lots. It must not
 // allocate unrelated free inventory, since no grams enter or leave the mine.
-export function transferCustody(mine,sellerId,buyer,metal,mg,source,now){
+export function transferCustody(mine,sellerId,buyer,metal,mg,source,now,context={}){
   const next=copy(mine),pieces=[];let remaining=mg;
   fail(integer(mg)&&has(METALS,metal)&&sellerId!==buyer.id);
   for(const allocation of next.custody.allocations){
@@ -100,10 +104,12 @@ export function transferCustody(mine,sellerId,buyer,metal,mg,source,now){
     next.custody.allocations.push(allocation);next.custody.certificates.push({id:certificateId,allocationId,issuedMg:piece.mg,issuedAt:now,demoOnly:true});
     return allocation;
   });
+  const lots=new Map();for(const piece of pieces)lots.set(piece.lotId,(lots.get(piece.lotId)??0)+piece.mg);
+  for(const [lotId,amount] of lots)recordLotMovement(next,'MARKET_TRANSFER',lotId,amount,{...context,at:now,accountId:sellerId,counterpartyId:buyer.id});
   return {mine:next,allocations:copy(created)};
 }
 
-export function deliverCustody(mine,accountId,metal,mg){
+export function deliverCustody(mine,accountId,metal,mg,context={}){
   const next=copy(mine),pieces=[];let remaining=mg;
   fail(integer(mg)&&has(METALS,metal));
   for(const allocation of next.custody.allocations){
@@ -115,13 +121,15 @@ export function deliverCustody(mine,accountId,metal,mg){
   }
   fail(remaining===0,'La entrega no tiene asignaciones de lote DEMO suficientes.');
   next.totalSupplyMg[metal]-=mg;
+  const lots=new Map();for(const piece of pieces)lots.set(piece.lotId,(lots.get(piece.lotId)??0)+piece.mg);
+  for(const [lotId,amount] of lots)recordLotMovement(next,'DELIVERY',lotId,amount,{...context,accountId});
   return {mine:next,deliveredLots:pieces};
 }
 
 export function addStockLot(mine,command,now){
   const next=copy(mine),lot=makeLot(mine,command.metal,parseGrams(command.grams),`stock:${command.requestId}`,stockMetadata(command),now);
   fail(!next.custody.lots.some(existing=>existing.id===lot.id),'El lote DEMO ya existe.');
-  next.custody.lots.push(lot);return {mine:next,lot:copy(lot)};
+  next.custody.lots.push(lot);recordLotMovement(next,'LOT_REGISTERED',lot.id,lot.weightMg,{at:now,referenceId:command.requestId});return {mine:next,lot:copy(lot)};
 }
 
 export function validateCustody(mine,accounts){
@@ -158,16 +166,16 @@ export function validateCustody(mine,accounts){
       fail(integer(account.state.holdingsMg?.[metal])&&assigned===account.state.holdingsMg[metal]);
     }
   }
-  return true;
+  validateLotHistory(mine,accounts);return true;
 }
 
 // Run only while the mine row is locked. No old state or receipt is rewritten.
 export function ensureCustody(mine,accounts,now=new Date().toISOString()){
   if(has(mine,'custody')){
     validateCustody(mine,accounts);
-    if(mine.custody.lots.every(lot=>has(lot,'deliveredMg')))return {mine,changed:false};
-    const upgraded=copy(mine);for(const lot of upgraded.custody.lots)if(!has(lot,'deliveredMg'))lot.deliveredMg=0;
-    return {mine:upgraded,changed:true};
+    const missing=mine.custody.lots.some(lot=>!has(lot,'deliveredMg'));
+    const upgraded=missing?copy(mine):mine;for(const lot of upgraded.custody.lots)if(!has(lot,'deliveredMg'))lot.deliveredMg=0;
+    const history=ensureLotHistory(upgraded,accounts,now);return {mine:history.mine,changed:missing||history.changed};
   }
   let next=copy(mine);const buyers=accounts.filter(account=>account.role==='buyer').sort((a,b)=>a.id.localeCompare(b.id));
   for(const metal of metals){
@@ -178,7 +186,7 @@ export function ensureCustody(mine,accounts,now=new Date().toISOString()){
   for(const account of buyers)for(const metal of metals){
     const mg=account.state.holdingsMg[metal];if(mg)({mine:next}=allocateCustody(next,account,metal,mg,'migration',now));
   }
-  validateCustody(next,accounts);return {mine:next,changed:true};
+  validateCustody(next,accounts);return {mine:ensureLotHistory(next,accounts,now).mine,changed:true};
 }
 
 function lotView(lot,custody,accountId){

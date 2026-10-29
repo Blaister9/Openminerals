@@ -1,6 +1,7 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {ActivityIndicator,Modal,Pressable,ScrollView,StyleSheet,Text,TextInput,View} from 'react-native';
 import {ModalSurface} from './ModalSurface';
+import {LotHistory} from './LotHistory';
 import {certificatePath,custodyDocumentKind,custodyGrams,custodyMetalName,custodyMetals,custodyStatus,parseCustodyCertificate,parseCustodySummary,validCertificateId,type CustodyCertificate,type CustodyDocument,type CustodySummary} from '../lib/custody';
 
 type Props={operator:boolean;identityKey:string;get:<T>(path:string)=>Promise<T>;disabled?:boolean;refreshKey?:string};
@@ -33,6 +34,7 @@ export function CustodyPanel({operator,identityKey,get,disabled=false,refreshKey
   const [loading,setLoading]=useState<Scoped<boolean>|null>(null);
   const [problem,setProblem]=useState<Scoped<string>|null>(null);
   const [certificateInput,setCertificateInput]=useState('');
+  const [historyLot,setHistoryLot]=useState<string|null>(null);
   const [certificateId,setCertificateId]=useState<Scoped<string>|null>(null);
   const [certificate,setCertificate]=useState<Scoped<CustodyCertificate>|null>(null);
   const [certificateLoading,setCertificateLoading]=useState<Scoped<boolean>|null>(null);
@@ -58,7 +60,7 @@ export function CustodyPanel({operator,identityKey,get,disabled=false,refreshKey
     finally{if(currentScope.current===requestedScope&&request===summaryRequest.current)setLoading({scope,value:false});}
   }
   useEffect(()=>{
-    initialized.current='';setCertificateInput('');
+    initialized.current='';setCertificateInput('');setHistoryLot(null);
     return ()=>{summaryRequest.current++;certificateRequest.current++;};
   },[scope]);
   useEffect(()=>{
@@ -104,6 +106,7 @@ export function CustodyPanel({operator,identityKey,get,disabled=false,refreshKey
           <Row label="Ubicación ficticia" value={lot.location}/><Row label="Estado" value={custodyStatus(lot.status)}/>
           <Row label={operator?'Asignado en el lote':'Asignado a mi cuenta'} value={custodyGrams(lot.allocatedMg)}/><Row label="Disponible en el lote" value={custodyGrams(lot.availableMg)}/>
           <Documents items={lot.documents}/>
+          <Pressable accessibilityRole="button" accessibilityLabel={`Consultar historial del lote ${lot.id}`} disabled={disabled} onPress={()=>setHistoryLot(lot.id)} style={[styles.secondary,disabled&&styles.disabled]}><Text style={styles.secondaryText}>Ver movimientos del lote</Text></Pressable>
           <Text style={styles.smallHeading}>{operator?'Asignaciones de compradores':'Mis asignaciones'}</Text>
           {!allocations.length&&<Text style={styles.note}>Sin asignaciones registradas en este lote.</Text>}
           {allocations.map(allocation=><View key={allocation.id} style={styles.allocation}>
@@ -119,6 +122,7 @@ export function CustodyPanel({operator,identityKey,get,disabled=false,refreshKey
       <TextInput accessibilityLabel="Identificador de certificado demo" value={certificateInput} onChangeText={setCertificateInput} editable={!disabled} autoCapitalize="none" autoCorrect={false} maxLength={128} placeholder="Identificador del certificado" placeholderTextColor="#667385" style={styles.input}/>
       <Pressable accessibilityRole="button" disabled={disabled||!validCertificateId(certificateInput.trim())} onPress={()=>void verify(certificateInput)} style={[styles.primary,(disabled||!validCertificateId(certificateInput.trim()))&&styles.disabled]}><Text style={styles.primaryText}>Consultar certificado demo</Text></Pressable>
     </View>
+    {historyLot&&<LotHistory key={`${scope}:${historyLot}`} lotId={historyLot} operator={operator} identityKey={identityKey} get={get} disabled={disabled} onClose={()=>setHistoryLot(null)}/>}
     <Modal visible={selectedId!==null} onRequestClose={closeCertificate} animationType="none" presentationStyle="pageSheet">
       <ModalSurface style={styles.screen} onEscape={closeCertificate}>
         <View style={styles.header}><Text accessibilityRole="header" style={styles.headerTitle}>Certificado demo</Text><Pressable accessibilityRole="button" accessibilityLabel="Cerrar certificado demo" onPress={closeCertificate} style={styles.close}><Text style={styles.link}>Cerrar</Text></Pressable></View>
