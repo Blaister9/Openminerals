@@ -7,6 +7,7 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#090F15",
+    "icon": "./assets/icon.png",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.openminerals.demo.mobile",
@@ -18,6 +19,7 @@
       "package": "com.openminerals.demo.mobile",
       "versionCode": 4,
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-foreground.png",
         "backgroundColor": "#090F15"
       }
     },

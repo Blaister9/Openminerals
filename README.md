@@ -2,6 +2,8 @@
 
 **Estado: prototipo técnico de simulación, no plataforma financiera en producción.**
 
+**Implementación Android integral en curso:** [avance por fases y evidencia](docs/14-demo-android-integral.md), rama `codex/android-complete-20261028`, [PR #3](https://github.com/Blaister9/Openminerals/pull/3). Custodia por lotes, marketplace, entrega, gerencia y recuperación ya tienen código y pruebas locales; el nuevo 3D tiene verificación de software. El despliegue, APK y aceptación nativa de esta revisión se registrarán al cerrar la integración. Se conserva el APK 0.1.3 anterior; no acredita los módulos nuevos. No se está desarrollando iOS.
+
 **Auditoría actual del 28 de octubre de 2026:** [informe de estado y aceptación móvil](docs/13-auditoria-demo-2026-10-28.md), base `0223326`. Código publicado y árbol inicial limpio; 31 pruebas API y 45 móviles aprobadas, Doctor 21/21, tres smokes HTTPS y persistencia tras un nuevo reinicio Railway comprobados. Android 0.1.3 sigue pendiente de recorrido nativo completo e iPhone de firma/build instalable. Marketplace entre compradores y custodia por lotes todavía requieren desarrollo. El supuesto fallo de coma decimal del informe anterior no se reproduce en el cliente actual.
 
 **Para continuar desde otro equipo:** [guía de traspaso](docs/12-continuar-desde-otro-equipo.md). El trabajo vigente está en `codex/mobile-overview-scroll-20261028`; `main` conserva una versión anterior. [APK alternativo en GitHub](https://github.com/Blaister9/Openminerals/releases/tag/v0.1.3-demo).

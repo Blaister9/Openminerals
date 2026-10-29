@@ -1,12 +1,13 @@
 import React from 'react';
-import {Modal,Pressable,SafeAreaView,ScrollView,StyleSheet,Text,View} from 'react-native';
+import {Modal,Pressable,ScrollView,StyleSheet,Text,View} from 'react-native';
+import {ModalSurface} from './ModalSurface';
 
 type Props={visible:boolean;title:string;detail:string;onCancel:()=>void;onConfirm:()=>void};
 
 export function OperationConfirmation({visible,title,detail,onCancel,onConfirm}:Props){
   return <Modal visible={visible} onRequestClose={onCancel} animationType="none" presentationStyle="pageSheet">
-    <SafeAreaView style={styles.screen} accessibilityViewIsModal>
-      <ScrollView contentContainerStyle={styles.body}>
+    <ModalSurface style={styles.screen} onEscape={onCancel}>
+      <ScrollView contentContainerStyle={styles.body} contentInsetAdjustmentBehavior="never">
         <Text style={styles.demo}>CONFIRMACIÓN · DEMOSTRACIÓN</Text>
         <Text accessibilityRole="header" style={styles.title}>{title}</Text>
         <Text style={styles.detail}>{detail}</Text>
@@ -16,7 +17,7 @@ export function OperationConfirmation({visible,title,detail,onCancel,onConfirm}:
         <Pressable accessibilityRole="button" onPress={onCancel} style={styles.secondary}><Text style={styles.secondaryText}>Cancelar</Text></Pressable>
         <Pressable accessibilityRole="button" onPress={onConfirm} style={styles.primary}><Text style={styles.primaryText}>Confirmar demo</Text></Pressable>
       </View>
-    </SafeAreaView>
+    </ModalSurface>
   </Modal>;
 }
 

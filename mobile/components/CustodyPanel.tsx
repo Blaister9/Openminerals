@@ -1,5 +1,6 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {ActivityIndicator,Modal,Pressable,SafeAreaView,ScrollView,StyleSheet,Text,TextInput,View} from 'react-native';
+import {ActivityIndicator,Modal,Pressable,ScrollView,StyleSheet,Text,TextInput,View} from 'react-native';
+import {ModalSurface} from './ModalSurface';
 import {certificatePath,custodyDocumentKind,custodyGrams,custodyMetalName,custodyMetals,custodyStatus,parseCustodyCertificate,parseCustodySummary,validCertificateId,type CustodyCertificate,type CustodyDocument,type CustodySummary} from '../lib/custody';
 
 type Props={operator:boolean;identityKey:string;get:<T>(path:string)=>Promise<T>;disabled?:boolean;refreshKey?:string};
@@ -119,9 +120,9 @@ export function CustodyPanel({operator,identityKey,get,disabled=false,refreshKey
       <Pressable accessibilityRole="button" disabled={disabled||!validCertificateId(certificateInput.trim())} onPress={()=>void verify(certificateInput)} style={[styles.primary,(disabled||!validCertificateId(certificateInput.trim()))&&styles.disabled]}><Text style={styles.primaryText}>Consultar certificado demo</Text></Pressable>
     </View>
     <Modal visible={selectedId!==null} onRequestClose={closeCertificate} animationType="none" presentationStyle="pageSheet">
-      <SafeAreaView style={styles.screen} accessibilityViewIsModal>
+      <ModalSurface style={styles.screen} onEscape={closeCertificate}>
         <View style={styles.header}><Text accessibilityRole="header" style={styles.headerTitle}>Certificado demo</Text><Pressable accessibilityRole="button" accessibilityLabel="Cerrar certificado demo" onPress={closeCertificate} style={styles.close}><Text style={styles.link}>Cerrar</Text></Pressable></View>
-        <ScrollView contentContainerStyle={styles.modalBody}>
+        <ScrollView contentContainerStyle={styles.modalBody} contentInsetAdjustmentBehavior="never">
           <Text style={styles.eyebrow}>SIMULADO · SIN VALOR LEGAL</Text>
           <Text style={styles.copy}>Este documento ficticio no acredita propiedad, existencia física, ensayo ni custodia real de metales.</Text>
           {verifying&&<View style={styles.loading}><ActivityIndicator color="#DCBC7F"/><Text style={styles.note}>Consultando certificado…</Text></View>}
@@ -137,7 +138,7 @@ export function CustodyPanel({operator,identityKey,get,disabled=false,refreshKey
             <Documents items={selected.lot.documents}/><Text style={styles.note}>{selected.disclaimer}</Text>
           </>}
         </ScrollView>
-      </SafeAreaView>
+      </ModalSurface>
     </Modal>
   </>;
 }

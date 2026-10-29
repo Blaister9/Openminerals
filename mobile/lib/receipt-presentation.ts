@@ -1,7 +1,7 @@
-import type {DeliveryQuote} from './delivery';
+import {deliveryStatuses,deliveryStatusLabel,type DeliveryPolicy,type DeliveryQuote,type DeliveryStatus} from './delivery.ts';
 export type ReceiptCurrency='COP'|'EUR'|'USD'|'USDT';
 export type ReceiptMetal='XAU'|'XAG'|'XPT'|'XPD';
-type Reservation={id:string;metal:ReceiptMetal;mg:number;status:string;createdAt?:string};
+type Reservation={id:string;metal:ReceiptMetal;mg:number;status:string;createdAt?:string;priceMinorPerGram?:number};
 export type Receipt={
   id:string;
   action:string;
@@ -21,9 +21,13 @@ export type Receipt={
   outputMinor?:number;
   rateDemo?:number;
   priceCentsPerGram?:number;
+  priceMinorPerGram?:number;
   baseMinor?:number;
   feeMinor?:number;
   totalMinor?:number;
+  marketplaceFeeMinor?:number;
+  sellerNetMinor?:number;
+  feeBps?:number;
   offer?:Reservation;
   offerId?:string;
   tradeId?:string;
@@ -36,6 +40,15 @@ export type Receipt={
   paidMinor?:number;
   actor?:{id:string;alias:string};
   reason?:string;
+  lotId?:string;
+  inventoryAfterMg?:Record<ReceiptMetal,number>;
+  totalSupplyAfterMg?:Record<ReceiptMetal,number>;
+  deliveredLots?:{lotId:string;mg:number}[];
+  jurisdiction?:string;
+  policy?:DeliveryPolicy;
+  policyVersion?:number;
+  quoteValidityHours?:number;
+  requirementsAcknowledged?:boolean;
   balancesAfter?:{
     walletMinor:Record<ReceiptCurrency,number>;
     holdingsMg:Record<ReceiptMetal,number>;
@@ -52,8 +65,13 @@ const grams=(mg:number)=>`${(mg/1000).toLocaleString('es-CO',{minimumFractionDig
 const missing='No registrado en este comprobante anterior';
 const receiptMetal=(receipt:Receipt)=>receipt.metal??receipt.offer?.metal??receipt.delivery?.metal;
 const receiptMg=(receipt:Receipt)=>receipt.mg??receipt.offer?.mg??receipt.delivery?.mg;
+const deliveryState=(value:string)=>deliveryStatuses.some(status=>status===value)?deliveryStatusLabel(value as DeliveryStatus):value;
+const jurisdictionNames:Record<string,string>={DEMO_LOCAL:'Jurisdicción DEMO A',DEMO_REGIONAL:'Jurisdicción DEMO B',DEMO_INTERNATIONAL:'Jurisdicción DEMO C'};
+const percent=(bps:number)=>`${(bps/100).toLocaleString('es-CO',{maximumFractionDigits:2})}% DEMO`;
+export function receiptUsesWallet(receipt:Receipt):boolean{return !receipt.operatorView&&!['stock','delivery_config'].includes(receipt.action);}
 
 export function receiptTitle(receipt:Receipt):string {
+  if(receipt.action==='delivery_transition'&&receipt.deliveryStatus)return `Entrega demo: ${deliveryState(receipt.deliveryStatus).toLowerCase()}`;
   if(receipt.label)return receipt.label;
   const metal=receiptMetal(receipt);
   const name=metal?metals[metal]?.toLowerCase():undefined;
@@ -74,6 +92,7 @@ export function receiptTitle(receipt:Receipt):string {
     case 'delivery_quote':return 'Cotización de entrega DEMO';
     case 'delivery_transition':return 'Avance de entrega simulada';
     case 'delivery_config':return 'Política de entrega DEMO actualizada';
+    case 'stock':return name?`Ingreso ficticio de ${name}`:'Ingreso ficticio de metal';
     default:return 'Operación simulada';
   }
 }
@@ -90,12 +109,16 @@ export function receiptSummary(receipt:Receipt):string {
     case 'deposit':
     case 'withdraw':return amountRecorded(receipt.amountMinor)&&receipt.currency?
       `${receipt.action==='deposit'?'+':'−'}${money(receipt.amountMinor,receipt.currency)}`:'Importe no registrado';
-    case 'offer':return quantity?`${quantity} reservados`:'Reserva registrada';
+    case 'offer':return quantity?`${quantity} reservados${amountRecorded(receipt.offer?.priceMinorPerGram)&&receipt.offer!.priceMinorPerGram!>0?` · ${money(receipt.offer!.priceMinorPerGram!)}/g`:''}`:'Reserva registrada';
     case 'cancel_offer':
     case 'cancel_delivery':return quantity?`${quantity} liberados`:'Reserva liberada';
     case 'delivery':return quantity?`${quantity} · pendiente de cotización`:'Pendiente de cotización';
     case 'delivery_accept':return amountRecorded(receipt.totalMinor)?`−${money(receipt.totalMinor)} · costes DEMO`:quantity||'Cotización aceptada';
-    case 'delivery_quote':case 'delivery_transition':case 'delivery_reject':return quantity||'Entrega simulada registrada';
+    case 'delivery_quote':return `${quantity?`${quantity} · `:''}${amountRecorded(receipt.quote?.totalMinor)?`${money(receipt.quote!.totalMinor)} de costes DEMO`:'Propuesta DEMO registrada'}`;
+    case 'delivery_transition':return `${quantity?`${quantity} · `:''}${receipt.deliveryStatus?deliveryState(receipt.deliveryStatus):'Avance DEMO registrado'}`;
+    case 'delivery_reject':return quantity?`${quantity} liberados · rechazada`:'Entrega demo rechazada';
+    case 'delivery_config':return `Política DEMO${amountRecorded(receipt.policyVersion)?` v${receipt.policyVersion}`:''}${receipt.policy?.label?` · ${receipt.policy.label}`:''}`;
+    case 'stock':return quantity?`+${quantity} · inventario DEMO`:'Ingreso de metal DEMO';
     default:return quantity||'Ver comprobante';
   }
 }
@@ -108,9 +131,15 @@ export function receiptDetails(receipt:Receipt):ReceiptDetail[] {
   if(metal)rows.push({label:'Metal',value:metals[metal]??metal});
   if(amountRecorded(mg))rows.push({label:'Cantidad',value:grams(mg)});
   if(['buy','sell','market_buy','market_sell'].includes(receipt.action)){
-    rows.push({label:'Precio ficticio por gramo',value:amountRecorded(receipt.priceCentsPerGram)?`${money(receipt.priceCentsPerGram)}/g`:missing});
+    const price=receipt.priceCentsPerGram??receipt.priceMinorPerGram;
+    rows.push({label:'Precio ficticio por gramo',value:amountRecorded(price)?`${money(price)}/g`:missing});
     rows.push({label:'Valor del metal',value:amountRecorded(receipt.baseMinor)?money(receipt.baseMinor):missing});
-    rows.push({label:'Comisión simulada',value:amountRecorded(receipt.feeMinor)?money(receipt.feeMinor):missing});
+    if(receipt.action.startsWith('market_')){
+      if(receipt.action==='market_buy')rows.push({label:'Comisión a cargo del comprador',value:amountRecorded(receipt.feeMinor)?money(receipt.feeMinor):missing});
+      const sellerFee=receipt.marketplaceFeeMinor??(receipt.action==='market_sell'?receipt.feeMinor:undefined);
+      rows.push({label:'Comisión descontada al vendedor',value:amountRecorded(sellerFee)?money(sellerFee):missing});
+      if(receipt.action==='market_buy')rows.push({label:'Neto registrado para el vendedor',value:amountRecorded(receipt.sellerNetMinor)?money(receipt.sellerNetMinor):missing});
+    }else rows.push({label:'Comisión simulada',value:amountRecorded(receipt.feeMinor)?money(receipt.feeMinor):missing});
     if(receipt.action==='buy'||receipt.action==='market_buy')rows.push({label:'Total descontado',value:amountRecorded(receipt.totalMinor)?money(receipt.totalMinor):missing});
     else rows.push({label:'Neto recibido',value:amountRecorded(receipt.outputMinor)?money(receipt.outputMinor):missing});
   }else if(receipt.action==='convert'){
@@ -120,26 +149,51 @@ export function receiptDetails(receipt:Receipt):ReceiptDetail[] {
     rows.push({label:'Comisión simulada',value:amountRecorded(receipt.feeMinor)&&receipt.from?money(receipt.feeMinor,receipt.from):missing});
   }else if(receipt.action==='deposit'||receipt.action==='withdraw'){
     rows.push({label:receipt.action==='deposit'?'Importe ingresado':'Importe retirado',value:amountRecorded(receipt.amountMinor)&&receipt.currency?money(receipt.amountMinor,receipt.currency):missing});
+  }else if(receipt.action==='stock'){
+    const available=metal?receipt.inventoryAfterMg?.[metal]:undefined,supply=metal?receipt.totalSupplyAfterMg?.[metal]:undefined;
+    rows.push({label:'Disponible en mina después',value:amountRecorded(available)?grams(available):missing});
+    rows.push({label:'Suministro activo después',value:amountRecorded(supply)?grams(supply):missing});
+    rows.push({label:'Lote DEMO creado',value:receipt.lotId??missing});
+  }else if(receipt.action==='delivery_accept'){
+    rows.push({label:'Costes demo pagados',value:amountRecorded(receipt.totalMinor)?money(receipt.totalMinor):missing});
   }
+  if(receipt.action==='offer')rows.push({label:'Precio publicado por gramo',value:amountRecorded(receipt.offer?.priceMinorPerGram)&&receipt.offer!.priceMinorPerGram!>0?`${money(receipt.offer!.priceMinorPerGram!)}/g`:'Reserva anterior sin precio de marketplace'});
   if(receipt.offerId||receipt.offer?.id)rows.push({label:'Oferta',value:receipt.offerId??receipt.offer!.id});
   if(receipt.tradeId)rows.push({label:'Liquidación DEMO',value:receipt.tradeId});
   if(receipt.counterparty)rows.push({label:'Contraparte ficticia',value:receipt.counterparty.alias});
   if(receipt.certificateIds?.length)rows.push({label:'Certificados DEMO verificables en Custodia',value:receipt.certificateIds.join('\n')});
   if(receipt.deliveryId||receipt.delivery?.id)rows.push({label:'Solicitud de cotización',value:receipt.deliveryId??receipt.delivery!.id});
-  if(receipt.deliveryStatus)rows.push({label:'Estado de entrega simulada',value:receipt.deliveryStatus});
+  if(receipt.deliveryStatus)rows.push({label:'Estado de entrega simulada',value:deliveryState(receipt.deliveryStatus)});
   if(receipt.actor)rows.push({label:'Responsable de la operación',value:receipt.actor.alias});
   if(receipt.reason)rows.push({label:'Motivo registrado',value:receipt.reason});
+  if(receipt.deliveredLots?.length)rows.push({label:'Gramos retirados de lotes en la simulación',value:receipt.deliveredLots.map(lot=>`${lot.lotId}: ${amountRecorded(lot.mg)?grams(lot.mg):missing}`).join('\n')});
   if(receipt.quote){
     const quote=receipt.quote;
     rows.push({label:'Cotización DEMO',value:quote.id},{label:'Escenario ficticio',value:quote.jurisdiction.label});
-    for(const [label,value] of [['Servicio',quote.serviceMinor],['Fabricación o preparación',quote.preparationMinor],['Transporte',quote.transportMinor],['Seguro',quote.insuranceMinor],['Impuesto configurable DEMO',quote.taxMinor],['Total de costes de entrega',quote.totalMinor]] as const){
+    for(const [label,value] of [['Servicio',quote.serviceMinor],['Fabricación o preparación',quote.preparationMinor],['Transporte',quote.transportMinor],['Seguro',quote.insuranceMinor],['Subtotal de costes DEMO',quote.subtotalMinor],['Impuesto configurable DEMO',quote.taxMinor],['Total de costes de entrega',quote.totalMinor]] as const){
       rows.push({label,value:amountRecorded(value)?money(value):missing});
     }
+    if(amountRecorded(quote.insuranceBps))rows.push({label:'Tasa de seguro ficticio',value:percent(quote.insuranceBps)});
+    if(amountRecorded(quote.taxBps))rows.push({label:'Tasa de impuesto ficticio',value:percent(quote.taxBps)});
+    rows.push({label:'Requisitos ficticios de esta cotización',value:quote.requirements?.length?quote.requirements.join('\n'):missing});
+    if(amountRecorded(quote.policyVersion))rows.push({label:'Versión de política usada',value:String(quote.policyVersion)});
     rows.push({label:'Validez de la propuesta',value:new Date(quote.expiresAt).toLocaleString('es-CO')});
   }
+  if(receipt.action==='delivery_config'){
+    const policy=receipt.policy;
+    rows.push({label:'Jurisdicción ficticia configurada',value:policy?.label??(receipt.jurisdiction?jurisdictionNames[receipt.jurisdiction]??receipt.jurisdiction:missing)});
+    rows.push({label:'Versión de política registrada',value:amountRecorded(receipt.policyVersion)?String(receipt.policyVersion):missing});
+    if(policy){
+      for(const [label,value] of [['Servicio configurado DEMO',policy.serviceMinor],['Preparación configurada DEMO',policy.preparationMinor],['Transporte configurado DEMO',policy.transportMinor]] as const)rows.push({label,value:amountRecorded(value)?money(value):missing});
+      rows.push({label:'Tasa de seguro configurada DEMO',value:amountRecorded(policy.insuranceBps)?percent(policy.insuranceBps):missing});
+      rows.push({label:'Tasa de impuesto configurada DEMO',value:amountRecorded(policy.taxBps)?percent(policy.taxBps):missing});
+      rows.push({label:'Requisitos ficticios configurados',value:policy.requirements?.length?policy.requirements.join('\n'):missing});
+    }
+    rows.push({label:'Vigencia de nuevas propuestas',value:amountRecorded(receipt.quoteValidityHours)?`${receipt.quoteValidityHours} horas`:missing});
+  }
 
-  if(receipt.operatorView){
-    rows.push({label:'Privacidad del comprador',value:'Los saldos de su billetera no se comparten con el operador.'});
+  if(!receiptUsesWallet(receipt)){
+    rows.push(receipt.operatorView?{label:'Privacidad del comprador',value:'Los saldos de su billetera no se comparten con el operador.'}:{label:'Alcance del registro',value:'Este comprobante de mina no utiliza una billetera de comprador.'});
     return rows;
   }
   const snapshot=receipt.balancesAfter;

@@ -1,5 +1,6 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {ActivityIndicator,Modal,Pressable,SafeAreaView,ScrollView,StyleSheet,Switch,Text,TextInput,View} from 'react-native';
+import {ActivityIndicator,Modal,Pressable,ScrollView,StyleSheet,Switch,Text,TextInput,View} from 'react-native';
+import {ModalSurface} from './ModalSurface';
 import type {RecoveryChallenge,RecoveryCompletion} from '../lib/account-client';
 
 type Props={visible:boolean;initialAlias?:string;currentAlias?:string;pending:boolean;expired:boolean;startRecovery:(alias:string,key:string)=>Promise<RecoveryChallenge>;completeRecovery:(password:string)=>Promise<RecoveryCompletion>;cancelRecovery:()=>void;onDone:(alias:string)=>void;onClose:(alias:string)=>void};
@@ -28,9 +29,9 @@ export function RecoveryAccess({visible,initialAlias='',currentAlias,pending,exp
     finally{if(request===generation.current){running.current=false;setBusy(false);}}
   }
   function finish(){if(!saved||busy)return;const recoveredAlias=alias;generation.current++;cancelRecovery();setNewKey(null);setProof('');setPassword('');setConfirmation('');onDone(recoveredAlias);}
-  return <Modal visible={visible} onRequestClose={close} animationType="none" presentationStyle="pageSheet"><SafeAreaView style={styles.screen} accessibilityViewIsModal>
+  return <Modal visible={visible} onRequestClose={close} animationType="none" presentationStyle="pageSheet"><ModalSurface style={styles.screen} keyboard onEscape={close}>
     <View style={styles.header}><Text accessibilityRole="header" style={styles.headerTitle}>Recuperar cuenta demo</Text><Pressable accessibilityRole="button" accessibilityLabel="Cerrar recuperación demo" disabled={busy} onPress={close} style={styles.close}><Text style={styles.link}>Cerrar</Text></Pressable></View>
-    <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+    <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentInsetAdjustmentBehavior="never">
       <Text style={styles.demo}>RECUPERACIÓN DEMO · SIN CORREO NI IDENTIDAD REAL</Text>
       <Text style={styles.copy}>Necesitas el alias ficticio y la clave de recuperación configurada previamente en Cuenta. Guárdala fuera del chat; la app no conserva una copia.</Text>
       {pending&&<Text style={styles.warning}>Tu operación pendiente conserva la misma cuenta y su clave de solicitud. Con el acceso vencido puedes recuperar esa misma cuenta y después volver a entrar para resolverla.</Text>}
@@ -59,6 +60,6 @@ export function RecoveryAccess({visible,initialAlias='',currentAlias,pending,exp
         <Pressable accessibilityRole="button" disabled={!saved} onPress={finish} style={[styles.primary,!saved&&styles.disabled]}><Text style={styles.primaryText}>Ocultar clave y volver a entrar</Text></Pressable>
       </>}
     </ScrollView>
-  </SafeAreaView></Modal>;
+  </ModalSurface></Modal>;
 }
 const styles=StyleSheet.create({screen:{flex:1,backgroundColor:'#090F15'},header:{paddingHorizontal:20,paddingVertical:12,borderBottomWidth:1,borderColor:'#273541',flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12},headerTitle:{fontSize:19,color:'#F6F5F1',fontWeight:'700',flexShrink:1},close:{padding:12,minHeight:48,justifyContent:'center'},link:{color:'#DCBC7F',fontWeight:'700'},body:{padding:22,paddingBottom:40},demo:{color:'#DCBC7F',fontSize:10,fontWeight:'800',lineHeight:19,letterSpacing:1},title:{fontSize:24,lineHeight:34,color:'#F6F5F1',fontWeight:'700',marginTop:24,marginBottom:12},copy:{fontSize:13,lineHeight:22,color:'#BAC4CE',marginTop:10},note:{fontSize:12,lineHeight:21,color:'#98A5B0',marginTop:8},label:{fontSize:13,color:'#D4DBE0',fontWeight:'600',marginTop:18},input:{color:'#FAF9F3',fontSize:17,paddingHorizontal:15,paddingVertical:14,backgroundColor:'#101C26',borderColor:'#3C4B56',borderWidth:1,borderRadius:10,marginTop:8},primary:{backgroundColor:'#DCBC7F',padding:16,borderRadius:10,minHeight:50,alignItems:'center',justifyContent:'center',marginTop:24},primaryText:{color:'#15212B',fontSize:14,fontWeight:'800',textAlign:'center'},disabled:{opacity:.45},warning:{padding:14,backgroundColor:'#47392A',color:'#F8DFB5',fontSize:12,lineHeight:22,borderRadius:10,marginTop:18},error:{padding:14,backgroundColor:'#4B2E2A',color:'#FCE4D9',fontSize:13,lineHeight:22,borderRadius:10,marginTop:18},loading:{flexDirection:'row',gap:12,alignItems:'center',marginVertical:12},confirm:{flexDirection:'row',alignItems:'center',gap:14,marginTop:18},confirmText:{color:'#BAC4CE',fontSize:12,lineHeight:21,flex:1},secretBox:{padding:14,borderRadius:10,borderWidth:1,borderColor:'#665233',backgroundColor:'#241F18',marginTop:18},secret:{color:'#F8E8C9',fontSize:15,lineHeight:25,marginTop:18,fontWeight:'700'}});

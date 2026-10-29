@@ -1,6 +1,7 @@
 import React from 'react';
-import {ActivityIndicator,Modal,Pressable,SafeAreaView,ScrollView,StyleSheet,Text,View} from 'react-native';
-import {receiptDetails,receiptTitle,type Receipt} from '../lib/receipt-presentation';
+import {ActivityIndicator,Modal,Pressable,ScrollView,StyleSheet,Text,View} from 'react-native';
+import {ModalSurface} from './ModalSurface';
+import {receiptDetails,receiptTitle,receiptUsesWallet,type Receipt} from '../lib/receipt-presentation';
 
 type Props={
   visible:boolean;
@@ -14,14 +15,14 @@ type Props={
 
 export function ReceiptDetails({visible,receipt,loading,error,onClose,onRetry,onHistory}:Props){
   return <Modal visible={visible} onRequestClose={onClose} animationType="none" presentationStyle="pageSheet">
-    <SafeAreaView style={styles.screen} accessibilityViewIsModal>
+    <ModalSurface style={styles.screen} onEscape={onClose}>
       <View style={styles.header}>
         <Text accessibilityRole="header" style={styles.headerTitle}>Comprobante</Text>
         <Pressable accessibilityRole="button" accessibilityLabel="Cerrar comprobante" onPress={onClose} style={styles.close}>
           <Text style={styles.closeText}>Cerrar</Text>
         </Pressable>
       </View>
-      <ScrollView contentContainerStyle={styles.body}>
+      <ScrollView contentContainerStyle={styles.body} contentInsetAdjustmentBehavior="never">
         <Text style={styles.demo}>SIMULACIÓN · SIN FONDOS NI METALES REALES</Text>
         {loading&&<View style={styles.loading}><ActivityIndicator color="#DCBC7F"/><Text style={styles.note}>Consultando comprobante…</Text></View>}
         {!!error&&<View accessibilityRole="alert" style={styles.error}>
@@ -44,7 +45,7 @@ export function ReceiptDetails({visible,receipt,loading,error,onClose,onRetry,on
               <Text selectable style={styles.rowValue}>{row.value}</Text>
             </View>)}
           </View>
-          {!receipt.operatorView&&<Text style={styles.note}>Los saldos posteriores corresponden al momento de esta operación cuando fueron registrados. Pueden diferir de tus saldos actuales.</Text>}
+          {receiptUsesWallet(receipt)&&<Text style={styles.note}>Los saldos posteriores corresponden al momento de esta operación cuando fueron registrados. Pueden diferir de tus saldos actuales.</Text>}
           <Text style={styles.note}>Este comprobante no acredita un pago, una transferencia blockchain ni la custodia de metal físico.</Text>
         </>}
       </ScrollView>
@@ -53,7 +54,7 @@ export function ReceiptDetails({visible,receipt,loading,error,onClose,onRetry,on
           <Text style={styles.primaryText}>Ver historial</Text>
         </Pressable>
       </View>
-    </SafeAreaView>
+    </ModalSurface>
   </Modal>;
 }
 

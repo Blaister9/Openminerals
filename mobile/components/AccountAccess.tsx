@@ -1,6 +1,7 @@
 import React,{useEffect,useState} from 'react';
-import {ActivityIndicator,Modal,Pressable,SafeAreaView,ScrollView,StyleSheet,Switch,Text,TextInput,View} from 'react-native';
+import {ActivityIndicator,Modal,Pressable,ScrollView,StyleSheet,Switch,Text,TextInput,View} from 'react-native';
 import {RecoveryAccess} from './RecoveryAccess';
+import {ModalSurface} from './ModalSurface';
 import type {RecoveryChallenge,RecoveryCompletion} from '../lib/account-client';
 
 type Account={id:string;alias:string;role:'buyer'|'operator';mineId:string};
@@ -32,11 +33,11 @@ export function AccountAccess({visible,initialMode,account,mineName,recoveryAlia
   const blocked=busy||!validAlias||!validPassword||(mode==='register'&&(pending||!!account));
   function close(){if(!busy){setPassword('');setRecoveryVisible(false);cancelRecovery?.();onClose();}}
   return <><Modal visible={visible} onRequestClose={close} animationType="none" presentationStyle="pageSheet">
-    <SafeAreaView style={styles.screen} accessibilityViewIsModal>
+    <ModalSurface style={styles.screen} keyboard onEscape={close}>
       <View style={styles.header}><Text accessibilityRole="header" style={styles.headerTitle}>Cuenta demo</Text>
         <Pressable accessibilityRole="button" accessibilityLabel="Cerrar acceso a cuenta" disabled={busy} onPress={close} style={styles.close}><Text style={styles.link}>Cerrar</Text></Pressable>
       </View>
-      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentInsetAdjustmentBehavior="never">
         <Text style={styles.demo}>CUENTAS FICTICIAS · SIN FONDOS REALES</Text>
         {account&&<View style={styles.card}>
           <Text style={styles.titleSmall}>{account.alias}</Text>
@@ -63,7 +64,7 @@ export function AccountAccess({visible,initialMode,account,mineName,recoveryAlia
             <View style={styles.switchRow}><Text style={styles.titleSmall}>Conservar mi sesión anterior</Text><Switch accessibilityLabel="Conservar mi sesión anterior" value={importLegacy} onValueChange={setImportLegacy} disabled={busy}/></View>
             <Text style={styles.copy}>{importLegacy?'Se copiarán tus saldos, posiciones e historial a esta cuenta. La sesión anterior quedará en consulta; no se borra.':'La nueva cuenta comenzará con saldos ficticios iniciales. Tu sesión anterior permanecerá separada.'}</Text>
           </View>:<Text style={styles.note}>{legacyReadOnly?'La sesión anterior ya está vinculada a una cuenta. Para recuperar sus datos, entra con ese alias y su clave. Otra cuenta empieza con saldos ficticios iniciales.':'La cuenta nueva empieza con saldos ficticios iniciales. Cada comprador mantiene su propia billetera.'}</Text>}
-          <Text style={styles.note}>Guarda el alias y la clave demo para volver a entrar. Este prototipo no ofrece recuperación por correo.</Text>
+          <Text style={styles.note}>Guarda el alias y la clave demo para volver a entrar. Después del registro, abre Cuenta → Perfil y recuperación y activa tu clave privada de recuperación. Se muestra una sola vez; guárdala fuera del chat. No se usa correo.</Text>
         </>}
         {mode==='login'&&<Text style={styles.note}>El rol de operador lo asigna la administración de la demostración. No se elige un rol desde este formulario.</Text>}
         {mode==='login'&&startRecovery&&completeRecovery&&cancelRecovery&&<Pressable accessibilityRole="button" disabled={busy||(pending&&!expired)} onPress={()=>{setPassword('');setRecoveryVisible(true);}} style={[styles.secondary,(busy||(pending&&!expired))&&styles.disabled]}><Text style={styles.secondaryText}>Recuperar comprador con clave privada</Text></Pressable>}
@@ -72,7 +73,7 @@ export function AccountAccess({visible,initialMode,account,mineName,recoveryAlia
           {busy?<ActivityIndicator color="#15212B"/>:<Text style={styles.primaryText}>{mode==='register'?(canImportLegacy&&importLegacy?'Crear y vincular mi sesión':'Crear cuenta de comprador'):'Entrar en mi cuenta'}</Text>}
         </Pressable>
       </ScrollView>
-    </SafeAreaView>
+    </ModalSurface>
   </Modal>
     {startRecovery&&completeRecovery&&cancelRecovery&&<RecoveryAccess visible={visible&&recoveryVisible} initialAlias={recoveryAlias||alias||account?.alias||''} currentAlias={account?.alias} pending={pending} expired={expired} startRecovery={startRecovery} completeRecovery={completeRecovery} cancelRecovery={cancelRecovery}
       onClose={recoveredAlias=>{setRecoveryVisible(false);setMode('login');setAlias(recoveredAlias);setPassword('');}}
