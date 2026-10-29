@@ -1,4 +1,4 @@
-import React, {useEffect,useRef,useState} from 'react';
+import React, {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {ActivityIndicator,Animated,Modal,Pressable,ScrollView,StatusBar,StyleSheet,Text,TextInput,View} from 'react-native';
 import {SafeAreaProvider,SafeAreaView,initialWindowMetrics} from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -91,6 +91,8 @@ export default function App(){
  const [currency,setCurrency]=useState<Currency>('USD');
  const [amount,setAmount]=useState('200.00');
  const homeScrollY=useRef(new Animated.Value(0)).current;
+ const contentScroll=useRef<ScrollView|null>(null);
+ const laidOutScroll=useRef<ScrollView|null>(null);
  const [viewportHeight,setViewportHeight]=useState(600);
  const [operatorVisible,setOperatorVisible]=useState(false);
  const [metalAction,setMetalAction]=useState<'sell'|'offer'|'delivery'>('sell');
@@ -142,6 +144,7 @@ export default function App(){
  const actionLock=useRef(false);
  const client=useRef(createAccountClient({api:API,storage:AsyncStorage,authStorage,uuid:()=>Crypto.randomUUID()})).current;
  const isOperator=account?.role==='operator';
+ const contentRoute=`${account?.id||session}:${tab}:${isOperator?mineSection:tab==='Metales'?metalsSection:tab==='Mercado'?marketSection:''}`;
  const sections=isOperator?operatorSections:buyerSections;
  const tradingBlocked=busy||authBusy||!!pending||authExpired||!!accountRecovery||(!account&&!!state?.legacyReadOnly);
  useEffect(()=>{setOfferPrice(((state?.priceCentsPerGram[currentMetal]||14500)/100).toFixed(2));},[currentMetal,state?.priceCentsPerGram[currentMetal]]);
@@ -222,7 +225,9 @@ export default function App(){
   finally{setAuthBusy(false);authLock.current=false;}
  }
  useEffect(()=>{void refresh();},[]);
- useEffect(()=>{homeScrollY.setValue(0);},[tab,homeScrollY]);
+ // Animated.Value only drives the story. Android's native ScrollView also
+ // needs its actual offset reset after an identity or section transition.
+ useLayoutEffect(()=>{contentScroll.current?.scrollTo({y:0,animated:false});homeScrollY.setValue(0);},[contentRoute,homeScrollY]);
  useEffect(()=>{if(tab==='Más'&&session&&!historyLoaded&&!isOperator&&!authExpired)void loadHistory(true);},[tab,session,authExpired]);
  async function loadHistory(reset=true){
   const request=++historyRequest.current;
@@ -512,8 +517,8 @@ export default function App(){
   {!!accountRecovery&&<View style={styles.archiveBanner}><Text style={styles.archiveText}>{accountRecovery==='logout'?'El acceso se cerró en el servidor, pero falta finalizar el cierre guardado en este dispositivo. Tus datos permanecen conservados.':'Falta confirmar el acceso a tu cuenta. Entra con el mismo alias y clave demo antes de crear movimientos; no se borró la sesión anterior.'}</Text><Button label={accountRecovery==='logout'?'Reintentar cierre de sesión':'Resolver acceso a cuenta'} disabled={busy||authBusy} onPress={()=>accountRecovery==='logout'?void signOut():openAccount('login')}/></View>}
   {!!pending&&<View style={styles.errorBox}><Text style={styles.errorText}>Pendiente: {pending.title}. Una respuesta perdida no confirma que la operación haya fallado. Reintentar recupera el mismo comprobante y bloquea movimientos duplicados.</Text><Button label={busy?'Consultando…':'Reintentar operación pendiente'} onPress={retryPending} disabled={busy||authBusy||authExpired||!!accountRecovery}/></View>}
   {authExpired?<View style={styles.center}><Text style={styles.cardTitle}>Vuelve a entrar en tu cuenta demo</Text><Text style={styles.copy}>Conservamos la identidad y cualquier solicitud pendiente. Usa el mismo alias para recuperar el acceso.</Text><Button label="Entrar de nuevo" onPress={()=>openAccount('login')} disabled={busy||authBusy}/></View>:!state&&!isOperator?<View style={styles.center}>{!problem&&<ActivityIndicator color={accent}/>}<Text style={styles.muted}>Preparando experiencia móvil…</Text></View>:
-  <Animated.ScrollView key={tab} style={{flex:1}} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
-   onLayout={event=>setViewportHeight(Math.max(1,event.nativeEvent.layout.height))}
+  <Animated.ScrollView key={contentRoute} ref={contentScroll} style={{flex:1}} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
+   onLayout={event=>{setViewportHeight(Math.max(1,event.nativeEvent.layout.height));if(laidOutScroll.current!==contentScroll.current){laidOutScroll.current=contentScroll.current;contentScroll.current?.scrollTo({y:0,animated:false});}}}
    onScroll={Animated.event([{nativeEvent:{contentOffset:{y:homeScrollY}}}],{useNativeDriver:true})} scrollEventThrottle={16}>
    {isOperator?(tab==='Cuenta'?accountPage():operatorMine()):tab==='Inicio'?home():tab==='Mercado'?market():tab==='Billetera'?wallet():tab==='Metales'?holdings():more()}
   </Animated.ScrollView>}
