@@ -14,6 +14,7 @@ import {AccountAccess} from './components/AccountAccess';
 import {MineDashboard,type MineSummary,type StockReceipt} from './components/MineDashboard';
 import {StockReceiptDetails} from './components/StockReceiptDetails';
 import {CustodyPanel} from './components/CustodyPanel';
+import {MarketplacePanel} from './components/MarketplacePanel';
 
 // DEMO: todas las cifras, inventarios y solicitudes son simulados.
 // Cuentas de demostración; no hay KYC, pagos, exchange ni bóveda real.
@@ -89,6 +90,7 @@ export default function App(){
  const [operatorVisible,setOperatorVisible]=useState(false);
  const [metalAction,setMetalAction]=useState<'sell'|'offer'|'delivery'>('sell');
  const [sellGrams,setSellGrams]=useState('0.500');
+ const [offerPrice,setOfferPrice]=useState('145.00');
  const [pending,setPending]=useState<PendingOperation|null>(null);
  const [account,setAccount]=useState<Account|null>(null);
  const [mineIdentity,setMineIdentity]=useState<{id:string;name:string}|null>(null);
@@ -129,6 +131,7 @@ export default function App(){
  const isOperator=account?.role==='operator';
  const sections=isOperator?operatorSections:buyerSections;
  const tradingBlocked=busy||authBusy||!!pending||authExpired||!!accountRecovery||(!account&&!!state?.legacyReadOnly);
+ useEffect(()=>{setOfferPrice(((state?.priceCentsPerGram[currentMetal]||14500)/100).toFixed(2));},[currentMetal,state?.priceCentsPerGram[currentMetal]]);
  async function load(loadSummary=false){
   const version=identityVersion.current;
   if(client.getAccount()?.role==='operator'){await loadMine();return;}
@@ -346,6 +349,7 @@ export default function App(){
     <Button label={busy?'Procesando...':'Confirmar compra simulada'} disabled={tradingBlocked||!quote||insufficient||unavailable} onPress={()=>{if(quote)perform('buy',{metal:currentMetal,grams:quote.normalizedGrams},`Comprar ${gram(quote.milligrams)} de ${m.name}`,`Metal: ${money(quote.baseMinor)}. Comisión: ${money(quote.feeMinor)}.\nTotal estimado: ${money(quote.totalMinor)}.\nUSDT después de comprar: ${money((state?.walletMinor.USDT||0)-quote.totalMinor)}.`);}}/>
    </Card>
    <Text style={styles.disclaimer}>Ningún gramo en esta pantalla representa una existencia física acreditada.</Text>
+   {account&&<MarketplacePanel key={account.id} identityKey={account.id} get={client.get} submit={perform} disabled={tradingBlocked} usdtMinor={state?.walletMinor.USDT||0} refreshKey={state?.movements[0]?.id||''} onHistory={()=>setTab('Más')} onReceipt={receipt=>void openReceipt(receipt.id,receipt)}/>}
   </>;
  }
  function wallet(){
@@ -389,6 +393,8 @@ export default function App(){
   const invalid=operationMg===null||operationMg<100;
   const unavailable=operationMg!==null&&operationMg>available;
   const quote=state?quoteSell(sellGrams,state.priceCentsPerGram[currentMetal],state.feesBps.sell):null;
+  const offerPriceUnits=parsePositiveDecimal(offerPrice,2);
+  const offerQuote=state&&offerPriceUnits!==null?quoteSell(sellGrams,Math.round(offerPriceUnits*100),state.feesBps.sell):null;
   const overflow=!!quote&&(state?.walletMinor.USDT||0)+quote.outputMinor>MAX_BALANCE_MINOR;
   return <><Text style={styles.eyebrow}>MIS POSICIONES</Text><Text style={styles.pageTitle}>Mis metales</Text><Text style={styles.copy}>Consulta las cantidades adquiridas y su valor de referencia.</Text>
    {metals.map(v=><Pressable key={v.code} onPress={()=>setCurrentMetal(v.code)} style={[styles.metalRow,currentMetal===v.code&&{borderColor:accent}]}>
@@ -402,6 +408,7 @@ export default function App(){
     {!invalid&&operationMg!==null&&<Row left="Cantidad interpretada" right={gram(operationMg)}/>}
     {invalid&&<Text style={styles.disclaimer}>Introduce al menos 0,1 g y hasta tres decimales. Puedes usar coma o punto decimal.</Text>}
     {unavailable&&<Text accessibilityRole="alert" style={styles.disclaimer}>La cantidad supera tus gramos disponibles. Los gramos reservados no se pueden vender ni reservar otra vez.</Text>}
+    {metalAction==='offer'&&account&&<><Text style={styles.inputLabel}>Precio de venta por gramo en USDT simulado</Text><TextInput accessibilityLabel="Precio por gramo de oferta marketplace" style={styles.input} value={offerPrice} onChangeText={setOfferPrice} keyboardType="decimal-pad"/>{offerQuote?<><Row left="Total que pagará la contraparte" right={money(offerQuote.baseMinor)}/><Row left="Comisión descontada al vendedor" right={money(offerQuote.feeMinor)}/><Row left="Recibirás si se liquida" right={money(offerQuote.outputMinor)}/></>:<Text style={styles.disclaimer}>Introduce un precio positivo con hasta dos decimales y una cantidad válida.</Text>}</>}
     {metalAction==='sell'&&quote&&<View style={styles.quoteBox}>
      <Text style={styles.cardTitle}>Antes de vender</Text>
      <Row left="Precio ficticio por gramo" right={money(state?.priceCentsPerGram[currentMetal]||0)}/>
@@ -413,9 +420,9 @@ export default function App(){
     </View>}
     {metalAction==='sell'&&overflow&&<Text style={styles.disclaimer}>El saldo USDT resultante superaría el límite de la demostración.</Text>}
     <Text style={styles.mutedSmall}>{metalAction==='delivery'?'Se solicita una cotización; no se genera un envío ni un impuesto real.':metalAction==='offer'?'La cantidad queda reservada. Publicar no significa que exista un comprador.':'La comisión se descuenta del valor bruto. El servidor valida el importe definitivo.'}</Text>
-    <Button label={metalAction==='sell'?'Simular venta':metalAction==='offer'?'Publicar oferta demo':'Solicitar cotización de entrega'} disabled={tradingBlocked||invalid||unavailable||(metalAction==='sell'&&(!quote||overflow))} onPress={()=>{
+    <Button label={metalAction==='sell'?'Simular venta':metalAction==='offer'?'Publicar oferta demo':'Solicitar cotización de entrega'} disabled={tradingBlocked||invalid||unavailable||(metalAction==='sell'&&(!quote||overflow))||(metalAction==='offer'&&!!account&&!offerQuote)} onPress={()=>{
      const detail=metalAction==='sell'&&quote?`${gram(quote.milligrams)} de ${m.name}.\nValor bruto: ${money(quote.baseMinor)}.\nComisión: ${money(quote.feeMinor)}.\nRecibes neto: ${money(quote.outputMinor)}.\nUSDT después: ${money((state?.walletMinor.USDT||0)+quote.outputMinor)}.`:`${operationMg===null?sellGrams:gram(operationMg)} de ${m.name}. Se reservará esta cantidad.`;
-     perform(metalAction,{metal:currentMetal,grams:normalizeDecimalInput(sellGrams)},metalAction==='sell'?'Confirmar venta simulada':'Confirmar reserva simulada',detail);
+     perform(metalAction,{metal:currentMetal,grams:normalizeDecimalInput(sellGrams),...(metalAction==='offer'&&account?{price:normalizeDecimalInput(offerPrice)}:{})},metalAction==='sell'?'Confirmar venta simulada':'Confirmar reserva simulada',`${detail}${metalAction==='offer'&&account&&offerQuote?`\nPrecio: ${money(Math.round((offerPriceUnits||0)*100))}/g.\nTotal contraparte: ${money(offerQuote.baseMinor)}. Neto vendedor: ${money(offerQuote.outputMinor)}.`:''}`);
     }}/>
    </Card>
    <Sub>Solicitudes y ofertas</Sub>

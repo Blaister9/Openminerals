@@ -48,7 +48,7 @@ export function createDemoClient({api,storage,uuid,fetchImpl=fetch,timeoutMs=12_
   const sessionKey='openminerals-demo-session';
   const pendingKey=`openminerals-demo-pending:${api}${accountId?`:account:${accountId}`:''}`;
   const actions=new Set(['deposit','withdraw','convert','buy','sell','offer','cancel_offer','delivery','cancel_delivery']);
-  if(accountId)actions.add('mine/stock');
+  if(accountId){actions.add('mine/stock');actions.add('market_buy');}
   let session='';
   let pending:PendingOperation|null=null;
   let initialized=false;

@@ -25,6 +25,9 @@ export type Receipt={
   totalMinor?:number;
   offer?:Reservation;
   offerId?:string;
+  tradeId?:string;
+  counterparty?:{id:string;alias:string};
+  certificateIds?:string[];
   delivery?:Reservation;
   deliveryId?:string;
   balancesAfter?:{
@@ -51,6 +54,8 @@ export function receiptTitle(receipt:Receipt):string {
   switch(receipt.action){
     case 'buy':return name?`Compra de ${name}`:'Compra de metal';
     case 'sell':return name?`Venta de ${name}`:'Venta de metal';
+    case 'market_buy':return 'Compra en marketplace DEMO';
+    case 'market_sell':return 'Venta en marketplace DEMO';
     case 'convert':return receipt.from&&receipt.to?`Conversión ${receipt.from} → ${receipt.to}`:'Conversión';
     case 'deposit':return 'Ingreso simulado';
     case 'withdraw':return 'Retiro simulado';
@@ -67,8 +72,8 @@ export function receiptSummary(receipt:Receipt):string {
   const mg=receiptMg(receipt);
   const quantity=amountRecorded(mg)?grams(mg):'';
   switch(receipt.action){
-    case 'buy':return amountRecorded(receipt.totalMinor)?`−${money(receipt.totalMinor)}${quantity?` · ${quantity}`:''}`:quantity||'Importe no registrado';
-    case 'sell':return amountRecorded(receipt.outputMinor)?`+${money(receipt.outputMinor)}${quantity?` · ${quantity}`:''}`:quantity||'Importe no registrado';
+    case 'buy':case 'market_buy':return amountRecorded(receipt.totalMinor)?`−${money(receipt.totalMinor)}${quantity?` · ${quantity}`:''}`:quantity||'Importe no registrado';
+    case 'sell':case 'market_sell':return amountRecorded(receipt.outputMinor)?`+${money(receipt.outputMinor)}${quantity?` · ${quantity}`:''}`:quantity||'Importe no registrado';
     case 'convert':return amountRecorded(receipt.amountMinor)&&amountRecorded(receipt.outputMinor)&&receipt.from&&receipt.to?
       `${money(receipt.amountMinor,receipt.from)} → ${money(receipt.outputMinor,receipt.to)}`:'Importes no registrados';
     case 'deposit':
@@ -89,11 +94,11 @@ export function receiptDetails(receipt:Receipt):ReceiptDetail[] {
   const mg=receiptMg(receipt);
   if(metal)rows.push({label:'Metal',value:metals[metal]??metal});
   if(amountRecorded(mg))rows.push({label:'Cantidad',value:grams(mg)});
-  if(receipt.action==='buy'||receipt.action==='sell'){
+  if(['buy','sell','market_buy','market_sell'].includes(receipt.action)){
     rows.push({label:'Precio ficticio por gramo',value:amountRecorded(receipt.priceCentsPerGram)?`${money(receipt.priceCentsPerGram)}/g`:missing});
     rows.push({label:'Valor del metal',value:amountRecorded(receipt.baseMinor)?money(receipt.baseMinor):missing});
     rows.push({label:'Comisión simulada',value:amountRecorded(receipt.feeMinor)?money(receipt.feeMinor):missing});
-    if(receipt.action==='buy')rows.push({label:'Total descontado',value:amountRecorded(receipt.totalMinor)?money(receipt.totalMinor):missing});
+    if(receipt.action==='buy'||receipt.action==='market_buy')rows.push({label:'Total descontado',value:amountRecorded(receipt.totalMinor)?money(receipt.totalMinor):missing});
     else rows.push({label:'Neto recibido',value:amountRecorded(receipt.outputMinor)?money(receipt.outputMinor):missing});
   }else if(receipt.action==='convert'){
     rows.push({label:'Importe descontado',value:amountRecorded(receipt.amountMinor)&&receipt.from?money(receipt.amountMinor,receipt.from):missing});
@@ -104,6 +109,9 @@ export function receiptDetails(receipt:Receipt):ReceiptDetail[] {
     rows.push({label:receipt.action==='deposit'?'Importe ingresado':'Importe retirado',value:amountRecorded(receipt.amountMinor)&&receipt.currency?money(receipt.amountMinor,receipt.currency):missing});
   }
   if(receipt.offerId||receipt.offer?.id)rows.push({label:'Oferta',value:receipt.offerId??receipt.offer!.id});
+  if(receipt.tradeId)rows.push({label:'Liquidación DEMO',value:receipt.tradeId});
+  if(receipt.counterparty)rows.push({label:'Contraparte ficticia',value:receipt.counterparty.alias});
+  if(receipt.certificateIds?.length)rows.push({label:'Certificados DEMO verificables en Custodia',value:receipt.certificateIds.join('\n')});
   if(receipt.deliveryId||receipt.delivery?.id)rows.push({label:'Solicitud de cotización',value:receipt.deliveryId??receipt.delivery!.id});
 
   if(receipt.operatorView){

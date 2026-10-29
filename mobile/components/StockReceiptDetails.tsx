@@ -17,7 +17,8 @@ export function StockReceiptDetails({receipt,onClose}:Props){return <Modal visib
       <Text style={styles.label}>Operador</Text><Text style={styles.value}>{receipt.actor.alias}</Text>
       <Text style={styles.label}>Fecha</Text><Text style={styles.value}>{new Date(receipt.at).toLocaleString('es-CO')}</Text>
       <Text style={styles.label}>Comprobante</Text><Text selectable style={styles.value}>{receipt.id}</Text>
-      <Text style={styles.note}>Estos valores son los registrados en ese momento. No acreditan recepción física, ensayo, asignación de lotes ni custodia real.</Text>
+      {!!receipt.lotId&&<><Text style={styles.label}>Lote DEMO creado</Text><Text selectable style={styles.value}>{receipt.lotId}</Text></>}
+      <Text style={styles.note}>Estos valores son los registrados en ese momento. El lote es ficticio y no acredita recepción física, ensayo ni custodia real.</Text>
     </>}</ScrollView>
   </SafeAreaView>
 </Modal>}

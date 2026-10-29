@@ -62,6 +62,15 @@ export function createApiServer(store,config={}){
       const token=bearerToken(req.headers.authorization);
       const identity=token?await store.authenticate(token):null;
       if(req.method==='GET'&&path==='/api/demo/accounts/me')return send(res,200,requireIdentity(identity));
+      if(req.method==='GET'&&path==='/api/demo/marketplace'){
+        const {account}=requireIdentity(identity);
+        return send(res,200,await store.getMarketplace(account.id));
+      }
+      if(req.method==='POST'&&path==='/api/demo/market_buy'){
+        const {account}=requireIdentity(identity),body=await readJson(req);onlyKeys(body,['sellerId','offerId']);
+        const result=await store.mutateAccount(account.id,{...body,action:'market_buy',requestId:req.headers['idempotency-key']});
+        return send(res,200,{receipt:result.receipt,state:{...result.state,metals:METALS}});
+      }
       if(req.method==='GET'&&path==='/api/demo/custody'){
         const {account}=requireIdentity(identity);
         return send(res,200,await store.getCustody(account.id,'buyer'));

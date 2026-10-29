@@ -6,7 +6,7 @@ import {receiptSummary,receiptTitle,type Receipt} from '../lib/receipt-presentat
 type Metal='XAU'|'XAG'|'XPT'|'XPD';
 type Account={id:string;alias:string};
 type Reservation={id:string;metal:Metal;mg:number;status:string};
-export type StockReceipt={id:string;action:'stock';status:string;at:string;demoOnly:true;metal:Metal;mg:number;reason:string;inventoryAfterMg:Record<Metal,number>;totalSupplyAfterMg:Record<Metal,number>;actor:Account;replayed?:boolean};
+export type StockReceipt={id:string;action:'stock';status:string;at:string;demoOnly:true;metal:Metal;mg:number;reason:string;lotId?:string;inventoryAfterMg:Record<Metal,number>;totalSupplyAfterMg:Record<Metal,number>;actor:Account;replayed?:boolean};
 export type MineSummary={
   demoOnly:boolean;mine:{id:string;name:string};inventoryMg:Record<Metal,number>;totalSupplyMg:Record<Metal,number>;allocatedMg:Record<Metal,number>;reservedMg:Record<Metal,number>;
   accountCount:number;transactionCount:number;demoFeesCollectedMinor:number;offersOpen:number;deliveriesPending:number;reconciled:boolean;

@@ -9,7 +9,7 @@ Todas las operaciones, lotes, ubicaciones, documentos, certificados, impuestos y
 | Fase | Criterio verificable | Estado de implementación |
 | --- | --- | --- |
 | 1 Custodia | Cuatro metales, lotes identificados, pureza/peso/ubicación/estado/documentos DEMO; asignaciones conciliadas con posiciones; compra/venta/importación/stock sin sobreasignación; certificado verificable y permisos | Implementada y probada localmente; pendiente Railway y APK |
-| 2 Marketplace | Precio explícito, catálogo compartido, reserva, compra por otra cuenta, liquidación atómica con comisión, cancelación y comprobantes sin duplicación | Pendiente |
+| 2 Marketplace | Precio explícito, catálogo compartido, reserva, compra por otra cuenta, liquidación atómica con comisión, cancelación y comprobantes sin duplicación | Implementada y probada localmente; pendiente Railway y APK |
 | 3 Entrega | Requisitos y cotización desglosada; jurisdicción y costes configurables de demo; aprobación, preparación, despacho y entrega simulados; reservas conservadas y transiciones autorizadas | Pendiente |
 | 4 Mina | Inventario y lotes, compradores sin saldos privados, ventas/comisiones/obligaciones/entregas, filtros e historial; permisos y ajustes auditables | Pendiente |
 | 5 Cuentas | Perfil ficticio; recuperación mediante secretos y tokens de un uso, vencimiento e intentos limitados; revocación y aislamiento | Pendiente |
@@ -29,6 +29,10 @@ Las mutaciones de cuentas se serializan bajo el bloqueo de la mina y se confirma
 ## Evidencia de pruebas y entrega
 
 Fase 1: 58 pruebas API aprobadas con PostgreSQL 17 local aislado y 53 pruebas móviles; 20 comprobaciones del runner PostgreSQL aprobadas sin omisiones. TypeScript y tres smokes anteriores en memoria aprobados. Cobertura nueva: migración simultánea e inconsistente/rollback, capacidad de lotes con compradores concurrentes, permisos por mina y cuenta, metadatos de stock idempotentes, certificados parcialmente liberados y conservación de sesiones importadas. La UI de custodia está integrada en Metales para el comprador y Mina para el operador; no tiene aceptación Android todavía.
+
+Fase 1 publicada en `1f048a7`; [CI aprobada](https://github.com/Blaister9/Openminerals/actions/runs/40794407889). Fase 2: 70 pruebas API y 26 comprobaciones del runner PostgreSQL aprobadas sin omisiones; 63 pruebas móviles y TypeScript aprobados. Se comprobaron dos compradores compitiendo por una oferta, carrera de cancelación/compra, saldo insuficiente, cruce de mina/rol, replay y transferencia de los lotes originales. Una prueba del cliente con API real simuló una respuesta perdida tras liquidar y recuperó el mismo comprobante después de reconstruir el cliente.
+
+Las nuevas ofertas requieren precio explícito en USDT simulado por gramo. El comprador paga el bruto y el vendedor recibe el bruto menos la comisión de venta definida por la mina (120 puntos básicos en la configuración inicial). La liquidación es completa, sin órdenes parciales. Las ofertas anteriores sin precio se pueden consultar y cancelar, pero no liquidar; para venderlas debe publicarse otra oferta con precio. No hay pagos reales.
 
 Se completará incrementalmente con commits, CI, pruebas HTTPS, migración/reinicio, hash y firma del APK y recorridos Android ejecutados. La última auditoría sigue siendo evidencia del punto de partida, sin atribuir sus resultados a funciones nuevas.
 

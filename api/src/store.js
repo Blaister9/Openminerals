@@ -4,6 +4,7 @@ import {DEFAULT_MINE_ID,seedMine,accountStateForMine,importLegacyState,applyAcco
 import {AUTH_LIFETIME_MS,accountError,normalizeAlias,passwordRecord,passwordMatches,newAuthToken,tokenHash,publicAccount} from './account-auth.js';
 import {readReceipt} from './receipt-history.js';
 import {ensureCustody,validateCustody,allocateCustody,releaseCustody,addStockLot,custodyView,custodyCertificate} from './custody.js';
+import {marketplaceCatalog,marketReplay,settleMarketplace} from './marketplace.js';
 
 const ID_PATTERN=/^[A-Za-z0-9_-]{16,100}$/;
 const clone=value=>structuredClone(value);
@@ -159,6 +160,20 @@ function makeStore(adapter){
     async mutateAccount(accountId,command){
       return adapter.tx(async tx=>{
         const {account,mine}=await authenticatedContext(tx,accountId,'buyer');
+        if(command.action==='market_buy'){
+          const replay=marketReplay(account.state,command);
+          if(replay)return {receipt:replay,state:{...accountStateForMine(account.state,mine),account:publicAccount(account)},changed:false};
+          if(typeof command.sellerId!=='string'||!/^[A-Za-z0-9_-]{8,100}$/.test(command.sellerId)||typeof command.offerId!=='string'||!/^offer-\d{1,20}$/.test(command.offerId))throw accountError(400,'Identificador de oferta DEMO inválido.');
+          const target=await tx.account(command.sellerId);
+          if(!target||target.mineId!==account.mineId)throw accountError(404,'Oferta no disponible en esta mina.');
+          // Lock only a seller from this mine, after its already locked mine row.
+          const seller=await tx.account(target.id,true);
+          const trade=settleMarketplace(mine,{...account,state:accountStateForMine(account.state,mine)},{...seller,state:accountStateForMine(seller.state,mine)},command);
+          const accounts=(await tx.accountsForMine(account.mineId)).map(item=>item.id===account.id?{...item,state:trade.buyerState}:item.id===seller.id?{...item,state:trade.sellerState}:item);
+          validateCustody(trade.mine,accounts);
+          await tx.saveMine(trade.mine);await tx.saveAccountState(account.id,trade.buyerState);await tx.saveAccountState(seller.id,trade.sellerState);
+          return {receipt:clone(trade.buyerReceipt),state:{...accountStateForMine(trade.buyerState,trade.mine),account:publicAccount(account)},changed:true};
+        }
         const result=applyAccountCommand(account.state,mine,command,{accountId:account.id});
         if(result.changed){
           if(command.action==='buy'){
@@ -200,6 +215,12 @@ function makeStore(adapter){
         return custodyView(mine,await tx.accountsForMine(account.mineId),account);
       });
     },
+    async getMarketplace(accountId){
+      return adapter.tx(async tx=>{
+        const {account,mine}=await authenticatedContext(tx,accountId,'buyer');
+        return marketplaceCatalog(mine,await tx.accountsForMine(account.mineId),account);
+      });
+    },
     async getCertificate(accountId,certificateId){
       return adapter.tx(async tx=>{
         const first=await tx.account(accountId);if(!first)throw unauthorized();
@@ -213,7 +234,7 @@ function makeStore(adapter){
         const target=await tx.account(targetId);
         if(!target||target.role!=='buyer'||target.mineId!==account.mineId)throw accountError(404,'Comprobante no disponible en esta mina.');
         const receipt=readReceipt(target.state,receiptId);
-        if(receipt.mineId!==account.mineId||receipt.accountId!==targetId||!['buy','sell','offer','cancel_offer','delivery','cancel_delivery'].includes(receipt.action))throw accountError(404,'Comprobante no disponible en esta mina.');
+        if(receipt.mineId!==account.mineId||receipt.accountId!==targetId||!['buy','sell','offer','cancel_offer','delivery','cancel_delivery','market_buy','market_sell'].includes(receipt.action))throw accountError(404,'Comprobante no disponible en esta mina.');
         return operatorReceiptView(receipt);
       });
     },

@@ -81,6 +81,27 @@ export function releaseCustody(mine,accountId,metal,mg){
   return next;
 }
 
+// A marketplace transfer preserves the seller's exact source lots. It must not
+// allocate unrelated free inventory, since no grams enter or leave the mine.
+export function transferCustody(mine,sellerId,buyer,metal,mg,source,now){
+  const next=copy(mine),pieces=[];let remaining=mg;
+  fail(integer(mg)&&has(METALS,metal)&&sellerId!==buyer.id);
+  for(const allocation of next.custody.allocations){
+    if(allocation.accountId!==sellerId||allocation.metal!==metal||!remaining)continue;
+    const amount=Math.min(allocation.mg,remaining);if(!amount)continue;
+    allocation.mg-=amount;remaining-=amount;pieces.push({lotId:allocation.lotId,sourceId:allocation.id,mg:amount});
+  }
+  fail(remaining===0,'La oferta no tiene asignaciones de lote DEMO suficientes.');
+  const created=pieces.map(piece=>{
+    const allocationId=id('allocation',buyer.id,piece.lotId,source,piece.sourceId),certificateId=id('certificate',allocationId);
+    fail(!next.custody.allocations.some(allocation=>allocation.id===allocationId),'La transferencia de lote DEMO ya existe.');
+    const allocation={id:allocationId,lotId:piece.lotId,accountId:buyer.id,metal,mg:piece.mg,certificateId,createdAt:now};
+    next.custody.allocations.push(allocation);next.custody.certificates.push({id:certificateId,allocationId,issuedMg:piece.mg,issuedAt:now,demoOnly:true});
+    return allocation;
+  });
+  return {mine:next,allocations:copy(created)};
+}
+
 export function addStockLot(mine,command,now){
   const next=copy(mine),lot=makeLot(mine,command.metal,parseGrams(command.grams),`stock:${command.requestId}`,stockMetadata(command),now);
   fail(!next.custody.lots.some(existing=>existing.id===lot.id),'El lote DEMO ya existe.');

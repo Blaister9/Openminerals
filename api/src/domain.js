@@ -152,6 +152,11 @@ export function applyCommand(current, cmd, now=new Date().toISOString()) {
     const mg=parseGrams(cmd.grams);
     assert(availableHoldingMg(s,cmd.metal)>=mg,'Posición disponible insuficiente','INSUFFICIENT_HOLDING');
     const offer={id:`offer-${s.sequence++}`,metal:cmd.metal,mg,status:'OPEN',createdAt:now};
+    if(cmd.price!==undefined){
+      const priceMinorPerGram=parseMoney(cmd.price),baseMinor=quoteBase(mg,priceMinorPerGram),feeMinor=bpsFee(baseMinor,s.feesBps.sell);
+      assert(Number.isSafeInteger(baseMinor)&&baseMinor<=MAX_MINOR&&baseMinor>feeMinor,'El precio no permite una liquidación demo dentro de límites');
+      offer.priceMinorPerGram=priceMinorPerGram;
+    }
     s.offers.unshift(offer);
     receipt={...receipt,offer};
     move(s,'OFFER',`Oferta de ${METALS[cmd.metal].name}`,{metal:cmd.metal,mg,offerId:offer.id},now);

@@ -126,8 +126,9 @@ export function summarizeMine(mine,accounts){
   const allOperations=buyers.flatMap(a=>Object.values(a.state.receipts)
     .filter(r=>r.mineId===mine.id&&r.accountId===a.id)
     .map(receipt=>({account:{id:a.id,alias:a.alias},receipt:operatorReceiptView(receipt)})));
-  const trades=allOperations.filter(o=>['buy','sell'].includes(o.receipt.action));
-  const operations=allOperations.filter(o=>['buy','sell','offer','cancel_offer','delivery','cancel_delivery'].includes(o.receipt.action))
+  const trades=allOperations.filter(o=>['buy','sell','market_buy'].includes(o.receipt.action));
+  const fees=allOperations.filter(o=>['buy','sell','market_sell'].includes(o.receipt.action));
+  const operations=allOperations.filter(o=>['buy','sell','offer','cancel_offer','delivery','cancel_delivery','market_buy','market_sell'].includes(o.receipt.action))
     .sort((a,b)=>newest(a.receipt,b.receipt)||b.account.id.localeCompare(a.account.id)).slice(0,20);
   const pendingOffers=buyers.flatMap(a=>a.state.offers.filter(o=>o.status==='OPEN')
     .map(offer=>({account:{id:a.id,alias:a.alias},offer:copy(offer)})));
@@ -137,7 +138,7 @@ export function summarizeMine(mine,accounts){
     mine:{id:mine.id,name:mine.name},demoOnly:true,reconciled:true,
     inventoryMg:copy(mine.inventoryMg),totalSupplyMg:copy(mine.totalSupplyMg),allocatedMg,reservedMg,
     accountCount:buyers.length,transactionCount:trades.length,
-    demoFeesCollectedMinor:trades.reduce((n,o)=>n+(o.receipt.feeMinor||0),0),
+    demoFeesCollectedMinor:fees.reduce((n,o)=>n+(o.receipt.feeMinor||0),0),
     operations,offersOpen:pendingOffers.length,deliveriesPending:pendingDeliveries.length,
     pendingOffers:pendingOffers.slice(0,100),pendingDeliveries:pendingDeliveries.slice(0,100),
     stockAdjustments:Object.values(mine.stockReceipts).sort(newest).slice(0,20).map(copy),
