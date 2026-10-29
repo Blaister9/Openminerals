@@ -1,0 +1,76 @@
+appId: com.openminerals.demo.mobile
+name: Native five-scene story and reduced motion before credentials
+---
+- tapOn: ^Inicio$
+- scrollUntilVisible:
+    element:
+      text: ^Todo comienza en el origen$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^Todo comienza en el origen$
+- extendedWaitUntil:
+    visible: Restablecer orientación del lingote
+    timeout: 30000
+- swipe:
+    start: 35%,40%
+    end: 70%,40%
+    duration: 600
+- takeScreenshot: safe-story-1
+- scrollUntilVisible:
+    element:
+      text: ^Del mineral al lingote$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^Del mineral al lingote$
+- takeScreenshot: safe-story-2
+- scrollUntilVisible:
+    element:
+      text: ^Tu compra, gramo a gramo$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^Tu compra, gramo a gramo$
+- takeScreenshot: safe-story-3
+- scrollUntilVisible:
+    element:
+      text: ^Una custodia que se debe acreditar$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^Una custodia que se debe acreditar$
+- takeScreenshot: safe-story-4
+- scrollUntilVisible:
+    element:
+      text: ^De tu portafolio al marketplace$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^De tu portafolio al marketplace$
+- takeScreenshot: safe-story-5
+- scrollUntilVisible:
+    element:
+      text: Reducir movimiento del recorrido
+    direction: UP
+    centerElement: true
+    timeout: 30000
+- assertVisible:
+    text: Reducir movimiento del recorrido
+    checked: false
+- tapOn: Reducir movimiento del recorrido
+- assertVisible:
+    text: Reducir movimiento del recorrido
+    checked: true
+- takeScreenshot: safe-reduced-motion
+- tapOn: Saltar recorrido y continuar con la demo
+- extendedWaitUntil:
+    notVisible: Saltar recorrido y continuar con la demo
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: ^Cantidad de metal en gramos$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^Cantidad de metal en gramos$

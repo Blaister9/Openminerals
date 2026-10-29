@@ -1,0 +1,39 @@
+appId: com.openminerals.demo.mobile
+name: Private synthetic fixture login
+---
+- tapOn:
+    text: ^Cuenta$
+    index: 0
+- extendedWaitUntil:
+    visible: ^Cuenta demo$
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: Alias de cuenta demo
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Alias de cuenta demo
+- eraseText
+- inputText: ${MAESTRO_LOGIN_ALIAS}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: Clave de cuenta demo
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Clave de cuenta demo
+- eraseText
+- inputText: ${MAESTRO_LOGIN_PASSWORD}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: ^Entrar en mi cuenta$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Entrar en mi cuenta$
+- extendedWaitUntil:
+    notVisible: ^Cuenta demo$
+    timeout: 30000

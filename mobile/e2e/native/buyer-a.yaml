@@ -1,0 +1,135 @@
+appId: com.openminerals.demo.mobile
+name: Buyer A convert USD200 buy2g certificate and offer05g
+---
+- runFlow:
+    file: login.yaml
+- tapOn: ^Billetera$
+- scrollUntilVisible:
+    element:
+      text: Cantidad de dinero para convertir
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Cantidad de dinero para convertir
+- eraseText
+- inputText: "200"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: ^Convertir en demo$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Convertir en demo$
+- tapOn: ^Confirmar demo$
+- extendedWaitUntil:
+    visible: ^Comprobante$
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: ^USDT 450,00$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Cerrar comprobante
+- tapOn: ^Mercado$
+- scrollUntilVisible:
+    element:
+      text: Cantidad de metal en gramos
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Cantidad de metal en gramos
+- eraseText
+- inputText: "2"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: ^Confirmar compra simulada$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Confirmar compra simulada$
+- tapOn: ^Confirmar demo$
+- extendedWaitUntil:
+    visible: ^Comprobante$
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: ^USDT 157,10$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Cerrar comprobante
+- tapOn: ^Metales$
+- scrollUntilVisible:
+    element:
+      text: ^Lotes y certificados$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Lotes y certificados$
+- scrollUntilVisible:
+    element:
+      text: ^Ver certificado demo$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Ver certificado demo$
+- extendedWaitUntil:
+    visible: ^Registro demo consultado$
+    timeout: 30000
+- tapOn: Cerrar certificado demo
+- scrollUntilVisible:
+    element:
+      text: ^Posiciones$
+    direction: UP
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Posiciones$
+- scrollUntilVisible:
+    element:
+      text: ^Publicar oferta$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Publicar oferta$
+- scrollUntilVisible:
+    element:
+      text: Gramos para operación
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Gramos para operación
+- eraseText
+- inputText: "0.5"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: Precio por gramo de oferta marketplace
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Precio por gramo de oferta marketplace
+- eraseText
+- inputText: "140"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: ^Publicar oferta demo$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Publicar oferta demo$
+- tapOn: ^Confirmar demo$
+- extendedWaitUntil:
+    visible: ^Comprobante$
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: ^Oferta publicada$
+    direction: UP
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^Oferta publicada$
+- tapOn: Cerrar comprobante

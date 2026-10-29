@@ -1,0 +1,52 @@
+appId: com.openminerals.demo.mobile
+name: Compatible OTA on cold launch preserves the already completed demo
+---
+# Optional, NOT part of the initial APK workflow. Set MAESTRO_EXPECTED_OTA_ID
+# to the full real published update ID; the UI displays its first 8 characters.
+# Run after all pending
+# operations are resolved; never call reloadAsync during a mutation.
+- tapOn: ^Actividad$
+- scrollUntilVisible:
+    element:
+      text: ^Buscar actualización$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Buscar actualización$
+- extendedWaitUntil:
+    visible: Actualización descargada.*|Ya tienes la última actualización compatible.
+    timeout: 60000
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: ^Comprador ·.*
+    timeout: 30000
+- tapOn: ^Actividad$
+- scrollUntilVisible:
+    element:
+      id: demo-update-source
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: 'Actualización aplicada · ${MAESTRO_EXPECTED_OTA_ID.slice(0,8)}'
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: ^Comprador ·.*
+    timeout: 30000
+- tapOn: ^Actividad$
+- scrollUntilVisible:
+    element:
+      id: demo-update-source
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: 'Actualización aplicada · ${MAESTRO_EXPECTED_OTA_ID.slice(0,8)}'
+- tapOn: ^Billetera$
+- scrollUntilVisible:
+    element:
+      text: ^USDT 287,89$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^USDT 287,89$

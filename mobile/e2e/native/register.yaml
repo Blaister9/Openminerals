@@ -1,0 +1,70 @@
+appId: com.openminerals.demo.mobile
+name: Register without importing or trading against the default mine
+---
+- tapOn:
+    text: ^Cuenta$
+    index: 0
+- extendedWaitUntil:
+    visible: ^Cuenta demo$
+    timeout: 30000
+- tapOn: ^Crear comprador$
+- scrollUntilVisible:
+    element:
+      text: Alias de cuenta demo
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Alias de cuenta demo
+- eraseText
+- inputText: ${MAESTRO_LOGIN_ALIAS}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: Clave de cuenta demo
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Clave de cuenta demo
+- eraseText
+- inputText: ${MAESTRO_LOGIN_PASSWORD}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: Conservar mi sesión anterior
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn:
+    text: Conservar mi sesión anterior
+    checked: true
+- assertVisible:
+    text: Conservar mi sesión anterior
+    checked: false
+- scrollUntilVisible:
+    element:
+      text: ^Crear cuenta de comprador$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Crear cuenta de comprador$
+- extendedWaitUntil:
+    visible: ^USDT 250,00$
+    timeout: 30000
+- assertVisible: ^USDT 0,00$
+- tapOn:
+    text: ^Cuenta$
+    index: 0
+- extendedWaitUntil:
+    visible: ^Cuenta demo$
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: ^Cerrar sesión$
+    direction: UP
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Cerrar sesión$
+- extendedWaitUntil:
+    visible: ^USDT 268,40$
+    timeout: 30000
+- assertVisible: ^Sesión sin cuenta$

@@ -19,6 +19,7 @@ import {MarketplacePanel} from './components/MarketplacePanel';
 import {DeliveryPanel} from './components/DeliveryPanel';
 import {ManagementPanel} from './components/ManagementPanel';
 import {AccountSettings} from './components/AccountSettings';
+import {DemoUpdates} from './components/DemoUpdates';
 
 // DEMO: todas las cifras, inventarios y solicitudes son simulados.
 // Cuentas de demostración; no hay KYC, pagos, exchange ni bóveda real.
@@ -335,7 +336,7 @@ export default function App(){
    <View style={styles.hRow}>{!state?.legacyReadOnly&&<Button label="Crear cuenta demo" disabled={busy||authBusy||!!pending} onPress={()=>openAccount('register')}/>}<Button label="Entrar en una cuenta" secondary disabled={busy||authBusy} onPress={()=>openAccount('login')}/></View>
   </>}
  </Card>}
- function accountPage(){return <><Text style={styles.eyebrow}>ACCESO A LA DEMOSTRACIÓN</Text><Text style={styles.pageTitle}>Cuenta</Text>{accountCard()}<Text style={styles.copy}>Los roles y el inventario son de prueba. No hay verificación de identidad, pagos, reservas físicas ni custodio conectado.</Text><Text style={styles.copy}>Para usar la misma cuenta en otro dispositivo, entra con el mismo alias y su clave exclusiva de demostración.</Text></>}
+ function accountPage(){return <><Text style={styles.eyebrow}>ACCESO A LA DEMOSTRACIÓN</Text><Text style={styles.pageTitle}>Cuenta</Text>{accountCard()}<Text style={styles.copy}>Los roles y el inventario son de prueba. No hay verificación de identidad, pagos, reservas físicas ni custodio conectado.</Text><Text style={styles.copy}>Para usar la misma cuenta en otro dispositivo, entra con el mismo alias y su clave exclusiva de demostración.</Text><DemoUpdates disabled={busy||authBusy||!!pending||authExpired||!!accountRecovery}/></>}
  function home(){return <>
   {!account&&accountCard()}
   <Text style={styles.eyebrow}>USDT + METALES · SIMULACIÓN</Text>
@@ -467,7 +468,7 @@ export default function App(){
    {account&&<View style={styles.hRow}><Button label="Consultar mis certificados" secondary onPress={()=>setMetalsSection('custody')}/><Button label="Solicitar o seguir entrega DEMO" secondary onPress={()=>setMetalsSection('delivery')}/></View>}
   </>}
  function more(){return <><Text style={styles.eyebrow}>CONTROL Y TRANSPARENCIA</Text><Text style={styles.pageTitle}>Actividad</Text>
-  {accountCard()}<Button label="Actualizar datos" secondary disabled={busy||authBusy} onPress={refresh}/>
+  {accountCard()}<Button label="Actualizar datos" secondary disabled={busy||authBusy} onPress={refresh}/><DemoUpdates disabled={busy||authBusy||!!pending||authExpired||!!accountRecovery}/>
   <Sub>Historial de operaciones</Sub>
   <Text style={styles.copy}>Abre una operación para consultar su comprobante, importes y saldos registrados en ese momento.</Text>
   <Button label="Actualizar historial" secondary disabled={historyLoading} onPress={()=>void loadHistory(true)}/>

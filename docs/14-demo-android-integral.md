@@ -57,3 +57,22 @@ Validación de fase 6: TypeScript, compatibilidad Expo y Doctor 21/21 aprobados;
 Se completará incrementalmente con commits, CI, pruebas HTTPS, migración/reinicio, hash y firma del APK y recorridos Android ejecutados. La última auditoría sigue siendo evidencia del punto de partida, sin atribuir sus resultados a funciones nuevas.
 
 Acceso de compilación: el propietario inició sesión Expo por la terminal oficial. `eas whoami` confirma acceso de propietario a `chipirips-team`; `eas project:info` confirma el proyecto existente `c3985e04-43dd-4896-9f8a-09366b6a3579`. No se solicitaron contraseñas ni tokens en el chat. Se usará la firma Android remota existente para conservar la posibilidad de actualización.
+
+## Actualizaciones Android sin reinstalación
+
+El propietario pidió recibir cambios sin descargar un APK cada vez. La revisión 0.2.0 incorpora `expo-updates` compatible con SDK 57 y EAS Update del proyecto existente, canal `demo`, entorno `preview` y compatibilidad derivada de `app.json.version` (`0.2.0`). La consulta se hace al arrancar, sin esperar la red; la aplicación usa el bundle incluido o el último compatible guardado y aplica una descarga al siguiente arranque. No se fuerza un reinicio durante una operación. Más/Cuenta permite buscar cambios y muestra si la versión viene del APK o de una actualización.
+
+La instalación 0.1.3 no incorpora este mecanismo: necesita una actualización al nuevo APK conservando datos. Después pueden publicarse cambios compatibles de JavaScript, estilos y recursos sin reinstalar. Instalar módulos nativos, cambiar permisos, SDK o configuración nativa requiere incrementar la versión y el código Android y crear otro APK con la firma existente. Mantener `0.2.0` únicamente para updates compatibles con esta base nativa.
+
+Expo ofrece un plan gratuito con actualizaciones para 1.000 instalaciones activas mensuales, sujeto a cuotas; no se cambió el plan ni se contrató un servicio. Publicar en Google Play es opcional y requiere una cuenta de desarrollador, registro único de US$25 y verificaciones/pruebas. Fuentes oficiales consultadas: [tarifas Expo](https://expo.dev/pricing), [compatibilidad de updates](https://docs.expo.dev/eas-update/runtime-versions/), [configuración SDK 57](https://docs.expo.dev/versions/v57.0.0/sdk/updates/) y [registro Google Play](https://support.google.com/googleplay/android-developer/answer/6112435). La configuración no acredita todavía descarga/aplicación OTA: se registrará el grupo publicado y la prueba con el APK real.
+
+Se creó el canal `demo` enlazado a la rama EAS `demo`. La URL pública de la API también está en el entorno EAS `preview`, porque los updates SDK 57 deben compilarse con `--environment preview`; no heredan automáticamente `build.preview.env`. No se guardaron credenciales en variables públicas. Publicar únicamente después de las pruebas y desde la fuente revisada:
+
+```bash
+cd mobile
+npx eas-cli update --channel demo --platform android --environment preview --message "Descripción del cambio compatible" --non-interactive
+```
+
+Fase 7, comprobación previa al build: API completa y runner PostgreSQL local ejecutados de nuevo; runner 52/52 y auditoría API sin avisos. Instalación móvil limpia reproducible, 126/126 pruebas con WebGL de software activado, TypeScript, compatibilidad Expo y Doctor 21/21 aprobados. Export Android/Hermes de 642 módulos y prebuild Android temporal correctos, incluido paquete/versión/código, configuración de actualizaciones y modo oscuro. No se ejecutó iOS. El export y prebuild todavía no acreditan instalación.
+
+Dependencias: SDK 57 preservado, `expo-updates ~57.0.26` y `expo-system-ui ~57.0.4` compatibles. Override acotado de Zod 4.6.7 para Expo CLI; no se aplicó el downgrade a Expo 51 sugerido por `npm audit fix --force`. Auditoría móvil: 0 críticas, altas o moderadas; siete bajas asociadas a la cadena de deepmerge 4.3.1. El parche de postinstall verifica versión y SHA originales/parchados de las tres entradas; 15 pruebas de explotación/regresión más 40 comprobaciones adversariales independientes cubren el merge por defecto. El aviso upstream permanece visible y no se cambió artificialmente la versión. No usar instalaciones que omitan scripts; cambios upstream requieren revisar la mitigación.

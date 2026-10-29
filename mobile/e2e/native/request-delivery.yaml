@@ -1,0 +1,70 @@
+appId: com.openminerals.demo.mobile
+name: Buyer A sells05g and requests05g delivery
+---
+- runFlow:
+    file: login.yaml
+- tapOn: ^Metales$
+- scrollUntilVisible:
+    element:
+      text: Gramos para operación
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Gramos para operación
+- eraseText
+- inputText: "0.5"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: ^Simular venta$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Simular venta$
+- tapOn: ^Confirmar demo$
+- extendedWaitUntil:
+    visible: ^Comprobante$
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: ^USDT 297,89$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Cerrar comprobante
+- scrollUntilVisible:
+    element:
+      text: ^Entregas DEMO$
+    direction: UP
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Entregas DEMO$
+- scrollUntilVisible:
+    element:
+      text: Gramos para entrega simulada
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: Gramos para entrega simulada
+- eraseText
+- inputText: "0.5"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: ^Revisar solicitud demo$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Revisar solicitud demo$
+- tapOn: ^Confirmar demo$
+- extendedWaitUntil:
+    visible: ^Comprobante$
+    timeout: 30000
+- tapOn: Cerrar comprobante
+- scrollUntilVisible:
+    element:
+      text: (?i)^Pendiente de cotización$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: (?i)^Pendiente de cotización$

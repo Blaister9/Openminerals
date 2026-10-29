@@ -1,0 +1,40 @@
+appId: com.openminerals.demo.mobile
+name: 013 to 020 update preserves legacy wallet and historical snapshots
+---
+- launchApp
+- extendedWaitUntil:
+    visible: ^USDT 268,40$
+    timeout: 30000
+- assertVisible: ^Sesión sin cuenta$
+- assertVisible: ^USDT 0,00$
+- takeScreenshot: safe-upgrade-preserved
+- tapOn: ^Actividad$
+- scrollUntilVisible:
+    element:
+      text: "(?i)^Ver comprobante: Compra de oro,.*"
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: "(?i)^Ver comprobante: Compra de oro,.*"
+- extendedWaitUntil:
+    visible: ^Comprobante$
+    timeout: 30000
+- assertVisible: (?i)^Compra de oro$
+- scrollUntilVisible:
+    element:
+      text: ^USDT 196,77$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^Saldo USDT después$
+- tapOn: ^Ver historial$
+- scrollUntilVisible:
+    element:
+      text: ^Mostrando\s+3\s+de\s+3\s+operaciones registradas\.$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Inicio$
+- extendedWaitUntil:
+    visible: ^USDT 268,40$
+    timeout: 30000

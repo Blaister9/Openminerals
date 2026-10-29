@@ -34,6 +34,9 @@ jobs:
       - name: Node API tests
         working-directory: api
         run: npm test
+      - name: Reject high or critical API advisories
+        working-directory: api
+        run: npm audit --audit-level=high
       - name: Require PostgreSQL integration coverage
         working-directory: api
         env:
@@ -54,6 +57,11 @@ jobs:
       - name: Check Expo dependency compatibility
         working-directory: mobile
         run: npx expo install --check
+      - name: Verify toolchain patch and reject high or critical advisories
+        working-directory: mobile
+        run: |
+          npm run check:toolchain
+          npm audit --audit-level=high
       - name: Check mobile types
         working-directory: mobile
         run: npm run check

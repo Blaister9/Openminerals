@@ -4,6 +4,7 @@
     "development": { "developmentClient": true, "distribution": "internal" },
     "preview": {
       "environment": "preview",
+      "channel": "demo",
       "distribution": "internal",
       "env": { "EXPO_PUBLIC_API_URL": "https://openminerals-api-demo.up.railway.app" },
       "android": { "buildType": "apk" }

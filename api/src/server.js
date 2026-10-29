@@ -1,10 +1,12 @@
 import http from 'node:http';
 import {fileURLToPath} from 'node:url';
+import {readFileSync} from 'node:fs';
 import {createStore,validateSessionId} from './store.js';
 import {DomainError,METALS,operatorSummary} from './domain.js';
 import {historyPage,parseHistoryQuery,readReceipt} from './receipt-history.js';
 import {accountError,bearerToken,adminMatches,createAuthLimiter} from './account-auth.js';
 
+const API_VERSION=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8')).version;
 const ACTIONS=new Set(['deposit','withdraw','convert','buy','sell','offer','cancel_offer','delivery','cancel_delivery']);
 async function readJson(req){
   let body='';
@@ -27,7 +29,7 @@ export function createApiServer(store,config={}){
       let url;
       try{url=new URL(req.url||'/', 'http://127.0.0.1');}catch{throw accountError(400,'Ruta inválida.','INVALID_URL');}
       const path=url.pathname;
-      if(req.method==='GET'&&path==='/health'){await store.ping();return send(res,200,{ok:true,mode:store.mode,demoOnly:true});}
+      if(req.method==='GET'&&path==='/health'){await store.ping();return send(res,200,{ok:true,mode:store.mode,demoOnly:true,apiVersion:API_VERSION});}
       if(!path.startsWith('/api/demo/'))return send(res,404,{error:'Ruta no disponible'});
       if(req.method==='POST'&&path==='/api/demo/accounts/register'){
         allowAuth(req.socket.remoteAddress||'unknown');

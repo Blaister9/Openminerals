@@ -1,10 +1,10 @@
 name: Inspect the Android demo artifact
 on:
   push:
-    branches: [codex/mobile-overview-scroll-20261028]
+    branches: [codex/mobile-overview-scroll-20261028, codex/android-complete-20261028]
     paths:
       - .github/workflows/apk-inspect.yml
-      - mobile/e2e/apk-0.1.3-url.txt
+      - mobile/e2e/apk-0.2.0-url.txt
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,7 +22,7 @@ jobs:
       # hashFiles requires a checked-out workspace and is valid in step.if,
       # not jobs.<job>.if. Skip the inspection job until a real URL is committed.
       - id: apk-source
-        if: hashFiles('mobile/e2e/apk-0.1.3-url.txt') != ''
+        if: hashFiles('mobile/e2e/apk-0.2.0-url.txt') != ''
         run: echo 'available=true' >> "$GITHUB_OUTPUT"
   apk-integrity:
     needs: artifact-source
@@ -41,8 +41,10 @@ jobs:
           mkdir -p "$result"
           python3 - <<'PY'
           import os, pathlib, re
-          url = pathlib.Path('mobile/e2e/apk-0.1.3-url.txt').read_text().strip()
-          assert re.fullmatch(r'https://expo\.dev/artifacts/eas/[A-Za-z0-9_-]+\.apk', url)
+          url = pathlib.Path('mobile/e2e/apk-0.2.0-url.txt').read_text().strip()
+          eas = r'https://expo\.dev/artifacts/eas/[A-Za-z0-9_-]+\.apk'
+          release = r'https://github\.com/Blaister9/Openminerals/releases/download/v0\.2\.0(?:-demo)?/[A-Za-z0-9._-]+\.apk'
+          assert re.fullmatch(eas, url) or re.fullmatch(release, url)
           pathlib.Path(os.environ['RUNNER_TEMP'], 'apk-url.txt').write_text(url)
           PY
           curl --fail --location --proto '=https' --proto-redir '=https' \
@@ -54,20 +56,78 @@ jobs:
           "$signer" verify --verbose --print-certs "$result/app.apk" > "$result/signature.txt"
           digest="$(sed -nE 's/^.*certificate SHA-256 digest: ([0-9a-fA-F]{64})[[:space:]]*$/\1/p' "$result/signature.txt" | sort -u)"
           test "$digest" = "$(tr -d '[:space:]' < mobile/e2e/android-certificate.sha256)"
-          "$(dirname "$signer")/aapt" dump badging "$result/app.apk" > "$result/manifest.txt"
+          export APK_AAPT="$(dirname "$signer")/aapt"
+          "$APK_AAPT" dump badging "$result/app.apk" > "$result/manifest.txt"
           python3 - <<'PY'
-          import os, pathlib, zipfile
+          import json, os, pathlib, re, subprocess, zipfile
           result = pathlib.Path(os.environ['RUNNER_TEMP'], 'apk-inspection')
           manifest = (result / 'manifest.txt').read_text()
-          assert "name='com.openminerals.demo.mobile'" in manifest
-          assert "versionCode='4'" in manifest and "versionName='0.1.3'" in manifest
+          assert re.search(r"^package: name='com\.openminerals\.demo\.mobile' versionCode='5' versionName='0\.2\.0'", manifest, re.MULTILINE)
+          # Keep raw resource/manifest values in memory, outside public logs and
+          # uploaded artifacts. Only the non-sensitive result is reported.
+          aapt = os.environ['APK_AAPT']
+          xml = subprocess.run([aapt, 'dump', 'xmltree', str(result / 'app.apk'), 'AndroidManifest.xml'], capture_output=True, text=True, check=True).stdout
+          resources = subprocess.run([aapt, 'dump', '--values', 'resources', str(result / 'app.apk')], capture_output=True, text=True, check=True).stdout
+          def metadata_value(name, optional=False):
+              matches = []
+              for block in re.split(r'(?m)^\s*E: ', xml):
+                  if not block.startswith('meta-data '):
+                      continue
+                  item = re.search(r'A: android:name\([^)]*\)=("(?:\\.|[^"\\])*")', block)
+                  if item and json.loads(item.group(1)) == name:
+                      value = re.search(r'A: android:value\([^)]*\)=([^\n]+)', block)
+                      assert value, 'Missing metadata value: ' + name
+                      matches.append(value.group(1).strip())
+              if optional and not matches:
+                  return None
+              assert len(matches) == 1, 'Missing or ambiguous metadata: ' + name
+              raw = matches[0]
+              quoted = re.match(r'"(?:\\.|[^"\\])*"', raw)
+              if quoted:
+                  return json.loads(quoted.group())
+              reference = re.match(r'@(0x[0-9a-fA-F]{8})\b', raw)
+              if reference:
+                  resource = re.search(r'(?m)^\s*resource ' + re.escape(reference.group(1)) + r'\b[^\n]*(?:\n(?!\s*(?:resource|spec resource|type|Package)\b)[^\n]*)*', resources)
+                  assert resource, 'Unresolved metadata resource: ' + name
+                  string = re.search(r'\(string\d*\)\s*("(?:\\.|[^"\\])*")', resource.group())
+                  assert string, 'Expected string metadata resource: ' + name
+                  return json.loads(string.group(1))
+              boolean = re.match(r'\(type 0x12\)\s*(0x[0-9a-fA-F]+)', raw)
+              if boolean:
+                  return bool(int(boolean.group(1), 16))
+              raise AssertionError('Unsupported metadata encoding: ' + name)
+          assert metadata_value('expo.modules.updates.ENABLED') is True
+          assert metadata_value('expo.modules.updates.EXPO_UPDATE_URL') == 'https://u.expo.dev/c3985e04-43dd-4896-9f8a-09366b6a3579'
+          assert metadata_value('expo.modules.updates.EXPO_RUNTIME_VERSION') == '0.2.0'
+          headers = json.loads(metadata_value('expo.modules.updates.UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY'))
+          assert headers == {'expo-channel-name': 'demo'}, 'Unexpected update channel or additional request headers'
+          assert metadata_value('expo.modules.updates.DISABLE_ANTI_BRICKING_MEASURES', optional=True) in (None, False)
+          assert metadata_value('expo.modules.updates.HAS_EMBEDDED_UPDATE', optional=True) in (None, True)
           with zipfile.ZipFile(result / 'app.apk') as apk:
               bundle = apk.read('assets/index.android.bundle')
-          for value in [b'https://openminerals-api-demo.up.railway.app', b'/api/demo/history', b'/api/demo/receipts/', b'/api/demo/accounts/login', b'/api/demo/mine/summary', b'Comprobante']:
+              native_gl = sorted(name for name in apk.namelist() if re.fullmatch(r'lib/[^/]+/libexpo-gl\.so', name))
+              assert native_gl, 'ExpoGL native shared library is missing'
+              assert 'lib/arm64-v8a/libexpo-gl.so' in native_gl, 'ExpoGL arm64 library is missing'
+              dex = [apk.read(name) for name in apk.namelist() if re.fullmatch(r'classes\d*\.dex', name)]
+              assert any(b'ExpoGL' in data for data in dex), 'ExpoGL native module registration is missing'
+              assert any(b'ExpoUpdates' in data for data in dex), 'ExpoUpdates native module is missing'
+          required = [
+              b'https://openminerals-api-demo.up.railway.app',
+              b'/api/demo/history', b'/api/demo/receipts/',
+              b'/api/demo/accounts/register', b'/api/demo/accounts/login', b'/api/demo/accounts/profile',
+              b'/api/demo/accounts/recovery/setup', b'/api/demo/accounts/recovery/start', b'/api/demo/accounts/recovery/complete',
+              b'/api/demo/mine/summary', b'/api/demo/mine/management?',
+              b'/api/demo/custody', b'/api/demo/mine/custody', b'/api/demo/certificates/',
+              b'/api/demo/marketplace', b'/api/demo/deliveries', b'/api/demo/mine/deliveries',
+              b'Comprobante', b'ExpoGL', b'endFrameEXP', b'attribute vec3 a_position;',
+          ]
+          for value in required:
               assert value in bundle, value
-          # Stock uses the same dynamic /api/demo/${action} transport as trades.
-          assert b'/api/demo/' in bundle and b'mine/stock' in bundle
-          (result / 'checks.txt').write_text('PASS signature, baseline certificate, package/version 0.1.3/4, account login, mine summary, stock transport fragments, receipt routes and HTTPS API. Native UI was not executed.\n')
+          # Commands share the dynamic /api/demo/${action} transport.
+          assert b'/api/demo/' in bundle
+          for action in [b'mine/stock', b'market_buy', b'delivery_accept', b'delivery_reject', b'mine/delivery_quote', b'mine/delivery_transition', b'mine/delivery_config']:
+              assert action in bundle, action
+          (result / 'checks.txt').write_text('PASS signature, baseline certificate, package/version 0.2.0/5, HTTPS API, account/profile/recovery routes, custody/certificates, marketplace, delivery, management, receipt transports and native ExpoGL/shader presence.\nPASS native ExpoUpdates, project HTTPS update URL, runtime 0.2.0, channel demo, embedded fallback and anti-bricking defaults.\nNative libraries: ' + ', '.join(native_gl) + '\nArtifact inspection only: native UI, GPU, installation, OTA delivery and device journeys were not executed.\n')
           PY
           rm "$result/app.apk"
           cat "$result/checks.txt" >> "$GITHUB_STEP_SUMMARY"
