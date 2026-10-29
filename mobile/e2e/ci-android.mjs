@@ -10,6 +10,7 @@ import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,certificate,cleanFixture,emulat
 import {verifyNativeSnapshot} from './ci-result.mjs';
 import {flowSelectors,failureDiagnostic} from './ci-diagnostics.mjs';
 import {captureLegacyFailure} from './ci-legacy-failure.mjs';
+import {withLegacyNavigation} from './ci-legacy-navigation.mjs';
 
 const repo=resolve(dirname(fileURLToPath(import.meta.url)),'..'),root=resolve(process.env.RUNNER_TEMP||'.','openminerals-native');
 const published=join(root,'public'),privateRoot=join(root,'private');
@@ -154,6 +155,7 @@ async function run(){
   });
   await runStage('legacy-seed-old-apk',async()=>{
     const directory=join(privateRoot,'legacy');await mkdir(directory,{recursive:true});
+    await withLegacyNavigation(adb,async()=>{
     try{
       command('maestro',['--no-ansi','--device',serial,'test','--format','JUNIT','--output',join(directory,'raw-report.xml'),'--debug-output',join(directory,'debug'),'--test-output-dir',join(directory,'screenshots'),join(repo,'e2e/trades.yaml')],{timeout:420000,output:join(directory,'console.txt')});
     }catch(error){
@@ -162,8 +164,10 @@ async function run(){
       await captureLegacyFailure({stage:'legacy-seed-old-apk',completedStages:results.filter(item=>item.ok).map(item=>item.name),serial,definitions,privateDirectory:directory,publishDirectory:published,privateValues:[...privateValues]});
       throw error;
     }
+    },async metadata=>{await writeFile(join(published,'legacy-navigation.json'),JSON.stringify(metadata,null,2)+'\n');});
   });
   await runStage('update-without-clearing-data',async()=>{
+    requireSafe(adb('shell','settings','get','global','policy_control')==='null','Legacy navigation policy must be normal before installing the new APK.');
     const before=adb('shell','pidof','system_server');
     adb('shell','am','force-stop',PACKAGE);
     adb('install','-r',join(root,'new.apk'));

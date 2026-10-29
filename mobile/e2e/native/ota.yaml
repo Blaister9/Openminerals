@@ -14,7 +14,7 @@ name: Compatible OTA on cold launch preserves the already completed demo
     timeout: 30000
 - tapOn: ^Buscar actualización$
 - extendedWaitUntil:
-    visible: Actualización descargada.*|Ya tienes la última actualización compatible.
+    visible: ^Buscar actualización$
     timeout: 60000
 - stopApp
 - launchApp

@@ -6,7 +6,7 @@ name: Native five-scene story and reduced motion before credentials
     element:
       text: ^Todo comienza en el origen$
     direction: DOWN
-    centerElement: true
+    centerElement: false
     timeout: 30000
 - assertVisible: ^Todo comienza en el origen$
 - extendedWaitUntil:
@@ -21,7 +21,7 @@ name: Native five-scene story and reduced motion before credentials
     element:
       text: ^Del mineral al lingote$
     direction: DOWN
-    centerElement: true
+    centerElement: false
     timeout: 30000
 - assertVisible: ^Del mineral al lingote$
 - takeScreenshot: safe-story-2
@@ -29,7 +29,7 @@ name: Native five-scene story and reduced motion before credentials
     element:
       text: ^Tu compra, gramo a gramo$
     direction: DOWN
-    centerElement: true
+    centerElement: false
     timeout: 30000
 - assertVisible: ^Tu compra, gramo a gramo$
 - takeScreenshot: safe-story-3
@@ -37,7 +37,7 @@ name: Native five-scene story and reduced motion before credentials
     element:
       text: ^Una custodia que se debe acreditar$
     direction: DOWN
-    centerElement: true
+    centerElement: false
     timeout: 30000
 - assertVisible: ^Una custodia que se debe acreditar$
 - takeScreenshot: safe-story-4
@@ -45,7 +45,7 @@ name: Native five-scene story and reduced motion before credentials
     element:
       text: ^De tu portafolio al marketplace$
     direction: DOWN
-    centerElement: true
+    centerElement: false
     timeout: 30000
 - assertVisible: ^De tu portafolio al marketplace$
 - takeScreenshot: safe-story-5
