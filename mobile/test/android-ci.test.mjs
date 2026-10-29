@@ -10,6 +10,7 @@ import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
 import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,sha,nativeScenario,otaUpdateId,fixtures,emulatorGuard,publicJunit,manifest,certificate,cleanFixture} from '../e2e/ci-safety.mjs';
 import {verifyNativeCommercialSnapshot,verifyNativeSnapshot} from '../e2e/ci-result.mjs';
+import {nativeCase,nativeFlow} from '../e2e/native-case.mjs';
 import {flowSelectors,failureDiagnostic} from '../e2e/ci-diagnostics.mjs';
 import {createStore} from '../../api/src/store.js';
 import {createApiServer} from '../../api/src/server.js';
@@ -109,12 +110,13 @@ test('Android CI: fixtures reject owner mine imported state previous receipts an
 test('Android CI: workflow is manual KVM-only bounded public upload and no secret inputs',async()=>{
   const raw=await source('../../.github/workflows/android-ui.yml'),workflow=yaml.parse(raw);
   assert.deepEqual(Object.keys(workflow.on),['workflow_dispatch']);
-  assert.deepEqual(Object.keys(workflow.on.workflow_dispatch.inputs),['scenario','apk_url','apk_sha256','ota_update_id']);
-  assert.deepEqual(workflow.on.workflow_dispatch.inputs.scenario,{description:'Full acceptance, operator navigation or completed-trade profile continuation',type:'choice',required:true,default:'full',options:['full','operator-navigation','profile-relaunch']});
+  assert.deepEqual(Object.keys(workflow.on.workflow_dispatch.inputs),['scenario','case_scope','apk_url','apk_sha256','ota_update_id']);
+  assert.deepEqual(workflow.on.workflow_dispatch.inputs.scenario,{description:'Full acceptance, operator navigation, profile continuation or network quality',type:'choice',required:true,default:'full',options:['full','operator-navigation','profile-relaunch','quality-network']});
   assert.deepEqual(workflow.on.workflow_dispatch.inputs.ota_update_id,{description:'Optional full published Android update UUID for runtime 0.2.0 on channel demo',type:'string',required:false,default:''});
   const job=workflow.jobs['android-ui'];assert.equal(job['runs-on'],'ubuntu-24.04');
   assert.equal(job.if,'github.event.repository.private == false');
-  assert.equal(workflow.concurrency['cancel-in-progress'],false);
+  assert.equal(job.concurrency['cancel-in-progress'],false);
+  assert.equal(job.concurrency.group,'openminerals-isolated-native-qa-${{ matrix.asset }}');
   assert.match(raw,/udevadm trigger --name-match=kvm/);
   const runner=job.steps.find(step=>step.uses?.startsWith('ReactiveCircus/'));
   assert.equal(runner.with.cores,4);assert.equal(runner.with['ram-size'],'4096M');
@@ -142,7 +144,7 @@ test('Android CI: workflow is manual KVM-only bounded public upload and no secre
   assert.doesNotMatch(preflight.run,/mknod|modprobe|\/dev\/kvm\s*\|\|\s*true/);
   assert.equal(runner.with['disable-linux-hw-accel'],false);assert.match(runner.with['emulator-options'],/-accel on/);assert.doesNotMatch(raw,/-accel off|software-acceleration fallback/);
   assert.deepEqual(Object.keys(runner.env).sort(),[...SECRET_NAMES,'OTA_INPUT_UPDATE_ID','NATIVE_INPUT_SCENARIO'].sort());
-  assert.equal(runner.env.NATIVE_INPUT_SCENARIO,'$'+'{{ inputs.scenario }}');
+  assert.equal(runner.env.NATIVE_INPUT_SCENARIO,"${{ matrix.asset == 'single' && inputs.scenario || matrix.asset == 'ACCOUNTS' && 'account-lifecycle' || matrix.asset == 'XAU' && 'full' || 'asset-full' }}");
   assert.equal(runner.env.OTA_INPUT_UPDATE_ID,'$'+'{{ inputs.ota_update_id }}');
   const download=job.steps.find(step=>step.run?.endsWith('ci-android.mjs download'));
   assert.equal(download.env.OTA_INPUT_UPDATE_ID,'$'+'{{ inputs.ota_update_id }}');
@@ -206,7 +208,8 @@ test('Android CI: requested studio OTA is verified anonymously before story with
 
 // Execute the exact intended business amounts against the actual HTTP serializer,
 // without an emulator, the public default mine, Railway or real credentials.
-test('Android CI: planned native postconditions match real isolated HTTP API DTOs',async t=>{
+for(const coverageMetal of ['XAU','XAG','XPT','XPD'])test('Android CI: planned native postconditions match real HTTP DTOs for '+coverageMetal,async t=>{
+  const selectedCase=nativeCase(coverageMetal),verify=snapshot=>verifyNativeSnapshot(snapshot,coverageMetal),verifyCommercial=snapshot=>verifyNativeCommercialSnapshot(snapshot,coverageMetal);
   const store=await createStore(''),mine=await store.createMine({name:'Native QA DEMO unit-http',initialInventoryMg:{XAU:5000,XAG:5000,XPT:5000,XPD:5000}});
   const accounts={};for(const [name,role] of [['a','buyer'],['b','buyer'],['op','operator']])accounts[name]=await store.createAccount({alias:'qa_http_'+name,password:'QA-exclusive-test-password',mineId:mine.id,role});
   const server=createApiServer(store);server.listen(0,'127.0.0.1');await once(server,'listening');
@@ -219,15 +222,15 @@ test('Android CI: planned native postconditions match real isolated HTTP API DTO
   for(const name of ['a','b','op'])tokens[name]=(await http(name,'accounts/login',{alias:accounts[name].alias,password:'QA-exclusive-test-password'})).token;
   cleanFixture(await http('a','accounts/me'),await http('a','state'),await http('op','mine/summary'));
   await http('a','convert',{from:'USD',to:'USDT',amount:'200'});
-  await http('a','buy',{metal:'XAU',grams:'2'});
-  const offer=(await http('a','offer',{metal:'XAU',grams:'0.5',price:'140'})).receipt.offer;
+  await http('a','buy',{metal:coverageMetal,grams:'2'});
+  const offer=(await http('a','offer',{metal:coverageMetal,grams:'0.5',price:(selectedCase.peer/100).toFixed(2)})).receipt.offer;
   await http('b','market_buy',{sellerId:accounts.a.id,offerId:offer.id});
-  await http('a','sell',{metal:'XAU',grams:'0.5'});
-  const delivery=(await http('a','delivery',{metal:'XAU',grams:'0.5',jurisdiction:'DEMO_LOCAL'})).receipt.delivery;
+  await http('a','sell',{metal:coverageMetal,grams:'0.5'});
+  const delivery=(await http('a','delivery',{metal:coverageMetal,grams:'0.5',jurisdiction:'DEMO_LOCAL'})).receipt.delivery;
   const quote=(await http('op','mine/delivery_quote',{buyerId:accounts.a.id,deliveryId:delivery.id,jurisdiction:'DEMO_LOCAL'})).receipt.quote;
   await http('a','delivery_accept',{deliveryId:delivery.id,quoteId:quote.id});
   for(const status of ['PREPARING','DISPATCHED_DEMO','DELIVERED_DEMO'])await http('op','mine/delivery_transition',{buyerId:accounts.a.id,deliveryId:delivery.id,status,reason:'Paso ficticio QA sin transporte real'});
-  await http('op','mine/stock',{metal:'XAU',grams:'1',reason:'Lote ficticio QA',purityBps:'9999',location:'DEMO QA sin ubicación real',documentTitle:'Registro ficticio QA',documentContent:'Documento DEMO sin recepción física.'});
+  await http('op','mine/stock',{metal:coverageMetal,grams:'1',reason:'Lote ficticio QA',purityBps:'9999',location:'DEMO QA sin ubicación real',documentTitle:'Registro ficticio QA',documentContent:'Documento DEMO sin recepción física.'});
   await http('a','accounts/profile',{displayName:'Comprador QA DEMO',preferredCurrency:'EUR',jurisdiction:'DEMO_REGIONAL'});
   const snapshot={
     a:await http('a','state'),b:await http('b','state'),summary:await http('op','mine/summary'),
@@ -236,20 +239,34 @@ test('Android CI: planned native postconditions match real isolated HTTP API DTO
   };
   const lotId=snapshot.ca.allocations.find(item=>item.mg>0).lotId,path=`custody/lots/${lotId}/history?limit=20`;
   snapshot.ha=await http('a',path);snapshot.hb=await http('b',path);snapshot.hm=await http('op',path);
-  assert.doesNotThrow(()=>verifyNativeSnapshot(snapshot));
+  assert.doesNotThrow(()=>verify(snapshot));
   const profilePending=structuredClone(snapshot);profilePending.profile.profile.displayName='Nombre previo ficticio';
-  assert.doesNotThrow(()=>verifyNativeCommercialSnapshot(profilePending));
-  assert.throws(()=>verifyNativeSnapshot(profilePending));
+  assert.doesNotThrow(()=>verifyCommercial(profilePending));
+  assert.throws(()=>verify(profilePending));
   const extraFee=structuredClone(snapshot);extraFee.management.kpis.tradingFeesMinor+=84;
-  assert.throws(()=>verifyNativeSnapshot(extraFee));
+  assert.throws(()=>verify(extraFee));
   const privateLeak=structuredClone(snapshot);privateLeak.management.walletMinor={USDT:1};
-  assert.throws(()=>verifyNativeSnapshot(privateLeak));
-  const doubled=structuredClone(snapshot);doubled.management.kpis.metalVolumesMg.XAU.marketplace=1000;
-  assert.throws(()=>verifyNativeSnapshot(doubled));
+  assert.throws(()=>verify(privateLeak));
+  const doubled=structuredClone(snapshot);doubled.management.kpis.metalVolumesMg[coverageMetal].marketplace=1000;
+  assert.throws(()=>verify(doubled));
   const lostJournal=structuredClone(snapshot);lostJournal.hm.items=lostJournal.hm.items.filter(item=>item.kind!=='DELIVERY');
-  assert.throws(()=>verifyNativeSnapshot(lostJournal));
-  assert.throws(()=>verifyNativeCommercialSnapshot(lostJournal));
+  assert.throws(()=>verify(lostJournal));
+  assert.throws(()=>verifyCommercial(lostJournal));
   const leakedIdentity=structuredClone(snapshot);leakedIdentity.hb.items[0].counterparty={id:accounts.a.id,alias:accounts.a.alias};
-  assert.throws(()=>verifyNativeSnapshot(leakedIdentity));
-  assert.throws(()=>verifyNativeCommercialSnapshot(leakedIdentity));
+  assert.throws(()=>verify(leakedIdentity));
+  assert.throws(()=>verifyCommercial(leakedIdentity));
+});
+
+test('Native cases keep anonymous templates intact and render validated per-metal flows',async()=>{
+  for(const invalid of ['__proto__','constructor','XAU;echo bad',null,{},'xau'])assert.throws(()=>nativeCase(invalid));
+  for(const code of ['XAU','XAG','XPT','XPD']){
+    const data=nativeCase(code);assert.ok(data.finalA>0&&data.finalB>0&&data.fees>0);
+    for(const name of ['buyer-a-buy','buyer-a-offer','buyer-b','request-delivery','operator-stock','profile','ota']){
+      const rendered=nativeFlow(name,await source('../e2e/native/'+name+'.yaml'),code),documents=yaml.parseAllDocuments(rendered);
+      assert.equal(documents.length,2);assert.ok(documents.every(item=>item.errors.length===0));
+      assert.doesNotMatch(rendered,/clearState|uninstall|takeScreenshot|DEMO_ADMIN_TOKEN/);
+    }
+    assert.match(nativeFlow('buyer-a-buy',await source('../e2e/native/buyer-a-buy.yaml'),code),new RegExp('market-metal-'+code));
+    const anonymous=await source('../e2e/native/preserve.yaml');assert.equal(nativeFlow('preserve',anonymous,code),anonymous);
+  }
 });

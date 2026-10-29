@@ -1,0 +1,25 @@
+// Failure-only, fixed landmarks/runtime enums. Raw XML and logs stay in RAM.
+import {spawnSync} from 'node:child_process';
+import {writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
+import {sanitizeOperatorHierarchy} from './ci-operator-navigation.mjs';
+import {legacyRuntimeState} from './ci-legacy-failure.mjs';
+import {PACKAGE,requireSafe} from './ci-safety.mjs';
+const tradeFlows=new Set(['ota-before-story','operator-navigation-ota','story','register','buyer-a','buyer-a-buy','buyer-a-offer','buyer-b','request-delivery','quote','accept','operator','operator-stock','profile','ota']);
+export function nativeFailureAllowed(scenario,flow){return ['full','asset-full'].includes(scenario)&&tradeFlows.has(flow)||scenario==='account-lifecycle'&&/^(?:operator-navigation-ota|wallet-(?:cop|eur|usd|usdt)|account-(?:import|setup|hide-and-logout|recover-start|recover-complete|reenter))$/.test(flow)||scenario==='quality-network'&&/^(?:operator-navigation-ota|quality-(?:login|insufficient|prepare|offline|resolve))$/.test(flow);}
+export async function captureNativeFailure({scenario,flow,serial,publishDirectory,privateValues=[],invoke=spawnSync}){
+  requireSafe(nativeFailureAllowed(scenario,flow)&&/^emulator-\d+$/.test(serial),'Invalid native failure scope.');
+  requireSafe(invoke!==spawnSync||process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_OS==='Linux','Native failure capture requires disposable CI.');
+  const remote='/data/local/tmp/openminerals-native-failure.xml';
+  const run=(args,binary=false)=>invoke('adb',['-s',serial,...args],{encoding:binary?null:'utf8',windowsHide:true,timeout:15000,killSignal:'SIGKILL',maxBuffer:10000000,stdio:['ignore','pipe','pipe']});
+  const value={flow,rawUiPublished:false,rawLogsPublished:false,screenshot:null};
+  try{const dumped=run(['shell','uiautomator','dump',remote]);requireSafe(!dumped.error&&dumped.status===0,'Private UI unavailable.');const read=run(['exec-out','cat',remote]);requireSafe(!read.error&&read.status===0,'Private UI unavailable.');value.navigation=sanitizeOperatorHierarchy(read.stdout);}catch{value.navigation={status:'unavailable'};}
+  finally{run(['shell','rm','-f',remote]);}
+  try{const pid=run(['shell','pidof',PACKAGE]),activity=run(['shell','dumpsys','activity','activities']),crash=run(['logcat','-d','-b','crash','-v','brief','-t','200']);value.runtime=legacyRuntimeState({pidStatus:pid.status,pidText:pid.stdout||'',activityText:activity.stdout||'',crashText:crash.stdout||''});}catch{value.runtime={status:'unavailable'};}
+  // Both closed flows precede all UI credential entry on a fresh emulator.
+  if(scenario==='full'&&flow==='ota-before-story'||['asset-full','account-lifecycle'].includes(scenario)&&flow==='operator-navigation-ota'){
+    try{const result=run(['exec-out','screencap','-p'],true),pixels=result.stdout;requireSafe(!result.error&&result.status===0&&Buffer.isBuffer(pixels)&&pixels.length>=32&&pixels.length<10000000&&pixels.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),'Anonymous screenshot unavailable.');await writeFile(join(publishDirectory,'safe-anonymous-failure.png'),pixels);value.screenshot='safe-anonymous-failure.png';}catch{}
+  }
+  const text=JSON.stringify(value,null,2)+'\n';requireSafe(privateValues.every(secret=>!secret||!text.includes(secret)),'Private value in native failure metadata.');
+  await writeFile(join(publishDirectory,'native-failure-state.json'),text);return value;
+}

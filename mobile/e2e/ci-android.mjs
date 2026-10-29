@@ -13,17 +13,19 @@ import {withLegacyNavigation} from './ci-legacy-navigation.mjs';
 import {adbBudget,runBounded} from './ci-process.mjs';
 import {createProgress} from './ci-progress.mjs';
 import {captureOperatorNavigation} from './ci-operator-navigation.mjs';
+import {nativeCase,nativeFlow} from './native-case.mjs';
+import {runAccountLifecycle} from './account-lifecycle.mjs';
+import {privateRecoveryKey} from './private-recovery.mjs';
+import {captureNativeFailure,nativeFailureAllowed} from './ci-native-failure.mjs';
+import {runNetworkQuality} from './network-quality.mjs';
+import {createObserverRequest} from './ci-http.mjs';
 
 const repo=resolve(dirname(fileURLToPath(import.meta.url)),'..'),root=resolve(process.env.RUNNER_TEMP||'.','openminerals-native');
 const published=join(root,'public'),privateRoot=join(root,'private');
 const results=[],privateValues=new Set(),sessions=[];
-let stage='configuration',users,serial,expectedOtaId=null,scenario='full';
+let stage='configuration',users,serial,expectedOtaId=null,scenario='full',coverageMetal='XAU';
 let progress;
-const request=async(path,token,body)=>{
-  const response=await fetch(API+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(20000),redirect:'error'});
-  requireSafe(response.status===200,'API precondition or native result could not be verified.');
-  return response.json();
-};
+const request=createObserverRequest({onFailure:async value=>{if(value.operation==='logout')return;try{await writeFile(join(published,'api-failure-context.json'),JSON.stringify(value,null,2)+'\n',{flag:'wx'});}catch{}}});
 function command(file,args,{timeout,env=process.env,output}={}){
   timeout??=file==='adb'?adbBudget(args):180000;
   let fd;
@@ -58,9 +60,13 @@ async function connectFixtures(){
   requireSafe(new Set(Object.values(users).map(user=>user.me.mine.id)).size===1,'QA fixture accounts must belong to exactly the same isolated mine.');
 }
 async function unusedFixtures(){
-  for(const name of ['a','b'])cleanFixture(users[name].me,await request('/api/demo/state',users[name].token));
+  for(const name of ['a','b']){
+    const state=await request('/api/demo/state',users[name].token);cleanFixture(users[name].me,state);
+    requireSafe(state.priceCentsPerGram[coverageMetal]===nativeCase(coverageMetal).reference,'Native case reference price changed.');
+  }
   const summary=await request('/api/demo/mine/summary',users.op.token);
   cleanFixture(users.op.me,null,summary);
+  requireSafe(summary.inventoryMg[coverageMetal]===5000&&summary.totalSupplyMg[coverageMetal]===5000,'Selected native metal requires 5g of unused QA inventory.');
   const management=await request('/api/demo/mine/management?limit=1',users.op.token);
   requireSafe(management.history.total===0,'QA mine already contains operations; provision fresh fixture accounts.');
   const deliveries=await request('/api/demo/mine/deliveries',users.op.token);
@@ -79,20 +85,33 @@ async function saveDiagnostic(name,consoleFile,definitions){
   requireSafe([...privateValues].every(value=>!text.includes(value)),'Refusing to publish a private diagnostic.');
   await writeFile(join(published,'failure-context.json'),text);
 }
-async function maestro(name,role){
+async function maestro(name,role,{source,extraEnv={}}={}){
+  requireSafe(/^[a-z0-9-]{3,70}$/.test(name),'Invalid private native flow name.');
+  for(const [key,value] of Object.entries(extraEnv))requireSafe(['MAESTRO_RECOVERY_KEY','MAESTRO_NEXT_PASSWORD'].includes(key)&&typeof value==='string'&&/^[A-Za-z0-9_-]{32,43}$/.test(value),'Invalid private account flow environment.');
   const directory=join(privateRoot,name);await mkdir(directory,{recursive:true,mode:0o700});
   const user=role==='register'?users.register:users[role];
-  const env={...process.env,MAESTRO_CLI_NO_ANALYTICS:'1',MAESTRO_LOGIN_ALIAS:user?.alias||'',MAESTRO_LOGIN_PASSWORD:user?.password||'',MAESTRO_EXPECTED_OTA_ID:['ota','ota-before-story','operator-navigation-ota'].includes(name)?(expectedOtaId??''):''};
+  const env={...process.env,MAESTRO_CLI_NO_ANALYTICS:'1',MAESTRO_LOGIN_ALIAS:user?.alias||'',MAESTRO_LOGIN_PASSWORD:user?.password||'',MAESTRO_EXPECTED_OTA_ID:['ota','ota-before-story','operator-navigation-ota'].includes(name)?(expectedOtaId??''):'',...extraEnv};
+  const generated=join(privateRoot,'flows');await mkdir(generated,{recursive:true,mode:0o700});
+  for(const file of await readdir(join(repo,'e2e/native')))if(file.endsWith('.yaml'))await writeFile(join(generated,file),nativeFlow(file.slice(0,-5),await readFile(join(repo,'e2e/native',file),'utf8'),coverageMetal),{mode:0o600});
+  if(source){requireSafe((scenario==='account-lifecycle'&&/^(?:wallet-(?:cop|eur|usd|usdt)|account-[a-z-]+)$/.test(name)||scenario==='quality-network'&&/^quality-(?:login|insufficient|prepare|offline|resolve)$/.test(name)),'Custom native flow outside account lifecycle.');await writeFile(join(generated,name+'.yaml'),source,{mode:0o600});}
   try{
-    command('maestro',['--no-ansi','--device',serial,'test','--format','JUNIT','--output',join(directory,'raw-report.xml'),'--debug-output',join(directory,'debug'),'--test-output-dir',join(directory,'screenshots'),join(repo,'e2e/native',name+'.yaml')],{env,timeout:420000,output:join(directory,'console.txt')});
+    command('maestro',['--no-ansi','--device',serial,'test','--format','JUNIT','--output',join(directory,'raw-report.xml'),'--debug-output',join(directory,'debug'),'--test-output-dir',join(directory,'screenshots'),join(generated,name+'.yaml')],{env,timeout:420000,output:join(directory,'console.txt')});
   }catch(error){
-    const definitions=(await Promise.all([name,'login'].map(flow=>readFile(join(repo,'e2e/native',flow+'.yaml'),'utf8')))).join('\n');
+    const definitions=source|| (await Promise.all([name,'login'].map(flow=>readFile(join(repo,'e2e/native',flow+'.yaml'),'utf8')))).join('\n');
     await saveDiagnostic(name,join(directory,'console.txt'),definitions);
+    if(scenario==='account-lifecycle'&&name==='wallet-cop')await captureSafeScreens(name);
+    if(nativeFailureAllowed(scenario,name))await captureNativeFailure({scenario,flow:name,serial,publishDirectory:published,privateValues:[...privateValues]});
     if(scenario==='operator-navigation'||scenario==='full'&&['quote','operator','operator-stock'].includes(name))await captureNavigation('failure',name);
     throw error;
   }
 }
 const captureNavigation=(checkpoint,flow)=>captureOperatorNavigation({scenario,checkpoint,flow,serial,publishDirectory:published,privateValues:[...privateValues]});
+function captureSecret(id){
+  requireSafe(scenario==='account-lifecycle','Recovery capture outside account lifecycle.');
+  const remote='/data/local/tmp/openminerals-recovery.xml';
+  try{adb('shell','uiautomator','dump',remote);return privateRecoveryKey(adb('exec-out','cat',remote),id);}
+  finally{adb('shell','rm','-f',remote);}
+}
 async function captureSafeScreens(name){
   // These phases finish before entering any alias/password, and run alone.
   const directory=join(privateRoot,name,'screenshots');
@@ -102,7 +121,7 @@ async function captureSafeScreens(name){
       if(entry.isSymbolicLink())continue;
       const file=join(folder,entry.name);
       if(entry.isDirectory())await walk(file);
-      else if(/^safe-(story-[1-5]|upgrade-preserved|reduced-motion)\.png$/.test(entry.name)){
+      else if(/^safe-(story-[1-7]|upgrade-preserved|reduced-motion|wallet-cop-before-eur)\.png$/.test(entry.name)){
         const pixels=await readFile(file);requireSafe(pixels.length<10000000&&pixels.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),'Unexpected safe screenshot.');
         await copyFile(file,join(published,entry.name));
       }
@@ -151,8 +170,8 @@ async function collectNativeSnapshot(){
   const [ha,hb,hm]=await Promise.all([request(lotPath,users.a.token),request(lotPath,users.b.token),request(lotPath,users.op.token)]);
   return {a,b,summary,ca,cb,cm,management,profile,history,ha,hb,hm};
 }
-async function verifyNative(){verifyNativeSnapshot(await collectNativeSnapshot());}
-async function verifyCompletedTrades(){verifyNativeCommercialSnapshot(await collectNativeSnapshot());}
+async function verifyNative(){verifyNativeSnapshot(await collectNativeSnapshot(),coverageMetal);}
+async function verifyCompletedTrades(){verifyNativeCommercialSnapshot(await collectNativeSnapshot(),coverageMetal);}
 async function scenarioFixtures(){if(scenario==='profile-relaunch')await verifyCompletedTrades();else await unusedFixtures();}
 async function profileRelaunch(){
   // Resume only after independently checking every completed trade/lot/fee.
@@ -199,6 +218,24 @@ async function run(){
   await runStage('qa-isolation-preconditions',async()=>{await connectFixtures();await scenarioFixtures();});
   if(scenario==='operator-navigation'){await operatorNavigation();return;}
   if(scenario==='profile-relaunch'){await profileRelaunch();return;}
+  if(scenario==='quality-network'){
+    await runStage('install-quality-apk',async()=>{requireSafe(!adb('shell','pm','list','packages',PACKAGE),'Quality coverage requires a fresh disposable emulator.');adb('install',join(root,'new.apk'));});
+    await runStage('quality-compatible-ota-before-login',()=>maestro('operator-navigation-ota'));
+    await runNetworkQuality({runStage,maestro,request,users,adb,publishChecks:async value=>{const text=JSON.stringify(value,null,2)+'\n';requireSafe([...privateValues].every(secret=>!text.includes(secret)),'Private native quality metadata.');await writeFile(join(published,'network-quality-checks.json'),text);}});return;
+  }
+  if(scenario==='account-lifecycle'){
+    await runStage('install-account-apk',async()=>{requireSafe(!adb('shell','pm','list','packages',PACKAGE),'Account coverage requires a fresh disposable emulator.');adb('install',join(root,'new.apk'));});
+    await runStage('account-compatible-ota-before-wallet',()=>maestro('operator-navigation-ota'));
+    await runAccountLifecycle({runStage,maestro,request,users,mask,sessions,captureSecret});
+    await runStage('api-confirms-isolated-fixtures-unchanged',unusedFixtures);return;
+  }
+  if(scenario==='asset-full'){
+    await runStage('install-asset-apk',async()=>{
+      requireSafe(!adb('shell','pm','list','packages',PACKAGE),'Asset coverage requires a fresh disposable emulator.');adb('install',join(root,'new.apk'));
+      requireSafe(adb('shell','dumpsys','package',PACKAGE).includes('versionCode=5'),'Asset APK versionCode mismatch.');
+    });
+    await runStage('asset-compatible-ota-before-login',()=>maestro('operator-navigation-ota'));
+  }else{
   users.register={alias:'native_'+randomBytes(9).toString('hex'),password:randomBytes(24).toString('base64url')};
   mask(users.register.alias);mask(users.register.password);
   await runStage('install-baseline-013',async()=>{
@@ -236,6 +273,7 @@ async function run(){
     const state=await request('/api/demo/state',auth.token);
     requireSafe(auth.account.role==='buyer'&&auth.account.mineId!==users.a.me.mine.id&&state.walletMinor.USDT===25000&&state.holdingsMg.XAU===0&&Object.keys(state.receipts).length===0,'Native registration imported or mutated the previous legacy data.');
   });
+  }
   await runStage('buyer-a-login-conversion',()=>maestro('buyer-a','a'));
   await runStage('buyer-a-buy-and-certificate',()=>maestro('buyer-a-buy','a'));
   await runStage('buyer-a-publish-priced-offer',()=>maestro('buyer-a-offer','a'));
@@ -259,7 +297,7 @@ async function report(){
   // Fixed labels and counts only. No raw Maestro XML, stderr, hierarchy, logcat,
   // account failure screenshot, alias, password, token or recovery key is copied.
   // The isolated anonymous 0.1.3 phase has its own explicit screenshot policy.
-  const summary={demoOnly:true,scenario,environment:'disposable Android CI emulator',phoneAcceptance:false,realCustody:false,ota:{requested:expectedOtaId!==null,expectedUpdateId:expectedOtaId},completed:results.filter(item=>item.ok).map(item=>item.name),failed:results.filter(item=>!item.ok).map(item=>item.name),safeScreenshots:'Anonymous legacy/story before credentials only',privateDiagnosticsPublished:false};
+  const summary={demoOnly:true,scenario,coverageMetal:['account-lifecycle','quality-network'].includes(scenario)?null:coverageMetal,environment:'disposable Android CI emulator',phoneAcceptance:false,realCustody:false,ota:{requested:expectedOtaId!==null,expectedUpdateId:expectedOtaId},completed:results.filter(item=>item.ok).map(item=>item.name),failed:results.filter(item=>!item.ok).map(item=>item.name),safeScreenshots:'Anonymous legacy/story before credentials only',privateDiagnosticsPublished:false};
   const text=JSON.stringify(summary,null,2)+'\n';
   requireSafe([...privateValues].every(value=>!text.includes(value)),'Refusing to publish private values.');
   await writeFile(join(published,'summary.json'),text);
@@ -268,6 +306,7 @@ try{
   // Reject malformed workflow input before curl, adb, Maestro or API access.
   expectedOtaId=otaUpdateId(process.env.OTA_INPUT_UPDATE_ID);
   scenario=nativeScenario(process.env.NATIVE_INPUT_SCENARIO);
+  coverageMetal=nativeCase(process.env.NATIVE_COVERAGE_METAL||'XAU').code;
   requireSafe(scenario==='full'||expectedOtaId!==null,'Focused native scenarios require a published OTA update ID.');
   const mode=process.argv[2];
   if(['download','preflight','run'].includes(mode))progress=createProgress(published,mode,()=>[...privateValues]);

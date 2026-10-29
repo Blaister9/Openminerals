@@ -5,9 +5,9 @@ Todo el recorrido usa cuentas, USDT, metales, documentos y entregas **simulados*
 ## Preparar el teléfono
 
 1. Conservar la instalación y sus datos. Si aún no está instalado, usar el [APK firmado 0.2.0](https://github.com/Blaister9/Openminerals/releases/download/v0.2.0-demo/Openminerals-Demo-0.2.0-android.apk) como actualización, sin desinstalar.
-2. Abrir **Actividad → Actualizaciones de la demo** como comprador, o **Cuenta** como operador. Buscar actualización cuando no exista una operación pendiente; cerrar completamente y volver a abrir. La revisión vigente muestra **Actualización aplicada · 01a188eb**.
-3. Tener dos cuentas compradoras de prueba para demostrar el intercambio. El registro admite alias ficticio y clave exclusiva de la demo. Crear cuentas nuevas sin importar la sesión anterior si se quieren reproducir los saldos del ejemplo; las cuentas existentes conservan sus propios valores.
-4. Abrir la cuenta de mina con el [acceso público autorizado del operador](../demo-access/operator-public.json). Revisar **Mina → Inventario**. Si no hay oro disponible, registrar un lote nuevo ficticio con peso, pureza, ubicación DEMO, documento ilustrativo y motivo; es una reposición trazable, no un ajuste de los gramos ya asignados.
+2. Abrir **Actividad → Actualizaciones de la demo** como comprador, o **Cuenta** como operador. Buscar actualización cuando no exista una operación pendiente; cerrar completamente y volver a abrir. La candidata publicada muestra **Actualización aplicada · 01a18988**; consultar [sus resultados de aceptación](18-candidata-android-2026-10-29.md).
+3. Para un recorrido reproducible, usar los dos compradores de la preparación privada descrita en la candidata. Iniciar sesión con sus alias, sin volver a registrarlos. Ambos pertenecen a la misma mina privada y conservan saldos iniciales independientes. La sesión anterior del teléfono permanece guardada.
+4. Usar el operador de esa misma preparación y revisar **Mina → Inventario**, con 5 g iniciales de cada metal. Como alternativa, el [operador público autorizado](../demo-access/operator-public.json) y compradores registrados públicamente pertenecen a la mina compartida histórica; sus registros y existencias pueden ser diferentes. Si hace falta inventario, registrar un lote ficticio trazable, sin modificar gramos ya asignados.
 
 El inventario y el historial pueden contener pruebas anteriores. No borrarlos ni reiniciarlos para igualar el ejemplo. Los importes siguientes corresponden a dos compradores nuevos y a las tarifas iniciales de simulación; revisar siempre la confirmación de la aplicación.
 
@@ -49,6 +49,6 @@ Cerrar y reabrir la app. Confirmar cuenta, saldos, posiciones, oferta vendida, e
 
 Al cerrar una cuenta, revisar el rótulo de identidad. La sesión legacy guardada en el dispositivo conserva su historial y puede reaparecer; la cuenta cerrada debe desaparecer de la vista. El modo sin cuenta es una compatibilidad exclusiva de la demo.
 
-Registrar: fecha, modelo/Android, revisión aplicada, pasos aprobados y cualquier error literal sin credenciales. Comprobar también arrastre del lingote, las cinco escenas, omisión y movimiento reducido. La ejecución emulada y los tests de API no sustituyen esta aceptación física ni sus medidas de rendimiento.
+Registrar: fecha, modelo/Android, revisión aplicada, pasos aprobados y cualquier error literal sin credenciales. La candidata amplía la presentación a siete escenas: consultar [su revisión y evidencia](18-candidata-android-2026-10-29.md) antes de actualizar. Comprobar también arrastre del lingote, omisión y movimiento reducido. La ejecución emulada y los tests de API no sustituyen esta aceptación física ni sus medidas de rendimiento.
 
 [Evidencia técnica y pendientes del sprint](16-sprint-android-2026-10-29.md).

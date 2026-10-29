@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createGoldBarMesh,createStudioFloorMesh,identityMatrix,multiplyMatrices,translationMatrix,rotationX,rotationY,rotationZ,perspectiveMatrix,transformPoint,scrollProgress,storyStage,horizontalDrag,goldBarPose,goldBarMatrices,createFrameScheduler,GOLD_VERTEX_SHADER,GOLD_FRAGMENT_SHADER} from '../lib/gold-bar-3d.ts';
+import {createGoldBarMesh,createStudioFloorMesh,identityMatrix,multiplyMatrices,translationMatrix,rotationX,rotationY,rotationZ,perspectiveMatrix,transformPoint,scrollProgress,storyStage,goldRenderScale,horizontalDrag,goldBarPose,goldBarMatrices,createFrameScheduler,GOLD_VERTEX_SHADER,GOLD_FRAGMENT_SHADER} from '../lib/gold-bar-3d.ts';
+import {metalStoryScenes} from '../lib/story-scenes.ts';
 import {mkdtemp,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
@@ -68,7 +69,7 @@ test('proyección mantiene profundidad y encuadre; el plano macro recorta intenc
 
 test('scroll y arrastre producen poses finitas; movimiento reducido es estable',()=>{
   assert.equal(scrollProgress(-100,20,100),0);assert.equal(scrollProgress(60,20,100),.5);assert.equal(scrollProgress(1000,20,100),1);assert.equal(scrollProgress(NaN,20,100),0);assert.equal(scrollProgress(20,20,20),0);
-  assert.deepEqual([0,.25,.5,.75,1].map(storyStage),[0,1,2,3,4]);
+  assert.deepEqual([0,.25,.5,.75,1].map(value=>storyStage(value)),[0,1,2,3,4]);
   assert.equal(horizontalDrag(12,2),true);assert.equal(horizontalDrag(2,20),false);assert.equal(horizontalDrag(12,20),false);assert.equal(horizontalDrag(12,0,2),false);assert.equal(horizontalDrag(NaN,0),false);
   for(const p of [-1,0,.23,.5,.999,1,2,NaN]){
     const pose=goldBarPose(p,Number.POSITIVE_INFINITY);assert.ok([pose.yaw,pose.pitch,pose.roll,pose.distance,pose.lift,pose.refinement,...pose.light].every(Number.isFinite));
@@ -76,6 +77,30 @@ test('scroll y arrastre producen poses finitas; movimiento reducido es estable',
   }
   assert.deepEqual(goldBarPose(0,3,true),goldBarPose(1,-2,true));
   const a=goldBarPose(.5-1e-6),b=goldBarPose(.5+1e-6);close(a.yaw,b.yaw);close(a.distance,b.distance);
+});
+
+test('siete capítulos mantienen el orden comercial y un índice válido incluso en extremos',()=>{
+  assert.equal(metalStoryScenes.length,7);
+  assert.deepEqual(metalStoryScenes.map(item=>item.label),['MINA','LINGOTE','CUSTODIA','COMPRA FRACCIONADA','PORTAFOLIO','MARKETPLACE','ENTREGA FÍSICA · DEMO']);
+  assert.deepEqual(metalStoryScenes.map((_,index)=>storyStage(index/6,7)),[0,1,2,3,4,5,6]);
+  for(const value of [-1,NaN,0,1,2])assert.ok(storyStage(value,7)>=0&&storyStage(value,7)<=6);
+});
+
+test('presupuesto GL limita el lado mayor a 1024 píxeles sin ampliar buffers de pantallas pequeñas',()=>{
+  for(const [width,height,density] of [[390,300,3],[430,300,4],[320,160,2],[1000,600,2]]){
+    const scale=goldRenderScale(width,height,density);assert.ok(scale>0&&scale<=1);assert.ok(Math.max(width,height)*density*scale<=1024.00001);
+  }
+  assert.equal(goldRenderScale(320,160,2),1);assert.equal(goldRenderScale(0,0,0),1);
+});
+
+test('presupuesto de animación limita a 30 fps y deja de solicitar cuadros cuando no hay cambios',()=>{
+  let clock=0,draws=0,id=0;const frames=new Map();
+  const scheduler=createFrameScheduler({request:callback=>{frames.set(++id,callback);return id;},cancel:id=>frames.delete(id),draw:()=>draws++,onError:assert.fail,maxFps:30,now:()=>clock});
+  const flush=()=>{const queue=[...frames.values()];frames.clear();queue.forEach(callback=>callback());};
+  scheduler.invalidate();flush();assert.equal(draws,1);assert.equal(frames.size,0);
+  clock=16;scheduler.invalidate();flush();assert.equal(draws,1);assert.equal(frames.size,1);
+  clock=34;flush();assert.equal(draws,2);assert.equal(frames.size,0);
+  clock=40;scheduler.invalidate();flush();scheduler.setEnabled(false);assert.equal(frames.size,0);scheduler.dispose();
 });
 
 function fakeFrames(draw,onError=()=>{}){

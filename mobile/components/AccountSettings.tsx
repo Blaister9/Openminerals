@@ -58,7 +58,7 @@ export function AccountSettings({identityKey,account,disabled=false,getProfile,s
     {account.role==='operator'?<View style={styles.card}><Text style={styles.cardTitle}>Acceso compartido de operador</Text><Text style={styles.note}>Las credenciales de este operador demo se administran por separado. Esta cuenta compartida no permite recuperar ni cambiar su clave desde aquí.</Text></View>:<View style={styles.card}>
       <Text style={styles.cardTitle}>Recuperación sin correo</Text><Text style={styles.note}>{recoveryEnabled?'La cuenta tiene una clave de recuperación configurada. Puedes generar otra con tu clave actual.':'Activa una clave de recuperación para poder recuperar esta cuenta de prueba sin correo ni datos personales.'}</Text>
       {recoveryKey?<View style={styles.secretBox}>
-        <Text style={styles.warning}>Se muestra una sola vez. Guárdala en un lugar privado fuera del chat antes de ocultarla. La app no guarda una copia.</Text><Text selectable style={styles.secret}>{recoveryKey}</Text>
+        <Text style={styles.warning}>Se muestra una sola vez. Guárdala en un lugar privado fuera del chat antes de ocultarla. La app no guarda una copia.</Text><Text testID="recovery-generated-key" selectable style={styles.secret}>{recoveryKey}</Text>
         <Button label="Ya guardé mi clave; ocultar" onPress={()=>{setRecoveryKey(null);setNotice('Clave de recuperación ocultada. Consérvala por un medio privado.');}}/>
       </View>:<>
         <Text style={styles.warning}>Generar otra clave de recuperación reemplaza la anterior. Si cierras esta pantalla antes de guardarla, tendrás que generar una nueva con tu clave actual.</Text>

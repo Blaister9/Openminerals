@@ -55,7 +55,7 @@ export function RecoveryAccess({visible,initialAlias='',currentAlias,pending,exp
       </>}
       {stage==='done'&&newKey&&<>
         <Text style={styles.title}>Cuenta recuperada</Text><Text style={styles.copy}>Los accesos anteriores fueron revocados. Ahora entra con el mismo alias y la nueva clave de la cuenta.</Text>
-        <View style={styles.secretBox}><Text style={styles.warning}>Nueva clave de recuperación: se muestra una sola vez. Guárdala en un lugar privado fuera del chat antes de continuar.</Text><Text selectable style={styles.secret}>{newKey}</Text></View>
+        <View style={styles.secretBox}><Text style={styles.warning}>Nueva clave de recuperación: se muestra una sola vez. Guárdala en un lugar privado fuera del chat antes de continuar.</Text><Text testID="recovery-completed-key" selectable style={styles.secret}>{newKey}</Text></View>
         <View style={styles.confirm}><Text style={styles.confirmText}>Ya guardé la nueva clave de recuperación por un medio privado.</Text><Switch accessibilityLabel="Confirmar guardado privado de la nueva clave de recuperación" value={saved} onValueChange={setSaved}/></View>
         <Pressable accessibilityRole="button" disabled={!saved} onPress={finish} style={[styles.primary,!saved&&styles.disabled]}><Text style={styles.primaryText}>Ocultar clave y volver a entrar</Text></Pressable>
       </>}

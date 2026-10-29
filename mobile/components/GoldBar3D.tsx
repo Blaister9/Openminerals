@@ -1,8 +1,8 @@
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState,type ComponentType,type ReactNode} from 'react';
-import {Animated,AppState,PanResponder,Platform,Pressable,StyleSheet,Text,View} from 'react-native';
+import {Animated,AppState,PanResponder,PixelRatio,Platform,Pressable,StyleSheet,Text,View} from 'react-native';
 import {requireOptionalNativeModule} from 'expo-modules-core';
 import type {ExpoWebGLRenderingContext,GLViewProps} from 'expo-gl';
-import {createFrameScheduler,createGoldBarMesh,createStudioFloorMesh,goldBarMatrices,goldBarPose,horizontalDrag,scrollProgress,GOLD_FRAGMENT_SHADER,GOLD_VERTEX_SHADER} from '../lib/gold-bar-3d';
+import {createFrameScheduler,createGoldBarMesh,createStudioFloorMesh,goldBarMatrices,goldBarPose,goldRenderScale,horizontalDrag,scrollProgress,GOLD_FRAGMENT_SHADER,GOLD_VERTEX_SHADER} from '../lib/gold-bar-3d';
 
 type Props={scrollY:Animated.Value;initialScrollY:number;startY:number;endY:number;active:boolean;reducedMotion:boolean;height?:number};
 type Renderer={draw:(progress:number,drag:number)=>void;dispose:()=>void};
@@ -77,13 +77,15 @@ class GLBoundary extends React.Component<{children:ReactNode;onFailure:()=>void}
 }
 
 export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMotion,height=290}:Props){
+  const [width,setWidth]=useState(0);
+  const renderScale=goldRenderScale(width,height,PixelRatio.get());
   const NativeGLView=useMemo(availableGLView,[]);
   const [foreground,setForeground]=useState(AppState.currentState===null||AppState.currentState==='active');
   const [failure,setFailure]=useState(false),[ready,setReady]=useState(false),[retry,setRetry]=useState(0);
   const renderer=useRef<Renderer|null>(null),scheduler=useRef<Scheduler|null>(null),timeout=useRef<ReturnType<typeof setTimeout>|null>(null);
   const lastScroll=useRef(initialScrollY),drag=useRef(0),dragStart=useRef(0),readyRef=useRef(false);
   const enabled=active&&foreground&&!reducedMotion&&!failure&&NativeGLView!==null;
-  const session=useMemo(()=>Symbol('gold-bar-context'),[enabled,retry]);
+  const session=useMemo(()=>Symbol('gold-bar-context'),[enabled,retry,width,height,renderScale]);
   const currentSession=useRef(session);currentSession.current=session;
   const latest=useRef({startY,endY,enabled});latest.current={startY,endY,enabled};
   const stop=useCallback(()=>{
@@ -109,7 +111,7 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
     const listener=scrollY.addListener(({value})=>{lastScroll.current=value;scheduler.current?.invalidate();});
     return()=>scrollY.removeListener(listener);
   },[scrollY]);
-  useEffect(()=>{scheduler.current?.invalidate();},[startY,endY,height]);
+  useEffect(()=>{scheduler.current?.invalidate();},[startY,endY,height,width,renderScale]);
   useEffect(()=>{
     const subscription=AppState.addEventListener('change',state=>{
       if(state!=='active'){currentSession.current=Symbol('background-context');latest.current.enabled=false;stop();}
@@ -123,7 +125,7 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
     stop();
     try{
       const next=createRenderer(gl);renderer.current=next;
-      scheduler.current=createFrameScheduler({request:callback=>requestAnimationFrame(callback),cancel:cancelAnimationFrame,
+      scheduler.current=createFrameScheduler({request:callback=>requestAnimationFrame(callback),cancel:cancelAnimationFrame,maxFps:30,now:()=>performance.now(),
         draw:()=>{
           if(currentSession.current!==expected||!latest.current.enabled)return;
           next.draw(scrollProgress(lastScroll.current,latest.current.startY,latest.current.endY),drag.current);
@@ -143,12 +145,12 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
   const reset=()=>{drag.current=0;scheduler.current?.invalidate();};
   const retry3D=()=>{stop();setReady(false);setFailure(false);setRetry(value=>value+1);};
   const fallback=reducedMotion?'Movimiento reducido':failure||!NativeGLView?'Vista simplificada':!foreground?'Visor pausado':enabled?'Preparando 3D…':'Recorrido del metal';
-  return <View style={[styles.stage,{height}]} {...responder.panHandlers}>
+  return <View style={[styles.stage,{height}]} onLayout={event=>setWidth(previous=>Math.abs(previous-event.nativeEvent.layout.width)>.5?event.nativeEvent.layout.width:previous)} {...responder.panHandlers}>
     <View style={styles.fallback} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <View style={styles.halo}/><View style={styles.floorLine}/><View style={styles.staticShadow}/><View style={styles.staticBar}><View style={styles.staticFace}><Text style={styles.maker}>⌁</Text><Text style={styles.symbol}>AU</Text><Text style={styles.word}>DEMO</Text></View><View style={styles.staticEdge}/></View>
     </View>
-    {enabled&&NativeGLView&&<GLBoundary key={retry} onFailure={()=>fail(session)}>
-      <NativeGLView style={[StyleSheet.absoluteFill,{opacity:ready?1:0}]} onContextCreate={gl=>createContext(gl,session)} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"/>
+    {enabled&&NativeGLView&&width>0&&<GLBoundary key={`${retry}:${width}:${height}:${renderScale}`} onFailure={()=>fail(session)}>
+      <NativeGLView style={{position:'absolute',top:0,left:0,width:width*renderScale,height:height*renderScale,transformOrigin:'top left',transform:[{scale:1/renderScale}],opacity:ready?1:0}} onContextCreate={gl=>createContext(gl,session)} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"/>
     </GLBoundary>}
     <View pointerEvents="none" style={styles.edition}><Text style={styles.simulated}>OBJETO DE ESTUDIO</Text><Text style={styles.editionNumber}>Au / 79</Text></View>
     <Text pointerEvents="none" style={styles.demo}>METAL SIMULADO</Text>

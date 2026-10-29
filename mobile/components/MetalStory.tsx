@@ -2,15 +2,9 @@ import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {AccessibilityInfo,Animated,Platform,Pressable,StyleSheet,Text,View} from 'react-native';
 import {GoldBar3D} from './GoldBar3D';
 import {scrollProgress,storyStage} from '../lib/gold-bar-3d';
+import {metalStoryScenes as scenes} from '../lib/story-scenes';
 
 type Props={scrollY:Animated.Value;viewportHeight:number;onSkip?:()=>void};
-const scenes=[
-  {number:'01',title:'Todo comienza en el origen',label:'ORIGEN SIMULADO',body:'El lote reúne la procedencia, el peso y la pureza declarados del metal.',detail:'Un metal real exige documentos verificables.'},
-  {number:'02',title:'Del mineral al lingote',label:'REFINACIÓN CONCEPTUAL',body:'La refinación transforma el mineral en un lingote de peso y pureza definidos.',detail:'Representación conceptual. Sin metal real.'},
-  {number:'03',title:'Tu compra, gramo a gramo',label:'COMPRA SIMULADA',body:'Convierte saldo demo a USDT y compra gramos. Se reflejan en Mis metales.',detail:'El recorrido no compra. Opera en Mercado.'},
-  {number:'04',title:'Una custodia que se debe acreditar',label:'CUSTODIA DEMO',body:'Tus gramos conservan el vínculo con el lote y su certificado simulado.',detail:'Sin custodia ni metal físico real asignado.'},
-  {number:'05',title:'De tu portafolio al marketplace',label:'MARKETPLACE DEMO',body:'Publica tus gramos o acepta una oferta. El intercambio queda en tu historial.',detail:'Sin tokens, blockchain ni dinero real.'},
-];
 type Scene=typeof scenes[number];
 const PIN=10;
 
@@ -23,10 +17,11 @@ function Chapter({scene}:{scene:Scene}){
   </View>;
 }
 
-// One canvas and one editorial panel stay together through all five chapters.
+// One canvas and one editorial panel stay together through all seven chapters.
 // Text changes by chapter; it never scrolls underneath an opaque GL surface.
 export function MetalStory({scrollY,viewportHeight,onSkip}:Props){
   const [origin,setOrigin]=useState(0),[headerHeight,setHeaderHeight]=useState(240),[viewerHeight,setViewerHeight]=useState(560);
+  const [originMeasured,setOriginMeasured]=useState(false),[headerMeasured,setHeaderMeasured]=useState(false);
   const [controlsHeight,setControlsHeight]=useState(58),[captionHeight,setCaptionHeight]=useState(43),[readingHeight,setReadingHeight]=useState(0);
   const [chapterHeights,setChapterHeights]=useState<Record<string,number>>({});
   const [systemReduced,setSystemReduced]=useState(true),[manualReduced,setManualReduced]=useState(false),[skipped,setSkipped]=useState(false);
@@ -49,20 +44,21 @@ export function MetalStory({scrollY,viewportHeight,onSkip}:Props){
   const readingEstimate=controlsHeight+figureHeight+captionHeight+scenes.reduce((sum,scene)=>sum+(chapterHeights[scene.number]??chapterHeight),0);
   const travel=readingLayout?Math.max(1,(readingHeight||readingEstimate)-controlsHeight):normalTravel;
   const viewerStart=origin+headerHeight,endY=viewerStart+travel;
-  const geometry=useRef({viewerStart,endY,travel,viewerHeight,visibleHeight,controlsHeight,figureHeight,readingLayout,skipped});
-  geometry.current={viewerStart,endY,travel,viewerHeight,visibleHeight,controlsHeight,figureHeight,readingLayout,skipped};
+  const measured=originMeasured&&headerMeasured;
+  const geometry=useRef({viewerStart,endY,travel,viewerHeight,visibleHeight,controlsHeight,figureHeight,readingLayout,skipped,measured});
+  geometry.current={viewerStart,endY,travel,viewerHeight,visibleHeight,controlsHeight,figureHeight,readingLayout,skipped,measured};
   const update=useRef((value:number)=>{});
   update.current=(value:number)=>{
     lastScroll.current=value;
-    const g=geometry.current,progress=scrollProgress(value,g.viewerStart-PIN,g.endY-PIN),index=storyStage(progress);
+    const g=geometry.current,progress=scrollProgress(value,g.viewerStart-PIN,g.endY-PIN),index=storyStage(progress,scenes.length);
     if(lastStage.current!==index){lastStage.current=index;setStage(index);}
     const local=g.viewerStart+Math.max(0,Math.min(g.travel,value-g.viewerStart+PIN));
     const canvasTop=(g.readingLayout?g.viewerStart:local)+g.controlsHeight;
-    const visible=!g.skipped&&canvasTop+g.figureHeight>value-60&&canvasTop<value+g.visibleHeight+60;
+    const visible=g.measured&&!g.skipped&&canvasTop+g.figureHeight>value-60&&canvasTop<value+g.visibleHeight+60;
     if(lastActive.current!==visible){lastActive.current=visible;setActive(visible);}
   };
   useEffect(()=>{const listener=scrollY.addListener(({value})=>update.current(value));return()=>scrollY.removeListener(listener);},[scrollY]);
-  useEffect(()=>{update.current(lastScroll.current);},[origin,headerHeight,viewerHeight,viewportHeight,travel,controlsHeight,figureHeight,readingLayout,skipped]);
+  useEffect(()=>{update.current(lastScroll.current);},[origin,headerHeight,viewerHeight,viewportHeight,travel,controlsHeight,figureHeight,readingLayout,skipped,measured]);
   const translateY=useMemo(()=>scrollY.interpolate({inputRange:[viewerStart-PIN,endY-PIN],outputRange:[0,travel],extrapolate:'clamp'}),[scrollY,viewerStart,endY,travel]);
   const skip=()=>{setSkipped(true);onSkip?.();};
   const controls=<View style={styles.controls} onLayout={event=>{const value=event.nativeEvent.layout.height;setControlsHeight(previous=>Math.abs(previous-value)>.5?value:previous);}}>
@@ -74,17 +70,17 @@ export function MetalStory({scrollY,viewportHeight,onSkip}:Props){
     <Pressable accessibilityRole="button" accessibilityLabel="Saltar recorrido y continuar con la demo" onPress={skip} style={styles.skip}><Text style={styles.skipText}>Saltar recorrido</Text><Text style={styles.skipArrow}>↗</Text></Pressable>
   </View>;
   const caption=<View style={styles.caption} onLayout={event=>{const value=event.nativeEvent.layout.height;setCaptionHeight(previous=>Math.abs(previous-value)>.5?value:previous);}}>
-    <View style={styles.captionTop}><View style={styles.demoPill}><View style={styles.demoDot}/><Text style={styles.demoText}>DEMO</Text></View><Text style={styles.sequence}>{readingLayout?'CINCO ETAPAS':`${scenes[stage].number} / 05`}</Text></View>
+    <View style={styles.captionTop}><View style={styles.demoPill}><View style={styles.demoDot}/><Text style={styles.demoText}>DEMO</Text></View><Text style={styles.sequence}>{readingLayout?'SIETE ETAPAS':`${scenes[stage].number} / 07`}</Text></View>
     <View style={styles.steps}>{scenes.map((scene,index)=><View key={scene.number} style={[styles.step,index<=stage&&styles.completedStep,index===stage&&styles.currentStep]}/>)}</View>
   </View>;
   const figure=<GoldBar3D scrollY={scrollY} initialScrollY={lastScroll.current} startY={viewerStart-PIN} endY={endY-PIN}
     active={active} reducedMotion={reduced} height={figureHeight}/>;
 
-  return <View style={styles.story} onLayout={event=>setOrigin(event.nativeEvent.layout.y)}>
-    <View onLayout={event=>setHeaderHeight(event.nativeEvent.layout.height)} style={styles.header}>
-      <View style={styles.headerTop}><Text style={styles.eyebrow}>OPENMINERALS / RECORRIDO</Text><Text style={styles.edition}>01—05</Text></View>
+  return <View style={styles.story} onLayout={event=>{setOrigin(event.nativeEvent.layout.y);setOriginMeasured(true);}}>
+    <View onLayout={event=>{setHeaderHeight(event.nativeEvent.layout.height);setHeaderMeasured(true);}} style={styles.header}>
+      <View style={styles.headerTop}><Text style={styles.eyebrow}>OPENMINERALS / RECORRIDO</Text><Text style={styles.edition}>01—07</Text></View>
       <Text style={styles.title}>La historia{`\n`}<Text style={styles.titleAccent}>del metal.</Text></Text>
-      <Text style={styles.intro}>Del origen a tu portafolio. Un mismo lingote, cinco momentos para entender la demostración.</Text>
+      <Text style={styles.intro}>De la mina a la entrega. Siete momentos conectan el metal con tu portafolio.</Text>
       <View style={styles.scrollCue}><View style={styles.cueRule}/><Text style={styles.cueText}>DESLIZA PARA EXPLORAR</Text><Text style={styles.cueArrow}>↓</Text></View>
     </View>
     {skipped?<View style={styles.skipped}><Text style={styles.body}>Recorrido omitido. Las operaciones siguen disponibles desde Mercado.</Text><Pressable accessibilityRole="button" onPress={()=>setSkipped(false)} style={styles.reopen}><Text style={styles.skipText}>Volver al recorrido ↗</Text></Pressable></View>:<>

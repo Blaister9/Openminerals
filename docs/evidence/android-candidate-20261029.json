@@ -1,0 +1,192 @@
+{
+  "date": "2026-10-29",
+  "demoOnly": true,
+  "phoneAcceptance": false,
+  "environment": "disposable Android CI emulator",
+  "mobileSource": "c2d674bd83b1f7b942a16396ecee88ab4b8c9a03",
+  "ota": "01a18988-e68e-7456-8977-81b269628010",
+  "runtime": "0.2.0",
+  "channel": "demo",
+  "stageCount": 95,
+  "cases": [
+    {
+      "case": "XAU",
+      "run": "40957109951",
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/40957109951",
+      "driverSource": "c2d674bd83b1f7b942a16396ecee88ab4b8c9a03",
+      "passed": 21,
+      "stages": [
+        "qa-isolation-preconditions",
+        "install-baseline-013",
+        "legacy-seed-old-apk",
+        "update-without-clearing-data",
+        "preserve-legacy-after-update",
+        "anonymous-compatible-ota-before-story",
+        "native-story-and-reduced-motion",
+        "native-registration-no-import",
+        "buyer-a-login-conversion",
+        "buyer-a-buy-and-certificate",
+        "buyer-a-publish-priced-offer",
+        "buyer-b-marketplace-certificate",
+        "buyer-a-sale-and-delivery-request",
+        "operator-quote-private-mine",
+        "buyer-accept-simulated-costs",
+        "operator-delivery-lifecycle",
+        "operator-restock-management",
+        "buyer-history-profile-relaunch",
+        "api-verifies-native-wallets-lots-fees",
+        "buyer-compatible-ota-cold-launch",
+        "api-verifies-data-after-compatible-ota"
+      ]
+    },
+    {
+      "case": "XAG",
+      "run": "40957109951",
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/40957109951",
+      "driverSource": "c2d674bd83b1f7b942a16396ecee88ab4b8c9a03",
+      "passed": 16,
+      "stages": [
+        "qa-isolation-preconditions",
+        "install-asset-apk",
+        "asset-compatible-ota-before-login",
+        "buyer-a-login-conversion",
+        "buyer-a-buy-and-certificate",
+        "buyer-a-publish-priced-offer",
+        "buyer-b-marketplace-certificate",
+        "buyer-a-sale-and-delivery-request",
+        "operator-quote-private-mine",
+        "buyer-accept-simulated-costs",
+        "operator-delivery-lifecycle",
+        "operator-restock-management",
+        "buyer-history-profile-relaunch",
+        "api-verifies-native-wallets-lots-fees",
+        "buyer-compatible-ota-cold-launch",
+        "api-verifies-data-after-compatible-ota"
+      ]
+    },
+    {
+      "case": "XPT",
+      "run": "40957109951",
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/40957109951",
+      "driverSource": "c2d674bd83b1f7b942a16396ecee88ab4b8c9a03",
+      "passed": 16,
+      "stages": [
+        "qa-isolation-preconditions",
+        "install-asset-apk",
+        "asset-compatible-ota-before-login",
+        "buyer-a-login-conversion",
+        "buyer-a-buy-and-certificate",
+        "buyer-a-publish-priced-offer",
+        "buyer-b-marketplace-certificate",
+        "buyer-a-sale-and-delivery-request",
+        "operator-quote-private-mine",
+        "buyer-accept-simulated-costs",
+        "operator-delivery-lifecycle",
+        "operator-restock-management",
+        "buyer-history-profile-relaunch",
+        "api-verifies-native-wallets-lots-fees",
+        "buyer-compatible-ota-cold-launch",
+        "api-verifies-data-after-compatible-ota"
+      ]
+    },
+    {
+      "case": "XPD",
+      "run": "40957109951",
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/40957109951",
+      "driverSource": "c2d674bd83b1f7b942a16396ecee88ab4b8c9a03",
+      "passed": 16,
+      "stages": [
+        "qa-isolation-preconditions",
+        "install-asset-apk",
+        "asset-compatible-ota-before-login",
+        "buyer-a-login-conversion",
+        "buyer-a-buy-and-certificate",
+        "buyer-a-publish-priced-offer",
+        "buyer-b-marketplace-certificate",
+        "buyer-a-sale-and-delivery-request",
+        "operator-quote-private-mine",
+        "buyer-accept-simulated-costs",
+        "operator-delivery-lifecycle",
+        "operator-restock-management",
+        "buyer-history-profile-relaunch",
+        "api-verifies-native-wallets-lots-fees",
+        "buyer-compatible-ota-cold-launch",
+        "api-verifies-data-after-compatible-ota"
+      ]
+    },
+    {
+      "case": "ACCOUNTS",
+      "run": "40963811481",
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/40963811481",
+      "driverSource": "1c4b2b56aaf28e1356bcd038be96c07e8f21e356",
+      "passed": 16,
+      "stages": [
+        "qa-isolation-preconditions",
+        "install-account-apk",
+        "account-compatible-ota-before-wallet",
+        "native-wallet-cop-matrix",
+        "native-wallet-eur-matrix",
+        "native-wallet-usd-matrix",
+        "native-wallet-usdt-matrix",
+        "native-explicit-wallet-import",
+        "native-profile-and-private-recovery-setup",
+        "native-imported-origin-readonly",
+        "native-recovery-rejects-wrong-key",
+        "native-password-confirmation-and-reset",
+        "native-recovery-revokes-old-access",
+        "native-recovered-session-profile-cold-open",
+        "api-confirms-imported-data-after-recovery",
+        "api-confirms-isolated-fixtures-unchanged"
+      ]
+    },
+    {
+      "case": "QUALITY",
+      "run": "40962399056",
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/40962399056",
+      "driverSource": "1c4b2b56aaf28e1356bcd038be96c07e8f21e356",
+      "passed": 10,
+      "stages": [
+        "qa-isolation-preconditions",
+        "install-quality-apk",
+        "quality-compatible-ota-before-login",
+        "native-quality-buyer-login",
+        "native-insufficient-balance-blocks-purchase",
+        "native-prepare-one-cent-withdrawal",
+        "native-offline-preserves-pending-without-debit",
+        "native-pending-survives-cold-open-retry-once",
+        "api-verifies-no-duplicate-after-offline-retry",
+        "api-verifies-quality-buyer-permission"
+      ]
+    }
+  ],
+  "apk": [
+    {
+      "kind": "baseline",
+      "sha256": "fda0953d11a6035100bef9f9c04d070053edc2ae47c31852803a020d89e6b7c7",
+      "package": "com.openminerals.demo.mobile",
+      "code": 4,
+      "name": "0.1.3",
+      "minSdk": 24,
+      "certificate": "3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c"
+    },
+    {
+      "kind": "new",
+      "sha256": "c35719bf44fdc5a1237249be7e80d6d3102e57ee58f0cd0d9b5af3c66f32d83f",
+      "package": "com.openminerals.demo.mobile",
+      "code": 5,
+      "name": "0.2.0",
+      "minSdk": 24,
+      "certificate": "3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c"
+    }
+  ],
+  "local": {
+    "apiPassed": 150,
+    "mandatoryPostgresPassed": 71,
+    "mobilePassed": 199,
+    "optionalDesktopGLSkipped": 1,
+    "expoDoctorPassed": 21
+  },
+  "nativeModulesChanged": false,
+  "newSqlMigration": false,
+  "credentialsIncluded": false
+}
