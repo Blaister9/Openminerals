@@ -39,6 +39,27 @@ test('PostgreSQL historial de lote: diario durable, migración compatible y tran
       const history=await a.getLotHistory(race.op.id,race.lot.id);assert.equal(history.items.filter(item=>item.kind==='MARKET_TRANSFER').length,1);
       assert.equal((await a.getCustody(race.op.id,'operator')).totals.XAU.allocatedMg,500);
     });
+    await t.test('compraventas concurrentes de los cuatro metales conservan diarios y posiciones separados',async()=>{
+      const mixed=await lotFixture(a,'pg_four_metals'),metals=['XAU','XAG','XPT','XPD'];
+      await Promise.all(metals.map(async metal=>{
+        await a.mutateAccount(mixed.a.id,lotCommand('buy',{metal,grams:'0.200'}));
+        const offer=await a.mutateAccount(mixed.a.id,lotCommand('offer',{metal,grams:'0.100',price:'10.00'}));
+        await b.mutateAccount(mixed.b.id,lotCommand('market_buy',{sellerId:mixed.a.id,offerId:offer.receipt.offer.id}));
+      }));
+      const seller=await a.getAccountState(mixed.a.id),buyer=await b.getAccountState(mixed.b.id),custody=await a.getCustody(mixed.op.id,'operator'),management=await a.getManagement(mixed.op.id);
+      const movementIds=[];
+      for(const metal of metals){
+        assert.equal(seller.holdingsMg[metal],100);assert.equal(buyer.holdingsMg[metal],100);
+        assert.equal(custody.totals[metal].allocatedMg,200);assert.equal(custody.totals[metal].availableMg,metal==='XAU'?2800:800);
+        const lot=custody.lots.find(item=>item.metal===metal),history=await b.getLotHistory(mixed.op.id,lot.id),own=await a.getLotHistory(mixed.b.id,lot.id);
+        assert.equal(history.lot.metal,metal);assert.equal(history.items.filter(item=>item.kind==='BUY').length,1);assert.equal(history.items.find(item=>item.kind==='BUY').mg,200);
+        assert.equal(history.items.filter(item=>item.kind==='MARKET_TRANSFER').length,1);assert.equal(history.items.find(item=>item.kind==='MARKET_TRANSFER').mg,100);
+        assert.equal(own.total,1);assert.equal(own.items[0].direction,'IN');assert.equal(own.items[0].mg,100);
+        assert.deepEqual(management.kpis.metalVolumesMg[metal],{directBuy:200,directSell:0,marketplace:100});
+        movementIds.push(...history.items.map(item=>item.id));
+      }
+      assert.equal(new Set(movementIds).size,movementIds.length);
+    });
     await t.test('importación concurrente registra una vez y conserva sesión anterior',async()=>{
       const legacy=`lot-history-pg-${randomUUID()}`;await a.mutate(legacy,lotCommand('buy',{metal:'XAG',grams:'0.100'}));const before=await a.get(legacy);
       const results=await Promise.allSettled(['a','b'].map((suffix,index)=>[a,b][index].registerAccount({alias:`lot_history_pg_import_${suffix}`,password:LOT_HISTORY_PASSWORD,legacySessionId:legacy})));
