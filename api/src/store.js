@@ -3,6 +3,7 @@ import {seedState,applyCommand,METALS} from './domain.js';
 import {DEFAULT_MINE_ID,seedMine,accountStateForMine,importLegacyState,applyAccountCommand,applyStockCommand,summarizeMine,operatorReceiptView} from './shared-mine.js';
 import {AUTH_LIFETIME_MS,accountError,normalizeAlias,passwordRecord,passwordMatches,newAuthToken,tokenHash,publicAccount} from './account-auth.js';
 import {readReceipt} from './receipt-history.js';
+import {ensureCustody,validateCustody,allocateCustody,releaseCustody,addStockLot,custodyView,custodyCertificate} from './custody.js';
 
 const ID_PATTERN=/^[A-Za-z0-9_-]{16,100}$/;
 const clone=value=>structuredClone(value);
@@ -24,13 +25,19 @@ function validateMineInput({name,initialInventoryMg}={}){
 }
 function requireRole(account,role){if(!account)throw unauthorized();if(account.role!==role)throw forbidden();}
 function makeStore(adapter){
+  async function custodyMine(tx,mine){
+    const result=ensureCustody(mine,await tx.accountsForMine(mine.id));
+    if(result.changed)await tx.saveMine(result.mine);
+    return result.mine;
+  }
   async function authenticatedContext(tx,accountId,role){
     const first=await tx.account(accountId);
     requireRole(first,role);
-    const mine=await tx.mine(first.mineId,true);
+    let mine=await tx.mine(first.mineId,true);
     if(!mine)throw accountError(404,'Mina demo no disponible.');
     const account=await tx.account(accountId,true);
     requireRole(account,role);
+    mine=await custodyMine(tx,mine);
     return {account,mine};
   }
   async function addAccount({alias,password,role='buyer',mineId=DEFAULT_MINE_ID,legacySessionId}={}){
@@ -42,6 +49,7 @@ function makeStore(adapter){
     const account=await adapter.tx(async tx=>{
       let mine=await tx.mine(mineId,true);
       if(!mine)throw accountError(404,'Mina demo no disponible.');
+      mine=await custodyMine(tx,mine);
       if(await tx.alias(alias))throw accountError(409,'Ese alias demo ya existe.','ALIAS_TAKEN');
       let state=seedState();
       if(legacySessionId!==undefined){
@@ -52,7 +60,11 @@ function makeStore(adapter){
       }
       const result={id:`account-${randomUUID()}`,alias,role,mineId,...credentials,state,legacySessionId:legacySessionId??null,createdAt:new Date().toISOString()};
       await tx.insertAccount(result);
-      if(legacySessionId!==undefined)await tx.saveMine(mine);
+      if(legacySessionId!==undefined){
+        for(const metal of Object.keys(METALS))if(state.holdingsMg[metal])({mine}=allocateCustody(mine,result,metal,state.holdingsMg[metal],`import:${result.id}`));
+        validateCustody(mine,await tx.accountsForMine(mine.id));
+        await tx.saveMine(mine);
+      }
       return result;
     });
     return publicAccount(account);
@@ -106,10 +118,11 @@ function makeStore(adapter){
     createAccount:options=>addAccount(options),
     async createMine(input){
       const {name,initialInventoryMg}=validateMineInput(input);
-      const mine=seedMine(`mine-${randomUUID()}`,name);
+      let mine=seedMine(`mine-${randomUUID()}`,name);
       if(initialInventoryMg)for(const [metal,value] of Object.entries(initialInventoryMg)){
         mine.inventoryMg[metal]=value;mine.totalSupplyMg[metal]=value;
       }
+      ({mine}=ensureCustody(mine,[]));
       await adapter.tx(tx=>tx.insertMine(mine));
       return {id:mine.id,name:mine.name,demoOnly:true};
     },
@@ -147,7 +160,18 @@ function makeStore(adapter){
       return adapter.tx(async tx=>{
         const {account,mine}=await authenticatedContext(tx,accountId,'buyer');
         const result=applyAccountCommand(account.state,mine,command,{accountId:account.id});
-        if(result.changed){await tx.saveMine(result.mine);await tx.saveAccountState(account.id,result.state);}
+        if(result.changed){
+          if(command.action==='buy'){
+            const allocation=allocateCustody(result.mine,account,command.metal,result.receipt.mg,`buy:${command.requestId}`,result.receipt.at);
+            result.mine=allocation.mine;
+            result.receipt.certificateIds=allocation.allocations.map(item=>item.certificateId);
+            result.state.receipts[command.requestId]=clone(result.receipt);
+          }
+          if(command.action==='sell')result.mine=releaseCustody(result.mine,account.id,command.metal,result.receipt.mg);
+          const accounts=(await tx.accountsForMine(account.mineId)).map(item=>item.id===account.id?{...item,state:result.state}:item);
+          validateCustody(result.mine,accounts);
+          await tx.saveMine(result.mine);await tx.saveAccountState(account.id,result.state);
+        }
         return {receipt:clone(result.receipt),state:{...accountStateForMine(result.state,result.mine),account:publicAccount(account)},changed:result.changed};
       });
     },
@@ -161,8 +185,26 @@ function makeStore(adapter){
       return adapter.tx(async tx=>{
         const {account,mine}=await authenticatedContext(tx,accountId,'operator');
         const result=applyStockCommand(mine,command,{accountId:account.id,alias:account.alias});
-        if(result.changed)await tx.saveMine(result.mine);
+        if(result.changed){
+          const addition=addStockLot(result.mine,command,result.receipt.at);result.mine=addition.mine;
+          result.receipt.lotId=addition.lot.id;result.mine.stockReceipts[command.requestId]=clone(result.receipt);
+          validateCustody(result.mine,await tx.accountsForMine(account.mineId));
+          await tx.saveMine(result.mine);
+        }
         return {receipt:clone(result.receipt),mine:summarizeMine(result.mine,await tx.accountsForMine(account.mineId)),changed:result.changed,demoOnly:true};
+      });
+    },
+    async getCustody(accountId,role='buyer'){
+      return adapter.tx(async tx=>{
+        const {account,mine}=await authenticatedContext(tx,accountId,role);
+        return custodyView(mine,await tx.accountsForMine(account.mineId),account);
+      });
+    },
+    async getCertificate(accountId,certificateId){
+      return adapter.tx(async tx=>{
+        const first=await tx.account(accountId);if(!first)throw unauthorized();
+        const {account,mine}=await authenticatedContext(tx,accountId,first.role);
+        return custodyCertificate(mine,await tx.accountsForMine(account.mineId),account,certificateId);
       });
     },
     async getMineReceipt(operatorId,targetId,receiptId){

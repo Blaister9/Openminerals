@@ -62,11 +62,22 @@ export function createApiServer(store,config={}){
       const token=bearerToken(req.headers.authorization);
       const identity=token?await store.authenticate(token):null;
       if(req.method==='GET'&&path==='/api/demo/accounts/me')return send(res,200,requireIdentity(identity));
+      if(req.method==='GET'&&path==='/api/demo/custody'){
+        const {account}=requireIdentity(identity);
+        return send(res,200,await store.getCustody(account.id,'buyer'));
+      }
+      if(req.method==='GET'&&path.startsWith('/api/demo/certificates/')){
+        const {account}=requireIdentity(identity);
+        const certificateId=path.slice('/api/demo/certificates/'.length);
+        if(!/^[A-Za-z0-9_-]{8,100}$/.test(certificateId))throw accountError(400,'Identificador de certificado DEMO inválido.');
+        return send(res,200,await store.getCertificate(account.id,certificateId));
+      }
       if(path.startsWith('/api/demo/mine/')){
         const {account}=requireIdentity(identity);
         if(req.method==='GET'&&path==='/api/demo/mine/summary')return send(res,200,await store.getMineSummary(account.id));
+        if(req.method==='GET'&&path==='/api/demo/mine/custody')return send(res,200,await store.getCustody(account.id,'operator'));
         if(req.method==='POST'&&path==='/api/demo/mine/stock'){
-          const body=await readJson(req);onlyKeys(body,['metal','grams','reason']);
+          const body=await readJson(req);onlyKeys(body,['metal','grams','reason','purityBps','location','documents','documentTitle','documentContent']);
           const result=await store.mutateStock(account.id,{...body,requestId:req.headers['idempotency-key']});
           return send(res,200,{receipt:result.receipt,mine:result.mine,demoOnly:true});
         }

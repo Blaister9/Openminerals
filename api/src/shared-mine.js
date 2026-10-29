@@ -1,4 +1,5 @@
 import {METALS,DEMO_RATES,DomainError,seedState,applyCommand,parseGrams} from './domain.js';
+import {stockMetadata} from './custody.js';
 
 export const DEFAULT_MINE_ID='openminerals-demo-v1';
 const MAX_MG=1_000_000_000;
@@ -85,7 +86,9 @@ export function applyStockCommand(mine,command,{accountId,alias}={},now=new Date
   fail(typeof reason==='string'&&reason.trim().length>=3&&reason.trim().length<=160,
     'Escribe un motivo ficticio de 3 a 160 caracteres','INVALID_OPERATION');
   const mg=parseGrams(grams);
-  const signature=JSON.stringify([metal,grams,reason,accountId]);
+  const metadata=stockMetadata(command);
+  // Preserve signatures from 0.1.3 for commands that have no new metadata.
+  const signature=JSON.stringify([metal,grams,reason,accountId,...(Object.keys(metadata).length?[metadata]:[])]);
   if(Object.hasOwn(mine.stockReceipts,requestId)){
     fail(mine.stockSignatures[requestId]===signature,
       'Identificador reutilizado con otros parámetros','INVALID_OPERATION');

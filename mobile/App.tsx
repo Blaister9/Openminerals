@@ -13,6 +13,7 @@ import {OperationConfirmation} from './components/OperationConfirmation';
 import {AccountAccess} from './components/AccountAccess';
 import {MineDashboard,type MineSummary,type StockReceipt} from './components/MineDashboard';
 import {StockReceiptDetails} from './components/StockReceiptDetails';
+import {CustodyPanel} from './components/CustodyPanel';
 
 // DEMO: todas las cifras, inventarios y solicitudes son simulados.
 // Cuentas de demostración; no hay KYC, pagos, exchange ni bóveda real.
@@ -420,6 +421,7 @@ export default function App(){
    <Sub>Solicitudes y ofertas</Sub>
    {state?.offers.filter(o=>o.status==='OPEN').map(o=><Card key={o.id}><Row left={`Oferta ${meta(o.metal).name}`} right={gram(o.mg)}/><Button label="Cancelar oferta" secondary disabled={tradingBlocked} onPress={()=>perform('cancel_offer',{offerId:o.id},'Cancelar oferta',`Se liberan ${gram(o.mg)}.`)}/></Card>)}
    {state?.custodyRequests.filter(d=>d.status==='PENDING_QUOTE').map(d=><Card key={d.id}><Row left={`Entrega ${meta(d.metal).name}`} right={gram(d.mg)}/><Text style={styles.mutedSmall}>Pendiente de cotización · sin envío real.</Text><Button label="Cancelar solicitud" secondary disabled={tradingBlocked} onPress={()=>perform('cancel_delivery',{deliveryId:d.id},'Cancelar entrega',`Se liberan ${gram(d.mg)}.`)}/></Card>)}
+   {account&&<CustodyPanel key={account.id} identityKey={account.id} operator={false} get={client.get} disabled={tradingBlocked}/>}
   </>}
  function more(){return <><Text style={styles.eyebrow}>CONTROL Y TRANSPARENCIA</Text><Text style={styles.pageTitle}>Actividad</Text>
   {accountCard()}<Button label="Actualizar datos" secondary disabled={busy||authBusy} onPress={refresh}/>
@@ -459,6 +461,7 @@ export default function App(){
    onLayout={event=>setViewportHeight(Math.max(1,event.nativeEvent.layout.height))}
    onScroll={Animated.event([{nativeEvent:{contentOffset:{y:homeScrollY}}}],{useNativeDriver:true})} scrollEventThrottle={16}>
    {isOperator?(tab==='Cuenta'?accountPage():<MineDashboard summary={mineSummary} loading={mineLoading} error={mineError} blocked={busy||authBusy||!!pending||authExpired||!!accountRecovery} lastStockId={lastStockId} onRefresh={()=>void loadMine()} onReceipt={(ownerId,receipt)=>void openReceipt(receipt.id,receipt,ownerId)} onStockReceipt={setStockReceipt} onRestock={body=>perform('mine/stock',body,'Registrar ingreso ficticio',`${gram(Math.round((parsePositiveDecimal(body.grams,3)||0)*1000))} de ${meta(body.metal).name}.\nMotivo: ${body.reason}.\nSe añadirá a las existencias compartidas de esta demostración.`)}/>):tab==='Inicio'?home():tab==='Mercado'?market():tab==='Billetera'?wallet():tab==='Metales'?holdings():more()}
+   {isOperator&&tab==='Mina'&&account&&<CustodyPanel key={account.id} identityKey={account.id} operator get={client.get} disabled={busy||authBusy||authExpired||!!accountRecovery}/>}
   </Animated.ScrollView>}
   <View style={styles.tabs}>{sections.map(t=><Pressable accessibilityRole="tab" accessibilityState={{selected:tab===t}} key={t} onPress={()=>setTab(t)} style={styles.tab}><View style={[styles.tabDot,tab===t&&styles.tabDotActive]}/><Text style={[styles.tabLabel,tab===t&&styles.tabLabelActive]}>{t==='Más'?'Actividad':t}</Text></Pressable>)}</View>
   <OperationConfirmation visible={confirmation!==null} title={confirmation?.title||''} detail={confirmation?.detail||''} onCancel={cancelConfirmation} onConfirm={confirmOperation}/>
