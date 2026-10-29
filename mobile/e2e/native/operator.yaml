@@ -10,10 +10,13 @@ name: Operator delivery lifecycle
     centerElement: true
     timeout: 30000
 - tapOn: ^Entregas DEMO$
+- extendedWaitUntil:
+    visible: ^Gestionar entregas demo$
+    timeout: 30000
 - scrollUntilVisible:
     element:
       text: Motivo ficticio del cambio de entrega
-    direction: UP
+    direction: DOWN
     centerElement: true
     timeout: 30000
 - tapOn: Motivo ficticio del cambio de entrega

@@ -89,3 +89,10 @@ test('operator navigation: actual runner branch installs only new APK and verifi
   assert.equal(stages.at(-1),'checked-unused');assert.doesNotMatch(JSON.stringify(flows),/buyer|quote|stock|accept/);
   assert.match(text,/if\(scenario==='operator-navigation'\)\{await operatorNavigation\(\);return;\}/);
 });
+
+test('delivery lifecycle starts at the restored top and finds its first form below the heading',async()=>{
+  const commands=yaml.parseAllDocuments(await source('../e2e/native/operator.yaml'))[1].toJSON();
+  const entry=commands.findIndex(command=>command.tapOn==='^Entregas DEMO$');assert.ok(entry>=0);
+  const wait=commands[entry+1];assert.equal(wait.extendedWaitUntil.visible,'^Gestionar entregas demo$');
+  const field=commands[entry+2].scrollUntilVisible;assert.equal(field.element.text,'Motivo ficticio del cambio de entrega');assert.equal(field.direction,'DOWN');
+});
