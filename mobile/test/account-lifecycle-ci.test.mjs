@@ -7,6 +7,10 @@ import {createStore} from '../../api/src/store.js';
 import {accountFlow,expectedImportedWallet,verifyImportedState,walletCurrencies} from '../e2e/account-lifecycle.mjs';
 import {privateRecoveryKey} from '../e2e/private-recovery.mjs';
 import {flowSelectors} from '../e2e/ci-diagnostics.mjs';
+import {captureNativeFailure} from '../e2e/ci-native-failure.mjs';
+import {mkdtemp,readdir,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 const yaml=createRequire(import.meta.url)('yaml');
 test('account lifecycle uses valid bounded private flows and no screenshots or state clearing',()=>{
   for(const [name,currency] of [...walletCurrencies.map(currency=>['wallet',currency]),...['import','setup','hide-and-logout','recover-start','recover-complete','reenter'].map(name=>[name])]){
@@ -44,4 +48,20 @@ test('candidate matrix remains manual and binds independent private fixtures wit
   const credentials=job.steps.find(step=>step.env?.OPENMINERALS_QA_BUYER_A_ALIAS).env;
   for(const [name,value] of Object.entries(credentials).filter(([name])=>name.startsWith('OPENMINERALS_QA_')))assert.ok(value.includes("format('OPENMINERALS_RC_{0}_"));
   assert.doesNotMatch(JSON.stringify(workflow),/DEMO_ADMIN_TOKEN|DATABASE_URL|EAS_TOKEN/);
+});
+
+test('native failure metadata excludes private UI and never captures recovery or buyer screenshots',async()=>{
+  const directory=await mkdtemp(join(tmpdir(),'openminerals-private-navigation-'));
+  try{
+    const secret='private-key-must-never-publish',calls=[],xml='<hierarchy><node text="Mercado" class="android.widget.TextView" bounds="[0,1][20,30]"/><node text="'+secret+'"/></hierarchy>';
+    const invoke=(file,args)=>{calls.push(args);return {status:0,stdout:args.includes('cat')?xml:'',stderr:secret};};
+    for(const [scenario,flow] of [['asset-full','buyer-b'],['account-lifecycle','account-recover-complete']]){
+      const value=await captureNativeFailure({scenario,flow,serial:'emulator-5554',publishDirectory:directory,privateValues:[secret],invoke});
+      assert.equal(value.screenshot,null);assert.equal(JSON.stringify(value).includes(secret),false);assert.equal(value.navigation.landmarks[0].id,'tab-market');
+    }
+    assert.equal(calls.some(args=>args.includes('screencap')||args.includes('pull')),false);
+    assert.deepEqual(await readdir(directory),['native-failure-state.json']);
+    await assert.rejects(()=>captureNativeFailure({scenario:'asset-full',flow:'unreviewed-flow',serial:'emulator-5554',invoke}));
+    await assert.rejects(()=>captureNativeFailure({scenario:'asset-full',flow:'buyer-b',serial:'physical-device',invoke}));
+  }finally{await rm(directory,{recursive:true,force:true});}
 });

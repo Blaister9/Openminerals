@@ -16,6 +16,7 @@ import {captureOperatorNavigation} from './ci-operator-navigation.mjs';
 import {nativeCase,nativeFlow} from './native-case.mjs';
 import {runAccountLifecycle} from './account-lifecycle.mjs';
 import {privateRecoveryKey} from './private-recovery.mjs';
+import {captureNativeFailure,nativeFailureAllowed} from './ci-native-failure.mjs';
 
 const repo=resolve(dirname(fileURLToPath(import.meta.url)),'..'),root=resolve(process.env.RUNNER_TEMP||'.','openminerals-native');
 const published=join(root,'public'),privateRoot=join(root,'private');
@@ -100,6 +101,7 @@ async function maestro(name,role,{source,extraEnv={}}={}){
   }catch(error){
     const definitions=source|| (await Promise.all([name,'login'].map(flow=>readFile(join(repo,'e2e/native',flow+'.yaml'),'utf8')))).join('\n');
     await saveDiagnostic(name,join(directory,'console.txt'),definitions);
+    if(nativeFailureAllowed(scenario,name))await captureNativeFailure({scenario,flow:name,serial,publishDirectory:published,privateValues:[...privateValues]});
     if(scenario==='operator-navigation'||scenario==='full'&&['quote','operator','operator-stock'].includes(name))await captureNavigation('failure',name);
     throw error;
   }

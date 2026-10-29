@@ -115,7 +115,8 @@ test('Android CI: workflow is manual KVM-only bounded public upload and no secre
   assert.deepEqual(workflow.on.workflow_dispatch.inputs.ota_update_id,{description:'Optional full published Android update UUID for runtime 0.2.0 on channel demo',type:'string',required:false,default:''});
   const job=workflow.jobs['android-ui'];assert.equal(job['runs-on'],'ubuntu-24.04');
   assert.equal(job.if,'github.event.repository.private == false');
-  assert.equal(workflow.concurrency['cancel-in-progress'],false);
+  assert.equal(job.concurrency['cancel-in-progress'],false);
+  assert.equal(job.concurrency.group,'openminerals-isolated-native-qa-${{ matrix.asset }}');
   assert.match(raw,/udevadm trigger --name-match=kvm/);
   const runner=job.steps.find(step=>step.uses?.startsWith('ReactiveCircus/'));
   assert.equal(runner.with.cores,4);assert.equal(runner.with['ram-size'],'4096M');

@@ -32,14 +32,14 @@ on:
         default: ''
 permissions:
   contents: read
-concurrency:
-  group: openminerals-isolated-native-qa
-  cancel-in-progress: false
 jobs:
   android-ui:
     # Standard public runner only: no larger runner or paid testing service.
     if: github.event.repository.private == false
     runs-on: ubuntu-24.04
+    concurrency:
+      group: openminerals-isolated-native-qa-${{ matrix.asset }}
+      cancel-in-progress: false
     strategy:
       fail-fast: false
       max-parallel: 4
