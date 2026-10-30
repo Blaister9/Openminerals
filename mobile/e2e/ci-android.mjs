@@ -19,6 +19,7 @@ import {runAccountLifecycle} from './account-lifecycle.mjs';
 import {privateRecoveryKey} from './private-recovery.mjs';
 import {captureNativeFailure,nativeFailureAllowed} from './ci-native-failure.mjs';
 import {runNetworkQuality} from './network-quality.mjs';
+import {horizontalWalletNavigation} from './wallet-navigation.mjs';
 import {createObserverRequest} from './ci-http.mjs';
 
 const repo=resolve(dirname(fileURLToPath(import.meta.url)),'..'),root=resolve(process.env.RUNNER_TEMP||'.','openminerals-native');
@@ -93,8 +94,11 @@ async function maestro(name,role,{source,extraEnv={}}={}){
   const user=role==='register'?users.register:users[role];
   const env={...process.env,MAESTRO_CLI_NO_ANALYTICS:'1',MAESTRO_LOGIN_ALIAS:user?.alias||'',MAESTRO_LOGIN_PASSWORD:user?.password||'',MAESTRO_EXPECTED_OTA_ID:['ota','ota-before-story','operator-navigation-ota'].includes(name)?(expectedOtaId??''):'',...extraEnv};
   const generated=join(privateRoot,'flows');await mkdir(generated,{recursive:true,mode:0o700});
-  for(const file of await readdir(join(repo,'e2e/native')))if(file.endsWith('.yaml'))await writeFile(join(generated,file),nativeFlow(file.slice(0,-5),await readFile(join(repo,'e2e/native',file),'utf8'),coverageMetal),{mode:0o600});
-  if(source){requireSafe((scenario==='account-lifecycle'&&/^(?:wallet-(?:cop|eur|usd|usdt)|account-[a-z-]+)$/.test(name)||scenario==='quality-network'&&/^quality-(?:login|insufficient|prepare|offline|resolve)$/.test(name)),'Custom native flow outside account lifecycle.');await writeFile(join(generated,name+'.yaml'),source,{mode:0o600});}
+  for(const file of await readdir(join(repo,'e2e/native')))if(file.endsWith('.yaml')){
+    const flowName=file.slice(0,-5),definition=nativeFlow(flowName,await readFile(join(repo,'e2e/native',file),'utf8'),coverageMetal);
+    await writeFile(join(generated,file),flowName==='preserve'?definition:horizontalWalletNavigation(definition),{mode:0o600});
+  }
+  if(source){requireSafe((scenario==='account-lifecycle'&&/^(?:wallet-(?:cop|eur|usd|usdt)|account-[a-z-]+)$/.test(name)||scenario==='quality-network'&&/^quality-(?:login|insufficient|prepare|offline|resolve)$/.test(name)),'Custom native flow outside account lifecycle.');await writeFile(join(generated,name+'.yaml'),horizontalWalletNavigation(source),{mode:0o600});}
   try{
     command('maestro',['--no-ansi','--device',serial,'test','--format','JUNIT','--output',join(directory,'raw-report.xml'),'--debug-output',join(directory,'debug'),'--test-output-dir',join(directory,'screenshots'),join(generated,name+'.yaml')],{env,timeout:420000,output:join(directory,'console.txt')});
   }catch(error){
@@ -184,6 +188,7 @@ async function profileRelaunch(){
   });
   await runStage('profile-compatible-ota-before-login',()=>maestro('operator-navigation-ota'));
   await runStage('buyer-history-profile-relaunch',()=>maestro('profile','a'));
+  await runStage('buyer-custody-fraction-is-not-whole-lot',()=>maestro('custody-recheck','a'));
   await runStage('api-verifies-native-wallets-lots-fees',verifyNative);
   await runStage('buyer-compatible-ota-cold-launch',()=>maestro('ota','a'));
   await runStage('api-verifies-data-after-compatible-ota',verifyNative);
@@ -285,6 +290,7 @@ async function run(){
   await runStage('operator-delivery-lifecycle',()=>maestro('operator','op'));
   await runStage('operator-restock-management',()=>maestro('operator-stock','op'));
   await runStage('buyer-history-profile-relaunch',()=>maestro('profile','a'));
+  await runStage('buyer-custody-fraction-is-not-whole-lot',()=>maestro('custody-recheck','a'));
   await runStage('api-verifies-native-wallets-lots-fees',verifyNative);
   if(expectedOtaId){
     await runStage('buyer-compatible-ota-cold-launch',()=>maestro('ota','a'));

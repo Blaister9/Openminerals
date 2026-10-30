@@ -48,9 +48,12 @@ name: Register without importing or trading against the default mine
     timeout: 30000
 - tapOn: ^Crear cuenta de comprador$
 - extendedWaitUntil:
+    visible: ^Comprador ·.*
+    timeout: 30000
+- tapOn: ^Billetera$
+- extendedWaitUntil:
     visible: ^USDT 250,00$
     timeout: 30000
-- assertVisible: ^USDT 0,00$
 - tapOn:
     text: ^Cuenta$
     index: 0
@@ -64,6 +67,10 @@ name: Register without importing or trading against the default mine
     centerElement: true
     timeout: 30000
 - tapOn: ^Cerrar sesión$
+- extendedWaitUntil:
+    visible: ^Sesión sin cuenta$
+    timeout: 30000
+- tapOn: ^Billetera$
 - extendedWaitUntil:
     visible: ^USDT 268,40$
     timeout: 30000

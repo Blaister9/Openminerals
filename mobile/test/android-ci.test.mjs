@@ -158,7 +158,7 @@ test('Android CI: workflow is manual KVM-only bounded public upload and no secre
 
 test('Android CI: new Maestro documents preserve data and only anonymous phases capture screenshots',async()=>{
   const folder=new URL('../e2e/native/',import.meta.url),files=await readdir(folder);
-  const actions=new Set(['tapOn','scrollUntilVisible','extendedWaitUntil','assertVisible','assertNotVisible','inputText','runFlow','takeScreenshot','swipe','eraseText']);
+  const actions=new Set(['tapOn','scrollUntilVisible','extendedWaitUntil','assertVisible','assertNotVisible','inputText','runFlow','takeScreenshot','swipe','eraseText','repeat']);
   for(const file of files){
     const text=await readFile(new URL(file,folder),'utf8'),documents=yaml.parseAllDocuments(text);
     assert.equal(documents.length,2);assert.ok(documents.every(document=>document.errors.length===0));

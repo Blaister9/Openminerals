@@ -1,0 +1,21 @@
+appId: com.openminerals.demo.mobile
+name: Read-only owned fractions after completed commercial journey
+---
+- tapOn: ^Metales$
+- tapOn: ^Lotes y certificados$
+- scrollUntilVisible:
+    element:
+      text: ^Mis fracciones registradas DEMO$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^Mis fracciones registradas DEMO$
+- assertVisible: '^Fracción DEMO de Oro: 0,500 g$'
+- scrollUntilVisible:
+    element:
+      text: ^Peso activo total del lote$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- assertVisible: ^Peso activo total del lote$
+- tapOn: ^Actividad$

@@ -93,8 +93,8 @@ export function CustodyPanel({operator,identityKey,get,disabled=false,refreshKey
     {data&&<>
       <Text style={styles.smallHeading}>{data.mine.name}</Text>
       <Text style={styles.note}>{data.disclaimer}</Text>
-      <View style={styles.card}><Text style={styles.cardTitle}>{operator?'Total de lotes registrados':'Resumen de los lotes vinculados'}</Text>
-        {custodyMetals.map(metal=><View key={metal}><Row label={custodyMetalName(metal)} value={custodyGrams(data.totals[metal].activeWeightMg)}/>{data.totals[metal].deliveredMg>0&&<Text style={styles.note}>{custodyGrams(data.totals[metal].deliveredMg)} entregados en la simulación; peso registrado original {custodyGrams(data.totals[metal].weightMg)}.</Text>}</View>)}
+      <View style={styles.card}><Text style={styles.cardTitle}>{operator?'Peso activo de los lotes DEMO':'Mis fracciones registradas DEMO'}</Text>
+        {custodyMetals.map(metal=><View key={metal} accessible accessibilityLabel={`${operator?'Peso activo de lote':'Fracción DEMO de'} ${custodyMetalName(metal)}: ${custodyGrams(operator?data.totals[metal].activeWeightMg:data.totals[metal].allocatedMg)}`}><Row label={custodyMetalName(metal)} value={custodyGrams(operator?data.totals[metal].activeWeightMg:data.totals[metal].allocatedMg)}/>{operator&&data.totals[metal].deliveredMg>0&&<Text style={styles.note}>{custodyGrams(data.totals[metal].deliveredMg)} salidos en la simulación; peso registrado original {custodyGrams(data.totals[metal].weightMg)}.</Text>}</View>)}
       </View>
       {!data.lots.length&&<View style={styles.card}><Text style={styles.cardTitle}>{operator?'No hay lotes registrados':'Todavía no tienes lotes vinculados'}</Text><Text style={styles.note}>{operator?'Los ingresos ficticios de metal permiten registrar lotes para esta demostración.':'Tus compras simuladas podrán vincular gramos a lotes de la mina. Tus saldos anteriores permanecen en el portafolio.'}</Text></View>}
       {data.lots.map(lot=>{
@@ -102,7 +102,7 @@ export function CustodyPanel({operator,identityKey,get,disabled=false,refreshKey
         return <View key={lot.id} style={styles.card}>
           <Text style={styles.eyebrow}>LOTE DEMO</Text><Text style={styles.cardTitle}>{custodyMetalName(lot.metal)}</Text><Text selectable style={styles.identifier}>{lot.id}</Text>
           <Row label="Pureza declarada de prueba" value={lot.purity}/><Row label="Peso original del lote" value={custodyGrams(lot.originalWeightMg)}/>
-          <Row label="Entregado en la simulación" value={custodyGrams(lot.deliveredMg)}/><Row label="Peso que sigue en custodia demo" value={custodyGrams(lot.activeWeightMg)}/>
+          <Row label="Salidas totales del lote DEMO" value={custodyGrams(lot.deliveredMg)}/><Row label="Peso activo total del lote" value={custodyGrams(lot.activeWeightMg)}/>
           <Row label="Ubicación ficticia" value={lot.location}/><Row label="Estado" value={custodyStatus(lot.status)}/>
           <Row label={operator?'Asignado en el lote':'Asignado a mi cuenta'} value={custodyGrams(lot.allocatedMg)}/><Row label="Disponible en el lote" value={custodyGrams(lot.availableMg)}/>
           {lot.reservedMg!==undefined&&<Row label={operator?'Reservado dentro de lo asignado':'Reserva de mi cuenta en este lote'} value={custodyGrams(lot.reservedMg)}/>}

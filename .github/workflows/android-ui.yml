@@ -17,7 +17,7 @@ on:
         type: choice
         required: true
         default: single
-        options: [single, all, XAU, XAG, XPT, XPD, ACCOUNTS]
+        options: [single, all, metals, XAU, XAG, XPT, XPD, ACCOUNTS]
       apk_url:
         description: Public HTTPS APK URL (Expo or this repository release)
         type: string
@@ -45,7 +45,7 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        asset: ${{ fromJSON(inputs.case_scope == 'all' && '["XAU","XAG","XPT","XPD","ACCOUNTS"]' || inputs.case_scope == 'single' && '["single"]' || format('["{0}"]', inputs.case_scope)) }}
+        asset: ${{ fromJSON(inputs.case_scope == 'all' && '["XAU","XAG","XPT","XPD","ACCOUNTS"]' || inputs.case_scope == 'metals' && '["XAU","XAG","XPT","XPD"]' || inputs.case_scope == 'single' && '["single"]' || format('["{0}"]', inputs.case_scope)) }}
     env:
       NATIVE_COVERAGE_METAL: ${{ matrix.asset == 'single' && 'XAU' || matrix.asset == 'ACCOUNTS' && 'XAU' || matrix.asset }}
     timeout-minutes: 45
@@ -156,6 +156,17 @@ jobs:
           # with -accel on. A failed SDK check stops before all native commands.
           script: >-
             "$ANDROID_HOME/emulator/emulator" -accel-check >> "$RUNNER_TEMP/openminerals-native/public/acceleration.txt" 2>&1 && node mobile/e2e/ci-android.mjs run
+      - name: Show the already sanitized failure metadata
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          folder = pathlib.Path(os.environ['RUNNER_TEMP']) / 'openminerals-native' / 'public'
+          for name in ('failure-context.json', 'native-failure-state.json'):
+              file = folder / name
+              if file.is_file() and not file.is_symlink():
+                  print(name, json.dumps(json.loads(file.read_text()), ensure_ascii=False))
+          PY
       - name: Upload only sanitized JUnit metadata and anonymous pre-login images
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
