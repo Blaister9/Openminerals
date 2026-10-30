@@ -43,7 +43,8 @@ function backend(){
       const key=init.headers['Idempotency-Key'];const compound=owner.id+':'+key;
       const previous=receipts.get(compound);let value;
       if(path.endsWith('/stock')){
-        const summary={mine,demoOnly:true,reconciled:true,inventoryMg:records(),totalSupplyMg:records(),allocatedMg:records(),reservedMg:records(),accountCount:2,transactionCount:0,demoFeesCollectedMinor:0,offersOpen:0,deliveriesPending:0,operations:[],pendingOffers:[],pendingDeliveries:[],stockAdjustments:[]};
+        const zero=()=>({XAU:0,XAG:0,XPT:0,XPD:0});
+        const summary={mine,demoOnly:true,reconciled:true,inventoryMg:records(),totalSupplyMg:records(),allocatedMg:zero(),reservedMg:zero(),deliveryCommittedMg:zero(),accountCount:2,transactionCount:0,demoFeesCollectedMinor:0,offersOpen:0,deliveriesPending:0,operations:[],pendingOffers:[],pendingDeliveries:[],stockAdjustments:[]};
         value={mine:summary,receipt:{id:key,action:'stock',status:'COMPLETED',at:'2026-10-28T10:00:00.000Z',demoOnly:true,metal:'XAU',mg:1000,reason:'Ingreso ficticio',actor:{id:owner.id,alias:owner.alias},inventoryAfterMg:records(),totalSupplyAfterMg:records()}};
       }else value=result(owner,key);
       if(previous)value={...previous,receipt:{...previous.receipt,replayed:true}};

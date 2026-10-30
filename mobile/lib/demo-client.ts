@@ -1,4 +1,5 @@
 import type {Receipt} from './receipt-presentation';
+import {parseMineInventory} from './mine-inventory.ts';
 
 export type Storage = {
   getItem(key:string):Promise<string|null>;
@@ -24,6 +25,11 @@ const nonnegative=(value:unknown)=>typeof value==='number'&&Number.isSafeInteger
 function metalRecord(value:unknown):value is Record<string,number>{
   return !!value&&typeof value==='object'&&metalKeys.every(key=>nonnegative((value as Record<string,unknown>)[key]));
 }
+function completeMineInventory(value:unknown):boolean {
+  // Validate the same quantities as the view before acknowledging a command.
+  // A malformed 200 response must retain its original durable replay key.
+  try{parseMineInventory(value);return true;}catch{return false;}
+}
 function completeStockResult(data:OperationResult,operation:PendingOperation):boolean {
   const receipt=data.receipt as Receipt&{
     reason?:unknown;actor?:{id?:unknown;alias?:unknown};inventoryAfterMg?:unknown;totalSupplyAfterMg?:unknown;
@@ -39,7 +45,7 @@ function completeStockResult(data:OperationResult,operation:PendingOperation):bo
     !!mine&&mine.demoOnly===true&&mine.reconciled===true&&typeof identity?.id==='string'&&typeof identity?.name==='string'&&
     ['inventoryMg','totalSupplyMg','allocatedMg','reservedMg'].every(key=>metalRecord(mine[key]))&&
     ['accountCount','transactionCount','demoFeesCollectedMinor','offersOpen','deliveriesPending'].every(key=>nonnegative(mine[key]))&&
-    ['operations','pendingOffers','pendingDeliveries','stockAdjustments'].every(key=>Array.isArray(mine[key]));
+    ['operations','pendingOffers','pendingDeliveries','stockAdjustments'].every(key=>Array.isArray(mine[key]))&&completeMineInventory(mine);
 }
 function completeOperatorResult(data:OperationResult,operation:PendingOperation):boolean {
   const receipt=data.receipt as Receipt&{actor?:{id?:unknown};mineId?:unknown};
@@ -50,7 +56,7 @@ function completeOperatorResult(data:OperationResult,operation:PendingOperation)
     !!mine&&mine.demoOnly===true&&mine.reconciled===true&&typeof identity?.id==='string'&&typeof identity.name==='string'&&receipt.mineId===identity.id&&
     ['inventoryMg','totalSupplyMg','allocatedMg','reservedMg'].every(key=>metalRecord(mine[key]))&&
     ['accountCount','transactionCount','demoFeesCollectedMinor','offersOpen','deliveriesPending'].every(key=>nonnegative(mine[key]))&&
-    ['operations','pendingOffers','pendingDeliveries','stockAdjustments'].every(key=>Array.isArray(mine[key]));
+    ['operations','pendingOffers','pendingDeliveries','stockAdjustments'].every(key=>Array.isArray(mine[key]))&&completeMineInventory(mine);
 }
 
 // No operation is sent before its original key and payload are stored durably.
