@@ -118,6 +118,7 @@ export function summarizeMine(mine,accounts){
   const buyers=accounts.filter(a=>a.role==='buyer');
   const allocatedMg=record(m=>buyers.reduce((n,a)=>n+a.state.holdingsMg[m],0));
   const reservedMg=record(m=>buyers.reduce((n,a)=>n+reservations(a.state,m),0));
+  const deliveryCommittedMg=record(m=>buyers.reduce((sum,account)=>sum+account.state.custodyRequests.filter(item=>item.metal===m&&['APPROVED','PREPARING','DISPATCHED_DEMO'].includes(item.status)).reduce((n,item)=>n+item.mg,0),0));
   for(const m of metals){
     fail(validMg(allocatedMg[m])&&validMg(reservedMg[m])&&reservedMg[m]<=allocatedMg[m]&&
       mine.inventoryMg[m]+allocatedMg[m]===mine.totalSupplyMg[m],
@@ -136,7 +137,7 @@ export function summarizeMine(mine,accounts){
     .map(delivery=>({account:{id:a.id,alias:a.alias},delivery:copy(delivery)})));
   return {
     mine:{id:mine.id,name:mine.name},demoOnly:true,reconciled:true,
-    inventoryMg:copy(mine.inventoryMg),totalSupplyMg:copy(mine.totalSupplyMg),allocatedMg,reservedMg,
+    inventoryMg:copy(mine.inventoryMg),totalSupplyMg:copy(mine.totalSupplyMg),allocatedMg,reservedMg,deliveryCommittedMg,
     accountCount:buyers.length,transactionCount:trades.length,
     demoFeesCollectedMinor:fees.reduce((n,o)=>n+(o.receipt.feeMinor||0),0),
     operations,offersOpen:pendingOffers.length,deliveriesPending:pendingDeliveries.length,

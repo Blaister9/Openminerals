@@ -1,0 +1,54 @@
+import {spawn} from 'node:child_process';
+import {once} from 'node:events';
+import {randomUUID} from 'node:crypto';
+import {readFile,writeFile,stat} from 'node:fs/promises';
+import {join} from 'node:path';
+import {PACKAGE,requireSafe} from './ci-safety.mjs';
+
+const numeric=(text,pattern)=>{const match=pattern.exec(text);return match?Number(match[1]):null;};
+export function parseAndroidPerformance({before,after,gfx,start}){
+  const pss=text=>numeric(text,/TOTAL PSS:\s*(\d+)/)??numeric(text,/^\s*TOTAL\s+(\d+)/m);
+  return {coldStartTotalMs:numeric(start,/TotalTime:\s*(\d+)/),coldStartWaitMs:numeric(start,/WaitTime:\s*(\d+)/),
+    pssBeforeKiB:pss(before),pssAfterKiB:pss(after),
+    uiFrames:numeric(gfx,/Total frames rendered:\s*(\d+)/),jankyUiFrames:numeric(gfx,/Janky frames:\s*(\d+)/),
+    uiFrameP50Ms:numeric(gfx,/50th percentile:\s*(\d+)ms/),uiFrameP90Ms:numeric(gfx,/90th percentile:\s*(\d+)ms/),uiFrameP95Ms:numeric(gfx,/95th percentile:\s*(\d+)ms/)};
+}
+// The caller has already checked the disposable emulator guard. Everything
+// here finishes BEFORE a credential is typed. Never record account flows.
+export async function runImmersivePerformance({adb,serial,maestro,published}){
+  requireSafe(process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_OS==='Linux'&&/^emulator-\d+$/.test(serial),'Performance recording requires the disposable GitHub emulator.');
+  const activity=adb('shell','cmd','package','resolve-activity','--brief',PACKAGE).split(/\r?\n/).find(line=>line.startsWith(PACKAGE+'/'));
+  requireSafe(activity&&/^[A-Za-z0-9_.$/]+$/.test(activity),'Unable to resolve the demo activity.');
+  adb('shell','am','force-stop',PACKAGE);
+  const start=adb('shell','am','start','-W','-n',activity);
+  const before=adb('shell','dumpsys','meminfo',PACKAGE);adb('shell','dumpsys','gfxinfo',PACKAGE,'reset');
+  const pids=()=>{try{return adb('shell','pidof','screenrecord');}catch{return '';}};
+  requireSafe(pids()==='','Another screen recorder is running.');
+  const remote='/sdcard/openminerals-story-'+randomUUID()+'.mp4';
+  const recorder=spawn('adb',['-s',serial,'shell','screenrecord','--bit-rate','1500000','--time-limit','180',remote],{stdio:'ignore',windowsHide:true});
+  recorder.on('error',()=>{});const closed=once(recorder,'close').catch(()=>[]);
+  let recorderPid='',flags={};
+  try{
+    await new Promise(resolve=>setTimeout(resolve,1000));recorderPid=pids();
+    requireSafe(/^\d+$/.test(recorderPid),'Screen recording did not start.');
+    await maestro('story');
+    const xmlPath='/sdcard/openminerals-story-flags-'+randomUUID()+'.xml';
+    try{
+      adb('shell','uiautomator','dump',xmlPath);const xml=adb('exec-out','cat',xmlPath);
+      flags={automaticLightObserved:xml.includes('Vista ligera activada por coste de render.'),privateUiPublished:false};
+    }finally{adb('shell','rm','-f',xmlPath);}
+    await maestro('story-exit');
+  }finally{
+    const current=pids();if(recorderPid&&current===recorderPid)adb('shell','kill','-INT',recorderPid);
+    await Promise.race([closed,new Promise(resolve=>setTimeout(resolve,8000))]);
+    if(recorder.exitCode===null)recorder.kill('SIGKILL');
+    requireSafe(!recorderPid||pids()!==recorderPid,'The owned recorder must stop before any credential entry.');
+    const file=join(published,'safe-immersive-scroll.mp4');
+    try{adb('pull',remote,file);const metadata=await stat(file),header=await readFile(file);requireSafe(metadata.size>1000&&metadata.size<60_000_000&&header.subarray(4,8).toString()==='ftyp','Invalid anonymous demonstration video.');}finally{adb('shell','rm','-f',remote);}
+  }
+  const after=adb('shell','dumpsys','meminfo',PACKAGE),gfx=adb('shell','dumpsys','gfxinfo',PACKAGE),metrics=parseAndroidPerformance({before,after,gfx,start});
+  requireSafe(metrics.coldStartTotalMs!==null&&metrics.pssBeforeKiB!==null&&metrics.pssAfterKiB!==null&&metrics.uiFrames>0,'Android did not expose the required measured metrics.');
+  const report={demoOnly:true,environment:'disposable Android CI emulator',physicalDevice:false,...metrics,...flags,
+    interpretation:'Android UI frame statistics; not a measurement of GPU FPS. PSS is sampled before/after, not peak memory. Cold process start uses an already installed APK and cached OTA.',phonePerformanceAcceptance:false};
+  await writeFile(join(published,'immersive-performance.json'),JSON.stringify(report,null,2)+'\n');
+}

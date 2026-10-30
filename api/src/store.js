@@ -9,6 +9,9 @@ import {ensureDelivery,deliveryView,applyBuyerDelivery,operatorDeliveryReplay,ap
 import {parseManagementQuery,managementView} from './management.js';
 import {accountServices} from './account-services.js';
 import {lotHistoryView,parseLotHistoryQuery} from './custody-history.js';
+import {syncReservations} from './custody-reservations.js';
+import {intakeView,applyIntake,validateIntake} from './intake.js';
+import {publicBuyerState,publicBuyerReceipt} from './public-custody.js';
 
 const ID_PATTERN=/^[A-Za-z0-9_-]{16,100}$/;
 const clone=value=>structuredClone(value);
@@ -33,8 +36,10 @@ function makeStore(adapter){
   async function custodyMine(tx,mine){
     const result=ensureCustody(mine,await tx.accountsForMine(mine.id));
     const delivery=ensureDelivery(result.mine);
-    if(result.changed||delivery.changed)await tx.saveMine(delivery.mine);
-    return delivery.mine;
+    const reservations=syncReservations(delivery.mine,await tx.accountsForMine(mine.id));
+    validateIntake(reservations.mine);
+    if(result.changed||delivery.changed||reservations.changed)await tx.saveMine(reservations.mine);
+    return reservations.mine;
   }
   async function authenticatedContext(tx,accountId,role){
     const first=await tx.account(accountId);
@@ -68,6 +73,7 @@ function makeStore(adapter){
       await tx.insertAccount(result);
       if(legacySessionId!==undefined){
         for(const metal of Object.keys(METALS))if(state.holdingsMg[metal])({mine}=allocateCustody(mine,result,metal,state.holdingsMg[metal],`import:${result.id}`));
+        ({mine}=syncReservations(mine,await tx.accountsForMine(mine.id)));
         validateCustody(mine,await tx.accountsForMine(mine.id));
         await tx.saveMine(mine);
       }
@@ -165,7 +171,7 @@ function makeStore(adapter){
     async getAccountState(accountId){
       return adapter.tx(async tx=>{
         const {account,mine}=await authenticatedContext(tx,accountId,'buyer');
-        return {...accountStateForMine(account.state,mine),account:publicAccount(account)};
+        return {...publicBuyerState(accountStateForMine(account.state,mine)),account:publicAccount(account)};
       });
     },
     async mutateAccount(accountId,command){
@@ -174,14 +180,16 @@ function makeStore(adapter){
         if(['delivery_accept','delivery_reject'].includes(command.action)){
           const result=applyBuyerDelivery(mine,{...account,state:accountStateForMine(account.state,mine)},command);
           if(result.changed){
-            validateCustody(result.mine,(await tx.accountsForMine(account.mineId)).map(item=>item.id===account.id?{...item,state:result.state}:item));
+            const accounts=(await tx.accountsForMine(account.mineId)).map(item=>item.id===account.id?{...item,state:result.state}:item);
+            result.mine=syncReservations(result.mine,accounts,{at:result.receipt.at,referenceId:command.requestId}).mine;
+            validateCustody(result.mine,accounts);await tx.saveMine(result.mine);
             await tx.saveAccountState(account.id,result.state);
           }
-          return {receipt:clone(result.receipt),state:{...accountStateForMine(result.state,result.mine),account:publicAccount(account)},changed:result.changed};
+          return {receipt:publicBuyerReceipt(result.receipt),state:{...publicBuyerState(accountStateForMine(result.state,result.mine)),account:publicAccount(account)},changed:result.changed};
         }
         if(command.action==='market_buy'){
           const replay=marketReplay(account.state,command);
-          if(replay)return {receipt:replay,state:{...accountStateForMine(account.state,mine),account:publicAccount(account)},changed:false};
+          if(replay)return {receipt:replay,state:{...publicBuyerState(accountStateForMine(account.state,mine)),account:publicAccount(account)},changed:false};
           if(typeof command.sellerId!=='string'||!/^[A-Za-z0-9_-]{8,100}$/.test(command.sellerId)||typeof command.offerId!=='string'||!/^offer-\d{1,20}$/.test(command.offerId))throw accountError(400,'Identificador de oferta DEMO inválido.');
           const target=await tx.account(command.sellerId);
           if(!target||target.mineId!==account.mineId)throw accountError(404,'Oferta no disponible en esta mina.');
@@ -189,9 +197,10 @@ function makeStore(adapter){
           const seller=await tx.account(target.id,true);
           const trade=settleMarketplace(mine,{...account,state:accountStateForMine(account.state,mine)},{...seller,state:accountStateForMine(seller.state,mine)},command);
           const accounts=(await tx.accountsForMine(account.mineId)).map(item=>item.id===account.id?{...item,state:trade.buyerState}:item.id===seller.id?{...item,state:trade.sellerState}:item);
+          trade.mine=syncReservations(trade.mine,accounts,{at:trade.buyerReceipt.at,referenceId:command.requestId}).mine;
           validateCustody(trade.mine,accounts);
           await tx.saveMine(trade.mine);await tx.saveAccountState(account.id,trade.buyerState);await tx.saveAccountState(seller.id,trade.sellerState);
-          return {receipt:clone(trade.buyerReceipt),state:{...accountStateForMine(trade.buyerState,trade.mine),account:publicAccount(account)},changed:true};
+          return {receipt:clone(trade.buyerReceipt),state:{...publicBuyerState(accountStateForMine(trade.buyerState,trade.mine)),account:publicAccount(account)},changed:true};
         }
         const result=applyAccountCommand(account.state,mine,command,{accountId:account.id});
         if(result.changed){
@@ -203,16 +212,32 @@ function makeStore(adapter){
           }
           if(command.action==='sell')result.mine=releaseCustody(result.mine,account.id,command.metal,result.receipt.mg,{referenceId:command.requestId,at:result.receipt.at});
           const accounts=(await tx.accountsForMine(account.mineId)).map(item=>item.id===account.id?{...item,state:result.state}:item);
+          result.mine=syncReservations(result.mine,accounts,{at:result.receipt.at,referenceId:command.requestId}).mine;
           validateCustody(result.mine,accounts);
           await tx.saveMine(result.mine);await tx.saveAccountState(account.id,result.state);
         }
-        return {receipt:clone(result.receipt),state:{...accountStateForMine(result.state,result.mine),account:publicAccount(account)},changed:result.changed};
+        return {receipt:publicBuyerReceipt(result.receipt),state:{...publicBuyerState(accountStateForMine(result.state,result.mine)),account:publicAccount(account)},changed:result.changed};
       });
     },
     async getMineSummary(accountId){
       return adapter.tx(async tx=>{
         const {account,mine}=await authenticatedContext(tx,accountId,'operator');
         return summarizeMine(mine,await tx.accountsForMine(account.mineId));
+      });
+    },
+    async getIntake(accountId){
+      return adapter.tx(async tx=>{
+        const {mine}=await authenticatedContext(tx,accountId,'operator'),summary=summarizeMine(mine,await tx.accountsForMine(mine.id));
+        return {...intakeView(mine),availability:{inventoryMg:summary.inventoryMg,allocatedMg:summary.allocatedMg,reservedMg:summary.reservedMg,deliveryCommittedMg:summary.deliveryCommittedMg,totalSupplyMg:summary.totalSupplyMg,reconciled:true}};
+      });
+    },
+    async mutateIntake(accountId,command){
+      return adapter.tx(async tx=>{
+        const {account,mine}=await authenticatedContext(tx,accountId,'operator');
+        const result=applyIntake(mine,account,command);
+        validateCustody(result.mine,await tx.accountsForMine(account.mineId));
+        if(result.changed)await tx.saveMine(result.mine);
+        return {receipt:clone(result.receipt),mine:summarizeMine(result.mine,await tx.accountsForMine(account.mineId)),changed:result.changed,demoOnly:true};
       });
     },
     async mutateStock(accountId,command){
@@ -275,6 +300,7 @@ function makeStore(adapter){
         }
         const result=applyOperatorDelivery(mine,account,buyer,command);
         const accounts=(await tx.accountsForMine(account.mineId)).map(item=>buyer&&item.id===buyer.id?{...item,state:result.state}:item);
+        result.mine=syncReservations(result.mine,accounts,{at:result.receipt.at,referenceId:command.requestId}).mine;
         validateCustody(result.mine,accounts);await tx.saveMine(result.mine);
         if(buyer)await tx.saveAccountState(buyer.id,result.state);
         return {receipt:clone(result.receipt),mine:summarizeMine(result.mine,accounts),changed:true,demoOnly:true};
@@ -284,12 +310,12 @@ function makeStore(adapter){
       return adapter.tx(async tx=>{
         const {account,mine}=await authenticatedContext(tx,accountId,'operator');
         if(typeof receiptId!=='string'||!/^[A-Za-z0-9_-]{8,100}$/.test(receiptId))throw accountError(400,'Identificador de comprobante DEMO inválido.');
-        if(kind!==undefined&&!['command','stock'].includes(kind))throw accountError(400,'Tipo de comprobante DEMO inválido.');
+        if(kind!==undefined&&!['command','stock','intake'].includes(kind))throw accountError(400,'Tipo de comprobante DEMO inválido.');
         if(actorId!==undefined){
           if(typeof actorId!=='string'||!/^[A-Za-z0-9_-]{8,100}$/.test(actorId))throw accountError(400,'Operador de comprobante DEMO inválido.');
           const actor=await tx.account(actorId);if(!actor||actor.role!=='operator'||actor.mineId!==account.mineId)throw accountError(404,'Comprobante de comando DEMO no disponible.');
         }
-        const candidates=[...(kind==='stock'?[]:Object.values(mine.commandReceipts)),...(kind==='command'?[]:Object.values(mine.stockReceipts))].filter(receipt=>receipt.id===receiptId&&(!actorId||receipt.actor?.id===actorId));
+        const candidates=[...(!kind||kind==='command'?Object.values(mine.commandReceipts):[]),...(!kind||kind==='stock'?Object.values(mine.stockReceipts):[]),...(!kind||kind==='intake'?Object.values(mine.intake?.receipts??{}):[])].filter(receipt=>receipt.id===receiptId&&(!actorId||receipt.actor?.id===actorId));
         const own=candidates.filter(receipt=>receipt.actor?.id===account.id);
         const receipt=candidates.length===1?candidates[0]:!actorId&&own.length===1?own[0]:undefined;
         if(!receipt){if(candidates.length>1)throw accountError(409,'Especifica operador y tipo para este comprobante DEMO.');throw accountError(404,'Comprobante de comando DEMO no disponible.');}

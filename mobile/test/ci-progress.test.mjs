@@ -72,7 +72,7 @@ test('CI logical flows: splits preserve one login and the financial sequence wit
   assert.deepEqual(buyers[2].filter(command=>command.inputText).map(command=>command.inputText),['0.5','140']);
   assert.equal(buyers.flat().filter(command=>command.tapOn==='^Confirmar demo$').length,3);
   assert.equal(operators[0].filter(command=>command.tapOn==='^Confirmar demo$').length,3);
-  assert.equal(operators[1].filter(command=>command.tapOn==='^Confirmar demo$').length,1);
+  assert.equal(operators[1].filter(command=>command.tapOn==='^Confirmar demo$').length,3,'Production, verification and receipt each require confirmation.');
   for(const commands of [buyers[1],buyers[2],operators[1]])assert.ok(commands.every(command=>!['launchApp','stopApp'].includes(command)&&!command.runFlow));
   const runnerSource=await readFile(new URL('../e2e/ci-android.mjs',import.meta.url),'utf8');
   const runner=runnerSource.slice(runnerSource.indexOf('async function run(){'),runnerSource.indexOf('async function report(){'));

@@ -1,92 +1,113 @@
 appId: com.openminerals.demo.mobile
-name: Native seven-scene story and reduced motion before credentials
+name: Continuous native story before credentials
 ---
-- tapOn: ^Inicio$
-- scrollUntilVisible:
-    element:
-      text: ^Todo comienza en el origen$
-    direction: DOWN
-    centerElement: false
-    timeout: 30000
-- assertVisible: ^Todo comienza en el origen$
-- extendedWaitUntil:
-    visible: Restablecer orientación del lingote
-    timeout: 30000
-- swipe:
-    start: 35%,40%
-    end: 70%,40%
-    duration: 600
-- takeScreenshot: safe-story-1
-- scrollUntilVisible:
-    element:
-      text: ^Del mineral al lingote$
-    direction: DOWN
-    centerElement: false
-    timeout: 30000
-- assertVisible: ^Del mineral al lingote$
-- takeScreenshot: safe-story-2
-- scrollUntilVisible:
-    element:
-      text: ^Cada gramo, vinculado a su lote$
-    direction: DOWN
-    centerElement: false
-    timeout: 30000
-- assertVisible: ^Cada gramo, vinculado a su lote$
-- takeScreenshot: safe-story-3
-- scrollUntilVisible:
-    element:
-      text: ^Tu compra, gramo a gramo$
-    direction: DOWN
-    centerElement: false
-    timeout: 30000
-- assertVisible: ^Tu compra, gramo a gramo$
-- takeScreenshot: safe-story-4
-- scrollUntilVisible:
-    element:
-      text: ^Un portafolio con trazabilidad$
-    direction: DOWN
-    centerElement: false
-    timeout: 30000
-- assertVisible: ^Un portafolio con trazabilidad$
-- takeScreenshot: safe-story-5
-- scrollUntilVisible:
-    element:
-      text: ^De tu portafolio al marketplace$
-    direction: DOWN
-    centerElement: false
-    timeout: 30000
-- assertVisible: ^De tu portafolio al marketplace$
-- takeScreenshot: safe-story-6
-- scrollUntilVisible:
-    element:
-      text: ^La entrega cierra el recorrido$
-    direction: DOWN
-    centerElement: false
-    timeout: 30000
-- assertVisible: ^La entrega cierra el recorrido$
-- takeScreenshot: safe-story-7
-- scrollUntilVisible:
-    element:
-      text: Reducir movimiento del recorrido
-    direction: UP
-    centerElement: true
-    timeout: 30000
-- assertVisible:
-    text: Reducir movimiento del recorrido
-    checked: false
-- tapOn: Reducir movimiento del recorrido
-- assertVisible:
-    text: Reducir movimiento del recorrido
-    checked: true
-- takeScreenshot: safe-reduced-motion
-- tapOn: Saltar recorrido y continuar con la demo
-- extendedWaitUntil:
-    notVisible: Saltar recorrido y continuar con la demo
-    timeout: 30000
-- scrollUntilVisible:
-    element:
-      text: ^Cantidad de metal en gramos$
-    direction: DOWN
-    centerElement: true
-    timeout: 30000
-- assertVisible: ^Cantidad de metal en gramos$
+[
+  {
+    "tapOn": "^Inicio$"
+  },
+  {
+    "extendedWaitUntil": {
+      "visible": "Restablecer orientación del lingote",
+      "timeout": 30000
+    }
+  },
+  {
+    "swipe": {
+      "start": "30%,46%",
+      "end": "65%,46%",
+      "duration": 600
+    }
+  },
+  {
+    "tapOn": "Restablecer orientación del lingote"
+  },
+  {
+    "tapOn": "Ir a etapa 1: ORIGEN MINERAL"
+  },
+  {
+    "assertVisible": "Etapa 1 de 7: ORIGEN MINERAL"
+  },
+  {
+    "takeScreenshot": "safe-story-1"
+  },
+  {
+    "tapOn": "Ir a etapa 2: EXTRACCIÓN"
+  },
+  {
+    "assertVisible": "Etapa 2 de 7: EXTRACCIÓN"
+  },
+  {
+    "takeScreenshot": "safe-story-2"
+  },
+  {
+    "tapOn": "Ir a etapa 3: REFINACIÓN"
+  },
+  {
+    "assertVisible": "Etapa 3 de 7: REFINACIÓN"
+  },
+  {
+    "takeScreenshot": "safe-story-3"
+  },
+  {
+    "tapOn": "Ir a etapa 4: FORMACIÓN DEL LINGOTE"
+  },
+  {
+    "assertVisible": "Etapa 4 de 7: FORMACIÓN DEL LINGOTE"
+  },
+  {
+    "takeScreenshot": "safe-story-4"
+  },
+  {
+    "tapOn": "Ir a etapa 5: CUSTODIA VIRTUAL"
+  },
+  {
+    "assertVisible": "Etapa 5 de 7: CUSTODIA VIRTUAL"
+  },
+  {
+    "takeScreenshot": "safe-story-5"
+  },
+  {
+    "tapOn": "Ir a etapa 6: FRACCIONAMIENTO DIGITAL"
+  },
+  {
+    "assertVisible": "Etapa 6 de 7: FRACCIONAMIENTO DIGITAL"
+  },
+  {
+    "takeScreenshot": "safe-story-6"
+  },
+  {
+    "tapOn": "Ir a etapa 7: PORTAFOLIO"
+  },
+  {
+    "assertVisible": "Etapa 7 de 7: PORTAFOLIO"
+  },
+  {
+    "takeScreenshot": "safe-story-7"
+  },
+  {
+    "tapOn": "Ir a etapa 4: FORMACIÓN DEL LINGOTE"
+  },
+  {
+    "swipe": {
+      "start": "50%,68%",
+      "end": "50%,35%",
+      "duration": 800
+    }
+  },
+  {
+    "assertNotVisible": "Etapa 4 de 7: FORMACIÓN DEL LINGOTE"
+  },
+  {
+    "swipe": {
+      "start": "50%,35%",
+      "end": "50%,68%",
+      "duration": 800
+    }
+  },
+  {
+    "tapOn": "Ir a etapa 1: ORIGEN MINERAL"
+  },
+  {
+    "assertVisible": "Etapa 1 de 7: ORIGEN MINERAL"
+  }
+]

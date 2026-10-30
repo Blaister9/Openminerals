@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGoldBarMesh,createStudioFloorMesh,identityMatrix,multiplyMatrices,translationMatrix,rotationX,rotationY,rotationZ,perspectiveMatrix,transformPoint,scrollProgress,storyStage,goldRenderScale,horizontalDrag,goldBarPose,goldBarMatrices,createFrameScheduler,GOLD_VERTEX_SHADER,GOLD_FRAGMENT_SHADER} from '../lib/gold-bar-3d.ts';
-import {metalStoryScenes} from '../lib/story-scenes.ts';
+import {immersiveChapters as metalStoryScenes} from '../lib/immersive-story.ts';
 import {mkdtemp,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
@@ -81,7 +81,7 @@ test('scroll y arrastre producen poses finitas; movimiento reducido es estable',
 
 test('siete capítulos mantienen el orden comercial y un índice válido incluso en extremos',()=>{
   assert.equal(metalStoryScenes.length,7);
-  assert.deepEqual(metalStoryScenes.map(item=>item.label),['MINA','LINGOTE','CUSTODIA','COMPRA FRACCIONADA','PORTAFOLIO','MARKETPLACE','ENTREGA FÍSICA · DEMO']);
+  assert.deepEqual(metalStoryScenes.map(item=>item.label),['ORIGEN MINERAL','EXTRACCIÓN','REFINACIÓN','FORMACIÓN DEL LINGOTE','CUSTODIA VIRTUAL','FRACCIONAMIENTO DIGITAL','PORTAFOLIO']);
   assert.deepEqual(metalStoryScenes.map((_,index)=>storyStage(index/6,7)),[0,1,2,3,4,5,6]);
   for(const value of [-1,NaN,0,1,2])assert.ok(storyStage(value,7)>=0&&storyStage(value,7)<=6);
 });

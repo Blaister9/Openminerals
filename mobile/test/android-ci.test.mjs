@@ -168,7 +168,7 @@ test('Android CI: new Maestro documents preserve data and only anonymous phases 
     for(const command of commands){
       if(typeof command==='string'){assert.ok(['launchApp','stopApp','eraseText','hideKeyboard'].includes(command));continue;}
       assert.equal(Object.keys(command).length,1);const action=Object.keys(command)[0];assert.ok(actions.has(action));
-      if(action==='takeScreenshot'){assert.ok(['preserve.yaml','story.yaml'].includes(file));assert.match(command[action],/^safe-/);}
+      if(action==='takeScreenshot'){assert.ok(['preserve.yaml','story.yaml','story-exit.yaml'].includes(file));assert.match(command[action],/^safe-/);}
     }
   }
   const runner=await source('../e2e/ci-android.mjs');
@@ -178,7 +178,9 @@ test('Android CI: new Maestro documents preserve data and only anonymous phases 
   assert.ok(runner.indexOf("'legacy-seed-old-apk'")<runner.indexOf("adb('install','-r'"));
   assert.equal((runner.match(/adb\('install','-r'/g)||[]).length,1);
   assert.doesNotMatch(runner,/pm','clear|adb\('uninstall/);
-  assert.match(await source('../e2e/native/story.yaml'),/notVisible: Saltar recorrido/);
+  const storyExit=yaml.parseAllDocuments(await source('../e2e/native/story-exit.yaml'))[1].toJSON();
+  assert.ok(storyExit.some(command=>command.extendedWaitUntil?.notVisible==='Saltar recorrido y continuar con la demo'));
+  assert.ok(execution.indexOf('runImmersivePerformance(')<execution.indexOf("'native-registration-no-import'"));
 });
 
 test('Android CI: optional OTA follows native verification, passes ID only by env and verifies unchanged results again',async()=>{

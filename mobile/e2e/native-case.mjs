@@ -25,6 +25,6 @@ export function nativeFlow(name,text,code='XAU'){
     result=result.replace('- tapOn: ^Metales$\n','- tapOn: ^Metales$\n'+select('portfolio-metal-'+code,'DOWN'));
     result=result.replace('- tapOn: ^Entregas DEMO$\n','- tapOn: ^Entregas DEMO$\n'+select('delivery-metal-'+code,'DOWN'));
   }
-  if(name==='operator-stock')result=result.replace('- tapOn: ^Inventario$\n','- tapOn: ^Inventario$\n'+select('stock-metal-'+code,'DOWN'));
+  if(name==='operator-stock')result=result.replace('- tapOn: ^Inventario$\n','- tapOn: ^Inventario$\n'+select('intake-metal-'+code,'DOWN'));
   return result;
 }

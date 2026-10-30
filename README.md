@@ -2,6 +2,8 @@
 
 **Estado: prototipo técnico de simulación, no plataforma financiera en producción.**
 
+**Evolución inmersiva Android:** [recorrido continuo nativo, etapas de recepción, reservas por lote y separación de datos de custodia](docs/19-evolucion-inmersiva-android.md). Continuación sobre `8123003`; consultar la evidencia del sprint antes de actualizar. La aceptación física y las mediciones de esta revisión se registran separadamente.
+
 **Candidata Android · 29 de octubre de 2026:** [cuatro divisas/metales, siete escenas y datos iniciales aislados](docs/18-candidata-android-2026-10-29.md). Fuente móvil `c2d674b`, OTA `01a18988`, compatible con el APK 0.2.0. **Seis casos Android emulados aprobados: 95 etapas**, incluidos importación, recuperación y desconexión. API local 150/150, PostgreSQL obligatorio 71/71 y móvil 199 aprobadas más una GL opcional omitida. Aceptación y rendimiento en teléfono físico pendientes.
 
 **Evidencia anterior del mismo sprint:** [historial persistente por lote, cantidades por metal y menú fijo de Mina](docs/16-sprint-android-2026-10-29.md), sobre la base `0f07113` y OTA `01a188eb`. Sus 17 etapas comerciales y 7 de perfil son anteriores a la candidata ampliada. [Guía de presentación en teléfono](docs/17-recorrido-demo-android.md).

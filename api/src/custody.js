@@ -2,6 +2,7 @@ import {createHash} from 'node:crypto';
 import {DomainError,METALS,parseGrams} from './domain.js';
 import {accountError} from './account-auth.js';
 import {ensureLotHistory,recordLotMovement,validateLotHistory} from './custody-history.js';
+import {reservedInLot,reservationPieces,validateReservations} from './custody-reservations.js';
 
 // This is a simulated allocation record, never proof of physical custody.
 export const CUSTODY_DISCLAIMER='SIMULADO · Lotes, documentos y certificados DEMO sin valor legal. No acreditan metal, propiedad ni custodia física.';
@@ -11,6 +12,11 @@ const fail=(condition,message='La asignación de custodia DEMO no concuerda.')=>
 const integer=value=>Number.isSafeInteger(value)&&value>=0&&value<=1_000_000_000;
 const record=fn=>Object.fromEntries(metals.map(metal=>[metal,fn(metal)]));
 const has=(object,key)=>Object.hasOwn(object,key);
+function debitBudget(mine,accountId,metal,pieces){
+  if(pieces)return new Map(pieces.map(piece=>[piece.lotId,piece.mg]));
+  return new Map(mine.custody.lots.filter(lot=>lot.metal===metal).map(lot=>[lot.id,
+    mine.custody.allocations.filter(item=>item.accountId===accountId&&item.lotId===lot.id).reduce((sum,item)=>sum+item.mg,0)-reservedInLot(mine,accountId,lot.id)]));
+}
 const delivered=lot=>has(lot,'deliveredMg')?lot.deliveredMg:0;
 const defaultPurity={XAU:9999,XAG:9990,XPT:9995,XPD:9995};
 const documentKinds=['DEMO_ASSAY','DEMO_ORIGIN','DEMO_RECORD'];
@@ -75,10 +81,11 @@ export function allocateCustody(mine,account,metal,mg,source,now=new Date().toIS
 
 export function releaseCustody(mine,accountId,metal,mg,context={}){
   const next=copy(mine),releasedLots=new Map();let remaining=mg;
+  const budget=debitBudget(mine,accountId,metal);
   fail(integer(mg)&&has(METALS,metal));
   for(const allocation of next.custody.allocations){
     if(allocation.accountId!==accountId||allocation.metal!==metal||!remaining)continue;
-    const released=Math.min(allocation.mg,remaining);allocation.mg-=released;remaining-=released;
+    const released=Math.min(allocation.mg,remaining,budget.get(allocation.lotId)??0);allocation.mg-=released;remaining-=released;budget.set(allocation.lotId,(budget.get(allocation.lotId)??0)-released);
     if(released)releasedLots.set(allocation.lotId,(releasedLots.get(allocation.lotId)??0)+released);
   }
   fail(remaining===0,'La posición no tiene asignación DEMO suficiente para vender.');
@@ -90,10 +97,13 @@ export function releaseCustody(mine,accountId,metal,mg,context={}){
 // allocate unrelated free inventory, since no grams enter or leave the mine.
 export function transferCustody(mine,sellerId,buyer,metal,mg,source,now,context={}){
   const next=copy(mine),pieces=[];let remaining=mg;
+  const prescribed=context.offerId?reservationPieces(mine,sellerId,'OFFER',context.offerId):null;
+  const budget=debitBudget(mine,sellerId,metal,prescribed);
   fail(integer(mg)&&has(METALS,metal)&&sellerId!==buyer.id);
   for(const allocation of next.custody.allocations){
     if(allocation.accountId!==sellerId||allocation.metal!==metal||!remaining)continue;
-    const amount=Math.min(allocation.mg,remaining);if(!amount)continue;
+    const amount=Math.min(allocation.mg,remaining,budget.get(allocation.lotId)??0);if(!amount)continue;
+    budget.set(allocation.lotId,(budget.get(allocation.lotId)??0)-amount);
     allocation.mg-=amount;remaining-=amount;pieces.push({lotId:allocation.lotId,sourceId:allocation.id,mg:amount});
   }
   fail(remaining===0,'La oferta no tiene asignaciones de lote DEMO suficientes.');
@@ -111,10 +121,13 @@ export function transferCustody(mine,sellerId,buyer,metal,mg,source,now,context=
 
 export function deliverCustody(mine,accountId,metal,mg,context={}){
   const next=copy(mine),pieces=[];let remaining=mg;
+  const prescribed=context.deliveryId?reservationPieces(mine,accountId,'DELIVERY',context.deliveryId):null;
+  const budget=debitBudget(mine,accountId,metal,prescribed);
   fail(integer(mg)&&has(METALS,metal));
   for(const allocation of next.custody.allocations){
     if(allocation.accountId!==accountId||allocation.metal!==metal||!remaining)continue;
-    const amount=Math.min(allocation.mg,remaining);if(!amount)continue;
+    const amount=Math.min(allocation.mg,remaining,budget.get(allocation.lotId)??0);if(!amount)continue;
+    budget.set(allocation.lotId,(budget.get(allocation.lotId)??0)-amount);
     const lot=next.custody.lots.find(item=>item.id===allocation.lotId);
     allocation.mg-=amount;lot.deliveredMg=delivered(lot)+amount;remaining-=amount;
     pieces.push({lotId:lot.id,mg:amount});
@@ -166,7 +179,7 @@ export function validateCustody(mine,accounts){
       fail(integer(account.state.holdingsMg?.[metal])&&assigned===account.state.holdingsMg[metal]);
     }
   }
-  validateLotHistory(mine,accounts);return true;
+  validateLotHistory(mine,accounts);validateReservations(mine,accounts);return true;
 }
 
 // Run only while the mine row is locked. No old state or receipt is rewritten.
@@ -193,7 +206,15 @@ function lotView(lot,custody,accountId){
   const all=custody.allocations.filter(allocation=>allocation.lotId===lot.id);
   const allocatedMg=all.filter(allocation=>!accountId||allocation.accountId===accountId).reduce((sum,allocation)=>sum+allocation.mg,0);
   const deliveredMg=delivered(lot),activeWeightMg=lot.weightMg-deliveredMg;
-  return {...copy(lot),originalWeightMg:lot.weightMg,deliveredMg,activeWeightMg,purity:`${(lot.purityBps/100).toFixed(2)}% DEMO`,allocatedMg,availableMg:activeWeightMg-all.reduce((sum,allocation)=>sum+allocation.mg,0)};
+  // Explicit projection: operator-authored text and unknown operational fields
+  // must never reach buyer responses, including certificate and legacy lots.
+  const operator=accountId===undefined;
+  const publicDocuments={DEMO_ASSAY:['Ensayo ilustrativo DEMO','Referencia sintética de pureza. No representa un ensayo físico.'],DEMO_ORIGIN:['Origen ilustrativo DEMO','Referencia de origen ficticia sin información de instalaciones.'],DEMO_RECORD:['Registro ilustrativo DEMO','Registro sintético sin valor legal ni acreditación de custodia física.']};
+  const documents=lot.documents.map(document=>({id:document.id,kind:document.kind,demoOnly:true,title:operator?document.title:publicDocuments[document.kind][0],content:operator?document.content:publicDocuments[document.kind][1]}));
+  const reservedMg=custody.reservations?.items.filter(item=>item.status==='ACTIVE'&&(operator||item.accountId===accountId)).flatMap(item=>item.pieces).filter(piece=>piece.lotId===lot.id).reduce((sum,piece)=>sum+piece.mg,0);
+  return {id:lot.id,metal:lot.metal,purityBps:lot.purityBps,weightMg:lot.weightMg,status:lot.status,createdAt:lot.createdAt,demoOnly:true,
+    location:operator?lot.location:'DEMO · Bóveda virtual sin ubicación física',documents,...(reservedMg!==undefined?{reservedMg}:{}),
+    originalWeightMg:lot.weightMg,deliveredMg,activeWeightMg,purity:`${(lot.purityBps/100).toFixed(2)}% DEMO`,allocatedMg,availableMg:activeWeightMg-all.reduce((sum,allocation)=>sum+allocation.mg,0)};
 }
 export function custodyView(mine,accounts,viewer){
   validateCustody(mine,accounts);

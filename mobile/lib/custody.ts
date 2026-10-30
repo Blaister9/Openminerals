@@ -2,7 +2,7 @@ export type CustodyMetal='XAU'|'XAG'|'XPT'|'XPD';
 export type CustodyDocument={id:string;title:string;kind:'DEMO_ASSAY'|'DEMO_ORIGIN'|'DEMO_RECORD';content:string;demoOnly:true};
 export type CustodyLot={
   id:string;metal:CustodyMetal;purityBps:number;purity:string;weightMg:number;originalWeightMg:number;deliveredMg:number;activeWeightMg:number;location:string;
-  status:'REGISTERED_DEMO';documents:CustodyDocument[];allocatedMg:number;availableMg:number;demoOnly:true;
+  status:'REGISTERED_DEMO';documents:CustodyDocument[];allocatedMg:number;availableMg:number;reservedMg?:number;demoOnly:true;
 };
 export type CustodyAllocation={
   id:string;lotId:string;account:{id:string;alias:string};metal:CustodyMetal;mg:number;certificateId:string;
@@ -72,8 +72,9 @@ function lot(value:unknown):CustodyLot {
   if(purityBps<=0||purityBps>10000||item.status!=='REGISTERED_DEMO')throw invalid();
   const amounts=quantities(item),originalWeightMg=item.originalWeightMg===undefined?amounts.weightMg:number(item.originalWeightMg);
   if(originalWeightMg!==amounts.weightMg)throw invalid();
+  const reservedMg=item.reservedMg===undefined?undefined:number(item.reservedMg);if(reservedMg!==undefined&&reservedMg>amounts.allocatedMg)throw invalid();
   return {id:id(item.id),metal:metal(item.metal),purityBps,purity:text(item.purity,80),...amounts,originalWeightMg,
-    location:text(item.location,200),status:'REGISTERED_DEMO',documents:list(item.documents,document),demoOnly:true};
+    location:text(item.location,200),status:'REGISTERED_DEMO',documents:list(item.documents,document),reservedMg,demoOnly:true};
 }
 function allocation(value:unknown):CustodyAllocation {
   const item=object(value);demo(item);

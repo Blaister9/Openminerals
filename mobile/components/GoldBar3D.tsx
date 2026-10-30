@@ -3,8 +3,9 @@ import {Animated,AppState,PanResponder,PixelRatio,Platform,Pressable,StyleSheet,
 import {requireOptionalNativeModule} from 'expo-modules-core';
 import type {ExpoWebGLRenderingContext,GLViewProps} from 'expo-gl';
 import {createFrameScheduler,createGoldBarMesh,createStudioFloorMesh,goldBarMatrices,goldBarPose,goldRenderScale,horizontalDrag,scrollProgress,GOLD_FRAGMENT_SHADER,GOLD_VERTEX_SHADER} from '../lib/gold-bar-3d';
+import {immersivePose,IMMERSIVE_VERTEX_SHADER,IMMERSIVE_FRAGMENT_SHADER,renderBudget} from '../lib/immersive-story';
 
-type Props={scrollY:Animated.Value;initialScrollY:number;startY:number;endY:number;active:boolean;reducedMotion:boolean;height?:number};
+type Props={scrollY:Animated.Value;initialScrollY:number;startY:number;endY:number;active:boolean;reducedMotion:boolean;height?:number;cinematic?:boolean;onLimited?:()=>void};
 type Renderer={draw:(progress:number,drag:number)=>void;dispose:()=>void};
 type Scheduler=ReturnType<typeof createFrameScheduler>;
 
@@ -16,7 +17,7 @@ function availableGLView():ComponentType<GLViewProps>|null {
   }catch{return null;}
 }
 
-function createRenderer(gl:ExpoWebGLRenderingContext):Renderer {
+function createRenderer(gl:ExpoWebGLRenderingContext,cinematic=false):Renderer {
   const buffers:WebGLBuffer[]=[],shaders:WebGLShader[]=[];
   let program:WebGLProgram|null=null,disposed=false;
   const dispose=()=>{
@@ -33,7 +34,7 @@ function createRenderer(gl:ExpoWebGLRenderingContext):Renderer {
       if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw new Error('GL shader compilation failed.');
       return shader;
     };
-    const vertex=compile(gl.VERTEX_SHADER,GOLD_VERTEX_SHADER),fragment=compile(gl.FRAGMENT_SHADER,GOLD_FRAGMENT_SHADER);
+    const vertex=compile(gl.VERTEX_SHADER,cinematic?IMMERSIVE_VERTEX_SHADER:GOLD_VERTEX_SHADER),fragment=compile(gl.FRAGMENT_SHADER,cinematic?IMMERSIVE_FRAGMENT_SHADER:GOLD_FRAGMENT_SHADER);
     program=gl.createProgram();if(!program)throw new Error('GL program unavailable.');
     gl.attachShader(program,vertex);gl.attachShader(program,fragment);gl.linkProgram(program);
     if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error('GL program linking failed.');
@@ -50,6 +51,7 @@ function createRenderer(gl:ExpoWebGLRenderingContext):Renderer {
     attribute('a_position',new Float32Array([...mesh.positions,...floor.positions]));attribute('a_normal',new Float32Array([...mesh.normals,...floor.normals]));
     const uniform=(name:string)=>{const location=gl.getUniformLocation(program!,name);if(location===null)throw new Error('GL uniform unavailable.');return location;};
     const locations={model:uniform('u_model'),mvp:uniform('u_mvp'),camera:uniform('u_camera'),light:uniform('u_light'),refinement:uniform('u_refinement'),surface:uniform('u_surface'),shadowAngle:uniform('u_shadowAngle')};
+    const storyProgress=cinematic?uniform('u_storyProgress'):null;
     gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);gl.frontFace(gl.CCW);
     gl.clearColor(10/255,13/255,16/255,1);gl.clearDepth(1);
     return {
@@ -57,8 +59,9 @@ function createRenderer(gl:ExpoWebGLRenderingContext):Renderer {
         if(disposed)return;
         const width=gl.drawingBufferWidth,height=gl.drawingBufferHeight;
         if(width<=0||height<=0)throw new Error('GL viewport unavailable.');
-        const pose=goldBarPose(progress,drag),matrices=goldBarMatrices(pose,width/height);
+        const pose=cinematic?immersivePose(progress,drag):goldBarPose(progress,drag),matrices=goldBarMatrices(pose,width/height);
         gl.viewport(0,0,width,height);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);
+        if(storyProgress!==null)gl.uniform1f(storyProgress,progress);
         gl.uniform3f(locations.camera,...matrices.camera);gl.uniform3f(locations.light,...pose.light);gl.uniform1f(locations.refinement,pose.refinement);gl.uniform1f(locations.shadowAngle,pose.yaw);
         gl.uniform1f(locations.surface,1);gl.uniformMatrix4fv(locations.model,false,matrices.floorModel);gl.uniformMatrix4fv(locations.mvp,false,matrices.floorMvp);
         gl.drawArrays(gl.TRIANGLES,mesh.vertexCount,floor.vertexCount);
@@ -76,7 +79,7 @@ class GLBoundary extends React.Component<{children:ReactNode;onFailure:()=>void}
   render(){return this.state.failed?null:this.props.children;}
 }
 
-export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMotion,height=290}:Props){
+export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMotion,height=290,cinematic=false,onLimited}:Props){
   const [width,setWidth]=useState(0);
   const renderScale=goldRenderScale(width,height,PixelRatio.get());
   const NativeGLView=useMemo(availableGLView,[]);
@@ -84,6 +87,7 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
   const [failure,setFailure]=useState(false),[ready,setReady]=useState(false),[retry,setRetry]=useState(0);
   const renderer=useRef<Renderer|null>(null),scheduler=useRef<Scheduler|null>(null),timeout=useRef<ReturnType<typeof setTimeout>|null>(null);
   const lastScroll=useRef(initialScrollY),drag=useRef(0),dragStart=useRef(0),readyRef=useRef(false);
+  const samples=useRef<number[]>([]),limited=useRef(false),limitCallback=useRef(onLimited);limitCallback.current=onLimited;
   const enabled=active&&foreground&&!reducedMotion&&!failure&&NativeGLView!==null;
   const session=useMemo(()=>Symbol('gold-bar-context'),[enabled,retry,width,height,renderScale]);
   const currentSession=useRef(session);currentSession.current=session;
@@ -124,11 +128,12 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
     if(currentSession.current!==expected||!latest.current.enabled)return;
     stop();
     try{
-      const next=createRenderer(gl);renderer.current=next;
+      const next=createRenderer(gl,cinematic);renderer.current=next;
       scheduler.current=createFrameScheduler({request:callback=>requestAnimationFrame(callback),cancel:cancelAnimationFrame,maxFps:30,now:()=>performance.now(),
         draw:()=>{
           if(currentSession.current!==expected||!latest.current.enabled)return;
-          next.draw(scrollProgress(lastScroll.current,latest.current.startY,latest.current.endY),drag.current);
+          const began=performance.now();next.draw(scrollProgress(lastScroll.current,latest.current.startY,latest.current.endY),drag.current);
+          if(cinematic&&!limited.current){samples.current.push(performance.now()-began);if(samples.current.length>120)samples.current.shift();if(renderBudget(samples.current)){limited.current=true;limitCallback.current?.();}}
           if(!readyRef.current){readyRef.current=true;if(timeout.current!==null){clearTimeout(timeout.current);timeout.current=null;}setReady(true);}
         },onError:()=>fail(expected)});
       timeout.current=setTimeout(()=>fail(expected),8000);scheduler.current.invalidate();
@@ -152,8 +157,8 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
     {enabled&&NativeGLView&&width>0&&<GLBoundary key={`${retry}:${width}:${height}:${renderScale}`} onFailure={()=>fail(session)}>
       <NativeGLView style={{position:'absolute',top:0,left:0,width:width*renderScale,height:height*renderScale,transformOrigin:'top left',transform:[{scale:1/renderScale}],opacity:ready?1:0}} onContextCreate={gl=>createContext(gl,session)} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"/>
     </GLBoundary>}
-    <View pointerEvents="none" style={styles.edition}><Text style={styles.simulated}>OBJETO DE ESTUDIO</Text><Text style={styles.editionNumber}>Au / 79</Text></View>
-    <Text pointerEvents="none" style={styles.demo}>METAL SIMULADO</Text>
+    {!cinematic&&<><View pointerEvents="none" style={styles.edition}><Text style={styles.simulated}>OBJETO DE ESTUDIO</Text><Text style={styles.editionNumber}>Au / 79</Text></View>
+    <Text pointerEvents="none" style={styles.demo}>METAL SIMULADO</Text></>}
     {ready?<View style={styles.helpRow}><Text style={styles.hint}>Arrastra ↔ · Desliza ↓</Text><Pressable accessibilityRole="button" accessibilityLabel="Restablecer orientación del lingote" onPress={reset} style={styles.smallButton}><Text style={styles.smallButtonText}>Restablecer</Text></Pressable></View>:
       <View style={styles.status}><Text style={styles.statusText}>{fallback}</Text>{(failure||!NativeGLView)&&!reducedMotion&&<Pressable accessibilityRole="button" onPress={retry3D} style={styles.smallButton}><Text style={styles.smallButtonText}>Reintentar 3D</Text></Pressable>}</View>}
   </View>;
