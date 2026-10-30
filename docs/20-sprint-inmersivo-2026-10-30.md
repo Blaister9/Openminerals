@@ -1,5 +1,7 @@
 # Sprint inmersivo Android · 30 de octubre de 2026
 
+Informe histórico del checkpoint anterior. La composición, OTA, instalación y evidencia actuales están en [Inicio a pantalla completa](21-inicio-inmersivo-pantalla-completa.md); los ID y resultados de este documento corresponden a sus propias fuentes.
+
 Checkpoint funcional publicado para demostración y pruebas: **funcional probado; composición de Inicio en nueva revisión; aceptación visual no alcanzada**. Todas las cuentas, cotizaciones, transacciones, reservas, lotes y entregas siguen siendo **ficticios**. La aceptación del sprint permanece abierta: publicar una OTA o aprobar pruebas de software no acredita rendimiento ni aceptación del diseño.
 
 ## Fuente y continuidad del trabajo

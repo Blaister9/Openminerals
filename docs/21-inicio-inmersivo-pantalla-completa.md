@@ -27,7 +27,7 @@ Los accesos del relato seleccionan una pantalla; no envían operaciones. Los blo
 
 El login normal desde Actividad conserva su recorrido habitual. No se borran sesiones, saldos, posiciones, historial ni comprobantes; tampoco se cambia la vinculación anterior o la separación comprador/operador.
 
-La API continúa con la fuente `89c38d4`, en [Railway/PostgreSQL DEMO](https://openminerals-api-demo.up.railway.app/health). Las **170/170 pruebas API** y la conservación de inventario del despliegue están documentadas en el [checkpoint 20](20-sprint-inmersivo-2026-10-30.md); esta revisión de Inicio no cambia el backend ni vuelve a contar esas pruebas como una ejecución nueva.
+La API continúa con la fuente `89c38d4`, en [Railway/PostgreSQL DEMO](https://openminerals-api-demo.up.railway.app/health). Las **170/170 pruebas remotas API** y la conservación de inventario del despliegue están documentadas en el [checkpoint 20](20-sprint-inmersivo-2026-10-30.md). El CI actual volvió a aprobar 91 casos en memoria y 79 PostgreSQL distintos sobre una base desechable PostgreSQL 18; [contadores por job](evidence/core-ci-home-20261030.json). Esta revisión de Inicio no cambia el backend ni requiere otro despliegue API.
 
 ## Ajustes de dibujo y legibilidad
 
@@ -39,7 +39,7 @@ La transición del título mantiene una opacidad mínima de **0,88**. Su movimie
 
 | Comprobación | Resultado y límite |
 | --- | --- |
-| Cliente móvil | **235 pruebas: 233 aprobadas, cero fallos y dos GL opcionales omitidas** en la suite normal. TypeScript aprobado. |
+| Cliente móvil y harness actual | [CI `ec660d1`](https://github.com/Blaister9/Openminerals/actions/runs/41089641722): **243 pruebas, 241 aprobadas, cero fallos y dos GL opcionales omitidas**. Incluye las correcciones del harness; UI y API conservan sus fuentes. Tipos, dependencias Expo, toolchain y auditoría aprobados; Expo Doctor **21/21**. [Contadores y límites](evidence/core-ci-home-20261030.json). |
 | Shaders inmersivos con WebGL de software | Formato vertical **360 × 640**, 13 poses distintas y dos retornos: **15 muestras aprobadas** en un contexto. La reversa recupera la rasterización intermedia y original. Es renderizado de software de escritorio, no GPU Android ni prueba física. |
 | Interfaz local en navegador | Revisada a **390 × 844** y **360 × 640**: Inicio sin cabeceras, giro horizontal, avance/reversa, final sin contenido extra y acceso final a Billetera. No acredita fluidez ni gestos Android. |
 | Sesión vinculada en navegador | Registro con importación y cierre de sesión; Inicio sin aviso de vinculación; Operar abre Mercado y login; el reingreso vuelve a Mercado con **250 USDT ficticios**, sin reiniciar datos. No acredita el mismo recorrido en teléfono. |
@@ -52,10 +52,22 @@ Los resultados Android anteriores **7/7**, **23/23** y **8/8** pertenecen a las 
 | --- | --- |
 | OTA Android publicada | `01a18d53-41bc-7869-9595-9a9b2e3e744c`, grupo `4fc4b9cb-f941-4b00-a7c8-fedead4e5bb7`, 30/10/2026 15:00:06 UTC, UI `a9ae62e`. Prefijo visible `01a18d53`. |
 | Recorrido Android anónimo | **7/7 etapas aprobadas**, [run 41082878671](https://github.com/Blaister9/Openminerals/actions/runs/41082878671), harness `07ee442`, UI `a9ae62e`, OTA `01a18d53`. Incluye los siete capítulos, avance/reversa, modos visuales, tres destinos finales y retorno desde HOME con el mismo proceso. |
-| Regresión comercial de la interfaz actual | Pendiente de completar. El intento [41087145626](https://github.com/Blaister9/Openminerals/actions/runs/41087145626) se detuvo antes del acceso a las cuentas QA: el saldo legacy de 268,40 USDT se conservó, pero la prueba exigía un texto de composición antes de asegurar la OTA y sin desplazar Metales. No se cuenta como recorrido comercial aprobado. |
+| Regresión comercial de la interfaz actual | **23/23 etapas aprobadas**, [run 41089804274](https://github.com/Blaister9/Openminerals/actions/runs/41089804274), harness `ec660d1`, UI `a9ae62e`, OTA `01a18d53`. Incluye actualización 0.1.3 → 0.2.0 sin borrar datos y comprobaciones API antes/después de las aperturas finales. |
 | Capturas y vídeo | [Evidencia estable y hashes](evidence/home-native-20261030.json), ocho capturas originales y [vídeo Android anónimo](evidence/home-20261030-gestures.mp4). |
 
-La dirección visual fue validada para continuar. El rendimiento físico y el recorrido comercial completo de esta interfaz siguen pendientes de verificación. El caso anónimo prueba navegación financiera sin enviar órdenes y no entra en cuentas privadas. Envía gestos horizontales y comprueba que no cambian el capítulo; no mide el ángulo del objeto en Android.
+La dirección visual fue validada para continuar. El rendimiento físico sigue pendiente. El caso anónimo prueba navegación financiera sin enviar órdenes y no entra en cuentas privadas; el caso completo sí realiza operaciones ficticias en una mina QA aislada. El caso anónimo envía gestos horizontales y comprueba que no cambian el capítulo; no mide el ángulo del objeto en Android.
+
+### Regresión comercial Android
+
+Las 23 etapas cubren saldo, historial y comprobante legacy tras actualizar sin limpiar datos; registro sin importación; acceso de dos compradores y un operador; conversión USD → USDT; compra y certificado; oferta y compra entre usuarios; venta; solicitud, cotización, aceptación y ciclo de entrega DEMO; producción, verificación y recepción de 1,000 g; perfil, fracción, historial y aperturas en frío con la OTA aplicada. La cobertura comercial nativa de este caso es **XAU**. Los cuatro metales tienen cobertura API, sin atribuirles este recorrido nativo.
+
+Las aserciones finales comprobaron en los fixtures A: **287,89 USDT, 400 USD y 0,500 g**; B: **180 USDT, 600 USD y 0,500 g**. El suministro activo concilia **4,500 g disponibles + 1,000 g asignados = 5,500 g**; reservado: cero. El peso original agregado de los lotes es **6,000 g**, formado por 5,000 g de apertura explícita y 1,000 g de recepción DEMO; **0,500 g** se retiró del suministro activo por entrega simulada. La transferencia entre compradores conserva el lote de origen y no crea metal. Se verificó un solo ingreso de 1,000 g y **4,61 USDT** de comisiones ficticias.
+
+Las dos conciliaciones API aprobaron antes y después de las aperturas finales. Esto verifica efectos únicos y conservación de las postcondiciones; el caso no inyecta una respuesta perdida ni reenvía expresamente una misma clave. Esas condiciones de replay y cola durable corresponden a las pruebas HTTP/backend y de recuperación del checkpoint anterior. [Evidencia comercial estable](evidence/home-commercial-native-20261030.json).
+
+HOME → retorno también aprobó con el mismo proceso, etapa conservada, marcador GL listo y avance/reversa posteriores, sin force-stop. El vídeo y las capturas publicados pertenecen al caso anónimo; las pantallas de cuentas privadas del caso comercial no se publican.
+
+Después de completar la verificación se retiraron y se comprobaron ausentes los seis secretos temporales de QA en GitHub Actions. Las cuentas, los datos del fixture y el archivo privado de credenciales se conservaron; no se reiniciaron saldos ni historiales. El acceso público DEMO autorizado sigue en [demo-access](../demo-access/README.md).
 
 ### Medidas Android de esta composición
 
@@ -93,7 +105,7 @@ Se conserva el [APK firmado Android 0.2.0, código 5](https://github.com/Blaiste
 4. Comprobar el indicador **Actualización aplicada** con el prefijo publicado. Recorrer Inicio en ambos sentidos, abrir el menú y probar los accesos finales; consultar saldos e historial en sus pantallas.
 5. Si la sesión anterior está vinculada, Operar solicita el acceso correspondiente. Utilizar el alias y la clave propios de demostración; no crear otra cuenta para recuperar la misma sesión ni introducir datos reales.
 
-Este documento distingue la dirección visual validada, las siete etapas nativas aprobadas y las comprobaciones comerciales y de rendimiento físico pendientes. No declara cerrada la optimización de rendimiento.
+Este documento distingue la dirección visual validada, las siete etapas anónimas y las 23 etapas comerciales aprobadas del rendimiento y la aceptación completa en teléfono físico. No declara cerrada la optimización de rendimiento.
 
 El bundle Android publicado se comprobó con destino HTTPS Railway y sin el origen local de QA `127.0.0.1:8090`; SHA-256 `b5599569dad3dd2500447e492ce5d4677b222d02e246a382793c24f62a7500be`. Esto comprueba la configuración incluida; no sustituye la comprobación nativa de las operaciones.
 
@@ -101,6 +113,10 @@ El bundle Android publicado se comprobó con destino HTTPS Railway y sin el orig
 
 La siguiente mejora priorizada es una representación de mina ficticia con más volumen, profundidad y realismo de materiales e iluminación. La composición actual se conserva como base. Se evaluará el coste en Android de cada mejora utilizando el renderer y los componentes existentes antes de incorporar otra tecnología; inventario, permisos y referencias DEMO siguen siendo los mismos registros del simulador.
 
+La revisión deberá mostrar relieve y capas de profundidad, superficies minerales menos uniformes, sombras de contacto y una escala de cámara coherente. Su aceptación requiere comprobar la forma al avanzar y retroceder, sin depender de una captura fija. Se comparará el mismo recorrido y modo visual en un teléfono identificado antes y después. El modo ligero y las preferencias de movimiento reducido deben seguir disponibles; la escena representará un lugar inventado, sin mapas ni detalles de instalaciones reales. Estos puntos son trabajo futuro y no características ya implementadas.
+
 ## Incidencia de la primera ejecución nativa
 
 [41079287567](https://github.com/Blaister9/Openminerals/actions/runs/41079287567) terminó con tres etapas aprobadas y una fallida. El recorrido gráfico y el vídeo habían terminado; la prueba de salida a Mercado buscaba el botón de compra tras centrar únicamente el campo de gramos, dejando el botón fuera de pantalla. El diagnóstico confirmó Mercado seleccionado y la app en primer plano sin error JS/fatal. Se corrigió el desplazamiento de la prueba en `07ee442`, conservando la aserción y añadiendo las comprobaciones de las otras dos salidas. No se cambiaron UI ni operaciones. [La repetición 41082878671](https://github.com/Blaister9/Openminerals/actions/runs/41082878671) aprobó las siete etapas con esa corrección y la misma OTA. Sus capturas, vídeo y métricas son los publicados en este informe.
+
+El primer intento comercial [41087145626](https://github.com/Blaister9/Openminerals/actions/runs/41087145626) se detuvo antes del acceso QA al exigir un texto de composición ausente del APK embebido, antes de asegurar la OTA. Conservó los 268,40 USDT legacy. `ec660d1` desplazó y comprobó la cantidad estable 0,000 g, manteniendo saldo, historial de tres operaciones y comprobante histórico de 196,77 USDT. La repetición completa aprobó 23/23; no se modificaron app ni API y el fixture se comprobó intacto antes de repetir, sin reiniciar cuentas ni datos.
