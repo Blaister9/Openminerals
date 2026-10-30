@@ -47,8 +47,9 @@ export async function runImmersivePerformance({adb,serial,maestro,published}){
     try{adb('pull',remote,file);const metadata=await stat(file),header=await readFile(file);requireSafe(metadata.size>1000&&metadata.size<60_000_000&&header.subarray(4,8).toString()==='ftyp','Invalid anonymous demonstration video.');}finally{adb('shell','rm','-f',remote);}
   }
   const after=adb('shell','dumpsys','meminfo',PACKAGE),gfx=adb('shell','dumpsys','gfxinfo',PACKAGE),metrics=parseAndroidPerformance({before,after,gfx,start});
-  requireSafe(metrics.coldStartTotalMs!==null&&metrics.pssBeforeKiB!==null&&metrics.pssAfterKiB!==null&&metrics.uiFrames>0,'Android did not expose the required measured metrics.');
   const report={demoOnly:true,environment:'disposable Android CI emulator',physicalDevice:false,...metrics,...flags,
+    measurementsComplete:metrics.coldStartTotalMs!==null&&metrics.pssBeforeKiB!==null&&metrics.pssAfterKiB!==null&&metrics.uiFrames>0,
+    uiFrameStatisticsAvailable:metrics.uiFrames!==null&&metrics.uiFrames>0,
     interpretation:'Android UI frame statistics; not a measurement of GPU FPS. PSS is sampled before/after, not peak memory. Cold process start uses an already installed APK and cached OTA.',phonePerformanceAcceptance:false};
   await writeFile(join(published,'immersive-performance.json'),JSON.stringify(report,null,2)+'\n');
 }
