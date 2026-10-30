@@ -11,7 +11,7 @@ import {accountServices} from './account-services.js';
 import {lotHistoryView,parseLotHistoryQuery} from './custody-history.js';
 import {syncReservations} from './custody-reservations.js';
 import {intakeView,applyIntake,validateIntake} from './intake.js';
-import {publicBuyerState,publicBuyerReceipt} from './public-custody.js';
+import {publicBuyerState,publicBuyerReceipt,publicMine} from './public-custody.js';
 
 const ID_PATTERN=/^[A-Za-z0-9_-]{16,100}$/;
 const clone=value=>structuredClone(value);
@@ -88,7 +88,7 @@ function makeStore(adapter){
       if(!account)throw unauthorized();
       const mine=await tx.mine(account.mineId);
       await tx.insertAuth({hash:tokenHash(token),accountId,expiresAt});
-      return {account:publicAccount(account),mine:{id:mine.id,name:mine.name}};
+      return {account:publicAccount(account),mine:publicMine(mine,account)};
     });
     return {...context,token,expiresAt,demoOnly:true};
   }
@@ -132,7 +132,11 @@ function makeStore(adapter){
     async createMine(input){
       const {name,initialInventoryMg}=validateMineInput(input);
       let mine=seedMine(`mine-${randomUUID()}`,name);
-      if(initialInventoryMg)for(const [metal,value] of Object.entries(initialInventoryMg)){
+      // A new mine has no received stock unless the administrator explicitly
+      // supplies a DEMO opening balance. Existing/default/legacy mines retain
+      // their original quantities; omitted metals never create hidden stock.
+      for(const metal of Object.keys(METALS)){
+        const value=initialInventoryMg?.[metal]??0;
         mine.inventoryMg[metal]=value;mine.totalSupplyMg[metal]=value;
       }
       ({mine}=ensureCustody(mine,[]));
@@ -148,7 +152,7 @@ function makeStore(adapter){
         if(!await passwordMatches(password,account))throw unauthorized();
         const mine=await tx.mine(account.mineId),token=newAuthToken(),expiresAt=new Date(Date.now()+AUTH_LIFETIME_MS).toISOString();
         await tx.insertAuth({hash:tokenHash(token),accountId:account.id,expiresAt});
-        return {account:publicAccount(account),mine:{id:mine.id,name:mine.name},token,expiresAt,demoOnly:true};
+        return {account:publicAccount(account),mine:publicMine(mine,account),token,expiresAt,demoOnly:true};
       });
     },
     async authenticate(token){
@@ -160,7 +164,7 @@ function makeStore(adapter){
         if(!account)throw unauthorized();
         const mine=await tx.mine(account.mineId);
         if(!mine)throw unauthorized();
-        return {account:publicAccount(account),mine:{id:mine.id,name:mine.name},demoOnly:true};
+        return {account:publicAccount(account),mine:publicMine(mine,account),demoOnly:true};
       });
     },
     async logoutAccount(token){

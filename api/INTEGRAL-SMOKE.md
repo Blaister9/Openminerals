@@ -2,6 +2,10 @@
 
 `scripts/integral-smoke.mjs` comprueba las fases 1–5 sobre **dos minas nuevas y seis cuentas sintéticas**. No utiliza la cuenta pública del operador ni las cuentas del propietario. Todos los importes, documentos, metales y despachos son ficticios.
 
+Las minas nuevas sin `initialInventoryMg` comienzan vacías; en un saldo inicial parcial, los metales omitidos también quedan a cero. Solo se crean lotes iniciales para cantidades DEMO explícitas. Los fixtures de presentación declaran sus saldos iniciales y los registros ya existentes conservan sus cantidades, sin reiniciarse.
+
+La vista del comprador usa la etiqueta fija `Mina virtual ficticia DEMO`, incluida la sesión de acceso, sin cambiar el identificador de mina. Nombre operativo, ubicación y textos de documentos, requisitos o motivos se conservan en la vista autenticada del operador. Las asignaciones públicas usan una lista explícita de campos; los atributos operativos desconocidos de registros anteriores no se propagan al cliente. Las pruebas HTTP con canarios cubren login, registro, identidad, estado, historial, custodia, certificado, lote, mercado, entregas y comprobantes, tanto en memoria como en la suite PostgreSQL cuando está configurada.
+
 ## Ejecución
 
 Desde `api/`, disponer de `DEMO_ADMIN_TOKEN` en el entorno del proceso por el medio privado habitual. No escribir su valor en Git, capturas o archivos de comandos compartidos.
@@ -31,7 +35,7 @@ El archivo conserva el identificador aleatorio de los fixtures, sus **tokens de 
 
 No guarda contraseñas, token administrativo, claves de recuperación ni tokens temporales de recuperación. El comprador recuperado inicia sesión de nuevo y su token de fixture se actualiza antes de escribir el archivo. Una comprobación final impide serializar cualquiera de los secretos transitorios que se usaron. No publicar el snapshot ni copiar sus tokens en informes.
 
-La verificación comprueba los alias e identidades sintéticos originales y los nombres de las dos minas. Compara los datos anteriores, reenvía cada comando con su clave original y exige que el segundo snapshot permanezca idéntico. No vuelve a ejecutar el restablecimiento de contraseña: confirma su identidad posterior y el indicador `recovery.enabled`, sin disponer de la clave privada de recuperación.
+La verificación comprueba los alias e identidades sintéticos originales y los nombres operativos de las dos minas mediante sus operadores. Para cada comprador exige la etiqueta pública fija y el identificador de su mina original relacionado con su operador. Compara los datos anteriores, reenvía cada comando con su clave original y exige que el segundo snapshot permanezca idéntico. No vuelve a ejecutar el restablecimiento de contraseña: confirma su identidad posterior y el indicador `recovery.enabled`, sin disponer de la clave privada de recuperación.
 
 ## Recorridos y límites comprobados
 

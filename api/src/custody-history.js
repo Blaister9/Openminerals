@@ -1,6 +1,7 @@
 import {createHash} from 'node:crypto';
 import {DomainError} from './domain.js';
 import {accountError} from './account-auth.js';
+import {publicMine} from './public-custody.js';
 
 export const LOT_HISTORY_KINDS=['OPENING_BALANCE','ALLOCATION_OPENING','LOT_REGISTERED','BUY','IMPORT','SELL','MARKET_TRANSFER','DELIVERY','RESERVATION_OPENING','RESERVED','RESERVATION_RELEASED'];
 const copy=value=>structuredClone(value),has=(value,key)=>Object.hasOwn(value,key);
@@ -110,5 +111,5 @@ export function lotHistoryView(mine,accounts,viewer,lotId,query=parseLotHistoryQ
       ...(operator&&event.counterpartyId?{counterparty:publicAccount(event.counterpartyId)}:{}),
       ...(!operator&&event.kind==='MARKET_TRANSFER'?{direction:event.counterpartyId===viewer.id?'IN':'OUT'}:{}),...(referenceId?{referenceId}:{})};
   });
-  return {demoOnly:true,disclaimer:'HISTORIAL DEMO · Movimientos de derechos simulados. El saldo inicial conserva el estado previo; no reconstruye operaciones anteriores ni acredita custodia física.',mine:{id:mine.id,name:mine.name},view:operator?'operator':'buyer',lot:{id:lot.id,metal:lot.metal},items,total:events.length,nextCursor:start+selected.length<events.length?selected.at(-1).id:null,historyStartedAt:history.startedAt,earlierHistoryUnavailable:history.earlierHistoryUnavailable};
+  return {demoOnly:true,disclaimer:'HISTORIAL DEMO · Movimientos de derechos simulados. El saldo inicial conserva el estado previo; no reconstruye operaciones anteriores ni acredita custodia física.',mine:publicMine(mine,viewer),view:operator?'operator':'buyer',lot:{id:lot.id,metal:lot.metal},items,total:events.length,nextCursor:start+selected.length<events.length?selected.at(-1).id:null,historyStartedAt:history.startedAt,earlierHistoryUnavailable:history.earlierHistoryUnavailable};
 }

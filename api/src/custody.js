@@ -3,6 +3,7 @@ import {DomainError,METALS,parseGrams} from './domain.js';
 import {accountError} from './account-auth.js';
 import {ensureLotHistory,recordLotMovement,validateLotHistory} from './custody-history.js';
 import {reservedInLot,reservationPieces,validateReservations} from './custody-reservations.js';
+import {publicMine} from './public-custody.js';
 
 // This is a simulated allocation record, never proof of physical custody.
 export const CUSTODY_DISCLAIMER='SIMULADO · Lotes, documentos y certificados DEMO sin valor legal. No acreditan metal, propiedad ni custodia física.';
@@ -221,8 +222,15 @@ export function custodyView(mine,accounts,viewer){
   const operator=viewer.role==='operator',accountMap=new Map(accounts.map(account=>[account.id,account]));
   const selected=mine.custody.allocations.filter(allocation=>operator||allocation.accountId===viewer.id);
   const lots=mine.custody.lots.filter(lot=>operator||selected.some(allocation=>allocation.lotId===lot.id)).map(lot=>lotView(lot,mine.custody,operator?undefined:viewer.id));
-  const allocations=selected.map(allocation=>{const account=accountMap.get(allocation.accountId);const {accountId,...rest}=copy(allocation);return {...rest,account:{id:account.id,alias:account.alias},status:allocation.mg>0?'ACTIVE':'RELEASED',demoOnly:true};});
-  return {demoOnly:true,disclaimer:CUSTODY_DISCLAIMER,mine:{id:mine.id,name:mine.name},view:operator?'operator':'buyer',lots,allocations,
+  const allocations=selected.map(allocation=>{
+    const account=accountMap.get(allocation.accountId);
+    // Allocation records may gain operational metadata just as lots do. Only
+    // the operator receives that internal view; buyer DTOs stay allowlisted.
+    const projected=operator?copy(allocation):Object.fromEntries(['id','lotId','metal','mg','certificateId','createdAt'].filter(key=>has(allocation,key)).map(key=>[key,copy(allocation[key])]));
+    delete projected.accountId;
+    return {...projected,account:{id:account.id,alias:account.alias},status:allocation.mg>0?'ACTIVE':'RELEASED',demoOnly:true};
+  });
+  return {demoOnly:true,disclaimer:CUSTODY_DISCLAIMER,mine:publicMine(mine,viewer),view:operator?'operator':'buyer',lots,allocations,
     totals:record(metal=>({weightMg:lots.filter(lot=>lot.metal===metal).reduce((sum,lot)=>sum+lot.weightMg,0),deliveredMg:lots.filter(lot=>lot.metal===metal).reduce((sum,lot)=>sum+lot.deliveredMg,0),activeWeightMg:lots.filter(lot=>lot.metal===metal).reduce((sum,lot)=>sum+lot.activeWeightMg,0),allocatedMg:allocations.filter(allocation=>allocation.metal===metal).reduce((sum,allocation)=>sum+allocation.mg,0),availableMg:lots.filter(lot=>lot.metal===metal).reduce((sum,lot)=>sum+lot.availableMg,0)}))};
 }
 export function custodyCertificate(mine,accounts,viewer,certificateId){
@@ -231,6 +239,6 @@ export function custodyCertificate(mine,accounts,viewer,certificateId){
   const allocation=certificate&&mine.custody.allocations.find(item=>item.id===certificate.allocationId);
   if(!allocation||(viewer.role!=='operator'&&allocation.accountId!==viewer.id))throw accountError(404,'Certificado DEMO no disponible.');
   const account=accounts.find(item=>item.id===allocation.accountId),lot=mine.custody.lots.find(item=>item.id===allocation.lotId);
-  return {id:certificate.id,demoOnly:true,label:'CERTIFICADO DEMO — SIN VALOR LEGAL',disclaimer:CUSTODY_DISCLAIMER,mine:{id:mine.id,name:mine.name},account:{id:account.id,alias:account.alias},
+  return {id:certificate.id,demoOnly:true,label:'CERTIFICADO DEMO — SIN VALOR LEGAL',disclaimer:CUSTODY_DISCLAIMER,mine:publicMine(mine,viewer),account:{id:account.id,alias:account.alias},
     lot:lotView(lot,mine.custody,viewer.role==='operator'?undefined:viewer.id),issuedMg:certificate.issuedMg,allocatedMg:allocation.mg,status:allocation.mg===0?'RELEASED':allocation.mg===certificate.issuedMg?'ACTIVE':'PARTIALLY_RELEASED',issuedAt:certificate.issuedAt,verifyPath:`/api/demo/certificates/${certificate.id}`};
 }
