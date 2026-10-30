@@ -1,0 +1,280 @@
+{
+  "format": "openminerals-android-immersive-evidence-v1",
+  "demoOnly": true,
+  "run": {
+    "id": 41061145241,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41061145241",
+    "headSha": "62937b63207417d4658fb7f9fa90465709b01feb",
+    "branch": "codex/immersive-custody-20261029",
+    "workflow": "Android UI verification",
+    "conclusion": "success"
+  },
+  "artifact": {
+    "id": 12980765088,
+    "name": "android-ui-single-41061145241",
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41061145241/artifacts/12980765088",
+    "bytes": 2617386,
+    "createdAt": "2026-10-30T13:20:54Z",
+    "expiresAt": "2026-10-31T13:20:53Z"
+  },
+  "apk": {
+    "package": "com.openminerals.demo.mobile",
+    "code": 5,
+    "name": "0.2.0",
+    "sha256": "c35719bf44fdc5a1237249be7e80d6d3102e57ee58f0cd0d9b5af3c66f32d83f",
+    "minSdk": 24,
+    "certificate": "3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c"
+  },
+  "ota": {
+    "requestedUpdateId": "01a18cef-46db-7dfe-b633-becbc8366716",
+    "runtimeVersion": "0.2.0",
+    "channel": "demo",
+    "appliedPrefixVerified": "01a18cef",
+    "coldOpensVerified": 2,
+    "verification": "Native Actividad screen asserted Actualización aplicada plus the expected eight-character update prefix after two cold opens."
+  },
+  "environment": {
+    "name": "disposable Android GitHub Actions emulator",
+    "hostOS": "ubuntu-24.04",
+    "androidApi": 29,
+    "systemImage": "google_apis x86_64",
+    "deviceProfile": "pixel_2",
+    "cpuAcceleration": "KVM installed and usable",
+    "graphicsRenderer": "SwiftShader",
+    "availableCpus": 4,
+    "totalMemoryMiB": 15983,
+    "guestCpus": 4,
+    "guestMemoryMiB": 4096,
+    "maestroVersion": "2.12.0",
+    "physicalDevice": false
+  },
+  "checks": {
+    "nativeStagesPassed": [
+      "anonymous-postgres-api-preconditions",
+      "install-story-apk",
+      "anonymous-compatible-ota-before-story",
+      "native-story-and-reduced-motion",
+      "unrecorded-3d-native-performance",
+      "unrecorded-light-native-performance",
+      "native-story-resumes-after-home"
+    ],
+    "nativeStagesFailed": [],
+    "tests": 7,
+    "failures": 0,
+    "anonymousOnly": true,
+    "privateQAAccountLogin": false,
+    "scrollForwardAndReverse": true,
+    "sevenNativeStages": true,
+    "skipToOperations": true,
+    "reducedMotion": true,
+    "lightweightMode": true,
+    "homeResume": {
+      "backgroundObserved": true,
+      "sameProcess": true,
+      "stagePreserved": true,
+      "glReadinessMarker": true,
+      "advancedAndReversed": true,
+      "forceStopUsed": false,
+      "credentialsEntered": false
+    },
+    "commercialRegressionIncluded": false,
+    "phonePerformanceAccepted": false,
+    "horizontalSwipeSent": true,
+    "barOrientationResetButtonVisible": true,
+    "barRotationEffectMeasured": false
+  },
+  "measurements": {
+    "threeDimensionalUnrecorded": {
+      "coldStartTotalMs": 1584,
+      "coldStartWaitMs": 1587,
+      "pssBeforeKiB": 122894,
+      "pssAfterKiB": 122775,
+      "uiFrames": 125,
+      "jankyUiFrames": 125,
+      "uiFrameP50Ms": 69,
+      "uiFrameP90Ms": 250,
+      "uiFrameP95Ms": 550,
+      "automaticLightObserved": false,
+      "screenRecording": false,
+      "visualMode": "3d",
+      "hwuiProfilingRequested": true,
+      "measurementsComplete": true
+    },
+    "lightweightUnrecorded": {
+      "coldStartTotalMs": 1211,
+      "coldStartWaitMs": 1220,
+      "pssBeforeKiB": 112925,
+      "pssAfterKiB": 125560,
+      "uiFrames": 139,
+      "jankyUiFrames": 138,
+      "uiFrameP50Ms": 61,
+      "uiFrameP90Ms": 105,
+      "uiFrameP95Ms": 450,
+      "automaticLightObserved": false,
+      "screenRecording": false,
+      "visualMode": "light",
+      "hwuiProfilingRequested": true,
+      "measurementsComplete": true
+    },
+    "threeDimensionalRecorded": {
+      "coldStartTotalMs": 1620,
+      "coldStartWaitMs": 1624,
+      "pssBeforeKiB": 119576,
+      "pssAfterKiB": 122016,
+      "uiFrames": 103,
+      "jankyUiFrames": 101,
+      "uiFrameP50Ms": 105,
+      "uiFrameP90Ms": 300,
+      "uiFrameP95Ms": 800,
+      "automaticLightObserved": false,
+      "screenRecording": true,
+      "visualMode": "3d",
+      "hwuiProfilingRequested": true,
+      "measurementsComplete": true
+    }
+  },
+  "comparison": {
+    "baselineRun": 40998875800,
+    "baselineUrl": "https://github.com/Blaister9/Openminerals/actions/runs/40998875800",
+    "baselineHeadSha": "d9b362e3ccfb3e02ca83caf302d792df3076ff89",
+    "baselineOta": "01a18acb-c4d3-772f-8385-2c9bd4035d1b",
+    "baselineMeasurements": {
+      "threeDimensionalUnrecorded": {
+        "coldStartTotalMs": 1036,
+        "coldStartWaitMs": 1040,
+        "pssBeforeKiB": 120148,
+        "pssAfterKiB": 119536,
+        "uiFrames": 140,
+        "jankyUiFrames": 137,
+        "uiFrameP50Ms": 61,
+        "uiFrameP90Ms": 150,
+        "uiFrameP95Ms": 300,
+        "automaticLightObserved": false,
+        "screenRecording": false,
+        "visualMode": "3d",
+        "hwuiProfilingRequested": true,
+        "measurementsComplete": true
+      },
+      "lightweightUnrecorded": {
+        "coldStartTotalMs": 1163,
+        "coldStartWaitMs": 1164,
+        "pssBeforeKiB": 120231,
+        "pssAfterKiB": 122742,
+        "uiFrames": 182,
+        "jankyUiFrames": 174,
+        "uiFrameP50Ms": 46,
+        "uiFrameP90Ms": 73,
+        "uiFrameP95Ms": 93,
+        "automaticLightObserved": false,
+        "screenRecording": false,
+        "visualMode": "light",
+        "hwuiProfilingRequested": true,
+        "measurementsComplete": true
+      },
+      "threeDimensionalRecorded": {
+        "coldStartTotalMs": 72,
+        "coldStartWaitMs": 80,
+        "pssBeforeKiB": 55363,
+        "pssAfterKiB": 119101,
+        "uiFrames": 112,
+        "jankyUiFrames": 109,
+        "uiFrameP50Ms": 89,
+        "uiFrameP90Ms": 250,
+        "uiFrameP95Ms": 300,
+        "automaticLightObserved": false,
+        "screenRecording": true,
+        "visualMode": "3d",
+        "hwuiProfilingRequested": true,
+        "measurementsComplete": true
+      }
+    },
+    "assessment": "Both runs passed the functional story scenario. Current unrecorded 3D and lightweight UI frame percentiles are numerically slower than baseline. These are single emulator runs, not a controlled A/B benchmark; no causal performance regression or optimization claim is established."
+  },
+  "diagnostics": {
+    "lastStage": {
+      "name": "native-story-resumes-after-home",
+      "status": "PASSED"
+    },
+    "lastHandledNonzeroCommand": {
+      "stage": "unrecorded-light-native-performance",
+      "program": "adb",
+      "operation": "shell",
+      "exitCode": 1,
+      "reason": "nonzero-exit"
+    },
+    "interpretation": "The progress recorder retains a nonzero adb shell result even when caught by the runner. Public artifacts omit shell arguments; this diagnostic is not a failed test. JUnit and all seven stages passed."
+  },
+  "limitations": [
+    "Android UI frame statistics are not GPU FPS.",
+    "PSS values are samples before and after the scenario, not peak memory.",
+    "Cold start uses an already installed APK with cached OTA, not first installation or network startup.",
+    "The emulator has software graphics despite KVM CPU acceleration; no physical Android device performance acceptance.",
+    "Recorded 3D is a separate measurement and includes screen recorder overhead.",
+    "One run per variant; results do not establish a stable benchmark or causal change.",
+    "Automatic lightweight fallback was not observed in these profiles.",
+    "Screenshots show specific stages; reversible scroll was separately asserted by native Maestro flows.",
+    "The video remains inside the expiring sanitized CI artifact and has not been reviewed for external publication.",
+    "The initial horizontal swipe and reset button are exercised, but the native test does not measure the resulting bar orientation."
+  ],
+  "visuallyReviewedStageNumbers": [
+    1,
+    4,
+    5,
+    6,
+    7
+  ],
+  "screenshots": [
+    {
+      "filename": "immersive-20261030-origin.png",
+      "stage": 1,
+      "sourceArtifactFilename": "safe-story-1.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 263668,
+      "sha256": "99eef87f9f900d391de7409cafec00970e6517632ba4de3d3c3e4407d60a7d76",
+      "anonymous": true,
+      "visuallyReviewed": true
+    },
+    {
+      "filename": "immersive-20261030-bar.png",
+      "stage": 4,
+      "sourceArtifactFilename": "safe-story-4.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 250128,
+      "sha256": "cbb37cf7fee0b9fe5a02cbdd6de7cdf6569a8a56a79c630486bbf3510049f74f",
+      "anonymous": true,
+      "visuallyReviewed": true
+    },
+    {
+      "filename": "immersive-20261030-vault.png",
+      "stage": 5,
+      "sourceArtifactFilename": "safe-story-5.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 266814,
+      "sha256": "15ce38512e4f48f851aa48222495e7e5298052c1061a1f3f579f8e18201132a1",
+      "anonymous": true,
+      "visuallyReviewed": true
+    },
+    {
+      "filename": "immersive-20261030-fractions.png",
+      "stage": 6,
+      "sourceArtifactFilename": "safe-story-6.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 265219,
+      "sha256": "4c55821de5a56cd1250523d4478a7579bad9dfc17c19ca996f8346619cc1e124",
+      "anonymous": true,
+      "visuallyReviewed": true
+    }
+  ],
+  "video": {
+    "sourceArtifactFilename": "safe-immersive-scroll.mp4",
+    "bytes": 737913,
+    "sha256": "835e04b47bc8f16c8ca9d0f739ab2966d0dc618709ef4b41a9ce60df723bf1c6",
+    "recordedBeforeCredentials": true,
+    "publishedExternally": false,
+    "visuallyReviewedForPublication": false
+  }
+}

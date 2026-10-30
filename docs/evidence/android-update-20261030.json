@@ -1,0 +1,242 @@
+{
+  "format": "openminerals-android-update-evidence-v1",
+  "demoOnly": true,
+  "run": {
+    "id": 41067695679,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41067695679",
+    "headSha": "fe37dd1efd500071973b337ec5eedc75ee7ac20a",
+    "branch": "codex/immersive-custody-20261029",
+    "workflow": "Android UI verification",
+    "scenario": "profile-relaunch",
+    "coverageMetal": "XAU",
+    "conclusion": "success"
+  },
+  "artifact": {
+    "id": 12984731035,
+    "name": "android-ui-single-41067695679",
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41067695679/artifacts/12984731035",
+    "bytes": 4185,
+    "createdAt": "2026-10-30T14:06:19Z",
+    "expiresAt": "2026-10-31T14:06:18Z"
+  },
+  "ota": {
+    "requestedUpdateId": "01a18d19-93f3-767d-bb5b-5e4eeea35cc8",
+    "runtimeVersion": "0.2.0",
+    "channel": "demo",
+    "appliedPrefixVerified": "01a18d19",
+    "nativeAnonymousApplicationVerified": true,
+    "nativeSignedInColdOpensVerified": true,
+    "verification": "Native Actividad screen asserts Actualización aplicada plus the expected eight-character update prefix, before login and after signed-in cold opens."
+  },
+  "environment": {
+    "name": "disposable Android GitHub Actions emulator",
+    "hostOS": "ubuntu-24.04",
+    "androidApi": 29,
+    "systemImage": "google_apis x86_64",
+    "deviceProfile": "pixel_2",
+    "cpuAcceleration": "KVM installed and usable",
+    "graphicsRenderer": "SwiftShader",
+    "availableCpus": 4,
+    "totalMemoryMiB": 15983,
+    "guestCpus": 4,
+    "guestMemoryMiB": 4096,
+    "maestroVersion": "2.12.0",
+    "physicalDevice": false
+  },
+  "apks": [
+    {
+      "kind": "baseline",
+      "sha256": "fda0953d11a6035100bef9f9c04d070053edc2ae47c31852803a020d89e6b7c7",
+      "package": "com.openminerals.demo.mobile",
+      "code": 4,
+      "name": "0.1.3",
+      "minSdk": 24,
+      "certificate": "3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c"
+    },
+    {
+      "kind": "new",
+      "sha256": "c35719bf44fdc5a1237249be7e80d6d3102e57ee58f0cd0d9b5af3c66f32d83f",
+      "package": "com.openminerals.demo.mobile",
+      "code": 5,
+      "name": "0.2.0",
+      "minSdk": 24,
+      "certificate": "3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c"
+    }
+  ],
+  "junit": {
+    "available": true,
+    "tests": 8,
+    "failures": 0,
+    "stages": [
+      {
+        "name": "qa-isolation-preconditions",
+        "seconds": 2.108
+      },
+      {
+        "name": "install-profile-apk",
+        "seconds": 39.737
+      },
+      {
+        "name": "profile-compatible-ota-before-login",
+        "seconds": 65.828
+      },
+      {
+        "name": "buyer-history-profile-relaunch",
+        "seconds": 171.429
+      },
+      {
+        "name": "buyer-custody-fraction-is-not-whole-lot",
+        "seconds": 28.819
+      },
+      {
+        "name": "api-verifies-native-wallets-lots-fees",
+        "seconds": 0.387
+      },
+      {
+        "name": "buyer-compatible-ota-cold-launch",
+        "seconds": 56.915
+      },
+      {
+        "name": "api-verifies-data-after-compatible-ota",
+        "seconds": 0.397
+      }
+    ]
+  },
+  "controls": {
+    "existingCompletedFixtureRecheckedBeforeInstall": true,
+    "freshEmulatorCode5Install": true,
+    "appliedLatestUpdateBeforeLogin": true,
+    "receiptAndProfileAndSecureStoreRelaunch": true,
+    "ownedGoldFractionOf500MgVerified": true,
+    "commercialApiPostconditionsBeforeColdOta": true,
+    "signedInColdOtaVerified": true,
+    "commercialApiPostconditionsAfterColdOta": true,
+    "financialCommandsRepeated": false,
+    "fixtureReset": false,
+    "newFixtureProvisioned": false,
+    "local629ToFe37MigrationTested": false,
+    "completeFe37CommercialJourneyRepeated": false,
+    "operatorStockPendingRetentionPathExercisedNatively": false,
+    "privateIdentityValuesPublished": false
+  },
+  "preservedCommercialState": {
+    "referenceEvidence": "android-commercial-20261030.json",
+    "referenceRun": 41061954019,
+    "originalHeadSha": "62937b63207417d4658fb7f9fa90465709b01feb",
+    "originalOtaId": "01a18cef-46db-7dfe-b633-becbc8366716",
+    "postconditionsRechecked": {
+      "api": "https://openminerals-api-demo.up.railway.app",
+      "apiVersion": "0.2.0",
+      "mode": "postgres-demo",
+      "stages": [
+        "api-verifies-native-wallets-lots-fees",
+        "api-verifies-data-after-compatible-ota"
+      ],
+      "units": {
+        "money": "integer currency minor units",
+        "metal": "integer milligrams"
+      },
+      "buyerA": {
+        "walletMinor": {
+          "USDT": 28789,
+          "USD": 40000
+        },
+        "holdingsMg": {
+          "XAU": 500
+        }
+      },
+      "buyerB": {
+        "walletMinor": {
+          "USDT": 18000,
+          "USD": 60000
+        },
+        "holdingsMg": {
+          "XAU": 500
+        }
+      },
+      "mine": {
+        "reconciled": true,
+        "availableMg": {
+          "XAU": 4500
+        },
+        "allocatedMg": {
+          "XAU": 1000
+        },
+        "reservedMg": {
+          "XAU": 0
+        },
+        "activeSupplyMg": {
+          "XAU": 5500
+        },
+        "originalLotWeightMg": {
+          "XAU": 6000
+        },
+        "deliveredMg": {
+          "XAU": 500
+        },
+        "tradingFeesMinorUSDT": 461,
+        "stockAdjustments": 1,
+        "stockAdjustmentMg": 1000
+      },
+      "commerce": {
+        "directBuys": 1,
+        "directSells": 1,
+        "marketplaceTrades": 1,
+        "filledOffers": 1,
+        "deliveryStatus": "DELIVERED_DEMO",
+        "paidDeliveryMinorUSDT": 1000,
+        "peerTransferMg": 500,
+        "peerTradePreservedSellerSourceLot": true,
+        "lotHistoryHasOneBuySellTransferAndDelivery": true,
+        "buyerLotHistoryScopedToOwnIdentity": true,
+        "operatorLotHistoryAndManagementExcludeBuyerWalletData": true,
+        "perMetalVolumesMg": {
+          "XAU": {
+            "directBuy": 2000,
+            "directSell": 500,
+            "marketplace": 500
+          },
+          "XAG": {
+            "directBuy": 0,
+            "directSell": 0,
+            "marketplace": 0
+          },
+          "XPT": {
+            "directBuy": 0,
+            "directSell": 0,
+            "marketplace": 0
+          },
+          "XPD": {
+            "directBuy": 0,
+            "directSell": 0,
+            "marketplace": 0
+          }
+        }
+      },
+      "basis": "These exact postconditions are enforced by mobile/e2e/ci-result.mjs against live PostgreSQL API responses; no private raw snapshot is published."
+    },
+    "interpretation": "These are rechecked existing PostgreSQL account/lot/history postconditions. This focused update scenario does not repeat the trade or delivery commands."
+  },
+  "diagnostics": {
+    "lastStage": {
+      "name": "api-verifies-data-after-compatible-ota",
+      "status": "PASSED"
+    },
+    "lastHandledNonzeroCommand": null,
+    "failedStageNames": [],
+    "failureArtifactFiles": []
+  },
+  "limits": [
+    "A fresh disposable emulator installs the existing 0.2.0/versionCode5 APK and applies the fe37 OTA before account login.",
+    "The six original QA secrets and completed server-side fixture were retained; no account or mine reset is part of this continuation.",
+    "This checks backend wallet, lot, receipt and history preservation plus SecureStore across cold opens on the new emulator.",
+    "It is not a local installation migration from the prior 629 bundle to fe37, and is not a repeated complete commercial native journey of fe37.",
+    "The later operator pending-retention fix is not exercised by native operator stock actions in this focused scenario.",
+    "No native story, graphics benchmark, physical-device acceptance or real financial transaction is included.",
+    "Native commercial amounts and preserved positions cover XAU only.",
+    "No private account screenshots, raw diagnostics or account identifiers are published."
+  ],
+  "phoneAcceptance": false,
+  "realFunds": false,
+  "realCustody": false
+}
