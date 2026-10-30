@@ -41,6 +41,8 @@ export type Receipt={
   actor?:{id:string;alias:string};
   reason?:string;
   lotId?:string;
+  batchId?:string;
+  stage?:string;
   inventoryAfterMg?:Record<ReceiptMetal,number>;
   totalSupplyAfterMg?:Record<ReceiptMetal,number>;
   deliveredLots?:{lotId:string;mg:number}[];
@@ -130,6 +132,11 @@ export function receiptDetails(receipt:Receipt):ReceiptDetail[] {
   const mg=receiptMg(receipt);
   if(metal)rows.push({label:'Metal',value:metals[metal]??metal});
   if(amountRecorded(mg))rows.push({label:'Cantidad',value:grams(mg)});
+  if(receipt.action.startsWith('intake_')){
+    rows.push({label:'Producción DEMO',value:receipt.batchId??missing});
+    rows.push({label:'Etapa simulada',value:({PRODUCED_DEMO:'Producido, sin verificar',VERIFYING_DEMO:'En verificación',RECEIVED_DEMO:'Recibido en custodia DEMO'} as Record<string,string>)[receipt.stage??'']??missing});
+    if(receipt.lotId)rows.push({label:'Lote DEMO creado',value:receipt.lotId});
+  }
   if(['buy','sell','market_buy','market_sell'].includes(receipt.action)){
     const price=receipt.priceCentsPerGram??receipt.priceMinorPerGram;
     rows.push({label:'Precio ficticio por gramo',value:amountRecorded(price)?`${money(price)}/g`:missing});

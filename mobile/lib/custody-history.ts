@@ -1,6 +1,6 @@
 import {custodyMetals,validCertificateId,type CustodyMetal} from './custody.ts';
 
-export const lotMovementKinds=['OPENING_BALANCE','ALLOCATION_OPENING','LOT_REGISTERED','BUY','IMPORT','SELL','MARKET_TRANSFER','DELIVERY'] as const;
+export const lotMovementKinds=['OPENING_BALANCE','ALLOCATION_OPENING','LOT_REGISTERED','BUY','IMPORT','SELL','MARKET_TRANSFER','DELIVERY','RESERVATION_OPENING','RESERVED','RESERVATION_RELEASED'] as const;
 export type LotMovementKind=typeof lotMovementKinds[number];
 export type LotMovement={id:string;at:string;kind:LotMovementKind;mg:number;account?:{id:string;alias:string};counterparty?:{id:string;alias:string};referenceId?:string;direction?:'IN'|'OUT'};
 export type LotHistory={demoOnly:true;mine:{id:string;name:string};view:'buyer'|'operator';lot:{id:string;metal:CustodyMetal};items:LotMovement[];total:number;nextCursor:string|null;disclaimer:string;historyStartedAt:string;earlierHistoryUnavailable:true};
@@ -16,7 +16,7 @@ function account(value:unknown){const item=object(value);return {id:id(item.id),
 export function lotHistoryPath(lotId:string,before:string|null=null):string{
   if(!validCertificateId(lotId))throw new Error('El identificador de lote demo no es válido.');
   if(before!==null)moveId(before);
-  return `/api/demo/custody/lots/${encodeURIComponent(lotId)}/history?limit=20${before?`&before=${encodeURIComponent(before)}`:''}`;
+  return `/api/demo/custody/lots/${encodeURIComponent(lotId)}/history?limit=20&includeReservations=1${before?`&before=${encodeURIComponent(before)}`:''}`;
 }
 export function parseLotHistory(value:unknown,lotId:string,operator:boolean,accountId:string):LotHistory{
   const item=object(value),mine=object(item.mine),lot=object(item.lot),view=operator?'operator':'buyer';
@@ -42,5 +42,5 @@ export function mergeLotHistory(current:LotMovement[],next:LotMovement[]):LotMov
   const ids=new Set<string>();return [...current,...next].filter(item=>{if(ids.has(item.id))return false;ids.add(item.id);return true;});
 }
 export function lotMovementLabel(kind:LotMovementKind,direction?:'IN'|'OUT'):string{
-  return {OPENING_BALANCE:'Peso original del lote al habilitar el historial',ALLOCATION_OPENING:'Asignación existente al habilitar el historial',LOT_REGISTERED:'Registro de lote DEMO',BUY:'Compra directa',IMPORT:'Importación explícita de sesión',SELL:'Venta directa',MARKET_TRANSFER:direction==='IN'?'Entrada desde marketplace':direction==='OUT'?'Salida por marketplace':'Transferencia entre compradores',DELIVERY:'Salida por entrega simulada'}[kind];
+  return {OPENING_BALANCE:'Peso original del lote al habilitar el historial',ALLOCATION_OPENING:'Asignación existente al habilitar el historial',LOT_REGISTERED:'Registro de lote DEMO',BUY:'Compra directa',IMPORT:'Importación explícita de sesión',SELL:'Venta directa',MARKET_TRANSFER:direction==='IN'?'Entrada desde marketplace':direction==='OUT'?'Salida por marketplace':'Transferencia entre compradores',DELIVERY:'Salida por entrega simulada',RESERVATION_OPENING:'Reserva existente al habilitar trazabilidad',RESERVED:'Gramos reservados en el lote',RESERVATION_RELEASED:'Reserva finalizada: liberada o aplicada'}[kind];
 }

@@ -2,7 +2,7 @@ import {createHash} from 'node:crypto';
 import {DomainError} from './domain.js';
 import {accountError} from './account-auth.js';
 
-export const LOT_HISTORY_KINDS=['OPENING_BALANCE','ALLOCATION_OPENING','LOT_REGISTERED','BUY','IMPORT','SELL','MARKET_TRANSFER','DELIVERY'];
+export const LOT_HISTORY_KINDS=['OPENING_BALANCE','ALLOCATION_OPENING','LOT_REGISTERED','BUY','IMPORT','SELL','MARKET_TRANSFER','DELIVERY','RESERVATION_OPENING','RESERVED','RESERVATION_RELEASED'];
 const copy=value=>structuredClone(value),has=(value,key)=>Object.hasOwn(value,key);
 const fail=(condition,message='El historial del lote DEMO no concuerda.')=>{if(!condition)throw new DomainError(message,'INVALID_CUSTODY_HISTORY');};
 const amount=value=>Number.isSafeInteger(value)&&value>=0;
@@ -85,10 +85,11 @@ export function validateLotHistory(mine,accounts){
 
 export function parseLotHistoryQuery(params=new URLSearchParams()){
   const invalid=()=>accountError(400,'Parámetros de historial de lote DEMO inválidos.','INVALID_LOT_HISTORY_QUERY');
-  for(const field of params.keys())if(!['limit','before'].includes(field)||params.getAll(field).length!==1)throw invalid();
+  for(const field of params.keys())if(!['limit','before','includeReservations'].includes(field)||params.getAll(field).length!==1)throw invalid();
   const limit=params.get('limit')??'20',before=params.get('before');
   if(!/^[1-9]\d?$/.test(limit)||Number(limit)>50||before!==null&&!/^lot-move-[a-f0-9]{32}$/.test(before))throw invalid();
-  return {limit:Number(limit),before};
+  const include=params.get('includeReservations');if(include!==null&&include!=='1')throw invalid();
+  return {limit:Number(limit),before,includeReservations:include==='1'};
 }
 
 export function lotHistoryView(mine,accounts,viewer,lotId,query=parseLotHistoryQuery()){
@@ -97,7 +98,9 @@ export function lotHistoryView(mine,accounts,viewer,lotId,query=parseLotHistoryQ
   validateLotHistory(mine,accounts);
   const history=mine.custody.history,accountMap=new Map(accounts.map(account=>[account.id,account]));
   const publicAccount=id=>{const account=accountMap.get(id);return {id:account.id,alias:account.alias};};
-  const events=history.movements.filter(event=>event.lotId===lot.id&&(operator||event.accountId===viewer.id||event.counterpartyId===viewer.id||event.kind==='LOT_REGISTERED')).toReversed();
+  // Old installed clients do not understand reservation events. New clients
+  // explicitly opt in, with the cursor scoped to that same filtered stream.
+  const events=history.movements.filter(event=>event.lotId===lot.id&&(query.includeReservations||!['RESERVATION_OPENING','RESERVED','RESERVATION_RELEASED'].includes(event.kind))&&(operator||event.accountId===viewer.id||event.counterpartyId===viewer.id||event.kind==='LOT_REGISTERED')).toReversed();
   let start=0;if(query.before){const index=events.findIndex(event=>event.id===query.before);if(index<0)throw accountError(400,'Cursor de historial no disponible.','INVALID_LOT_HISTORY_QUERY');start=index+1;}
   const selected=events.slice(start,start+query.limit);
   const items=selected.map(event=>{

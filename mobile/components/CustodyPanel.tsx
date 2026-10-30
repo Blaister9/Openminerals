@@ -105,6 +105,7 @@ export function CustodyPanel({operator,identityKey,get,disabled=false,refreshKey
           <Row label="Entregado en la simulación" value={custodyGrams(lot.deliveredMg)}/><Row label="Peso que sigue en custodia demo" value={custodyGrams(lot.activeWeightMg)}/>
           <Row label="Ubicación ficticia" value={lot.location}/><Row label="Estado" value={custodyStatus(lot.status)}/>
           <Row label={operator?'Asignado en el lote':'Asignado a mi cuenta'} value={custodyGrams(lot.allocatedMg)}/><Row label="Disponible en el lote" value={custodyGrams(lot.availableMg)}/>
+          {lot.reservedMg!==undefined&&<Row label={operator?'Reservado dentro de lo asignado':'Reserva de mi cuenta en este lote'} value={custodyGrams(lot.reservedMg)}/>}
           <Documents items={lot.documents}/>
           <Pressable accessibilityRole="button" accessibilityLabel={`Consultar historial del lote ${lot.id}`} disabled={disabled} onPress={()=>setHistoryLot(lot.id)} style={[styles.secondary,disabled&&styles.disabled]}><Text style={styles.secondaryText}>Ver movimientos del lote</Text></Pressable>
           <Text style={styles.smallHeading}>{operator?'Asignaciones de compradores':'Mis asignaciones'}</Text>

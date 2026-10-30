@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import {ActivityIndicator,Pressable,StyleSheet,Text,TextInput,View} from 'react-native';
+import {ActivityIndicator,Pressable,ScrollView,StyleSheet,Text,TextInput,View} from 'react-native';
 import {normalizeDecimalInput,parsePositiveDecimal} from '../lib/presentation';
 import {receiptSummary,receiptTitle,type Receipt} from '../lib/receipt-presentation';
 import {deliveryStatusLabel,type DeliveryStatus} from '../lib/delivery';
@@ -10,7 +10,7 @@ type Account={id:string;alias:string};
 type Reservation={id:string;metal:Metal;mg:number;status:string};
 export type StockReceipt={id:string;action:'stock';status:string;at:string;demoOnly:true;metal:Metal;mg:number;reason:string;lotId?:string;inventoryAfterMg:Record<Metal,number>;totalSupplyAfterMg:Record<Metal,number>;actor:Account;replayed?:boolean};
 export type MineSummary={
-  demoOnly:boolean;mine:{id:string;name:string};inventoryMg:Record<Metal,number>;totalSupplyMg:Record<Metal,number>;allocatedMg:Record<Metal,number>;reservedMg:Record<Metal,number>;
+  demoOnly:boolean;mine:{id:string;name:string};inventoryMg:Record<Metal,number>;totalSupplyMg:Record<Metal,number>;allocatedMg:Record<Metal,number>;reservedMg:Record<Metal,number>;deliveryCommittedMg?:Record<Metal,number>;
   accountCount:number;transactionCount:number;demoFeesCollectedMinor:number;offersOpen:number;deliveriesPending:number;reconciled:boolean;
   operations:{account:Account;receipt:Receipt}[];
   pendingOffers:{account:Account;offer:Reservation}[];
@@ -26,8 +26,8 @@ function Row({label,value}:{label:string;value:string}){return <View style={styl
 
 export function MineDashboard({summary,loading,error,blocked,lastStockId,onRefresh,onRestock,onReceipt,onStockReceipt}:Props){
   const [metal,setMetal]=useState<Metal>('XAU');const [grams,setGrams]=useState('1.000');const [reason,setReason]=useState('');
-  const [purity,setPurity]=useState('9999');const [location,setLocation]=useState('Bóveda de presentación');
-  const [documentTitle,setDocumentTitle]=useState('Registro de lote DEMO');const [documentContent,setDocumentContent]=useState('Documento ficticio de presentación sin valor legal ni acreditación de custodia física.');
+  const [purity,setPurity]=useState('9999');const location='Bóveda virtual ficticia';
+  const documentTitle='Registro de lote DEMO',documentContent='Documento sintético sin valor legal ni acreditación de custodia física.';
   useEffect(()=>setPurity(({XAU:'9999',XAG:'9990',XPT:'9995',XPD:'9995'})[metal]),[metal]);
   useEffect(()=>{if(lastStockId)setReason('');},[lastStockId]);
   const units=parsePositiveDecimal(grams,3);const mg=units===null?null:Math.round(units*1000);
@@ -48,10 +48,10 @@ export function MineDashboard({summary,loading,error,blocked,lastStockId,onRefre
       </View>
       <Text accessibilityRole="header" style={styles.section}>Existencias por metal</Text>
       <Text style={[styles.note,balanced?styles.ok:styles.errorText]} accessibilityRole={balanced?undefined:'alert'}>{balanced?'Disponible + asignado coincide con el total registrado en esta demo.':'Hay una diferencia en el inventario. Actualiza el panel antes de operar.'}</Text>
-      {metals.map(item=><View key={item.code} style={styles.card}><Text style={styles.cardTitle}>{item.name}</Text><Row label="Disponible para compras" value={gram(summary.inventoryMg[item.code])}/><Row label="Asignado a compradores" value={gram(summary.allocatedMg[item.code])}/><Row label="Reservado dentro de esas posiciones" value={gram(summary.reservedMg[item.code])}/><Row label="Total registrado" value={gram(summary.totalSupplyMg[item.code])}/></View>)}
-      <Text accessibilityRole="header" style={styles.section}>Ingreso ficticio de metal</Text>
+      <ScrollView horizontal directionalLockEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:12,paddingBottom:10}}>{metals.map(item=><View key={item.code} style={[styles.card,{width:285}]}><Text style={styles.cardTitle}>{item.name}</Text><Row label="Disponible para compras" value={gram(summary.inventoryMg[item.code])}/><Row label="Asignado a compradores" value={gram(summary.allocatedMg[item.code])}/><Row label="Reservado dentro de esas posiciones" value={gram(summary.reservedMg[item.code])}/><Row label="Comprometido para entrega" value={gram(summary.deliveryCommittedMg?.[item.code]??0)}/><Row label="Suministro activo DEMO" value={gram(summary.totalSupplyMg[item.code])}/><Text style={styles.note}>Reserva y compromiso son subconjuntos del asignado; no se suman otra vez al suministro.</Text></View>)}</ScrollView>
+      <Text accessibilityRole="header" style={styles.section}>Recepción directa DEMO</Text>
       <View style={styles.card}>
-        <Text style={styles.copy}>Crea un lote ficticio con asignaciones trazables dentro de la demo. El registro no acredita recepción ni custodia física real.</Text>
+        <Text style={styles.copy}>Compatibilidad: registra una recepción ya verificada en la simulación. Para producción nueva, usa las tres etapas de arriba. No acredita recepción ni custodia física real.</Text>
         <View style={styles.chips}>{metals.map(item=><Pressable key={item.code} testID={`stock-metal-${item.code}`} accessibilityRole="button" disabled={blocked} onPress={()=>setMetal(item.code)} style={[styles.chip,metal===item.code&&styles.chipOn]}><Text style={styles.chipText}>{item.name}</Text></Pressable>)}</View>
         <Text style={styles.label}>Cantidad en gramos</Text><TextInput accessibilityLabel="Gramos para ingreso de mina" style={styles.input} value={grams} onChangeText={setGrams} editable={!blocked} keyboardType="decimal-pad"/>
         {!invalid&&mg!==null&&<Row label="Cantidad interpretada" value={gram(mg)}/>}
@@ -60,9 +60,8 @@ export function MineDashboard({summary,loading,error,blocked,lastStockId,onRefre
         <Text style={styles.label}>Motivo ficticio</Text><TextInput accessibilityLabel="Motivo del ingreso de mina" style={styles.input} value={reason} onChangeText={setReason} editable={!blocked} maxLength={160} placeholder="Reposición para la demostración" placeholderTextColor="#667385"/>
         <Text style={styles.note}>De 3 a 160 caracteres. No incluyas datos personales.</Text>
         <Text style={styles.label}>Pureza ficticia en centésimas de porcentaje</Text><TextInput accessibilityLabel="Pureza del lote demo" style={styles.input} value={purity} onChangeText={setPurity} editable={!blocked} keyboardType="number-pad" maxLength={5}/><Text style={styles.note}>9999 equivale a 99,99 %. Metadato de demostración; no es un ensayo.</Text>
-        <Text style={styles.label}>Ubicación de custodia simulada</Text><TextInput accessibilityLabel="Ubicación ficticia del lote" style={styles.input} value={location} onChangeText={setLocation} editable={!blocked} maxLength={120}/>
-        <Text style={styles.label}>Título del documento DEMO</Text><TextInput accessibilityLabel="Título documento de lote demo" style={styles.input} value={documentTitle} onChangeText={setDocumentTitle} editable={!blocked} maxLength={100}/>
-        <Text style={styles.label}>Contenido ficticio del documento</Text><TextInput accessibilityLabel="Contenido documento de lote demo" style={styles.input} value={documentContent} onChangeText={setDocumentContent} editable={!blocked} multiline maxLength={2000}/>
+        <Row label="Representación de custodia" value="Bóveda virtual ficticia"/>
+        <Text style={styles.note}>Documento sintético automático. No se solicitan direcciones, coordenadas, planos ni datos de seguridad física.</Text>
         <Pressable accessibilityRole="button" disabled={!canSubmit} onPress={()=>onRestock({metal,grams:normalizeDecimalInput(grams),reason:reason.trim(),purityBps:purity,location:location.trim(),documentTitle:documentTitle.trim(),documentContent:documentContent.trim()})} style={[styles.primary,!canSubmit&&styles.disabled]}><Text style={styles.primaryText}>Revisar ingreso ficticio</Text></Pressable>
       </View>
       <Text accessibilityRole="header" style={styles.section}>Últimas 20 operaciones de compradores</Text>

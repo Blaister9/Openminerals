@@ -1,5 +1,5 @@
 appId: com.openminerals.demo.mobile
-name: Operator restock and private management
+name: Operator production verification receipt and management
 ---
 - scrollUntilVisible:
     element:
@@ -10,77 +10,54 @@ name: Operator restock and private management
 - tapOn: ^Inventario$
 - scrollUntilVisible:
     element:
-      text: Gramos para ingreso de mina
+      text: Gramos de producción DEMO
     direction: DOWN
     centerElement: true
     timeout: 30000
-- tapOn: Gramos para ingreso de mina
+- tapOn: Gramos de producción DEMO
 - eraseText
 - inputText: "1"
 - hideKeyboard
 - scrollUntilVisible:
     element:
-      text: Motivo del ingreso de mina
+      text: ^Registrar producido DEMO$
     direction: DOWN
     centerElement: true
     timeout: 30000
-- tapOn: Motivo del ingreso de mina
-- eraseText
-- inputText: Lote ficticio del recorrido nativo QA
-- hideKeyboard
-- scrollUntilVisible:
-    element:
-      text: Pureza del lote demo
-    direction: DOWN
-    centerElement: true
-    timeout: 30000
-- tapOn: Pureza del lote demo
-- eraseText
-- inputText: "9999"
-- hideKeyboard
-- scrollUntilVisible:
-    element:
-      text: Ubicación ficticia del lote
-    direction: DOWN
-    centerElement: true
-    timeout: 30000
-- tapOn: Ubicación ficticia del lote
-- eraseText
-- inputText: DEMO QA sin ubicación real
-- hideKeyboard
-- scrollUntilVisible:
-    element:
-      text: Título documento de lote demo
-    direction: DOWN
-    centerElement: true
-    timeout: 30000
-- tapOn: Título documento de lote demo
-- eraseText
-- inputText: Registro ficticio QA
-- hideKeyboard
-- scrollUntilVisible:
-    element:
-      text: Contenido documento de lote demo
-    direction: DOWN
-    centerElement: true
-    timeout: 30000
-- tapOn: Contenido documento de lote demo
-- eraseText
-- inputText: Documento DEMO sin recepción física.
-- hideKeyboard
-- scrollUntilVisible:
-    element:
-      text: ^Revisar ingreso ficticio$
-    direction: DOWN
-    centerElement: true
-    timeout: 30000
-- tapOn: ^Revisar ingreso ficticio$
-- assertVisible: ^Crear lote de demostración$
+- tapOn: ^Registrar producido DEMO$
+- assertVisible: ^Registrar producción DEMO$
 - tapOn: ^Confirmar demo$
 - extendedWaitUntil:
-    visible: ^Ingreso registrado$
+    visible: ^Producción DEMO registrada$
     timeout: 30000
-- tapOn: Cerrar comprobante de ingreso
+- tapOn: Cerrar comprobante
+- scrollUntilVisible:
+    element:
+      text: ^Pasar a verificación DEMO$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Pasar a verificación DEMO$
+- tapOn: ^Confirmar demo$
+- extendedWaitUntil:
+    visible: ^Verificación DEMO registrada$
+    timeout: 30000
+- tapOn: Cerrar comprobante
+- scrollUntilVisible:
+    element:
+      text: ^Recibir en custodia DEMO$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
+- tapOn: ^Recibir en custodia DEMO$
+- assertVisible: ^Confirmar recepción DEMO$
+- tapOn: ^Confirmar demo$
+- extendedWaitUntil:
+    visible: ^Recepción DEMO registrada$
+    timeout: 30000
+- assertVisible: ^Lote DEMO creado$
+- tapOn: Cerrar comprobante
+
 - scrollUntilVisible:
     element:
       text: ^Panel gerencial$

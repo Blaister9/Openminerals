@@ -21,6 +21,8 @@ import {ManagementPanel} from './components/ManagementPanel';
 import {AccountSettings} from './components/AccountSettings';
 import {DemoUpdates} from './components/DemoUpdates';
 import {MetalEmblem,PortfolioComposition} from './components/PortfolioComposition';
+import {IntakePanel} from './components/IntakePanel';
+import {PositionRail} from './components/PositionRail';
 
 // DEMO: todas las cifras, inventarios y solicitudes son simulados.
 // Cuentas de demostración; no hay KYC, pagos, exchange ni bóveda real.
@@ -93,6 +95,7 @@ export default function App(){
  const [amount,setAmount]=useState('200.00');
  const homeScrollY=useRef(new Animated.Value(0)).current;
  const contentScroll=useRef<ScrollView|null>(null);
+ const presentationRef=useRef<ScrollView|null>(null);
  const laidOutScroll=useRef<ScrollView|null>(null);
  const [viewportHeight,setViewportHeight]=useState(600);
  const [operatorVisible,setOperatorVisible]=useState(false);
@@ -123,6 +126,7 @@ export default function App(){
  const [lastStockId,setLastStockId]=useState('');
  const [operationRevision,setOperationRevision]=useState(0);
  const [mineSection,setMineSection]=useState<'management'|'inventory'|'custody'|'delivery'>('management');
+ const [mineDetails,setMineDetails]=useState(false);
  const [metalsSection,setMetalsSection]=useState<'positions'|'custody'|'delivery'>('positions');
  const [marketSection,setMarketSection]=useState<'mine'|'peers'>('mine');
  const [historyItems,setHistoryItems]=useState<Receipt[]>([]);
@@ -347,7 +351,7 @@ export default function App(){
  </Card>}
  function accountPage(){return <><Text style={styles.eyebrow}>ACCESO A LA DEMOSTRACIÓN</Text><Text style={styles.pageTitle}>Cuenta</Text>{accountCard()}<Text style={styles.copy}>Los roles y el inventario son de prueba. No hay verificación de identidad, pagos, reservas físicas ni custodio conectado.</Text><Text style={styles.copy}>Para usar la misma cuenta en otro dispositivo, entra con el mismo alias y su clave exclusiva de demostración.</Text><DemoUpdates disabled={busy||authBusy||!!pending||authExpired||!!accountRecovery}/></>}
  function home(){return <>
-  {!account&&accountCard()}
+  {!storyVisible&&<MetalStory scrollY={homeScrollY} viewportHeight={viewportHeight} onSeek={y=>contentScroll.current?.scrollTo({y,animated:false})} onSkip={()=>setTab('Mercado')}/>}
   <Text style={styles.eyebrow}>TU RELACIÓN CON EL METAL</Text>
   <Text style={styles.homeTitle}>Propiedad.{`\n`}Gramo a gramo.</Text>
   <Text style={styles.balanceLabel}>USDT + METALES · VALOR SIMULADO</Text>
@@ -362,13 +366,12 @@ export default function App(){
    <Pressable onPress={()=>setTab('Billetera')} style={styles.quick}><Text style={styles.quickText}>Abrir billetera  →</Text></Pressable>
   </View>
   <Button label="Abrir presentación completa" secondary disabled={busy||authBusy||!!pending} onPress={()=>{presentationScrollY.setValue(0);setStoryVisible(true);}}/>
-  {!storyVisible&&<MetalStory scrollY={homeScrollY} viewportHeight={viewportHeight} onSkip={()=>setTab('Mercado')}/>}
   <Sub>Mercado ilustrativo</Sub>
-  {metals.map(m=><Pressable key={m.code} onPress={()=>{setCurrentMetal(m.code);setTab('Mercado');}} style={styles.metalRow}>
+  <ScrollView horizontal directionalLockEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:12,paddingBottom:10}}>{metals.map(m=><Pressable key={m.code} onPress={()=>{setCurrentMetal(m.code);setTab('Mercado');}} style={[styles.metalRow,{width:250}]}>
    <MetalEmblem symbol={m.symbol} color={m.color} small/>
    <View style={{flex:1}}><Text style={styles.cardTitle}>{m.name}</Text><Text style={styles.mutedSmall}>Cotización simulada por gramo</Text></View>
    <Text style={styles.rowValue}>{money(state?.priceCentsPerGram[m.code]||0)}/g</Text>
-  </Pressable>)}
+  </Pressable>)}</ScrollView>
  </>}
  function marketNavigation(){return <View style={styles.chips}><Chip label="Comprar a la mina" active={marketSection==='mine'} onPress={()=>setMarketSection('mine')}/><Chip label="Marketplace" active={marketSection==='peers'} onPress={()=>setMarketSection('peers')}/></View>}
  function market(){const m=meta(currentMetal);const quote=state?quoteBuy(grams,state.priceCentsPerGram[currentMetal],state.feesBps.buy):null;
@@ -378,9 +381,9 @@ export default function App(){
   return <><Text style={styles.eyebrow}>COMPRAVENTA DE METALES</Text><Text style={styles.pageTitle}>Mercado</Text><Text style={styles.copy}>Compra fracciones de oro, plata, platino o paladio. La liquidación simulada se realiza en USDT.</Text>
    {account&&marketNavigation()}
    {account&&<Card><Text style={styles.cardTitle}>Inventario compartido</Text><Text style={styles.copy}>{mineIdentity?.name||'Mina de demostración'}. Las compras de otras cuentas reducen la misma disponibilidad.</Text><Row left={`${m.name} disponible en la mina`} right={gram(state?.inventoryMg[currentMetal]||0)}/><Button label="Actualizar mercado" secondary disabled={busy} onPress={refresh}/></Card>}
-   <View style={styles.metalGrid}>{metals.map(v=><Pressable key={v.code} testID={`market-metal-${v.code}`} accessibilityRole="button" accessibilityLabel={`Seleccionar ${v.name}`} accessibilityState={{selected:currentMetal===v.code}} onPress={()=>setCurrentMetal(v.code)} style={[styles.metalChoice,currentMetal===v.code&&styles.metalChoiceOn]}>
-    <MetalEmblem symbol={v.symbol} color={v.color}/><Text style={styles.choiceName}>{v.name}</Text><Text style={styles.mutedSmall}>{money(state?.priceCentsPerGram[v.code]||0)}/g</Text>
-   </Pressable>)}</View>
+   <ScrollView horizontal directionalLockEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:6,paddingVertical:14}}>{metals.map(v=><Pressable key={v.code} testID={`market-metal-${v.code}`} accessibilityRole="button" accessibilityLabel={`Seleccionar ${v.name}`} accessibilityState={{selected:currentMetal===v.code}} onPress={()=>setCurrentMetal(v.code)} style={[styles.metalChoice,{width:72,flexGrow:0,padding:9},currentMetal===v.code&&styles.metalChoiceOn]}>
+    <MetalEmblem symbol={v.symbol} color={v.color} small/><Text style={[styles.choiceName,{fontSize:12}]}>{v.name}</Text>
+   </Pressable>)}</ScrollView>
    <Card><Text style={styles.eyebrow}>{m.name.toUpperCase()} · {m.symbol}</Text><Text style={styles.cardTitle}>Comprar gramos</Text><Text style={styles.copy}>Referencia del demo: {money(state?.priceCentsPerGram[currentMetal]||0)} / g</Text>
     <Text style={styles.inputLabel}>Cantidad en gramos</Text><TextInput accessibilityLabel="Cantidad de metal en gramos" style={styles.input} value={grams} keyboardType="decimal-pad" onChangeText={setGrams} placeholder="2.000" placeholderTextColor="#667385"/>
     <Text style={styles.mutedSmall}>Para medio gramo escribe 0,5 o 0.5. Escribir 1050 significa 1050 gramos.</Text>
@@ -407,7 +410,7 @@ export default function App(){
   const depositOverflow=depositMinor!==null&&(state?.walletMinor[currency]||0)+depositMinor>MAX_BALANCE_MINOR;
   const withdrawalInsufficient=depositMinor!==null&&depositMinor>(state?.walletMinor[currency]||0);
   return <><Text style={styles.eyebrow}>CUENTAS MULTIDIVISA</Text><Text style={styles.pageTitle}>Billetera</Text><Text style={styles.copy}>Cuatro saldos independientes con movimientos y conversiones simuladas.</Text>
-  <View style={styles.walletGrid}>{currencies.map(c=><View key={c} style={styles.walletCard}><View style={styles.walletTop}><Text style={styles.eyebrow}>{c}</Text><Text style={styles.walletBadge}>DEMO</Text></View><Text numberOfLines={2} style={styles.walletValue}>{money(state?.walletMinor[c]||0,c)}</Text><Text style={styles.mutedSmall}>{{COP:'Peso colombiano',EUR:'Euro',USD:'Dólar estadounidense',USDT:'Unidad simulada USDT'}[c]}</Text></View>)}</View>
+  <ScrollView horizontal directionalLockEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:12,paddingVertical:12}}>{currencies.map(c=><View key={c} style={[styles.walletCard,{width:245}]}><View style={styles.walletTop}><Text style={styles.eyebrow}>{c}</Text><Text style={styles.walletBadge}>DEMO</Text></View><Text numberOfLines={2} style={styles.walletValue}>{money(state?.walletMinor[c]||0,c)}</Text><Text style={styles.mutedSmall}>{{COP:'Peso colombiano',EUR:'Euro',USD:'Dólar estadounidense',USDT:'Unidad simulada USDT'}[c]}</Text></View>)}</ScrollView>
   <Sub>Convertir saldo</Sub><Card><Text style={styles.inputLabel}>De</Text><View style={styles.chips}>{currencies.map(c=><Chip key={c} testID={`convert-from-${c}`} label={c} active={from===c} onPress={()=>{setFrom(c);if(c===to)setTo(c==='USD'?'USDT':'USD');}}/>)}</View>
    <Text style={styles.inputLabel}>A</Text><View style={styles.chips}>{currencies.map(c=><Chip key={c} testID={`convert-to-${c}`} label={c} active={to===c} onPress={()=>{setTo(c);if(c===from)setFrom(c==='USD'?'USDT':'USD');}}/>)}</View>
    <Text style={styles.inputLabel}>Importe</Text><TextInput accessibilityLabel="Cantidad de dinero para convertir" style={styles.input} value={amount} onChangeText={setAmount} keyboardType="decimal-pad"/>
@@ -448,11 +451,7 @@ export default function App(){
   return <><Text style={styles.eyebrow}>MIS POSICIONES</Text><Text style={styles.pageTitle}>Mis metales</Text><Text style={styles.copy}>Consulta las cantidades adquiridas y su valor de referencia.</Text>
    {account&&metalsNavigation()}
    <PortfolioComposition positions={composition}/>
-   {metals.map(v=><Pressable key={v.code} testID={`portfolio-metal-${v.code}`} accessibilityRole="button" accessibilityLabel={`Gestionar ${v.name}`} accessibilityState={{selected:currentMetal===v.code}} onPress={()=>setCurrentMetal(v.code)} style={[styles.metalRow,currentMetal===v.code&&{borderColor:accent}]}>
-    <MetalEmblem symbol={v.symbol} color={v.color} small/>
-    <View style={{flex:1}}><Text style={styles.cardTitle}>{v.name}</Text><Text style={styles.mutedSmall}>{gram(state?.holdingsMg[v.code]||0)} · disponible {gram((state?.holdingsMg[v.code]||0)-reserved(v.code))}</Text></View>
-    <Text style={styles.rowValue}>{money(Math.ceil((state?.holdingsMg[v.code]||0)*(state?.priceCentsPerGram[v.code]||0)/1000))}</Text>
-   </Pressable>)}
+   <PositionRail positions={composition} selected={currentMetal} onSelect={setCurrentMetal}/>
    <Sub>Gestionar {m.name.toLowerCase()}</Sub><Card><Row left="Disponible para operar" right={gram(available)}/><Row left="Reservado en ofertas/entrega" right={gram(reserved(currentMetal))}/>
     <View style={styles.chips}><Chip label="Vender" active={metalAction==='sell'} onPress={()=>setMetalAction('sell')}/><Chip label="Publicar oferta" active={metalAction==='offer'} onPress={()=>setMetalAction('offer')}/>{!account&&<Chip label="Entrega física" active={metalAction==='delivery'} onPress={()=>setMetalAction('delivery')}/>}</View>
     <Text style={styles.inputLabel}>Gramos</Text><TextInput accessibilityLabel="Gramos para operación" style={styles.input} value={sellGrams} onChangeText={setSellGrams} keyboardType="decimal-pad"/>
@@ -511,10 +510,11 @@ export default function App(){
   if(!account)return null;
   const blocked=busy||authBusy||!!pending||authExpired||!!accountRecovery;
   return <><Button label="Ver presentación Openminerals" secondary onPress={()=>{presentationScrollY.setValue(0);setStoryVisible(true);}}/>
+   {mineSection==='inventory'&&<><IntakePanel key={account.id} identityKey={account.id} revision={operationRevision} get={client.get} submit={perform} disabled={blocked}/><Button label={mineDetails?'Ocultar detalles de compatibilidad':'Ver recepción directa y movimientos anteriores'} secondary onPress={()=>setMineDetails(value=>!value)}/></>}
    {mineSection==='management'?<ManagementPanel key={account.id} identityKey={account.id} get={client.get} disabled={blocked} refreshKey={String(operationRevision)} onReceipt={(receipt,ownerId)=>void openReceipt(receipt.id,receipt,ownerId)}/>:
     mineSection==='custody'?<CustodyPanel key={account.id} identityKey={account.id} operator get={client.get} disabled={blocked} refreshKey={String(operationRevision)}/>:
     mineSection==='delivery'?<DeliveryPanel key={account.id} identityKey={account.id} operator get={client.get} submit={perform} disabled={blocked} refreshKey={String(operationRevision)}/>:
-    <MineDashboard summary={mineSummary} loading={mineLoading} error={mineError} blocked={blocked} lastStockId={lastStockId} onRefresh={()=>void loadMine()} onReceipt={(ownerId,receipt)=>void openReceipt(receipt.id,receipt,ownerId)} onStockReceipt={setStockReceipt} onRestock={body=>perform('mine/stock',body,'Crear lote de demostración',`${gram(Math.round((parsePositiveDecimal(body.grams,3)||0)*1000))} de ${meta(body.metal).name}.\nPureza ficticia: ${(Number(body.purityBps)/100).toFixed(2)} %.\nUbicación DEMO: ${body.location}.\nDocumento: ${body.documentTitle}.\nMotivo: ${body.reason}.\nSe añadirá al inventario compartido de esta demostración.`)}/>
+    mineDetails&&<MineDashboard summary={mineSummary} loading={mineLoading} error={mineError} blocked={blocked} lastStockId={lastStockId} onRefresh={()=>void loadMine()} onReceipt={(ownerId,receipt)=>void openReceipt(receipt.id,receipt,ownerId)} onStockReceipt={setStockReceipt} onRestock={body=>perform('mine/stock',body,'Crear lote de demostración',`${gram(Math.round((parsePositiveDecimal(body.grams,3)||0)*1000))} de ${meta(body.metal).name}.\nPureza ficticia: ${(Number(body.purityBps)/100).toFixed(2)} %.\nUbicación DEMO: ${body.location}.\nDocumento: ${body.documentTitle}.\nMotivo: ${body.reason}.\nSe añadirá al inventario compartido de esta demostración.`)}/>
    }</>;
  }
  function mineNavigation(){
@@ -542,7 +542,7 @@ export default function App(){
    onHistory={()=>{closeReceipt();setTab(isOperator?'Mina':'Más');}}/>
   <StockReceiptDetails receipt={stockReceipt} onClose={()=>setStockReceipt(null)}/>
   {settingsVisible&&account&&<Modal visible onRequestClose={()=>setSettingsVisible(false)} animationType="none" presentationStyle="pageSheet"><SafeAreaProvider><SafeAreaView style={styles.screen}><View style={styles.identityBar}><Text style={[styles.cardTitle,{flex:1}]}>Perfil de demostración</Text><Pressable accessibilityRole="button" style={styles.accountLink} onPress={()=>setSettingsVisible(false)}><Text style={styles.accountLinkText}>Cerrar</Text></Pressable></View><ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled"><AccountSettings key={account.id} identityKey={account.id} account={account} disabled={busy||authBusy||!!pending||authExpired} getProfile={client.getProfile} saveProfile={client.updateProfile} setupRecovery={client.setupRecovery} onAuthExpired={()=>{setSettingsVisible(false);setAuthExpired(true);}}/></ScrollView></SafeAreaView></SafeAreaProvider></Modal>}
-  {storyVisible&&<Modal visible onRequestClose={()=>setStoryVisible(false)} animationType="none"><SafeAreaProvider><SafeAreaView style={styles.screen}><View style={styles.identityBar}><Text style={[styles.cardTitle,{flex:1}]}>OPENMINERALS · DEMO</Text><Pressable accessibilityRole="button" style={styles.accountLink} onPress={()=>setStoryVisible(false)}><Text style={styles.accountLinkText}>Cerrar presentación</Text></Pressable></View><Animated.ScrollView contentContainerStyle={styles.body} onLayout={event=>setPresentationHeight(event.nativeEvent.layout.height)} onScroll={Animated.event([{nativeEvent:{contentOffset:{y:presentationScrollY}}}],{useNativeDriver:true})} scrollEventThrottle={16}><MetalStory scrollY={presentationScrollY} viewportHeight={presentationHeight} onSkip={()=>{setStoryVisible(false);if(!isOperator)setTab('Mercado');}}/><Button label={isOperator?'Volver al panel de mina':'Volver a Inicio'} onPress={()=>setStoryVisible(false)}/></Animated.ScrollView></SafeAreaView></SafeAreaProvider></Modal>}
+  {storyVisible&&<Modal visible onRequestClose={()=>setStoryVisible(false)} animationType="none"><SafeAreaProvider><SafeAreaView style={styles.screen}><View style={styles.identityBar}><Text style={[styles.cardTitle,{flex:1}]}>OPENMINERALS · DEMO</Text><Pressable accessibilityRole="button" style={styles.accountLink} onPress={()=>setStoryVisible(false)}><Text style={styles.accountLinkText}>Cerrar presentación</Text></Pressable></View><Animated.ScrollView ref={presentationRef} contentContainerStyle={styles.body} onLayout={event=>setPresentationHeight(event.nativeEvent.layout.height)} onScroll={Animated.event([{nativeEvent:{contentOffset:{y:presentationScrollY}}}],{useNativeDriver:true})} scrollEventThrottle={16}><MetalStory scrollY={presentationScrollY} viewportHeight={presentationHeight} onSeek={y=>presentationRef.current?.scrollTo({y,animated:false})} onSkip={()=>{setStoryVisible(false);if(!isOperator)setTab('Mercado');}}/><Button label={isOperator?'Volver al panel de mina':'Volver a Inicio'} onPress={()=>setStoryVisible(false)}/></Animated.ScrollView></SafeAreaView></SafeAreaProvider></Modal>}
   <AccountAccess visible={authVisible} initialMode={authMode} account={account} mineName={mineIdentity?.name} recoveryAlias={recoveryAlias} expired={authExpired} busy={authBusy} pending={!!pending} canImportLegacy={!account&&!!state&&!state.legacyReadOnly} legacyReadOnly={!!state?.legacyReadOnly}
    error={authError} onClose={()=>{if(!authBusy){setAuthVisible(false);setAuthError('');}}} onLogout={()=>void signOut()} onSubmit={(mode,alias,password,importLegacy)=>void submitAccount(mode,alias,password,importLegacy)} onSettings={openSettings} startRecovery={client.startRecovery} completeRecovery={client.completeRecovery} cancelRecovery={client.cancelRecovery} onRecoveryDone={alias=>void recoveredAccount(alias)}/>
  </SafeAreaView></SafeAreaProvider>;

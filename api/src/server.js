@@ -121,6 +121,13 @@ export function createApiServer(store,config={}){
       if(path.startsWith('/api/demo/mine/')){
         const {account}=requireIdentity(identity);
         if(req.method==='GET'&&path==='/api/demo/mine/summary')return send(res,200,await store.getMineSummary(account.id));
+        if(req.method==='GET'&&path==='/api/demo/mine/intake')return send(res,200,await store.getIntake(account.id));
+        if(req.method==='POST'&&['intake_produce','intake_verify','intake_receive'].some(action=>path==='/api/demo/mine/'+action)){
+          const action=path.slice('/api/demo/mine/'.length),body=await readJson(req);
+          onlyKeys(body,action==='intake_produce'?['metal','grams','reason']:['batchId','reason']);
+          const result=await store.mutateIntake(account.id,{...body,action,requestId:req.headers['idempotency-key']});
+          return send(res,200,{receipt:result.receipt,mine:result.mine,demoOnly:true});
+        }
         if(req.method==='GET'&&path==='/api/demo/mine/custody')return send(res,200,await store.getCustody(account.id,'operator'));
         if(req.method==='GET'&&path==='/api/demo/mine/deliveries')return send(res,200,await store.getDeliveries(account.id,'operator'));
         if(req.method==='GET'&&path==='/api/demo/mine/management')return send(res,200,await store.getManagement(account.id,url.searchParams));

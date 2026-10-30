@@ -59,7 +59,7 @@ export function settleMarketplace(mine,buyer,seller,command,now=new Date().toISO
   fail(availableHoldingMg(sellerState,offer.metal)>=0,'La oferta excede los gramos reservados disponibles','INSUFFICIENT_HOLDING');
   buyerState.walletMinor.USDT-=quote.baseMinor;sellerState.walletMinor.USDT+=quote.sellerNetMinor;
   const sellerReceiptId=`market-sell-${digest(tradeId)}`;
-  const transfer=transferCustody(mine,seller.id,buyer,offer.metal,offer.mg,`market:${tradeId}`,now,{referenceId:command.requestId,references:[{accountId:buyer.id,id:command.requestId},{accountId:seller.id,id:sellerReceiptId}]});
+  const transfer=transferCustody(mine,seller.id,buyer,offer.metal,offer.mg,`market:${tradeId}`,now,{offerId:offer.id,referenceId:command.requestId,references:[{accountId:buyer.id,id:command.requestId},{accountId:seller.id,id:sellerReceiptId}]});
   const common={tradeId,offerId:offer.id,status:'COMPLETED',at:now,demoOnly:true,metal:offer.metal,mg:offer.mg,priceCentsPerGram:offer.priceMinorPerGram,priceMinorPerGram:offer.priceMinorPerGram,
     baseMinor:quote.baseMinor,marketplaceFeeMinor:quote.feeMinor,sellerNetMinor:quote.sellerNetMinor,feeBps:quote.feeBps,currency:'USDT',mineId:mine.id,receiptVersion:2};
   const buyerReceipt={...common,id:command.requestId,action:'market_buy',accountId:buyer.id,totalMinor:quote.baseMinor,feeMinor:0,counterparty:{id:seller.id,alias:seller.alias},certificateIds:transfer.allocations.map(item=>item.certificateId),label:`Compra de oferta DEMO de ${METALS[offer.metal].name}`};

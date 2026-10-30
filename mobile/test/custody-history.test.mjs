@@ -40,7 +40,7 @@ test('paginación y cantidades inválidas no se presentan como historia aceptada
 });
 
 test('rutas del historial rechazan enlaces, parámetros y cursores manipulados',()=>{
-  assert.equal(lotHistoryPath('lot-fixture'),'/api/demo/custody/lots/lot-fixture/history?limit=20');
+  assert.equal(lotHistoryPath('lot-fixture'),'/api/demo/custody/lots/lot-fixture/history?limit=20&includeReservations=1');
   assert.equal(lotHistoryPath('lot-fixture',eventId(1)).endsWith('before='+eventId(1)),true);
   for(const id of ['','../accounts/me','lot?token=private','https://example.test','a b','a'.repeat(129)])assert.throws(()=>lotHistoryPath(id));
   for(const cursor of ['x','../lot','lot-move-'+('A'.repeat(32)),eventId(1)+'&limit=50'])assert.throws(()=>lotHistoryPath('lot-fixture',cursor));

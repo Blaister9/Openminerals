@@ -2,6 +2,7 @@ import {createHash} from 'node:crypto';
 import {DomainError,METALS,availableHoldingMg,parseMoney} from './domain.js';
 import {accountError} from './account-auth.js';
 import {deliverCustody} from './custody.js';
+import {publicDelivery,publicPolicy} from './public-custody.js';
 
 export const DELIVERY_DISCLAIMER='ENTREGA DEMO · Cotizaciones, jurisdicciones, impuestos, seguros y despachos ficticios. No son tarifas legales ni acreditan transporte, entrega o custodia física.';
 const copy=value=>structuredClone(value),MAX_MINOR=10_000_000_000;
@@ -113,7 +114,7 @@ export function applyOperatorDelivery(mine,actor,buyer,command,now=new Date().to
       event(request,command.status,now,`Operador: ${transitionReason}`);
       if(command.status==='DELIVERED_DEMO'){
         state.holdingsMg[request.metal]-=request.mg;fail(availableHoldingMg(state,request.metal)>=0,'La entrega excede los gramos asignados.');
-        ({mine:next,deliveredLots}=deliverCustody(next,buyer.id,request.metal,request.mg,{at:now,referenceId:command.requestId,references:[{accountId:buyer.id,id:deliveryBuyerReceiptId(actor.id,command.requestId)}]}));request.deliveredLots=copy(deliveredLots);request.deliveredAt=now;
+        ({mine:next,deliveredLots}=deliverCustody(next,buyer.id,request.metal,request.mg,{deliveryId:request.id,at:now,referenceId:command.requestId,references:[{accountId:buyer.id,id:deliveryBuyerReceiptId(actor.id,command.requestId)}]}));request.deliveredLots=copy(deliveredLots);request.deliveredAt=now;
       }
       receipt={...common,label:`Entrega DEMO: ${command.status}`,reason:transitionReason,quote:request.quote?copy(request.quote):null,...(deliveredLots?{deliveredLots}: {})};
     }
@@ -129,5 +130,5 @@ export function deliveryView(mine,accounts,viewer){
   const operator=viewer.role==='operator';
   const requests=accounts.filter(account=>account.role==='buyer'&&(operator||account.id===viewer.id)).flatMap(account=>account.state.custodyRequests.map(request=>({...copy(request),account:{id:account.id,alias:account.alias},jurisdiction:request.jurisdiction??'DEMO_LOCAL',quote:request.quote??null,timeline:request.timeline??[{status:'PENDING_QUOTE',at:request.createdAt,label:'Solicitud DEMO anterior conservada'}],paidMinor:request.paidMinor??0,demoOnly:true}))).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||a.account.id.localeCompare(b.account.id)||a.id.localeCompare(b.id));
   return {demoOnly:true,disclaimer:DELIVERY_DISCLAIMER,mine:{id:mine.id,name:mine.name},view:operator?'operator':'buyer',currency:'USDT',availableMg:operator?copy(mine.inventoryMg):Object.fromEntries(Object.keys(METALS).map(metal=>[metal,availableHoldingMg(viewer.state,metal)])),
-    policies:{version:mine.delivery.policyVersion,quoteValidityHours:mine.delivery.quoteValidityHours,jurisdictions:copy(mine.delivery.jurisdictions)},requests,audit:operator?copy(mine.delivery.audit).reverse():[]};
+    policies:{version:mine.delivery.policyVersion,quoteValidityHours:mine.delivery.quoteValidityHours,jurisdictions:operator?copy(mine.delivery.jurisdictions):mine.delivery.jurisdictions.map(publicPolicy)},requests:operator?requests:requests.map(request=>({...publicDelivery(request),account:request.account})),audit:operator?copy(mine.delivery.audit).reverse():[]};
 }

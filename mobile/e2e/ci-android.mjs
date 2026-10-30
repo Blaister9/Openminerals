@@ -7,6 +7,7 @@ import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,certificate,cleanFixture,emulatorGuard,fixtures,hash,manifest,nativeScenario,otaUpdateId,publicJunit,requireSafe,sha} from './ci-safety.mjs';
 import {verifyNativeCommercialSnapshot,verifyNativeSnapshot} from './ci-result.mjs';
+import {runImmersivePerformance} from './immersive-performance.mjs';
 import {flowSelectors,collectFailureDiagnostic} from './ci-diagnostics.mjs';
 import {captureLegacyFailure} from './ci-legacy-failure.mjs';
 import {withLegacyNavigation} from './ci-legacy-navigation.mjs';
@@ -266,7 +267,7 @@ async function run(){
   });
   await runStage('preserve-legacy-after-update',async()=>{await maestro('preserve');await captureSafeScreens('preserve');});
   if(expectedOtaId)await runStage('anonymous-compatible-ota-before-story',()=>maestro('ota-before-story'));
-  await runStage('native-story-and-reduced-motion',async()=>{await maestro('story');await captureSafeScreens('story');});
+  await runStage('native-story-and-reduced-motion',async()=>{await runImmersivePerformance({adb,serial,maestro,published});await captureSafeScreens('story');await captureSafeScreens('story-exit');});
   await runStage('native-registration-no-import',async()=>{
     await maestro('register','register');
     const auth=await request('/api/demo/accounts/login',null,{alias:users.register.alias,password:users.register.password});mask(auth.token);sessions.push(auth.token);
