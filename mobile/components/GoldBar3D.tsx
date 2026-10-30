@@ -150,7 +150,7 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
   const reset=()=>{drag.current=0;scheduler.current?.invalidate();};
   const retry3D=()=>{stop();setReady(false);setFailure(false);setRetry(value=>value+1);};
   const fallback=reducedMotion?'Movimiento reducido':failure||!NativeGLView?'Vista simplificada':!foreground?'Visor pausado':enabled?'Preparando 3D…':'Recorrido del metal';
-  return <View style={[styles.stage,{height}]} onLayout={event=>setWidth(previous=>Math.abs(previous-event.nativeEvent.layout.width)>.5?event.nativeEvent.layout.width:previous)} {...responder.panHandlers}>
+  return <View style={[styles.stage,{height}]} onLayout={event=>{const nextWidth=event.nativeEvent.layout.width;setWidth(previous=>Math.abs(previous-nextWidth)>.5?nextWidth:previous);}} {...responder.panHandlers}>
     <View style={styles.fallback} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <View style={styles.halo}/><View style={styles.floorLine}/><View style={styles.staticShadow}/><View style={styles.staticBar}><View style={styles.staticFace}><Text style={styles.maker}>⌁</Text><Text style={styles.symbol}>AU</Text><Text style={styles.word}>DEMO</Text></View><View style={styles.staticEdge}/></View>
     </View>

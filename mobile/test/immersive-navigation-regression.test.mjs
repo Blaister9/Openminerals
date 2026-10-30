@@ -4,6 +4,21 @@ import {horizontalWalletNavigation} from '../e2e/wallet-navigation.mjs';
 import {accountFlow} from '../e2e/account-lifecycle.mjs';
 import {redactedJavascriptFailure} from '../e2e/ci-native-failure.mjs';
 import {PACKAGE} from '../e2e/ci-safety.mjs';
+import {readFile} from 'node:fs/promises';
+import vm from 'node:vm';
+import ts from 'typescript';
+
+test('3D layout survives a recycled native event before the state updater runs',async()=>{
+ const source=await readFile(new URL('../components/GoldBar3D.tsx',import.meta.url),'utf8');
+ const ast=ts.createSourceFile('GoldBar3D.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+ let handler;
+ function visit(node){if(ts.isJsxAttribute(node)&&node.name.getText(ast)==='onLayout')handler=node.initializer.expression;ts.forEachChild(node,visit);}
+ visit(ast);assert.ok(handler);
+ const queued=[],context=vm.createContext({setWidth:updater=>queued.push(updater),Math});
+ vm.runInContext('this.layout='+handler.getText(ast),context);
+ const event={nativeEvent:{layout:{width:360}}};context.layout(event);event.nativeEvent=null;
+ assert.equal(queued[0](320),360);assert.equal(queued[0](360.2),360.2);
+});
 
 test('USDT account scenario opens a distinct wallet helper rather than recursing',()=>{
  const result=horizontalWalletNavigation(accountFlow('wallet','USDT'));
