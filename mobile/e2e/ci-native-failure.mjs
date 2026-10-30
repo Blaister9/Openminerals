@@ -20,9 +20,11 @@ export function redactedJavascriptFailure(text,privateValues=[]){
     let message=match[1];
     for(const secret of privateValues)if(secret)message=message.replaceAll(secret,'[redacted]');
     message=message.replace(/\b(?:https?|file):\/\/\S+/g,'[url]').replace(/\b[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\b/gi,'[id]').replace(/[A-Za-z0-9_-]{24,}/g,'[opaque]');
+    const property=message.match(/Cannot read property ['"]([A-Za-z_$][A-Za-z0-9_$]{0,80})['"] of (?:null|undefined)/)?.[1]??null;
+    const frames=text.split(/\r?\n/).slice(-100).flatMap(row=>{const frame=row.match(/AndroidRuntime[^:]*:\s*([A-Za-z_$][A-Za-z0-9_.$]{0,80})@(\d+):(\d+)/);return frame&&!privateValues.some(secret=>secret&&frame[1].includes(secret))?[{symbol:frame[1],line:Number(frame[2]),column:Number(frame[3])}]:[];}).slice(0,10);
     const properties=new Set(['opacity','translateY','translateX','scale','width','height','transform','value','length','prototype','x','y','inputRange','outputRange','_value']);
     message=message.replace(/(['"])([^'"\n]{1,200})\1/g,(_all,quote,value)=>properties.has(value)?quote+value+quote:'[quoted]');
-    return {message:message.slice(0,600),redacted:true,rawLogsPublished:false};
+    return {message:message.slice(0,600),propertyIdentifier:property,frames,redacted:true,rawLogsPublished:false};
   }
   return null;
 }
