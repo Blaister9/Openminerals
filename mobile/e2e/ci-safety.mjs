@@ -9,6 +9,10 @@ export const BASELINE={
 };
 export const SECRET_NAMES=['BUYER_A_ALIAS','BUYER_A_PASSWORD','BUYER_B_ALIAS','BUYER_B_PASSWORD','OPERATOR_ALIAS','OPERATOR_PASSWORD'].map(name=>'OPENMINERALS_QA_'+name);
 export function requireSafe(condition,message){if(!condition)throw new Error(message);}
+export function anonymousScreenshotAllowed(flow,name){
+  return /^safe-(story-[1-7]|upgrade-preserved|reduced-motion|wallet-cop-before-eur)\.png$/.test(name)||
+    flow==='story-metals'&&/^safe-material-(XAU|XAG|XPT|XPD)\.png$/.test(name);
+}
 export function apkUrl(value){
   const url=new URL(value);
   requireSafe(url.protocol==='https:'&&!url.username&&!url.password&&!url.port&&!value.includes('?')&&!value.includes('#'),'APK URL must be public HTTPS without credentials or parameters.');

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGoldBarMesh,createStudioFloorMesh,identityMatrix,multiplyMatrices,translationMatrix,rotationX,rotationY,rotationZ,perspectiveMatrix,transformPoint,scrollProgress,storyStage,goldRenderScale,horizontalDrag,goldBarPose,goldBarMatrices,createFrameScheduler,GOLD_VERTEX_SHADER,GOLD_FRAGMENT_SHADER} from '../lib/gold-bar-3d.ts';
 import {immersiveChapters as metalStoryScenes} from '../lib/immersive-story.ts';
+import {metalMaterial} from '../lib/metal-materials.ts';
 import {mkdtemp,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
@@ -81,7 +82,7 @@ test('scroll y arrastre producen poses finitas; movimiento reducido es estable',
 
 test('siete capítulos mantienen el orden comercial y un índice válido incluso en extremos',()=>{
   assert.equal(metalStoryScenes.length,7);
-  assert.deepEqual(metalStoryScenes.map(item=>item.label),['ORIGEN MINERAL','EXTRACCIÓN','REFINACIÓN','FORMACIÓN DEL LINGOTE','CUSTODIA VIRTUAL','FRACCIONAMIENTO DIGITAL','PORTAFOLIO']);
+  assert.deepEqual(metalStoryScenes.map(item=>item.label),['MINA','EXTRACCIÓN','PROCESAMIENTO','REFINACIÓN','FORMACIÓN DEL LINGOTE','CUSTODIA VIRTUAL','FRACCIONAMIENTO DIGITAL']);
   assert.deepEqual(metalStoryScenes.map((_,index)=>storyStage(index/6,7)),[0,1,2,3,4,5,6]);
   for(const value of [-1,NaN,0,1,2])assert.ok(storyStage(value,7)>=0&&storyStage(value,7)<=6);
 });
@@ -101,6 +102,18 @@ test('presupuesto de animación limita a 30 fps y deja de solicitar cuadros cuan
   clock=16;scheduler.invalidate();flush();assert.equal(draws,1);assert.equal(frames.size,1);
   clock=34;flush();assert.equal(draws,2);assert.equal(frames.size,0);
   clock=40;scheduler.invalidate();flush();scheduler.setEnabled(false);assert.equal(frames.size,0);scheduler.dispose();
+});
+
+test('presupuesto 60 acepta vsync de 16 ms sin reducirlo a 30 y conserva el cap estricto de 30',()=>{
+  function run(maxFps,times){
+    let clock=0,draws=0,id=0;const frames=new Map();
+    const scheduler=createFrameScheduler({request:callback=>{frames.set(++id,callback);return id;},cancel:id=>frames.delete(id),draw:()=>draws++,onError:assert.fail,maxFps,now:()=>clock});
+    const tick=time=>{clock=time;scheduler.invalidate();const queue=[...frames.values()];frames.clear();queue.forEach(callback=>callback());};
+    times.forEach(tick);scheduler.dispose();assert.equal(frames.size,0);return draws;
+  }
+  assert.equal(run(60,[16,32,48]),3);
+  assert.equal(run(60,[0,15,16,31,32,47,48]),4,'The allowance stays below one millisecond.');
+  assert.equal(run(30,[0,16,32,33,34,50,66,67,68]),3,'A 33 ms interval still does not bypass the 30 fps cap.');
 });
 
 function fakeFrames(draw,onError=()=>{}){
@@ -130,7 +143,7 @@ test('shaders compilan y seis vistas producen píxeles diferentes en UN contexto
     const cases=[0,.25,.5,.75,1].map(progress=>({pose:goldBarPose(progress),name:`Etapa ${storyStage(progress)+1}`}));
     cases.push({pose:goldBarPose(.5,1.1),name:'Arrastre horizontal'});
     const frames=cases.map(item=>{const scene=goldBarMatrices(item.pose,width/height);return {...item,model:[...scene.model],mvp:[...scene.mvp],camera:scene.camera,floorModel:[...scene.floorModel],floorMvp:[...scene.floorMvp]};});
-    const data={positions:[...mesh.positions,...floor.positions],normals:[...mesh.normals,...floor.normals],count:mesh.vertexCount,floorCount:floor.vertexCount,vertex:GOLD_VERTEX_SHADER,fragment:GOLD_FRAGMENT_SHADER,frames,width,height};
+    const data={positions:[...mesh.positions,...floor.positions],normals:[...mesh.normals,...floor.normals],count:mesh.vertexCount,floorCount:floor.vertexCount,vertex:GOLD_VERTEX_SHADER,fragment:GOLD_FRAGMENT_SHADER,frames,width,height,material:metalMaterial('XAU')};
     const html=`<!doctype html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box}body{margin:32px;background:#090f15;color:#d3b77f;font:13px Arial,sans-serif}header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px;letter-spacing:3px}h1{color:#eee8da;font:32px Georgia,serif;font-weight:400;margin:0}#views{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}.tile{border:1px solid #30363a;border-radius:14px;overflow:hidden;background:#0d151c}.title{padding:14px 18px;font-size:10px;letter-spacing:2px;color:#b9a781;text-transform:uppercase}img{width:100%;display:block}#results{font-size:10px;white-space:pre-wrap;color:#8a959b}</style></head><body><header><h1>Openminerals / Estudio del oro</h1><span>DEMO · WEBGL SOFTWARE</span></header><div id="views"></div><pre id="results"></pre><script>
 const data=${JSON.stringify(data)};
 try{
@@ -141,7 +154,8 @@ try{
   function attribute(name,values){const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(values),gl.STATIC_DRAW);const at=gl.getAttribLocation(program,name);if(at<0)throw Error('Missing attribute');gl.enableVertexAttribArray(at);gl.vertexAttribPointer(at,3,gl.FLOAT,false,0,0);}
   attribute('a_position',data.positions);attribute('a_normal',data.normals);
   const at=name=>{const result=gl.getUniformLocation(program,name);if(result===null)throw Error('Missing uniform');return result;};
-  const uniforms={model:at('u_model'),mvp:at('u_mvp'),camera:at('u_camera'),light:at('u_light'),refinement:at('u_refinement'),surface:at('u_surface'),shadowAngle:at('u_shadowAngle')};
+  const uniforms={model:at('u_model'),mvp:at('u_mvp'),camera:at('u_camera'),light:at('u_light'),refinement:at('u_refinement'),surface:at('u_surface'),shadowAngle:at('u_shadowAngle'),metalColor:at('u_metalColor'),roughness:at('u_roughness'),metalKind:at('u_metalKind')};
+  gl.uniform3f(uniforms.metalColor,...data.material.reflectance);gl.uniform1f(uniforms.roughness,data.material.roughness);gl.uniform1f(uniforms.metalKind,0);
   gl.viewport(0,0,data.width,data.height);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);gl.frontFace(gl.CCW);gl.clearColor(10/255,13/255,16/255,1);gl.clearDepth(1);
   const results=[];
   for(const frame of data.frames){

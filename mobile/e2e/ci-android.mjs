@@ -5,7 +5,7 @@ import {closeSync,openSync} from 'node:fs';
 import {copyFile,mkdir,readFile,readdir,writeFile} from 'node:fs/promises';
 import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,certificate,cleanFixture,emulatorGuard,fixtures,hash,manifest,nativeScenario,otaUpdateId,publicJunit,requireSafe,requiresPrivateFixtures,sha} from './ci-safety.mjs';
+import {API,BASELINE,PACKAGE,SECRET_NAMES,anonymousScreenshotAllowed,apkUrl,certificate,cleanFixture,emulatorGuard,fixtures,hash,manifest,nativeScenario,otaUpdateId,publicJunit,requireSafe,requiresPrivateFixtures,sha} from './ci-safety.mjs';
 import {verifyNativeCommercialSnapshot,verifyNativeSnapshot} from './ci-result.mjs';
 import {runImmersivePerformance,verifyImmersiveResume} from './immersive-performance.mjs';
 import {flowSelectors,collectFailureDiagnostic} from './ci-diagnostics.mjs';
@@ -128,7 +128,7 @@ async function captureSafeScreens(name){
       if(entry.isSymbolicLink())continue;
       const file=join(folder,entry.name);
       if(entry.isDirectory())await walk(file);
-      else if(/^safe-(story-[1-7]|upgrade-preserved|reduced-motion|wallet-cop-before-eur)\.png$/.test(entry.name)){
+      else if(anonymousScreenshotAllowed(name,entry.name)){
         const pixels=await readFile(file);requireSafe(pixels.length<10000000&&pixels.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),'Unexpected safe screenshot.');
         await copyFile(file,join(published,entry.name));
         copied.add(entry.name);
@@ -151,6 +151,19 @@ async function runAnonymousStory(){
       const copied=new Set(copies.flatMap(result=>result.value));
       const required=[...Array.from({length:7},(_,index)=>'safe-story-'+(index+1)+'.png'),'safe-reduced-motion.png'];
       requireSafe(required.every(name=>copied.has(name)),'Required anonymous narrative screenshots are missing.');
+    }
+  }
+}
+async function runAnonymousMaterials(){
+  let failed=false;
+  try{await maestro('story-metals');}
+  catch(error){failed=true;throw error;}
+  finally{
+    // Only this closed pre-credential flow may publish the four material PNGs.
+    const copies=await Promise.allSettled([captureSafeScreens('story-metals')]);
+    if(!failed){
+      const expected=['XAU','XAG','XPT','XPD'].map(code=>'safe-material-'+code+'.png');
+      requireSafe(copies[0].status==='fulfilled'&&expected.every(name=>copies[0].value.includes(name)),'Required anonymous material screenshots are missing.');
     }
   }
 }
@@ -251,6 +264,7 @@ async function run(){
     await runStage('unrecorded-3d-native-performance',()=>runImmersivePerformance({adb,serial,maestro,published,record:false}));
     await runStage('unrecorded-light-native-performance',()=>runImmersivePerformance({adb,serial,maestro,published,record:false,light:true}));
     await runStage('native-story-resumes-after-home',()=>verifyImmersiveResume({adb,serial,maestro,published}));
+    await runStage('native-four-metal-materials',runAnonymousMaterials);
     return;
   }
   if(scenario==='quality-network'){
@@ -303,6 +317,7 @@ async function run(){
   if(expectedOtaId)await runStage('anonymous-compatible-ota-before-story',()=>maestro('ota-before-story'));
   await runStage('native-story-and-reduced-motion',runAnonymousStory);
   await runStage('native-story-resumes-after-home',()=>verifyImmersiveResume({adb,serial,maestro,published}));
+  await runStage('native-four-metal-materials',runAnonymousMaterials);
   await runStage('native-registration-no-import',async()=>{
     await maestro('register','register');
     const auth=await request('/api/demo/accounts/login',null,{alias:users.register.alias,password:users.register.password});mask(auth.token);sessions.push(auth.token);

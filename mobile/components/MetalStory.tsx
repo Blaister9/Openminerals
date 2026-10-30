@@ -3,10 +3,11 @@ import {AccessibilityInfo,Animated,Modal,Platform,Pressable,ScrollView,StyleShee
 import {GoldBar3D} from './GoldBar3D';
 import {chapterAt,immersiveChapters,immersiveTravel} from '../lib/immersive-story';
 import {scrollProgress} from '../lib/gold-bar-3d';
+import {metalMaterial,type MetalCode} from '../lib/metal-materials';
 
 type Target='Metales'|'Mercado'|'Billetera';
-type Props={scrollY:Animated.Value;viewportHeight:number;onSkip?:()=>void;onSeek?:(offset:number)=>void;onAction?:(target:Target)=>void};
-export function MetalStory({scrollY,viewportHeight,onSkip,onSeek,onAction}:Props){
+type Props={metal?:MetalCode;onMetalChange?:(metal:MetalCode)=>void;scrollY:Animated.Value;viewportHeight:number;onSkip?:()=>void;onSeek?:(offset:number)=>void;onAction?:(target:Target)=>void};
+export function MetalStory({metal='XAU',onMetalChange,scrollY,viewportHeight,onSkip,onSeek,onAction}:Props){
  const {fontScale}=useWindowDimensions();
  const [origin,setOrigin]=useState<number|null>(null),[chapter,setChapter]=useState(0);
  const [systemReduced,setSystemReduced]=useState(true),[manualReduced,setManualReduced]=useState(false),[light,setLight]=useState(false),[limited,setLimited]=useState(false);
@@ -34,7 +35,7 @@ export function MetalStory({scrollY,viewportHeight,onSkip,onSeek,onAction}:Props
  const pin=useMemo(()=>scrollY.interpolate({inputRange:[start,end],outputRange:[0,travel],extrapolate:'clamp'}),[scrollY,start,end,travel]);
  const layers=useMemo(()=>{
   const phase=(index:number,values:number[],span=.75)=>scrollY.interpolate({inputRange:[start+Math.max(0,index-span)/6*travel,start+index/6*travel,start+Math.min(6,index+span)/6*travel].filter((value,i,all)=>i===0||value>all[i-1]),outputRange:index===0?values.slice(1):index===6?values.slice(0,2):values,extrapolate:'clamp'});
-  return {vaultOpacity:phase(4,[0,.65,0]),vaultScale:scrollY.interpolate({inputRange:[start+travel*.47,start+travel*.67,start+travel*.84],outputRange:[1.7,1,.65],extrapolate:'clamp'}),fractionOpacity:phase(5,[0,.85,0]),headings:immersiveChapters.map((_,index)=>({opacity:phase(index,[.88,1,.88],.5),translateY:phase(index,[4,0,-4])})),hint:scrollY.interpolate({inputRange:[start,start+travel*.08],outputRange:[.7,0],extrapolate:'clamp'})};
+  return {vaultOpacity:phase(5,[0,.65,0]),vaultScale:scrollY.interpolate({inputRange:[start+travel*.64,start+travel*.83,start+travel],outputRange:[1.7,1,.65],extrapolate:'clamp'}),fractionOpacity:phase(6,[0,.65,.65]),headings:immersiveChapters.map((_,index)=>({opacity:phase(index,[.88,1,.88],.5),translateY:phase(index,[4,0,-4])})),hint:scrollY.interpolate({inputRange:[start,start+travel*.08],outputRange:[.7,0],extrapolate:'clamp'})};
  },[scrollY,start,travel]);
  const closeMenu=()=>{setMenu(false);setChaptersOpen(false);};
  const seek=(index:number)=>{closeMenu();onSeek?.(start+index/6*travel);};
@@ -45,7 +46,7 @@ export function MetalStory({scrollY,viewportHeight,onSkip,onSeek,onAction}:Props
   <View style={{height:travel+height}} importantForAccessibility="no"/>
   <Animated.View collapsable={false} testID="immersive-stage" style={[styles.stage,{height,transform:[{translateY:pin}]}]}>
    <View style={StyleSheet.absoluteFill}>
-    <GoldBar3D scrollY={scrollY} initialScrollY={lastY.current} startY={start} endY={end} active={active&&origin!==null} reducedMotion={simplified} height={height} cinematic sceneDescription={limited?'Vista ligera activada por coste de render. Materia virtual DEMO.':light?'Materia virtual DEMO en modo ligero.':reduced?'Materia virtual DEMO con movimiento reducido.':'Materia tridimensional DEMO controlada por desplazamiento.'} onLimited={()=>setLimited(true)}/>
+    <GoldBar3D metal={metal} scrollY={scrollY} initialScrollY={lastY.current} startY={start} endY={end} active={active&&origin!==null} reducedMotion={simplified} height={height} cinematic sceneDescription={metalMaterial(metal).label+' DEMO. '+(limited?'Vista ligera activada por coste de render. Materia virtual DEMO.':light?'Materia virtual DEMO en modo ligero.':reduced?'Materia virtual DEMO con movimiento reducido.':'Materia tridimensional DEMO controlada por desplazamiento.')} onLimited={()=>setLimited(true)}/>
     {!simplified&&<View pointerEvents="none" style={StyleSheet.absoluteFill} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
      <Animated.View style={[styles.vault,{opacity:layers.vaultOpacity,transform:[{scale:layers.vaultScale}]}]}><View style={styles.vaultInner}/><View style={styles.vaultAxis}/></Animated.View>
      <Animated.View style={[styles.fractions,{opacity:layers.fractionOpacity}]}>{Array.from({length:12},(_,i)=><View key={i} style={styles.fraction}/>)}</Animated.View>
@@ -84,6 +85,7 @@ export function MetalStory({scrollY,viewportHeight,onSkip,onSeek,onAction}:Props
       <Pressable accessibilityRole="switch" accessibilityLabel="Usar modo visual ligero" accessibilityState={{checked:light||limited}} onPress={()=>{setLimited(false);setLight(!(light||limited));}} style={styles.option}><Text style={styles.optionTitle}>Modo ligero</Text><Text style={styles.optionValue}>{light||limited?'Sí':'No'}</Text></Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel="Elegir una etapa" accessibilityState={{expanded:chaptersOpen}} onPress={()=>setChaptersOpen(value=>!value)} style={styles.option}><Text style={styles.optionTitle}>Ir a un momento</Text><Text style={styles.optionValue}>{chaptersOpen?'−':'+'}</Text></Pressable>
       {chaptersOpen&&immersiveChapters.map((scene,index)=><Pressable key={scene.label} accessibilityRole="button" accessibilityLabel={'Ir a etapa '+(index+1)+': '+scene.label} accessibilityState={{selected:index===chapter}} onPress={()=>seek(index)} style={styles.chapterOption}><Text style={[styles.chapterLabel,index===chapter&&styles.selected]}>{scene.label}</Text></Pressable>)}
+      {onMetalChange&&<View><Text style={styles.optionTitle}>Metal de la representación</Text><View style={{flexDirection:'row',gap:6,marginTop:10,marginBottom:10}}>{(['XAU','XAG','XPT','XPD'] as const).map(code=><Pressable key={code} accessibilityRole="button" accessibilityLabel={'Representar '+metalMaterial(code).label} accessibilityState={{selected:metal===code}} onPress={()=>onMetalChange(code)} style={{flex:1,minHeight:48,borderRadius:10,borderWidth:1,borderColor:metal===code?'#D5B97F':'#344148',alignItems:'center',justifyContent:'center'}}><Text style={{color:'#DFDDD3',fontSize:15}}>{metalMaterial(code).symbol}</Text><Text style={{color:'#A8B2AE',fontSize:9}}>{metalMaterial(code).label}</Text></Pressable>)}</View><Text style={styles.optionHint}>Materiales ilustrativos DEMO. Ag, Pt y Pd son plateados; el símbolo identifica cada metal.</Text></View>}
      </ScrollView>
     </View>
    </View>

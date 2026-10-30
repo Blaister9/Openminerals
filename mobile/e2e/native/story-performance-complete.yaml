@@ -2,7 +2,7 @@ appId: com.openminerals.demo.mobile
 name: Verify the fixed 3D gesture trace after measurements
 ---
 [
-  {"extendedWaitUntil":{"visible":"Etapa 7 de 7: .+","timeout":8000}},
+  {"extendedWaitUntil":{"visible":"Etapa 7 de 7: FRACCIONAMIENTO DIGITAL","timeout":8000}},
   {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
   {"assertVisible":"Operar con metales DEMO"},
   {"assertNotVisible":"Cerrar opciones del recorrido"}

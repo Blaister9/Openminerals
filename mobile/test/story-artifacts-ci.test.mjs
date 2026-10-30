@@ -5,14 +5,14 @@ import {join,resolve,sep} from 'node:path';
 import {tmpdir} from 'node:os';
 import vm from 'node:vm';
 import ts from 'typescript';
-import {requireSafe} from '../e2e/ci-safety.mjs';
+import {requireSafe,anonymousScreenshotAllowed} from '../e2e/ci-safety.mjs';
 
 const text=await readFile(new URL('../e2e/ci-android.mjs',import.meta.url),'utf8');
 const ast=ts.createSourceFile('ci-android.mjs',text,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS);
 const declaration=name=>{const node=ast.statements.find(value=>ts.isFunctionDeclaration(value)&&value.name?.text===name);assert.ok(node,name);return node.getText(ast);};
 const expected=[...Array.from({length:7},(_,index)=>'safe-story-'+(index+1)+'.png'),'safe-reduced-motion.png'].sort();
 const makeContext=({capture,work,privateRoot='',published=''})=>{
-  const context=vm.createContext({readFile,readdir,copyFile,join,Buffer,requireSafe,privateRoot,published,
+  const context=vm.createContext({readFile,readdir,copyFile,join,Buffer,requireSafe,anonymousScreenshotAllowed,privateRoot,published,
     adb:()=>{},serial:'emulator-5554',maestro:()=>{},runImmersivePerformance:work,...(capture?{captureSafeScreens:capture}:{})});
   vm.runInContext((capture?'':declaration('captureSafeScreens'))+'\n'+declaration('runAnonymousStory')+'\nthis.execute=runAnonymousStory;',context);
   return context;
