@@ -22,7 +22,13 @@ export async function runImmersivePerformance({adb,serial,maestro,published}){
   let hwuiProfilingRequested=false;
   try{adb('shell','setprop','debug.hwui.profile','true');hwuiProfilingRequested=true;}catch{ /* Keep functional acceptance independent of optional profiler access. */ }
   adb('shell','am','force-stop',PACKAGE);
-  const start=adb('shell','am','start','-W','-n',activity);
+  const appPid=()=>{try{return adb('shell','pidof',PACKAGE);}catch{return '';}};
+  for(let attempt=0;attempt<12&&appPid();attempt++)await new Promise(resolve=>setTimeout(resolve,250));
+  const start=adb('shell','am','start','-W','-a','android.intent.action.MAIN','-c','android.intent.category.LAUNCHER','-n',activity);
+  for(let attempt=0;attempt<20&&!appPid();attempt++)await new Promise(resolve=>setTimeout(resolve,250));
+  const processObserved=!!appPid();
+  await writeFile(join(published,'immersive-launch.json'),JSON.stringify({demoOnly:true,launcherIntent:true,processObserved,status:/Status:\s*(ok|timeout)/.exec(start)?.[1]??'unavailable',...parseAndroidPerformance({before:'',after:'',gfx:'',start})},null,2)+'\n');
+  requireSafe(processObserved,'The measured launcher intent did not create the app process.');
   const before=adb('shell','dumpsys','meminfo',PACKAGE);adb('shell','dumpsys','gfxinfo',PACKAGE,'reset');
   const pids=()=>{try{return adb('shell','pidof','screenrecord');}catch{return '';}};
   requireSafe(pids()==='','Another screen recorder is running.');
