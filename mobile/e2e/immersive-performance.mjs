@@ -19,6 +19,8 @@ export async function runImmersivePerformance({adb,serial,maestro,published}){
   requireSafe(process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_OS==='Linux'&&/^emulator-\d+$/.test(serial),'Performance recording requires the disposable GitHub emulator.');
   const activity=adb('shell','cmd','package','resolve-activity','--brief',PACKAGE).split(/\r?\n/).find(line=>line.startsWith(PACKAGE+'/'));
   requireSafe(activity&&/^[A-Za-z0-9_.$/]+$/.test(activity),'Unable to resolve the demo activity.');
+  let hwuiProfilingRequested=false;
+  try{adb('shell','setprop','debug.hwui.profile','true');hwuiProfilingRequested=true;}catch{ /* Keep functional acceptance independent of optional profiler access. */ }
   adb('shell','am','force-stop',PACKAGE);
   const start=adb('shell','am','start','-W','-n',activity);
   const before=adb('shell','dumpsys','meminfo',PACKAGE);adb('shell','dumpsys','gfxinfo',PACKAGE,'reset');
@@ -48,6 +50,7 @@ export async function runImmersivePerformance({adb,serial,maestro,published}){
   }
   const after=adb('shell','dumpsys','meminfo',PACKAGE),gfx=adb('shell','dumpsys','gfxinfo',PACKAGE),metrics=parseAndroidPerformance({before,after,gfx,start});
   const report={demoOnly:true,environment:'disposable Android CI emulator',physicalDevice:false,...metrics,...flags,
+    hwuiProfilingRequested,
     measurementsComplete:metrics.coldStartTotalMs!==null&&metrics.pssBeforeKiB!==null&&metrics.pssAfterKiB!==null&&metrics.uiFrames>0,
     uiFrameStatisticsAvailable:metrics.uiFrames!==null&&metrics.uiFrames>0,
     interpretation:'Android UI frame statistics; not a measurement of GPU FPS. PSS is sampled before/after, not peak memory. Cold process start uses an already installed APK and cached OTA.',phonePerformanceAcceptance:false};
