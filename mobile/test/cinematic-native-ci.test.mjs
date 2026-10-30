@@ -120,3 +120,17 @@ test('cold-launch and account continuations reach Actividad before checking an i
   const login=nested(await flow('login'));
   assert.ok(isTap(login[1],'^Actividad$'));
 });
+
+test('pre-OTA preservation scrolls to stable metal quantities and retains wallet receipt and history assertions',async()=>{
+  const raw=await source('../e2e/native/preserve.yaml'),commands=parse(raw);
+  const metals=commands.findIndex(command=>isTap(command,'^Metales$'));
+  const quantity=commands.findIndex(command=>command.assertVisible==='^0,000 g$');
+  assert.ok(metals>=0&&quantity>metals);
+  assert.equal(commands[quantity-1].scrollUntilVisible.element.text,'^0,000 g$');
+  assert.equal(commands[quantity-1].scrollUntilVisible.direction,'DOWN');
+  assert.doesNotMatch(raw,/Todavía no tienes posiciones|PortfolioComposition/,'The required OTA has not yet been enforced at this stage.');
+  assert.equal(commands.filter(command=>command.extendedWaitUntil?.visible==='^USDT 268,40$').length,2);
+  assert.ok(commands.some(command=>command.assertVisible==='^Saldo USDT después$'));
+  assert.ok(commands.some(command=>command.scrollUntilVisible?.element?.text==='^USDT 196,77$'));
+  assert.ok(commands.some(command=>command.scrollUntilVisible?.element?.text?.includes('3\\s+de\\s+3')));
+});

@@ -12,8 +12,13 @@ name: 013 to 020 update preserves legacy wallet and historical snapshots
     visible: ^USDT 268,40$
     timeout: 30000
 - tapOn: ^Metales$
-- extendedWaitUntil:
-    visible: ^Todavía no tienes posiciones de metal\..*
+# This precedes the required OTA: use quantities shared with the embedded APK,
+# rather than presentation copy introduced by a later JavaScript update.
+- scrollUntilVisible:
+    element:
+      text: ^0,000 g$
+    direction: DOWN
+    centerElement: true
     timeout: 30000
 - assertVisible: ^0,000 g$
 - takeScreenshot: safe-upgrade-preserved
