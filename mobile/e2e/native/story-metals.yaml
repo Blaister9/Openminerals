@@ -1,0 +1,352 @@
+appId: com.openminerals.demo.mobile
+name: Anonymous four material selections outside performance windows
+---
+[
+  {
+    "tapOn": "^Inicio$"
+  },
+  {
+    "tapOn": "Opciones del recorrido"
+  },
+  {
+    "runFlow": {
+      "when": {
+        "visible": {
+          "text": "Usar modo visual ligero",
+          "checked": true
+        }
+      },
+      "commands": [
+        {
+          "tapOn": "Usar modo visual ligero"
+        }
+      ]
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "visible": {
+          "text": "Reducir movimiento del recorrido",
+          "checked": true
+        }
+      },
+      "commands": [
+        {
+          "tapOn": "Reducir movimiento del recorrido"
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": "Elegir una etapa"
+  },
+  {
+    "scrollUntilVisible": {
+      "element": {
+        "text": "Ir a etapa 5: FORMACIÓN DEL LINGOTE"
+      },
+      "direction": "DOWN",
+      "centerElement": false,
+      "timeout": 8000
+    }
+  },
+  {
+    "tapOn": "Ir a etapa 5: FORMACIÓN DEL LINGOTE"
+  },
+  {
+    "extendedWaitUntil": {
+      "visible": "Etapa 5 de 7: FORMACIÓN DEL LINGOTE",
+      "timeout": 8000
+    }
+  },
+  {
+    "extendedWaitUntil": {
+      "visible": {
+        "id": "immersive-gl-ready"
+      },
+      "timeout": 30000
+    }
+  },
+  {
+    "tapOn": "Opciones del recorrido"
+  },
+  {
+    "scrollUntilVisible": {
+      "element": {
+        "text": "Representar Oro"
+      },
+      "direction": "DOWN",
+      "centerElement": true,
+      "timeout": 8000
+    }
+  },
+  {
+    "tapOn": "Representar Oro"
+  },
+  {
+    "assertVisible": {
+      "text": "Representar Oro",
+      "selected": true
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Representar Plata",
+      "selected": false
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Representar Platino",
+      "selected": false
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Representar Paladio",
+      "selected": false
+    }
+  },
+  {
+    "tapOn": "Cerrar opciones del recorrido"
+  },
+  {
+    "assertNotVisible": "Cerrar opciones del recorrido"
+  },
+  {
+    "assertVisible": "Etapa 5 de 7: FORMACIÓN DEL LINGOTE"
+  },
+  {
+    "extendedWaitUntil": {
+      "visible": {
+        "id": "immersive-gl-ready",
+        "text": "^Oro DEMO\\..*"
+      },
+      "timeout": 30000
+    }
+  },
+  {
+    "takeScreenshot": "safe-material-XAU"
+  },
+  {
+    "tapOn": "Opciones del recorrido"
+  },
+  {
+    "scrollUntilVisible": {
+      "element": {
+        "text": "Representar Plata"
+      },
+      "direction": "DOWN",
+      "centerElement": true,
+      "timeout": 8000
+    }
+  },
+  {
+    "tapOn": "Representar Plata"
+  },
+  {
+    "assertVisible": {
+      "text": "Representar Plata",
+      "selected": true
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Representar Oro",
+      "selected": false
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Representar Platino",
+      "selected": false
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Representar Paladio",
+      "selected": false
+    }
+  },
+  {
+    "tapOn": "Cerrar opciones del recorrido"
+  },
+  {
+    "assertNotVisible": "Cerrar opciones del recorrido"
+  },
+  {
+    "assertVisible": "Etapa 5 de 7: FORMACIÓN DEL LINGOTE"
+  },
+  {
+    "extendedWaitUntil": {
+      "visible": {
+        "id": "immersive-gl-ready",
+        "text": "^Plata DEMO\\..*"
+      },
+      "timeout": 30000
+    }
+  },
+  {
+    "takeScreenshot": "safe-material-XAG"
+  },
+  {
+    "tapOn": "Opciones del recorrido"
+  },
+  {
+    "scrollUntilVisible": {
+      "element": {
+        "text": "Representar Platino"
+      },
+      "direction": "DOWN",
+      "centerElement": true,
+      "timeout": 8000
+    }
+  },
+  {
+    "tapOn": "Representar Platino"
+  },
+  {
+    "assertVisible": {
+      "text": "Representar Platino",
+      "selected": true
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Representar Oro",
+      "selected": false
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Representar Plata",
+      "selected": false
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Representar Paladio",
+      "selected": false
+    }
+  },
+  {
+    "tapOn": "Cerrar opciones del recorrido"
+  },
+  {
+    "assertNotVisible": "Cerrar opciones del recorrido"
+  },
+  {
+    "assertVisible": "Etapa 5 de 7: FORMACIÓN DEL LINGOTE"
+  },
+  {
+    "extendedWaitUntil": {
+      "visible": {
+        "id": "immersive-gl-ready",
+        "text": "^Platino DEMO\\..*"
+      },
+      "timeout": 30000
+    }
+  },
+  {
+    "takeScreenshot": "safe-material-XPT"
+  },
+  {
+    "tapOn": "Opciones del recorrido"
+  },
+  {
+    "scrollUntilVisible": {
+      "element": {
+        "text": "Representar Paladio"
+      },
+      "direction": "DOWN",
+      "centerElement": true,
+      "timeout": 8000
+    }
+  },
+  {
+    "tapOn": "Representar Paladio"
+  },
+  {
+    "assertVisible": {
+      "text": "Representar Paladio",
+      "selected": true
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Representar Oro",
+      "selected": false
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Representar Plata",
+      "selected": false
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Representar Platino",
+      "selected": false
+    }
+  },
+  {
+    "tapOn": "Cerrar opciones del recorrido"
+  },
+  {
+    "assertNotVisible": "Cerrar opciones del recorrido"
+  },
+  {
+    "assertVisible": "Etapa 5 de 7: FORMACIÓN DEL LINGOTE"
+  },
+  {
+    "extendedWaitUntil": {
+      "visible": {
+        "id": "immersive-gl-ready",
+        "text": "^Paladio DEMO\\..*"
+      },
+      "timeout": 30000
+    }
+  },
+  {
+    "takeScreenshot": "safe-material-XPD"
+  },
+  {
+    "tapOn": "Opciones del recorrido"
+  },
+  {
+    "scrollUntilVisible": {
+      "element": {
+        "text": "Representar Oro"
+      },
+      "direction": "DOWN",
+      "centerElement": true,
+      "timeout": 8000
+    }
+  },
+  {
+    "tapOn": "Representar Oro"
+  },
+  {
+    "assertVisible": {
+      "text": "Representar Oro",
+      "selected": true
+    }
+  },
+  {
+    "tapOn": "Cerrar opciones del recorrido"
+  },
+  {
+    "assertNotVisible": "Cerrar opciones del recorrido"
+  },
+  {
+    "extendedWaitUntil": {
+      "visible": {
+        "id": "immersive-gl-ready",
+        "text": "^Oro DEMO\\..*"
+      },
+      "timeout": 30000
+    }
+  }
+]

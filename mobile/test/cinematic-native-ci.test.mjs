@@ -6,6 +6,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 import {accountFlow} from '../e2e/account-lifecycle.mjs';
 import {qualityFlow} from '../e2e/network-quality.mjs';
+import {anonymousScreenshotAllowed} from '../e2e/ci-safety.mjs';
 
 const yaml=createRequire(import.meta.url)('yaml');
 const source=path=>readFile(new URL(path,import.meta.url),'utf8');
@@ -20,10 +21,10 @@ test('native Home guard checks visible scene and tabs while excluding account ca
   for(const tab of ['Inicio','Mercado','Billetera','Metales','Actividad'])assert.ok(commands.some(command=>command.assertVisible==='^'+tab+'$'));
   const excluded=commands.map(command=>command.assertNotVisible).filter(value=>typeof value==='string').map(value=>new RegExp(value));
   assert.equal(excluded.length,3);assert.ok(excluded.every(pattern=>pattern.source.length<=240),'Grouped negative selectors remain within the public diagnostic bound.');
-  for(const text of ['Cuenta','Sesión sin cuenta','Sesión anterior · solo consulta','Comprador · synthetic','Tu sesión anterior está vinculada a una cuenta y queda en consulta.','01/07','07 / 07','Ir a etapa 4: FORMACIÓN DEL LINGOTE','MIS POSICIONES','COMPOSICIÓN DEL PORTAFOLIO','Cantidad de metal en gramos'])assert.ok(excluded.some(pattern=>pattern.test(text)),text);
+  for(const text of ['Cuenta','Sesión sin cuenta','Sesión anterior · solo consulta','Comprador · synthetic','Tu sesión anterior está vinculada a una cuenta y queda en consulta.','01/07','07 / 07','Ir a etapa 4: REFINACIÓN','MIS POSICIONES','COMPOSICIÓN DEL PORTAFOLIO','Cantidad de metal en gramos'])assert.ok(excluded.some(pattern=>pattern.test(text)),text);
   assert.ok(commands.some(command=>command.assertNotVisible?.id==='operations-scroll'));
   assert.ok(commands.every(command=>Object.keys(command).every(key=>['assertVisible','assertNotVisible'].includes(key))));
-  assert.equal(excluded.some(pattern=>pattern.test('Etapa 4 de 7: FORMACIÓN DEL LINGOTE')),false,'A meaningful spoken heading is distinct from a visual counter.');
+  assert.equal(excluded.some(pattern=>pattern.test('Etapa 4 de 7: REFINACIÓN')),false,'A meaningful spoken heading is distinct from a visual counter.');
 });
 
 test('anonymous narrative closes its real options before screenshots and checks end-of-story overscroll without a footer',async()=>{
@@ -34,7 +35,7 @@ test('anonymous narrative closes its real options before screenshots and checks 
       if(isTap(command,'Cerrar opciones del recorrido')||typeof command.tapOn==='string'&&command.tapOn.startsWith('Ir a etapa '))options=false;
       if(command.takeScreenshot){assert.equal(options,false);snapshots.push(command.takeScreenshot);}
     }
-    assert.deepEqual(snapshots,name==='story'?Array.from({length:7},(_,index)=>'safe-story-'+(index+1)):[]);
+    assert.deepEqual(snapshots,name==='story'?Array.from({length:7},(_,index)=>'safe-story-'+(index+1)):['safe-light-mine']);
     assert.equal(commands.filter(command=>command.runFlow?.file==='story-clean.yaml').length,2,'Full Home invariants are checked at origin and the overscrolled final scene.');
     for(let index=1;index<=7;index++)assert.ok(commands.some(command=>typeof command.tapOn==='string'&&command.tapOn.startsWith('Ir a etapa '+index+': ')));
     const end=commands.findIndex(command=>command.swipe?.from?.point==='80%,75%');assert.ok(end>0);
@@ -133,4 +134,64 @@ test('pre-OTA preservation scrolls to stable metal quantities and retains wallet
   assert.ok(commands.some(command=>command.assertVisible==='^Saldo USDT después$'));
   assert.ok(commands.some(command=>command.scrollUntilVisible?.element?.text==='^USDT 196,77$'));
   assert.ok(commands.some(command=>command.scrollUntilVisible?.element?.text?.includes('3\\s+de\\s+3')));
+});
+
+test('geological narrative keeps seven exact spoken chapters and real chapter menu destinations',async()=>{
+  const labels=['MINA','EXTRACCIÓN','PROCESAMIENTO','REFINACIÓN','FORMACIÓN DEL LINGOTE','CUSTODIA VIRTUAL','FRACCIONAMIENTO DIGITAL'];
+  for(const name of ['story','story-light']){
+    const commands=await flow(name);
+    for(const [index,label] of labels.entries()){
+      assert.ok(commands.some(command=>command.tapOn==='Ir a etapa '+(index+1)+': '+label),name+': '+label);
+      assert.ok(commands.some(command=>command.assertVisible==='Etapa '+(index+1)+' de 7: '+label),name+': '+label);
+    }
+  }
+  for(const name of ['story-performance-complete','story-performance-light-complete'])assert.equal((await flow(name))[0].extendedWaitUntil.visible,'Etapa 7 de 7: FRACCIONAMIENTO DIGITAL');
+});
+
+test('four material selections assert exclusive state and draw readiness with menus closed before anonymous PNGs',async()=>{
+  const commands=await flow('story-metals'),materials=[['XAU','Oro'],['XAG','Plata'],['XPT','Platino'],['XPD','Paladio']];
+  const taps=commands.flatMap(command=>typeof command.tapOn==='string'&&command.tapOn.startsWith('Representar ')?[command.tapOn]:[]);
+  assert.deepEqual(taps,['Representar Oro','Representar Plata','Representar Platino','Representar Paladio','Representar Oro']);
+  for(const [code,label] of materials){
+    const index=commands.findIndex(command=>command.tapOn==='Representar '+label),after=commands.slice(index+1);
+    assert.deepEqual(after[0].assertVisible,{text:'Representar '+label,selected:true});
+    for(const [,other] of materials.filter(([otherCode])=>otherCode!==code))assert.ok(after.slice(1,4).some(command=>command.assertVisible?.text==='Representar '+other&&command.assertVisible.selected===false));
+    const screenshot=commands.findIndex(command=>command.takeScreenshot==='safe-material-'+code);
+    assert.ok(screenshot>index);assert.equal(commands[screenshot-1].extendedWaitUntil.visible.id,'immersive-gl-ready');
+    assert.equal(commands[screenshot-1].extendedWaitUntil.visible.text,'^'+label+' DEMO\\..*');
+    assert.equal(commands[screenshot-2].assertVisible,'Etapa 5 de 7: FORMACIÓN DEL LINGOTE');
+    assert.equal(commands[screenshot-3].assertNotVisible,'Cerrar opciones del recorrido');
+  }
+  assert.deepEqual(commands.filter(command=>command.takeScreenshot).map(command=>command.takeScreenshot),materials.map(([code])=>'safe-material-'+code));
+  assert.equal(commands.at(-1).extendedWaitUntil.visible.text,'^Oro DEMO\\..*');
+  assert.equal(nested(commands).some(command=>command.inputText||command.launchApp||command.stopApp),false);
+});
+
+test('material PNG approval is closed to exactly four names and the pre-credential material flow',()=>{
+  for(const code of ['XAU','XAG','XPT','XPD']){
+    assert.equal(anonymousScreenshotAllowed('story-metals','safe-material-'+code+'.png'),true);
+    for(const scope of ['profile','story','story-exit','operator','register','../story-metals'])assert.equal(anonymousScreenshotAllowed(scope,'safe-material-'+code+'.png'),false);
+  }
+  for(const name of ['safe-material-XAU.png.exe','safe-material-XAU-extra.png','safe-material-OTHER.png','../safe-material-XAU.png'])assert.equal(anonymousScreenshotAllowed('story-metals',name),false);
+});
+
+test('optimized light-mine PNG is an exact anonymous exception before profiling, not another flow or stage',async()=>{
+  assert.equal(anonymousScreenshotAllowed('story-light','safe-light-mine.png'),true);
+  for(const flow of ['story','story-metals','profile','operator','register','../story-light'])assert.equal(anonymousScreenshotAllowed(flow,'safe-light-mine.png'),false);
+  for(const name of ['safe-light-mine-extra.png','../safe-light-mine.png','safe-light-mine.png.exe'])assert.equal(anonymousScreenshotAllowed('story-light',name),false);
+  const commands=await flow('story-light'),index=commands.findIndex(command=>command.takeScreenshot==='safe-light-mine');
+  assert.ok(index>0);assert.equal(commands[index-1].extendedWaitUntil.visible.id,'immersive-scene-light');
+  assert.equal(commands[index-2].assertVisible,'Etapa 1 de 7: MINA');
+  assert.equal(commands[index+1].tapOn,'Opciones del recorrido');
+  assert.equal(commands.filter(command=>command.takeScreenshot).length,1);
+  const performance=await source('../e2e/immersive-performance.mjs');assert.doesNotMatch(performance,/safe-light-mine|takeScreenshot/);
+});
+
+test('material coverage remains outside measurement and before native account credential entry',async()=>{
+  const runner=await source('../e2e/ci-android.mjs'),ast=ts.createSourceFile('ci-android.mjs',runner,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS);
+  const stages=[];function visit(node){if(ts.isCallExpression(node)&&node.expression.getText(ast)==='runStage')stages.push(node);ts.forEachChild(node,visit);}visit(ast);
+  const material=stages.filter(node=>node.arguments[0]?.text==='native-four-metal-materials');assert.equal(material.length,2);
+  const registration=stages.find(node=>node.arguments[0]?.text==='native-registration-no-import');assert.ok(registration);
+  for(const stage of material){assert.equal(stage.arguments[1].getText(ast),'runAnonymousMaterials');assert.ok(stage.getStart(ast)<registration.getStart(ast));}
+  const performance=await source('../e2e/immersive-performance.mjs');assert.doesNotMatch(performance,/story-metals|Representar |safe-material/);
 });

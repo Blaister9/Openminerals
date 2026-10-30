@@ -178,7 +178,7 @@ test('Android CI: new Maestro documents preserve data and only anonymous phases 
     for(const command of commands){
       if(typeof command==='string'){assert.ok(['launchApp','stopApp','eraseText','hideKeyboard'].includes(command));continue;}
       assert.equal(Object.keys(command).length,1);const action=Object.keys(command)[0];assert.ok(actions.has(action));
-      if(action==='takeScreenshot'){assert.ok(['preserve.yaml','story.yaml','story-exit.yaml'].includes(file));assert.match(command[action],/^safe-/);}
+      if(action==='takeScreenshot'){assert.ok(['preserve.yaml','story.yaml','story-exit.yaml','story-metals.yaml','story-light.yaml'].includes(file));assert.match(command[action],/^safe-/);}
     }
   }
   const runner=await source('../e2e/ci-android.mjs');

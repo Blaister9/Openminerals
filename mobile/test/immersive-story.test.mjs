@@ -25,6 +25,6 @@ test('suelo inmersivo deja visible el volumen mineral y converge al apoyo del li
     assert.deepEqual(pose,before);assert.deepEqual(scene.model,base.model);assert.deepEqual(scene.mvp,base.mvp);
     assert.ok([...scene.floorMvp].every(Number.isFinite));assert.ok(scene.floorModel[13]<=base.floorModel[13]);
     if(progress===0)assert.ok(base.floorModel[13]-scene.floorModel[13]>1.2);
-    if(progress>=.5){assert.deepEqual(scene.floorModel,base.floorModel);assert.deepEqual(scene.floorMvp,base.floorMvp);}
+    if(progress>=.66){assert.deepEqual(scene.floorModel,base.floorModel);assert.deepEqual(scene.floorMvp,base.floorMvp);}
   }
 });

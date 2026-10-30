@@ -109,10 +109,14 @@ export function goldBarMatrices(pose:GoldBarPose,aspect:number):{model:Mat4;mvp:
 export function createFrameScheduler({request,cancel,draw,onError,maxFps=0,now=Date.now}:{request:(callback:()=>void)=>number;cancel:(id:number)=>void;draw:()=>void;onError:(error:unknown)=>void;maxFps?:number;now?:()=>number}){
   let pending:number|null=null,enabled=true,dirty=false,disposed=false,lastDraw=-Infinity;
   const interval=Number.isFinite(maxFps)&&maxFps>0?1000/maxFps:0;
+  // Rounded 16 ms vsync timestamps must not turn a 60 fps budget into 30.
+  // The existing 30 fps cap keeps its exact threshold; faster budgets receive
+  // only a sub-millisecond allowance, bounded relative to their own interval.
+  const tolerance=maxFps>=50?Math.min(.75,interval*.05):0;
   const schedule=()=>{if(!disposed&&enabled&&dirty&&pending===null)pending=request(frame);};
   const frame=()=>{
     pending=null;if(disposed||!enabled||!dirty)return;
-    const time=now();if(time-lastDraw<interval){schedule();return;}
+    const time=now();if(time-lastDraw+tolerance<interval){schedule();return;}
     dirty=false;lastDraw=time;
     try{draw();}catch(error){enabled=false;onError(error);}
     schedule();
@@ -150,6 +154,9 @@ uniform vec3 u_light;
 uniform float u_refinement;
 uniform float u_surface;
 uniform float u_shadowAngle;
+uniform vec3 u_metalColor;
+uniform float u_roughness;
+uniform float u_metalKind;
 varying vec3 v_position;
 varying vec3 v_normal;
 varying vec3 v_local;
@@ -169,6 +176,28 @@ float letterU(vec2 p) {
   float sides=min(segment(p,vec2(-.14,.18),vec2(-.14,-.075)),segment(p,vec2(.14,.18),vec2(.14,-.075)));
   return min(sides,max(abs(length(p-vec2(0.0,-.075))-.14),p.y+.075));
 }
+float lowerU(vec2 p) {
+  vec2 q=p-vec2(0.0,-.035);
+  float sides=min(segment(q,vec2(-.11,.105),vec2(-.11,-.035)),segment(q,vec2(.11,.105),vec2(.11,-.035)));
+  return min(sides,max(abs(length(q-vec2(0.0,-.035))-.11),q.y+.035));
+}
+float lowerG(vec2 p) {
+  float bowl=abs(length(p-vec2(-.005,.005))-.105);
+  float stem=segment(p,vec2(.10,.015),vec2(.10,-.17));
+  float tail=min(segment(p,vec2(.10,-.17),vec2(.015,-.235)),segment(p,vec2(.015,-.235),vec2(-.075,-.21)));
+  return min(bowl,min(stem,tail));
+}
+float letterP(vec2 p) {
+  float stem=segment(p,vec2(-.13,-.17),vec2(-.13,.18));
+  float bowl=abs(boxDistance(p-vec2(-.005,.09),vec2(.125,.09),.065));
+  return min(stem,bowl);
+}
+float lowerT(vec2 p) {
+  return min(segment(p,vec2(0.0,-.14),vec2(0.0,.17)),min(segment(p,vec2(-.095,.07),vec2(.095,.07)),segment(p,vec2(0.0,-.14),vec2(.075,-.17))));
+}
+float lowerD(vec2 p) {
+  return min(abs(length(p-vec2(-.01,-.035))-.11),segment(p,vec2(.10,-.145),vec2(.10,.18)));
+}
 float demoLetters(vec2 p) {
   vec2 d=p-vec2(-1.38,0.0),e=p-vec2(-.46,0.0),m=p-vec2(.46,0.0),o=p-vec2(1.38,0.0);
   float D=min(segment(d,vec2(-.28,-.4),vec2(-.28,.4)),abs(boxDistance(d,vec2(.28,.4),.23)));
@@ -178,7 +207,12 @@ float demoLetters(vec2 p) {
   return min(min(D,E),min(M,O))/6.4;
 }
 float engravingDistance(vec2 p) {
-  float letters=min(letterA(p-vec2(-.23,.015)),letterU(p-vec2(.23,.015)));
+  vec2 first=p-vec2(-.23,.015),second=p-vec2(.23,.015);
+  float letters;
+  if(u_metalKind<.5)letters=min(letterA(first),lowerU(second));
+  else if(u_metalKind<1.5)letters=min(letterA(first),lowerG(second));
+  else if(u_metalKind<2.5)letters=min(letterP(first),lowerT(second));
+  else letters=min(letterP(first),lowerD(second));
   float demo=demoLetters((p-vec2(0.0,-.30))*6.4);
   float border=abs(boxDistance(p,vec2(1.04,.435),.07));
   // Openminerals' own abstract mountain mark; no assay or third-party seal.
@@ -187,12 +221,12 @@ float engravingDistance(vec2 p) {
   return min(min(letters,demo),min(border+.006,maker+.001));
 }
 vec3 studioReflection(vec3 r,float polished) {
-  vec3 light=vec3(.045,.057,.073)*(0.6+0.4*smoothstep(-.4,.8,r.y));
-  float key=pow(max(dot(r,normalize(vec3(-.35,.85,-.42))),0.0),mix(6.0,19.0,polished));
-  float rim=pow(max(dot(r,normalize(vec3(.85,.32,.25))),0.0),mix(12.0,48.0,polished));
-  float strip=exp(-pow((r.x+.17)*6.0,2.0))*smoothstep(.1,.8,r.y)*(1.0-smoothstep(.2,.8,r.z));
+  vec3 light=vec3(.049,.051,.054)*(0.6+0.4*smoothstep(-.4,.8,r.y));
+  float key=pow(max(dot(r,normalize(vec3(-.35,.85,-.42))),0.0),mix(6.0,30.0,polished));
+  float rim=pow(max(dot(r,normalize(vec3(.85,.32,.25))),0.0),mix(10.0,46.0,polished));
+  float strip=exp(-pow((r.x+.17)*mix(4.0,7.0,polished),2.0))*smoothstep(.1,.8,r.y)*(1.0-smoothstep(.2,.8,r.z));
   float warm=pow(max(dot(r,normalize(vec3(-.7,.2,.65))),0.0),10.0);
-  light+=vec3(2.4,2.15,1.7)*key+vec3(1.65,1.88,2.2)*rim+vec3(1.6,1.7,1.8)*strip+vec3(.22,.15,.075)*warm;
+  light+=vec3(2.65,2.55,2.4)*key+vec3(1.75,1.82,1.9)*rim+vec3(1.65,1.68,1.72)*strip+vec3(.18,.16,.13)*warm;
   return light;
 }
 vec3 displayColor(vec3 linear) {
@@ -211,21 +245,35 @@ void main() {
     gl_FragColor=vec4(displayColor(floorColor),1.0);return;
   }
   vec3 N = normalize(v_normal);
-  float grain=sin(v_local.x*710.0+sin(v_local.z*211.0))*sin(v_local.z*503.0)*.0013;
-  N=normalize(N+vec3(grain,0.0,grain*.35));
+  float roughness=clamp(u_roughness,.08,.8);
+  vec3 tangent=normalize(cross(abs(N.y)<.95?vec3(0.0,1.0,0.0):vec3(0.0,0.0,1.0),N));
+  vec3 bitangent=cross(N,tangent);
+  float brush=sin(v_local.x*55.0+sin(v_local.z*12.0)*.2);
+  float grain=sin(v_local.z*85.0+v_local.x*11.0)*sin(v_local.x*73.0);
+  N=normalize(N+tangent*brush*(.0012+.003*roughness)+bitangent*grain*.0006);
+  float stamp=0.0,lip=0.0;
+  // The SDF changes the local highlight as an incision would, rather than
+  // painting black letters. Extra gradient taps run only near the top mark.
+  if(v_local.y>.235) {
+    vec2 p=vec2(v_local.x,-v_local.z);
+    float distance=engravingDistance(p),top=smoothstep(.235,.239,v_local.y);
+    stamp=(1.0-smoothstep(.005,.013,distance))*top;
+    lip=(1.0-smoothstep(.002,.007,abs(distance-.014)))*top;
+    if(distance<.03) {
+      vec2 slope=vec2(engravingDistance(p+vec2(.003,0.0))-distance,engravingDistance(p+vec2(0.0,.003))-distance)/.003;
+      float shoulder=smoothstep(.003,.009,distance)*(1.0-smoothstep(.012,.026,distance))*top;
+      N=normalize(N+(tangent*slope.x-bitangent*slope.y)*shoulder*.15);
+    }
+  }
   vec3 V = normalize(u_camera-v_position);
   vec3 L = normalize(u_light-v_position);
   float NoV=max(dot(N,V),.001),NoL=max(dot(N,L),0.0);
-  vec3 gold=vec3(1.0,.72,.29),fresnel=gold+(1.0-gold)*pow(1.0-NoV,5.0);
-  vec3 reflection=studioReflection(reflect(-V,N),u_refinement);
-  float fineBrush=sin(v_local.x*520.0+v_local.z*19.0)*.0015;
-  vec3 color=fresnel*reflection+gold*(.055+.07*NoL+fineBrush);
+  // Keep the historical gold identifier for the composed immersive shader.
+  vec3 gold=clamp(u_metalColor,vec3(0.0),vec3(1.0)),fresnel=gold+(1.0-gold)*pow(1.0-NoV,5.0);
+  vec3 reflection=studioReflection(reflect(-V,N),clamp(u_refinement,0.0,1.0)*(1.0-roughness));
+  vec3 color=fresnel*reflection+gold*(.035+.055*NoL);
   color*=mix(.73,1.0,smoothstep(-.24,.10,v_local.y));
-  vec2 p=vec2(v_local.x,-v_local.z);
-  float distance=engravingDistance(p);
-  float stamp=(1.0-smoothstep(.006,.013,distance))*step(.239,v_local.y);
-  float lip=(1.0-smoothstep(.002,.008,abs(distance-.015)))*step(.239,v_local.y);
-  color=mix(color,color*.22+vec3(.018,.009,.002),stamp*.86);
-  color+=vec3(.18,.12,.035)*lip;
+  color*=1.0-stamp*.56;
+  color+=gold*lip*.055;
   gl_FragColor=vec4(displayColor(color),1.0);
 }`;

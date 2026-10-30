@@ -2,14 +2,14 @@ appId: com.openminerals.demo.mobile
 name: Same-process GL resume retains progress and reversible gestures
 ---
 [
-  {"assertVisible":"Etapa 4 de 7: FORMACIÓN DEL LINGOTE"},
+  {"assertVisible":"Etapa 4 de 7: REFINACIÓN"},
   {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
-  {"repeat":{"times":4,"while":{"visible":"Etapa 4 de 7: FORMACIÓN DEL LINGOTE"},"commands":[{"swipe":{"from":{"id":"immersive-stage","point":"80%,68%"},"direction":"UP","duration":800,"waitToSettleTimeoutMs":500}}]}},
-  {"assertNotVisible":"Etapa 4 de 7: FORMACIÓN DEL LINGOTE"},
+  {"repeat":{"times":4,"while":{"visible":"Etapa 4 de 7: REFINACIÓN"},"commands":[{"swipe":{"from":{"id":"immersive-stage","point":"80%,68%"},"direction":"UP","duration":800,"waitToSettleTimeoutMs":500}}]}},
+  {"assertNotVisible":"Etapa 4 de 7: REFINACIÓN"},
   {"extendedWaitUntil":{"visible":"Etapa [5-7] de 7: .*","timeout":8000}},
   {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
-  {"repeat":{"times":4,"while":{"notVisible":"Etapa 4 de 7: FORMACIÓN DEL LINGOTE"},"commands":[{"swipe":{"from":{"id":"immersive-stage","point":"80%,42%"},"direction":"DOWN","duration":800,"waitToSettleTimeoutMs":500}}]}},
-  {"extendedWaitUntil":{"visible":"Etapa 4 de 7: FORMACIÓN DEL LINGOTE","timeout":8000}},
+  {"repeat":{"times":4,"while":{"notVisible":"Etapa 4 de 7: REFINACIÓN"},"commands":[{"swipe":{"from":{"id":"immersive-stage","point":"80%,42%"},"direction":"DOWN","duration":800,"waitToSettleTimeoutMs":500}}]}},
+  {"extendedWaitUntil":{"visible":"Etapa 4 de 7: REFINACIÓN","timeout":8000}},
   {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
   {"runFlow":{"file":"story-clean.yaml"}}
 ]

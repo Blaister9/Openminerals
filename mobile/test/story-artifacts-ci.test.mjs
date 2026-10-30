@@ -5,14 +5,14 @@ import {join,resolve,sep} from 'node:path';
 import {tmpdir} from 'node:os';
 import vm from 'node:vm';
 import ts from 'typescript';
-import {requireSafe} from '../e2e/ci-safety.mjs';
+import {requireSafe,anonymousScreenshotAllowed} from '../e2e/ci-safety.mjs';
 
 const text=await readFile(new URL('../e2e/ci-android.mjs',import.meta.url),'utf8');
 const ast=ts.createSourceFile('ci-android.mjs',text,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS);
 const declaration=name=>{const node=ast.statements.find(value=>ts.isFunctionDeclaration(value)&&value.name?.text===name);assert.ok(node,name);return node.getText(ast);};
 const expected=[...Array.from({length:7},(_,index)=>'safe-story-'+(index+1)+'.png'),'safe-reduced-motion.png'].sort();
 const makeContext=({capture,work,privateRoot='',published=''})=>{
-  const context=vm.createContext({readFile,readdir,copyFile,join,Buffer,requireSafe,privateRoot,published,
+  const context=vm.createContext({readFile,readdir,copyFile,join,Buffer,requireSafe,anonymousScreenshotAllowed,privateRoot,published,
     adb:()=>{},serial:'emulator-5554',maestro:()=>{},runImmersivePerformance:work,...(capture?{captureSafeScreens:capture}:{})});
   vm.runInContext((capture?'':declaration('captureSafeScreens'))+'\n'+declaration('runAnonymousStory')+'\nthis.execute=runAnonymousStory;',context);
   return context;
@@ -61,4 +61,15 @@ test('Anonymous artifact finalization stays in both story stages before registra
   const registration=calls.find(node=>node.arguments[0]?.text==='native-registration-no-import');assert.ok(registration);
   assert.equal(stories.length,2);
   for(const node of stories){assert.equal(node.arguments[1].getText(ast),'runAnonymousStory');assert.ok(node.getStart(ast)<registration.getStart(ast));}
+});
+
+for(const fails of [false,true])test('Light-mine evidence is copied outside the measured profile and preserves its original failure: '+fails,async()=>{
+  const original=Error('Synthetic original light profile failure'),calls=[];
+  const context=vm.createContext({adb:()=>{},serial:'emulator-5554',maestro:()=>{},published:'/tmp/unit',requireSafe,
+    runImmersivePerformance:async options=>{calls.push('profile');assert.equal(options.record,false);assert.equal(options.light,true);if(fails)throw original;},
+    captureSafeScreens:async name=>{calls.push(name);if(fails)throw Error('Synthetic private copy failure');return ['safe-light-mine.png'];},
+  });
+  vm.runInContext(declaration('runAnonymousLightProfile')+'\nthis.execute=runAnonymousLightProfile;',context);
+  if(fails)await assert.rejects(context.execute(),error=>error===original);else await context.execute();
+  assert.deepEqual(calls,['profile','story-light']);
 });

@@ -9,9 +9,9 @@ name: Prepare a valid anonymous 3D frame before recording
   {"tapOn":"Cerrar opciones del recorrido"},
   {"tapOn":"Opciones del recorrido"},
   {"tapOn":"Elegir una etapa"},
-  {"scrollUntilVisible":{"element":{"text":"Ir a etapa 1: ORIGEN MINERAL"},"direction":"DOWN","centerElement":false,"timeout":8000}},
-  {"tapOn":"Ir a etapa 1: ORIGEN MINERAL"},
-  {"extendedWaitUntil":{"visible":"Etapa 1 de 7: ORIGEN MINERAL","timeout":8000}},
+  {"scrollUntilVisible":{"element":{"text":"Ir a etapa 1: MINA"},"direction":"DOWN","centerElement":false,"timeout":8000}},
+  {"tapOn":"Ir a etapa 1: MINA"},
+  {"extendedWaitUntil":{"visible":"Etapa 1 de 7: MINA","timeout":8000}},
   {"assertNotVisible":"Cerrar opciones del recorrido"},
   {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}}
 ]

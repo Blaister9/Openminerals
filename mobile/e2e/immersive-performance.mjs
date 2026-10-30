@@ -4,6 +4,7 @@ import {randomUUID} from 'node:crypto';
 import {readFile,writeFile,stat} from 'node:fs/promises';
 import {join} from 'node:path';
 import {PACKAGE,requireSafe} from './ci-safety.mjs';
+import {nativeGestureTrace,executeNativeGestureTrace} from './native-gesture-trace.mjs';
 
 const numeric=(text,pattern)=>{const match=pattern.exec(text);return match?Number(match[1]):null;};
 export function parseAndroidPerformance({before,after,gfx,start}){
@@ -57,26 +58,25 @@ export async function runImmersivePerformance({adb,serial,maestro,published,reco
   const processObserved=!!appPid();
   await writeFile(join(published,'immersive-launch.json'),JSON.stringify({demoOnly:true,launcherIntent:true,processObserved,status:/Status:\s*(ok|timeout)/.exec(start)?.[1]??'unavailable',...parseAndroidPerformance({before:'',after:'',gfx:'',start})},null,2)+'\n');
   requireSafe(processObserved,'The measured launcher intent did not create the app process.');
-  // Chapter/menu coverage and PNGs precede recording. The clip starts only
-  // after an actual ready frame and contains reversible native swipes only.
-  if(record)await maestro('story');
+  // Keep chapter, reverse-navigation and screenshot coverage outside all three
+  // profiles. Only the same fixed ADB input trace is measured in each mode.
+  await maestro(light?'story-light':'story');
   await maestro(light?'story-light-prepare':'story-video-prepare');
-  const before=adb('shell','dumpsys','meminfo',PACKAGE);adb('shell','dumpsys','gfxinfo',PACKAGE,'reset');
+  const trace=nativeGestureTrace(adb('shell','wm','size'));
   const pids=()=>{try{return adb('shell','pidof','screenrecord');}catch{return '';}};
   requireSafe(pids()==='','Another screen recorder is running.');
   const remote='/sdcard/openminerals-story-'+randomUUID()+'.mp4';
   const recorder=record?spawn('adb',['-s',serial,'shell','screenrecord','--bit-rate','1500000','--time-limit','180',remote],{stdio:'ignore',windowsHide:true}):null;
   recorder?.on('error',()=>{});const closed=recorder?once(recorder,'close').catch(()=>[]):Promise.resolve([]);
-  let recorderPid='',flags={};
+  let recorderPid='',measurement;
   try{
     if(record){await new Promise(resolve=>setTimeout(resolve,1000));recorderPid=pids();requireSafe(/^\d+$/.test(recorderPid),'Screen recording did not start.');}
-    await maestro(record?'story-video':light?'story-light':'story');
+    const before=adb('shell','dumpsys','meminfo',PACKAGE);adb('shell','dumpsys','gfxinfo',PACKAGE,'reset');
+    const observation=await executeNativeGestureTrace({trace,adb});
+    // Capture before recorder teardown, hierarchy dumps, assertions or exit UI.
+    const after=adb('shell','dumpsys','meminfo',PACKAGE),gfx=adb('shell','dumpsys','gfxinfo',PACKAGE);
+    measurement={...parseAndroidPerformance({before,after,gfx,start}),gestureTrace:{...trace,...observation}};
     if(record)requireSafe(recorder.exitCode===null&&pids()===recorderPid,'The owned recorder ended before the verified narrative completed; the video is incomplete.');
-    const xmlPath='/sdcard/openminerals-story-flags-'+randomUUID()+'.xml';
-    try{
-      adb('shell','uiautomator','dump',xmlPath);const xml=adb('exec-out','cat',xmlPath);
-      flags={automaticLightObserved:xml.includes('Vista ligera activada por coste de render.'),privateUiPublished:false};
-    }finally{adb('shell','rm','-f',xmlPath);}
   }finally{
     if(recorder){
     const current=pids();if(recorderPid&&current===recorderPid)adb('shell','kill','-INT',recorderPid);
@@ -87,16 +87,26 @@ export async function runImmersivePerformance({adb,serial,maestro,published,reco
     try{adb('pull',remote,file);const metadata=await stat(file),header=await readFile(file);requireSafe(metadata.size>1000&&metadata.size<60_000_000&&header.subarray(4,8).toString()==='ftyp','Invalid anonymous demonstration video.');}finally{adb('shell','rm','-f',remote);}
     }
   }
-  const after=adb('shell','dumpsys','meminfo',PACKAGE),gfx=adb('shell','dumpsys','gfxinfo',PACKAGE),metrics=parseAndroidPerformance({before,after,gfx,start});
+  let flags={};
+  const xmlPath='/sdcard/openminerals-story-flags-'+randomUUID()+'.xml';
+  try{
+    adb('shell','uiautomator','dump',xmlPath);const xml=adb('exec-out','cat',xmlPath);
+    flags={automaticLightObserved:xml.includes('Vista ligera activada por coste de render.'),privateUiPublished:false};
+  }finally{adb('shell','rm','-f',xmlPath);}
+  const metrics=measurement;
   const report={demoOnly:true,environment:'disposable Android CI emulator',physicalDevice:false,...metrics,...flags,
     screenRecording:record,visualMode:light?'light':'3d',
-    measurementScope:record?'continuous native swipes after ready-frame preparation; menus and exit excluded':'unrecorded chapter checks and reversible swipes after visual-mode preparation; exit excluded',
+    measurementScope:'fixed ADB gesture trace after ready-frame preparation; menus, assertions, hierarchy dumps, screenshots and exit excluded',
     ...(record?{videoStartsAfterReadyFrame:true,videoIncludesMenus:false,videoIncludesColdStart:false}:{}),
     hwuiProfilingRequested,
     measurementsComplete:metrics.coldStartTotalMs!==null&&metrics.pssBeforeKiB!==null&&metrics.pssAfterKiB!==null&&metrics.uiFrames>0,
     uiFrameStatisticsAvailable:metrics.uiFrames!==null&&metrics.uiFrames>0,
-    interpretation:'Android UI frame statistics; not a measurement of GPU FPS. PSS is sampled before/after, not peak memory. Cold process start uses an already installed APK and cached OTA.',phonePerformanceAcceptance:false};
-  await writeFile(join(published,record?'immersive-performance.json':light?'immersive-performance-light-unrecorded.json':'immersive-performance-unrecorded.json'),JSON.stringify(report,null,2)+'\n');
+    interpretation:'Android UI frame statistics; not a measurement of GPU FPS. PSS is sampled before/after, not peak memory. Activity launch uses an already installed APK and cached OTA; it is not time to interactive. Only compare profiles with identical trace hashes, display, recorder mode and emulator configuration.',phonePerformanceAcceptance:false,finalSceneVerified:false};
+  const reportPath=join(published,record?'immersive-performance.json':light?'immersive-performance-light-unrecorded.json':'immersive-performance-unrecorded.json');
+  await writeFile(reportPath,JSON.stringify(report,null,2)+'\n');
+  await maestro(light?'story-performance-light-complete':'story-performance-complete');
+  report.finalSceneVerified=true;
+  await writeFile(reportPath,JSON.stringify(report,null,2)+'\n');
   // Mode switches, reduced-motion screenshot and operations are checked after
   // the owned recorder is stopped and the independent metrics are captured.
   await maestro('story-exit');

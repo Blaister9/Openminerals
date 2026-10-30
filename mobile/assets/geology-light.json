@@ -1,0 +1,23 @@
+{
+  "demoOnly": true,
+  "kind": "precomputed-fictitious-mine-light-fallback",
+  "width": 360,
+  "height": 640,
+  "bytes": 305228,
+  "sha256": "31bd3f771fbb5475089c14cbaf7c612d73d6cbd5e93a3d7ce83e048ef9e8a755",
+  "renderer": "same application renderer; desktop Chrome/SwiftShader",
+  "pose": {
+    "progress": 0,
+    "drag": 0,
+    "metal": "XAU"
+  },
+  "sourceHashesLF": {
+    "lib/scene-renderer.ts": "4a6f986cff3c4018572a48bc98e86714cb0737043fb28a2dcd8104153c18a549",
+    "lib/geological-scene.ts": "a16d2c8f09e8ccc48fa90d5d6c7960d3eb7b825da51946012a22e30406b47e35",
+    "lib/gold-bar-3d.ts": "f15bd6c9ef7b54fb352d59b2c02efd3d25d99d3cdea33d570e22559fb82f02f9",
+    "lib/immersive-story.ts": "1e0ac7769755c39c6a9796a4f5d460514eac73db48146c1305f4c7a1a65e7ff9",
+    "lib/geological-specimen.ts": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778",
+    "lib/metal-materials.ts": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81"
+  },
+  "limitations": "Static lighting/perspective for the lightweight mode; not a photograph or an Android performance measurement."
+}

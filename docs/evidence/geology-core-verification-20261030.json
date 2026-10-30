@@ -1,0 +1,422 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-10-30T19:40:47.700Z",
+  "project": "Openminerals DEMO",
+  "candidateCommit": "39b0f569bd0ffff35c0e816ba5f6f46fb19e809b",
+  "baselineCommit": "3e31bddf2ede11e42f5a9627acc43cf39c35ca37",
+  "sources": {
+    "workflow": "https://github.com/Blaister9/Openminerals/blob/39b0f569bd0ffff35c0e816ba5f6f46fb19e809b/.github/workflows/ci.yml",
+    "compare": "https://github.com/Blaister9/Openminerals/compare/3e31bddf2ede11e42f5a9627acc43cf39c35ca37...39b0f569bd0ffff35c0e816ba5f6f46fb19e809b",
+    "method": "GitHub Actions REST metadata plus filtered completed job logs; local Git object comparison. No private credentials or signed log URLs retained."
+  },
+  "runs": [
+    {
+      "id": 41115911014,
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41115911014",
+      "event": "pull_request",
+      "headSha": "39b0f569bd0ffff35c0e816ba5f6f46fb19e809b",
+      "status": "completed",
+      "conclusion": "success",
+      "completedAt": "2026-10-30T19:32:30Z",
+      "jobs": [
+        {
+          "name": "api-tests",
+          "id": 124269966430,
+          "conclusion": "success"
+        },
+        {
+          "name": "mobile-typecheck",
+          "id": 124269966687,
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 41115898389,
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41115898389",
+      "event": "push",
+      "headSha": "39b0f569bd0ffff35c0e816ba5f6f46fb19e809b",
+      "status": "completed",
+      "conclusion": "success",
+      "completedAt": "2026-10-30T19:32:22Z",
+      "jobs": [
+        {
+          "name": "api-tests",
+          "id": 124269919649,
+          "conclusion": "success"
+        },
+        {
+          "name": "mobile-typecheck",
+          "id": 124269919960,
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "resultsVerifiedInBothRuns": {
+    "apiDefaultCommand": {
+      "command": "npm test",
+      "cases": 102,
+      "passed": 91,
+      "failed": 0,
+      "skipped": 11,
+      "skipReason": "TEST_DATABASE_URL is absent in the initial API command; the required PostgreSQL stage below executes afterward."
+    },
+    "apiRequiredPostgresCommand": {
+      "command": "node scripts/run-postgres.mjs",
+      "cases": 80,
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "postgresServiceVersion": 18
+    },
+    "mobileCommand": {
+      "command": "npm test",
+      "cases": 291,
+      "passed": 286,
+      "failed": 0,
+      "skipped": 5,
+      "skipReason": "Optional software WebGL checks require OPENMINERALS_WEBGL_BROWSER, which is absent in the core workflow.",
+      "skippedChecks": [
+        "túnel GL real: profundidad, materiales y polvo reversibles en un único contexto",
+        "mina y cuatro metales: renderer compuesto rasteriza, revierte y libera recursos",
+        "shaders compilan y seis vistas producen píxeles diferentes en UN contexto WebGL",
+        "shader inmersivo real: etapas intermedias y reversión producen píxeles válidos en un contexto",
+        "shader real mantiene cuatro materiales y cuatro grabados distintos en un único contexto"
+      ]
+    },
+    "expoDoctor": {
+      "passed": 21,
+      "total": 21,
+      "conclusion": "success"
+    },
+    "gates": {
+      "apiInstall": "success",
+      "apiAuditHighOrCritical": "success",
+      "requiredPostgresCoverage": "success",
+      "mobileInstall": "success",
+      "expoDependencyCompatibility": "success",
+      "toolchainPatch": "success",
+      "mobileAuditHighOrCritical": "success",
+      "typecheck": "success",
+      "mobileTests": "success",
+      "expoDoctor": "success"
+    },
+    "audit": {
+      "api": {
+        "vulnerabilities": 0
+      },
+      "mobile": {
+        "low": 7,
+        "high": 0,
+        "critical": 0,
+        "note": "Completed audit log reports 7 low severity vulnerabilities. The high/critical gate passed; it is not a zero-vulnerability claim."
+      }
+    }
+  },
+  "scope": {
+    "changedPathCount": 51,
+    "unchangedObjects": [
+      {
+        "path": "api",
+        "baseGitObject": "12eb7c4fdf83cefc96e5df70fa5d656e67ff353a",
+        "candidateGitObject": "12eb7c4fdf83cefc96e5df70fa5d656e67ff353a",
+        "identical": true
+      },
+      {
+        "path": ".github/workflows",
+        "baseGitObject": "5644dd5291dd9fe63090757565d32576259eedf5",
+        "candidateGitObject": "5644dd5291dd9fe63090757565d32576259eedf5",
+        "identical": true
+      },
+      {
+        "path": "api/package.json",
+        "baseGitObject": "631b21c195663a9a3544f2cb7ef88cc87682b834",
+        "candidateGitObject": "631b21c195663a9a3544f2cb7ef88cc87682b834",
+        "identical": true
+      },
+      {
+        "path": "api/package-lock.json",
+        "baseGitObject": "c0bea54485875a094860bd063ce01c7b3084c270",
+        "candidateGitObject": "c0bea54485875a094860bd063ce01c7b3084c270",
+        "identical": true
+      },
+      {
+        "path": "api/railway.json",
+        "baseGitObject": "0efc3301ceec6f820f4c9ec7b91fce34930e1425",
+        "candidateGitObject": "0efc3301ceec6f820f4c9ec7b91fce34930e1425",
+        "identical": true
+      },
+      {
+        "path": "mobile/package.json",
+        "baseGitObject": "fb117d376cbec5e83d6d50aa7de766449ccd7ef7",
+        "candidateGitObject": "fb117d376cbec5e83d6d50aa7de766449ccd7ef7",
+        "identical": true
+      },
+      {
+        "path": "mobile/package-lock.json",
+        "baseGitObject": "77bb4d227fd9ace7d528b797999eac7d1ba4cb6d",
+        "candidateGitObject": "77bb4d227fd9ace7d528b797999eac7d1ba4cb6d",
+        "identical": true
+      },
+      {
+        "path": "mobile/app.config.js",
+        "baseGitObject": "f8f234fc3e5e89b0eeddd384d2e0218c6003be3c",
+        "candidateGitObject": "f8f234fc3e5e89b0eeddd384d2e0218c6003be3c",
+        "identical": true
+      },
+      {
+        "path": "mobile/app.json",
+        "baseGitObject": "03f4634a6859d014e07bbb2288d6c3a797c2a8ad",
+        "candidateGitObject": "03f4634a6859d014e07bbb2288d6c3a797c2a8ad",
+        "identical": true
+      },
+      {
+        "path": "mobile/eas.json",
+        "baseGitObject": "b607cb80c955b5e8ccf0b7832bfb5ca6ffc0cb11",
+        "candidateGitObject": "b607cb80c955b5e8ccf0b7832bfb5ca6ffc0cb11",
+        "identical": true
+      },
+      {
+        "path": "mobile/tsconfig.json",
+        "baseGitObject": "5a695ccecc7d49cbfe6b043f8a39c16abda7a028",
+        "candidateGitObject": "5a695ccecc7d49cbfe6b043f8a39c16abda7a028",
+        "identical": true
+      },
+      {
+        "path": "mobile/.env.example",
+        "baseGitObject": "65676d9eb842383cb5047e3c9d9d9ea48545c3c9",
+        "candidateGitObject": "65676d9eb842383cb5047e3c9d9d9ea48545c3c9",
+        "identical": true
+      },
+      {
+        "path": "mobile/scripts/patch-toolchain.mjs",
+        "baseGitObject": "d7dfb4ee3bf4923b89b372adabad773f3c23e387",
+        "candidateGitObject": "d7dfb4ee3bf4923b89b372adabad773f3c23e387",
+        "identical": true
+      },
+      {
+        "path": ".gitignore",
+        "baseGitObject": "71e7cca87cabe95bb743f165cc1ae737a13eda53",
+        "candidateGitObject": "71e7cca87cabe95bb743f165cc1ae737a13eda53",
+        "identical": true
+      }
+    ],
+    "apiSourceUnchanged": true,
+    "dependencyManifestsAndLockfilesUnchanged": true,
+    "nativeAndEasConfigurationUnchanged": true,
+    "workflowsUnchanged": true,
+    "appIntegrationChange": "App.tsx only passes currentMetal/setCurrentMetal into the two existing MetalStory instances; checked git diff contains two changed JSX lines.",
+    "infrastructureStateVerifiedByThisReport": false
+  },
+  "limits": {
+    "testInvocationCountsAreNotUniqueCasesAcrossCommands": true,
+    "runsAreRepeatedVerificationNotAdditionalDistinctCoverage": true,
+    "softwareWebGLExecutedInTheseCoreRuns": false,
+    "nativeAndroidVerificationIncluded": false,
+    "physicalDevicePerformanceIncluded": false,
+    "commercialAcceptanceIncluded": false,
+    "railwayDeploymentVerificationIncluded": false,
+    "note": "This report verifies only the two core CI runs for the optimized source. Software rasterization, Android emulation, commercial workflows and physical-device acceptance require separate evidence."
+  },
+  "harnessRevision": {
+    "commit": "06643bf913983fff5670fcc145b47229f36d8d5d",
+    "appRuntimeSourceCommit": "39b0f569bd0ffff35c0e816ba5f6f46fb19e809b",
+    "runtimeAndInfrastructureUnchanged": true,
+    "changedPaths": [
+      "mobile/e2e/ci-android.mjs",
+      "mobile/e2e/ci-safety.mjs",
+      "mobile/e2e/native/story-light.yaml",
+      "mobile/test/android-ci.test.mjs",
+      "mobile/test/cinematic-native-ci.test.mjs",
+      "mobile/test/story-artifacts-ci.test.mjs"
+    ],
+    "unchangedObjects": [
+      {
+        "path": "api",
+        "runtimeGitObject": "12eb7c4fdf83cefc96e5df70fa5d656e67ff353a",
+        "harnessGitObject": "12eb7c4fdf83cefc96e5df70fa5d656e67ff353a",
+        "identical": true
+      },
+      {
+        "path": ".github/workflows",
+        "runtimeGitObject": "5644dd5291dd9fe63090757565d32576259eedf5",
+        "harnessGitObject": "5644dd5291dd9fe63090757565d32576259eedf5",
+        "identical": true
+      },
+      {
+        "path": "mobile/App.tsx",
+        "runtimeGitObject": "9c6b17cae7497c609e7f906395a3ccf3fdd35dbf",
+        "harnessGitObject": "9c6b17cae7497c609e7f906395a3ccf3fdd35dbf",
+        "identical": true
+      },
+      {
+        "path": "mobile/components",
+        "runtimeGitObject": "d4e3016944f4067947ebaec68c92aed4a042c8d5",
+        "harnessGitObject": "d4e3016944f4067947ebaec68c92aed4a042c8d5",
+        "identical": true
+      },
+      {
+        "path": "mobile/lib",
+        "runtimeGitObject": "f230a85b4e4e0cd88ac37cc7205c2fb7f0ef0baa",
+        "harnessGitObject": "f230a85b4e4e0cd88ac37cc7205c2fb7f0ef0baa",
+        "identical": true
+      },
+      {
+        "path": "mobile/assets",
+        "runtimeGitObject": "b2ed8618d3fa7e6f53c47a1d52a67507b6740526",
+        "harnessGitObject": "b2ed8618d3fa7e6f53c47a1d52a67507b6740526",
+        "identical": true
+      },
+      {
+        "path": "mobile/package.json",
+        "runtimeGitObject": "fb117d376cbec5e83d6d50aa7de766449ccd7ef7",
+        "harnessGitObject": "fb117d376cbec5e83d6d50aa7de766449ccd7ef7",
+        "identical": true
+      },
+      {
+        "path": "mobile/package-lock.json",
+        "runtimeGitObject": "77bb4d227fd9ace7d528b797999eac7d1ba4cb6d",
+        "harnessGitObject": "77bb4d227fd9ace7d528b797999eac7d1ba4cb6d",
+        "identical": true
+      },
+      {
+        "path": "mobile/app.config.js",
+        "runtimeGitObject": "f8f234fc3e5e89b0eeddd384d2e0218c6003be3c",
+        "harnessGitObject": "f8f234fc3e5e89b0eeddd384d2e0218c6003be3c",
+        "identical": true
+      },
+      {
+        "path": "mobile/app.json",
+        "runtimeGitObject": "03f4634a6859d014e07bbb2288d6c3a797c2a8ad",
+        "harnessGitObject": "03f4634a6859d014e07bbb2288d6c3a797c2a8ad",
+        "identical": true
+      },
+      {
+        "path": "mobile/eas.json",
+        "runtimeGitObject": "b607cb80c955b5e8ccf0b7832bfb5ca6ffc0cb11",
+        "harnessGitObject": "b607cb80c955b5e8ccf0b7832bfb5ca6ffc0cb11",
+        "identical": true
+      }
+    ],
+    "sourceCompare": "https://github.com/Blaister9/Openminerals/compare/39b0f569bd0ffff35c0e816ba5f6f46fb19e809b...06643bf913983fff5670fcc145b47229f36d8d5d",
+    "runs": [
+      {
+        "id": 41118442401,
+        "url": "https://github.com/Blaister9/Openminerals/actions/runs/41118442401",
+        "event": "pull_request",
+        "headSha": "06643bf913983fff5670fcc145b47229f36d8d5d",
+        "status": "completed",
+        "conclusion": "success",
+        "completedAt": "2026-10-30T19:51:10Z",
+        "jobs": [
+          {
+            "name": "mobile-typecheck",
+            "id": 124278647753,
+            "conclusion": "success"
+          },
+          {
+            "name": "api-tests",
+            "id": 124278648096,
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "id": 41118433891,
+        "url": "https://github.com/Blaister9/Openminerals/actions/runs/41118433891",
+        "event": "push",
+        "headSha": "06643bf913983fff5670fcc145b47229f36d8d5d",
+        "status": "completed",
+        "conclusion": "success",
+        "completedAt": "2026-10-30T19:50:55Z",
+        "jobs": [
+          {
+            "name": "mobile-typecheck",
+            "id": 124278618331,
+            "conclusion": "success"
+          },
+          {
+            "name": "api-tests",
+            "id": 124278618766,
+            "conclusion": "success"
+          }
+        ]
+      }
+    ],
+    "resultsVerifiedInBothRuns": {
+      "apiDefaultCommand": {
+        "command": "npm test",
+        "cases": 102,
+        "passed": 91,
+        "failed": 0,
+        "skipped": 11,
+        "skipReason": "TEST_DATABASE_URL is absent in the initial API command; the required PostgreSQL stage below executes afterward."
+      },
+      "apiRequiredPostgresCommand": {
+        "command": "node scripts/run-postgres.mjs",
+        "cases": 80,
+        "passed": 80,
+        "failed": 0,
+        "skipped": 0,
+        "postgresServiceVersion": 18
+      },
+      "mobileCommand": {
+        "command": "npm test",
+        "cases": 294,
+        "passed": 289,
+        "failed": 0,
+        "skipped": 5,
+        "skipReason": "Optional software WebGL checks require OPENMINERALS_WEBGL_BROWSER, which is absent in the core workflow.",
+        "skippedChecks": [
+          "túnel GL real: profundidad, materiales y polvo reversibles en un único contexto",
+          "mina y cuatro metales: renderer compuesto rasteriza, revierte y libera recursos",
+          "shaders compilan y seis vistas producen píxeles diferentes en UN contexto WebGL",
+          "shader inmersivo real: etapas intermedias y reversión producen píxeles válidos en un contexto",
+          "shader real mantiene cuatro materiales y cuatro grabados distintos en un único contexto"
+        ]
+      },
+      "expoDoctor": {
+        "passed": 21,
+        "total": 21,
+        "conclusion": "success"
+      },
+      "gates": {
+        "apiInstall": "success",
+        "apiAuditHighOrCritical": "success",
+        "requiredPostgresCoverage": "success",
+        "mobileInstall": "success",
+        "expoDependencyCompatibility": "success",
+        "toolchainPatch": "success",
+        "mobileAuditHighOrCritical": "success",
+        "typecheck": "success",
+        "mobileTests": "success",
+        "expoDoctor": "success"
+      }
+    },
+    "targetedTests": {
+      "includedInMobileSuite": true,
+      "addedToCoverageTotals": false,
+      "note": "The separately reported 54 directed checks overlap the full mobile suite. They are not added to these CI counters."
+    },
+    "note": "Harness-only revision adds an exact allowlist for safe-light-mine.png and captures that image before profiling; it does not change the published 39b0f569 app runtime.",
+    "localSoftwareSuite": {
+      "sourceCommit": "06643bf913983fff5670fcc145b47229f36d8d5d",
+      "environment": "Windows, isolated headless Chrome/SwiftShader",
+      "command": "node --test --test-concurrency=2 test/*.test.mjs",
+      "concurrency": 2,
+      "tests": 294,
+      "passed": 294,
+      "failed": 0,
+      "skipped": 0,
+      "allFiveOptionalWebGlTestsActive": true,
+      "durationMs": 31815.9551,
+      "typescriptNoEmit": "PASS",
+      "rawLogPublished": false,
+      "rawLogSha256": "c91db2b8757a2ad16a585ed1431652dad739eb6d7d94cce7bd380c4839ecb9a6",
+      "checkedAt": "2026-10-30T20:11:35.894Z",
+      "physicalDevice": false
+    }
+  },
+  "lastExtendedAt": "2026-10-30T19:53:39.136Z"
+}

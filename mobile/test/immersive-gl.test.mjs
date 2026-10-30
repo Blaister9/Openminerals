@@ -32,7 +32,8 @@ try{
  const program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,data.vertex));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,data.fragment));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);
  for(const [name,values] of [['a_position',data.positions],['a_normal',data.normals]]){const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(values),gl.STATIC_DRAW);const at=gl.getAttribLocation(program,name);if(at<0)throw Error('Missing attribute');gl.enableVertexAttribArray(at);gl.vertexAttribPointer(at,3,gl.FLOAT,false,0,0);}
  const uniform=name=>{const at=gl.getUniformLocation(program,name);if(at===null)throw Error('Missing '+name);return at;};
- const u=Object.fromEntries(['model','mvp','camera','light','refinement','surface','shadowAngle','storyProgress'].map(name=>[name,uniform('u_'+name)]));
+ const u=Object.fromEntries(['model','mvp','camera','light','refinement','surface','shadowAngle','storyProgress','subjectOpacity','extractionScale','metalColor','roughness','metalKind'].map(name=>[name,uniform('u_'+name)]));
+ gl.uniform1f(u.subjectOpacity,1);gl.uniform1f(u.extractionScale,1);gl.uniform3f(u.metalColor,.98,.77,.35);gl.uniform1f(u.roughness,.24);gl.uniform1f(u.metalKind,0);
  gl.viewport(0,0,data.width,data.height);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);gl.frontFace(gl.CCW);gl.clearColor(10/255,13/255,16/255,1);gl.clearDepth(1);
  const results=[];
  for(const frame of data.frames){
