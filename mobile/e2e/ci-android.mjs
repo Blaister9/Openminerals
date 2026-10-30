@@ -5,9 +5,9 @@ import {closeSync,openSync} from 'node:fs';
 import {copyFile,mkdir,readFile,readdir,writeFile} from 'node:fs/promises';
 import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,certificate,cleanFixture,emulatorGuard,fixtures,hash,manifest,nativeScenario,otaUpdateId,publicJunit,requireSafe,sha} from './ci-safety.mjs';
+import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,certificate,cleanFixture,emulatorGuard,fixtures,hash,manifest,nativeScenario,otaUpdateId,publicJunit,requireSafe,requiresPrivateFixtures,sha} from './ci-safety.mjs';
 import {verifyNativeCommercialSnapshot,verifyNativeSnapshot} from './ci-result.mjs';
-import {runImmersivePerformance} from './immersive-performance.mjs';
+import {runImmersivePerformance,verifyImmersiveResume} from './immersive-performance.mjs';
 import {flowSelectors,collectFailureDiagnostic} from './ci-diagnostics.mjs';
 import {captureLegacyFailure} from './ci-legacy-failure.mjs';
 import {withLegacyNavigation} from './ci-legacy-navigation.mjs';
@@ -48,7 +48,7 @@ function mask(value){
 }
 async function connectFixtures(){
   requireSafe(process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_OS==='Linux','QA preflight runs only in GitHub Linux.');
-  users=fixtures(process.env);
+  users=requiresPrivateFixtures(scenario)?fixtures(process.env):{};
   for(const value of Object.values(users))for(const secret of [value.alias,value.password])mask(secret);
   const health=await request('/health');
   requireSafe(health.ok===true&&health.demoOnly===true&&health.mode==='postgres-demo'&&health.apiVersion==='0.2.0','The deployed PostgreSQL API 0.2.0 is required.');
@@ -57,9 +57,10 @@ async function connectFixtures(){
     requireSafe(auth.account?.role===user.role&&auth.account.alias===user.alias,'QA account role or alias mismatch.');
     user.token=auth.token;mask(user.token);sessions.push(user.token);
     user.me=await request('/api/demo/accounts/me',user.token);
+    requireSafe(user.me.account?.role===user.role&&user.me.account.alias===user.alias&&user.me.account.id===auth.account.id,'QA current identity must match its authenticated fixture.');
     cleanFixture(user.me);
   }
-  requireSafe(new Set(Object.values(users).map(user=>user.me.mine.id)).size===1,'QA fixture accounts must belong to exactly the same isolated mine.');
+  if(requiresPrivateFixtures(scenario))requireSafe(Object.keys(users).length===3&&users.a.me.account.id!==users.b.me.account.id&&new Set(Object.values(users).map(user=>user.me.mine.id)).size===1,'Two distinct QA buyers and their operator must belong to exactly the same isolated mine.');
 }
 async function unusedFixtures(){
   for(const name of ['a','b']){
@@ -91,7 +92,7 @@ async function maestro(name,role,{source,extraEnv={}}={}){
   requireSafe(/^[a-z0-9-]{3,70}$/.test(name),'Invalid private native flow name.');
   for(const [key,value] of Object.entries(extraEnv))requireSafe(['MAESTRO_RECOVERY_KEY','MAESTRO_NEXT_PASSWORD'].includes(key)&&typeof value==='string'&&/^[A-Za-z0-9_-]{32,43}$/.test(value),'Invalid private account flow environment.');
   const directory=join(privateRoot,name);await mkdir(directory,{recursive:true,mode:0o700});
-  const user=role==='register'?users.register:users[role];
+  const user=role==='register'?users?.register:users?.[role];
   const env={...process.env,MAESTRO_CLI_NO_ANALYTICS:'1',MAESTRO_LOGIN_ALIAS:user?.alias||'',MAESTRO_LOGIN_PASSWORD:user?.password||'',MAESTRO_EXPECTED_OTA_ID:['ota','ota-before-story','operator-navigation-ota'].includes(name)?(expectedOtaId??''):'',...extraEnv};
   const generated=join(privateRoot,'flows');await mkdir(generated,{recursive:true,mode:0o700});
   for(const file of await readdir(join(repo,'e2e/native')))if(file.endsWith('.yaml')){
@@ -221,7 +222,7 @@ async function run(){
   emulatorGuard(process.env,devices,candidate?command('adb',['-s',candidate,'shell','getprop','ro.kernel.qemu']):'');
   serial=candidate;
   progress.stageEnd('emulator-preconditions',true);
-  await runStage('qa-isolation-preconditions',async()=>{await connectFixtures();await scenarioFixtures();});
+  await runStage(requiresPrivateFixtures(scenario)?'qa-isolation-preconditions':'anonymous-postgres-api-preconditions',async()=>{await connectFixtures();await scenarioFixtures();});
   if(scenario==='operator-navigation'){await operatorNavigation();return;}
   if(scenario==='profile-relaunch'){await profileRelaunch();return;}
   if(scenario==='immersive-story'){
@@ -230,6 +231,7 @@ async function run(){
     await runStage('native-story-and-reduced-motion',async()=>{await runImmersivePerformance({adb,serial,maestro,published});await captureSafeScreens('story');await captureSafeScreens('story-exit');});
     await runStage('unrecorded-3d-native-performance',()=>runImmersivePerformance({adb,serial,maestro,published,record:false}));
     await runStage('unrecorded-light-native-performance',()=>runImmersivePerformance({adb,serial,maestro,published,record:false,light:true}));
+    await runStage('native-story-resumes-after-home',()=>verifyImmersiveResume({adb,serial,maestro,published}));
     return;
   }
   if(scenario==='quality-network'){
@@ -281,6 +283,7 @@ async function run(){
   await runStage('preserve-legacy-after-update',async()=>{await maestro('preserve');await captureSafeScreens('preserve');});
   if(expectedOtaId)await runStage('anonymous-compatible-ota-before-story',()=>maestro('ota-before-story'));
   await runStage('native-story-and-reduced-motion',async()=>{await runImmersivePerformance({adb,serial,maestro,published});await captureSafeScreens('story');await captureSafeScreens('story-exit');});
+  await runStage('native-story-resumes-after-home',()=>verifyImmersiveResume({adb,serial,maestro,published}));
   await runStage('native-registration-no-import',async()=>{
     await maestro('register','register');
     const auth=await request('/api/demo/accounts/login',null,{alias:users.register.alias,password:users.register.password});mask(auth.token);sessions.push(auth.token);
@@ -312,7 +315,7 @@ async function report(){
   // Fixed labels and counts only. No raw Maestro XML, stderr, hierarchy, logcat,
   // account failure screenshot, alias, password, token or recovery key is copied.
   // The isolated anonymous 0.1.3 phase has its own explicit screenshot policy.
-  const summary={demoOnly:true,scenario,coverageMetal:['account-lifecycle','quality-network'].includes(scenario)?null:coverageMetal,environment:'disposable Android CI emulator',phoneAcceptance:false,realCustody:false,ota:{requested:expectedOtaId!==null,expectedUpdateId:expectedOtaId},completed:results.filter(item=>item.ok).map(item=>item.name),failed:results.filter(item=>!item.ok).map(item=>item.name),safeScreenshots:'Anonymous legacy/story before credentials only',privateDiagnosticsPublished:false};
+  const summary={demoOnly:true,scenario,coverageMetal:['account-lifecycle','quality-network','immersive-story'].includes(scenario)?null:coverageMetal,environment:'disposable Android CI emulator',phoneAcceptance:false,realCustody:false,ota:{requested:expectedOtaId!==null,expectedUpdateId:expectedOtaId},completed:results.filter(item=>item.ok).map(item=>item.name),failed:results.filter(item=>!item.ok).map(item=>item.name),safeScreenshots:'Anonymous legacy/story before credentials only',privateDiagnosticsPublished:false};
   const text=JSON.stringify(summary,null,2)+'\n';
   requireSafe([...privateValues].every(value=>!text.includes(value)),'Refusing to publish private values.');
   await writeFile(join(published,'summary.json'),text);
@@ -326,7 +329,7 @@ try{
   const mode=process.argv[2];
   if(['download','preflight','run'].includes(mode))progress=createProgress(published,mode,()=>[...privateValues]);
   if(mode==='download'){progress.stageStart('download-apks');await download();progress.stageEnd('download-apks',true);}
-  else if(mode==='preflight'){progress.stageStart('qa-preflight');await connectFixtures();await scenarioFixtures();progress.stageEnd('qa-preflight',true);console.log('PASS scenario-specific isolated QA accounts and PostgreSQL API 0.2.0');}
+  else if(mode==='preflight'){progress.stageStart('qa-preflight');await connectFixtures();await scenarioFixtures();progress.stageEnd('qa-preflight',true);console.log(requiresPrivateFixtures(scenario)?'PASS scenario-specific isolated QA accounts and PostgreSQL API 0.2.0':'PASS anonymous PostgreSQL API readiness; no private account login');}
   else if(mode==='run'){progress.stageStart('emulator-preconditions');await run();}
   else throw new Error('Unknown native CI mode.');
 }catch{

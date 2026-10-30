@@ -94,7 +94,7 @@ test('stock presenta lote e inventario histórico sin inventar una billetera de 
     const first=await store.mutateStock(operator.id,{metal:'XAU',grams:'1',reason:'Ingreso exclusivamente ficticio',requestId:'receipt-stock-snapshot-01'}),receipt=first.receipt;
     const before=receiptDetails(receipt),rows=asMap({...receipt,balancesAfter:seedState()});
     assert.equal(receiptTitle(receipt),'Ingreso ficticio de oro');assert.equal(receiptSummary(receipt),'+1,000 g · inventario DEMO');
-    assert.equal(rows['Lote DEMO creado'],receipt.lotId);assert.equal(rows['Disponible en mina después'],'201,000 g');assert.equal(rows['Suministro activo después'],'201,000 g');
+    assert.equal(rows['Lote DEMO creado'],receipt.lotId);assert.equal(rows['Disponible en mina después'],'1,000 g');assert.equal(rows['Suministro activo después'],'1,000 g');
     assert.equal(receiptUsesWallet(receipt),false);assert.equal(Object.keys(rows).some(key=>key.startsWith('Saldo ')||key==='Saldos posteriores'),false);
     await store.mutateStock(operator.id,{metal:'XAU',grams:'1',reason:'Segundo ingreso ficticio',requestId:'receipt-stock-snapshot-02'});assert.deepEqual(receiptDetails(receipt),before);
     assert.equal(asMap({...receipt,lotId:undefined})['Lote DEMO creado'],'No registrado en este comprobante anterior');

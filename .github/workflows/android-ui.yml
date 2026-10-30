@@ -46,7 +46,7 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        asset: ${{ fromJSON(inputs.case_scope == 'all' && '["XAU","XAG","XPT","XPD","ACCOUNTS"]' || inputs.case_scope == 'metals' && '["XAU","XAG","XPT","XPD"]' || inputs.case_scope == 'single' && '["single"]' || format('["{0}"]', inputs.case_scope)) }}
+        asset: ${{ fromJSON(inputs.scenario == 'immersive-story' && '["single"]' || inputs.case_scope == 'all' && '["XAU","XAG","XPT","XPD","ACCOUNTS"]' || inputs.case_scope == 'metals' && '["XAU","XAG","XPT","XPD"]' || inputs.case_scope == 'single' && '["single"]' || format('["{0}"]', inputs.case_scope)) }}
     env:
       NATIVE_COVERAGE_METAL: ${{ matrix.asset == 'single' && 'XAU' || matrix.asset == 'ACCOUNTS' && 'XAU' || matrix.asset }}
     timeout-minutes: 45
@@ -64,16 +64,16 @@ jobs:
           OTA_INPUT_UPDATE_ID: ${{ inputs.ota_update_id }}
           NATIVE_INPUT_SCENARIO: ${{ matrix.asset == 'ACCOUNTS' && 'account-lifecycle' || inputs.scenario != 'full' && inputs.scenario || matrix.asset == 'single' && 'full' || matrix.asset == 'XAU' && 'full' || 'asset-full' }}
         run: node mobile/e2e/ci-android.mjs download
-      - name: Require scenario-specific isolated QA fixtures and PostgreSQL API 0.2.0
+      - name: Require PostgreSQL API and private fixtures only for account scenarios
         env:
           OTA_INPUT_UPDATE_ID: ${{ inputs.ota_update_id }}
           NATIVE_INPUT_SCENARIO: ${{ matrix.asset == 'ACCOUNTS' && 'account-lifecycle' || inputs.scenario != 'full' && inputs.scenario || matrix.asset == 'single' && 'full' || matrix.asset == 'XAU' && 'full' || 'asset-full' }}
-          OPENMINERALS_QA_BUYER_A_ALIAS: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_A_ALIAS || secrets[format('OPENMINERALS_RC_{0}_BUYER_A_ALIAS', matrix.asset)] }}
-          OPENMINERALS_QA_BUYER_A_PASSWORD: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_A_PASSWORD || secrets[format('OPENMINERALS_RC_{0}_BUYER_A_PASSWORD', matrix.asset)] }}
-          OPENMINERALS_QA_BUYER_B_ALIAS: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_B_ALIAS || secrets[format('OPENMINERALS_RC_{0}_BUYER_B_ALIAS', matrix.asset)] }}
-          OPENMINERALS_QA_BUYER_B_PASSWORD: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_B_PASSWORD || secrets[format('OPENMINERALS_RC_{0}_BUYER_B_PASSWORD', matrix.asset)] }}
-          OPENMINERALS_QA_OPERATOR_ALIAS: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_OPERATOR_ALIAS || secrets[format('OPENMINERALS_RC_{0}_OPERATOR_ALIAS', matrix.asset)] }}
-          OPENMINERALS_QA_OPERATOR_PASSWORD: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_OPERATOR_PASSWORD || secrets[format('OPENMINERALS_RC_{0}_OPERATOR_PASSWORD', matrix.asset)] }}
+          OPENMINERALS_QA_BUYER_A_ALIAS: ${{ inputs.scenario != 'immersive-story' && (matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_A_ALIAS || secrets[format('OPENMINERALS_RC_{0}_BUYER_A_ALIAS', matrix.asset)]) || '' }}
+          OPENMINERALS_QA_BUYER_A_PASSWORD: ${{ inputs.scenario != 'immersive-story' && (matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_A_PASSWORD || secrets[format('OPENMINERALS_RC_{0}_BUYER_A_PASSWORD', matrix.asset)]) || '' }}
+          OPENMINERALS_QA_BUYER_B_ALIAS: ${{ inputs.scenario != 'immersive-story' && (matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_B_ALIAS || secrets[format('OPENMINERALS_RC_{0}_BUYER_B_ALIAS', matrix.asset)]) || '' }}
+          OPENMINERALS_QA_BUYER_B_PASSWORD: ${{ inputs.scenario != 'immersive-story' && (matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_B_PASSWORD || secrets[format('OPENMINERALS_RC_{0}_BUYER_B_PASSWORD', matrix.asset)]) || '' }}
+          OPENMINERALS_QA_OPERATOR_ALIAS: ${{ inputs.scenario != 'immersive-story' && (matrix.asset == 'single' && secrets.OPENMINERALS_QA_OPERATOR_ALIAS || secrets[format('OPENMINERALS_RC_{0}_OPERATOR_ALIAS', matrix.asset)]) || '' }}
+          OPENMINERALS_QA_OPERATOR_PASSWORD: ${{ inputs.scenario != 'immersive-story' && (matrix.asset == 'single' && secrets.OPENMINERALS_QA_OPERATOR_PASSWORD || secrets[format('OPENMINERALS_RC_{0}_OPERATOR_PASSWORD', matrix.asset)]) || '' }}
         run: node mobile/e2e/ci-android.mjs preflight
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
@@ -136,12 +136,12 @@ jobs:
         env:
           OTA_INPUT_UPDATE_ID: ${{ inputs.ota_update_id }}
           NATIVE_INPUT_SCENARIO: ${{ matrix.asset == 'ACCOUNTS' && 'account-lifecycle' || inputs.scenario != 'full' && inputs.scenario || matrix.asset == 'single' && 'full' || matrix.asset == 'XAU' && 'full' || 'asset-full' }}
-          OPENMINERALS_QA_BUYER_A_ALIAS: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_A_ALIAS || secrets[format('OPENMINERALS_RC_{0}_BUYER_A_ALIAS', matrix.asset)] }}
-          OPENMINERALS_QA_BUYER_A_PASSWORD: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_A_PASSWORD || secrets[format('OPENMINERALS_RC_{0}_BUYER_A_PASSWORD', matrix.asset)] }}
-          OPENMINERALS_QA_BUYER_B_ALIAS: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_B_ALIAS || secrets[format('OPENMINERALS_RC_{0}_BUYER_B_ALIAS', matrix.asset)] }}
-          OPENMINERALS_QA_BUYER_B_PASSWORD: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_B_PASSWORD || secrets[format('OPENMINERALS_RC_{0}_BUYER_B_PASSWORD', matrix.asset)] }}
-          OPENMINERALS_QA_OPERATOR_ALIAS: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_OPERATOR_ALIAS || secrets[format('OPENMINERALS_RC_{0}_OPERATOR_ALIAS', matrix.asset)] }}
-          OPENMINERALS_QA_OPERATOR_PASSWORD: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_OPERATOR_PASSWORD || secrets[format('OPENMINERALS_RC_{0}_OPERATOR_PASSWORD', matrix.asset)] }}
+          OPENMINERALS_QA_BUYER_A_ALIAS: ${{ inputs.scenario != 'immersive-story' && (matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_A_ALIAS || secrets[format('OPENMINERALS_RC_{0}_BUYER_A_ALIAS', matrix.asset)]) || '' }}
+          OPENMINERALS_QA_BUYER_A_PASSWORD: ${{ inputs.scenario != 'immersive-story' && (matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_A_PASSWORD || secrets[format('OPENMINERALS_RC_{0}_BUYER_A_PASSWORD', matrix.asset)]) || '' }}
+          OPENMINERALS_QA_BUYER_B_ALIAS: ${{ inputs.scenario != 'immersive-story' && (matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_B_ALIAS || secrets[format('OPENMINERALS_RC_{0}_BUYER_B_ALIAS', matrix.asset)]) || '' }}
+          OPENMINERALS_QA_BUYER_B_PASSWORD: ${{ inputs.scenario != 'immersive-story' && (matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_B_PASSWORD || secrets[format('OPENMINERALS_RC_{0}_BUYER_B_PASSWORD', matrix.asset)]) || '' }}
+          OPENMINERALS_QA_OPERATOR_ALIAS: ${{ inputs.scenario != 'immersive-story' && (matrix.asset == 'single' && secrets.OPENMINERALS_QA_OPERATOR_ALIAS || secrets[format('OPENMINERALS_RC_{0}_OPERATOR_ALIAS', matrix.asset)]) || '' }}
+          OPENMINERALS_QA_OPERATOR_PASSWORD: ${{ inputs.scenario != 'immersive-story' && (matrix.asset == 'single' && secrets.OPENMINERALS_QA_OPERATOR_PASSWORD || secrets[format('OPENMINERALS_RC_{0}_OPERATOR_PASSWORD', matrix.asset)]) || '' }}
         with:
           api-level: 29
           target: google_apis

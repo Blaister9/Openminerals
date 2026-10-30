@@ -13,6 +13,34 @@ export function parseAndroidPerformance({before,after,gfx,start}){
     uiFrames:numeric(gfx,/Total frames rendered:\s*(\d+)/),jankyUiFrames:numeric(gfx,/Janky frames:\s*(\d+)/),
     uiFrameP50Ms:numeric(gfx,/50th percentile:\s*(\d+)ms/),uiFrameP90Ms:numeric(gfx,/90th percentile:\s*(\d+)ms/),uiFrameP95Ms:numeric(gfx,/95th percentile:\s*(\d+)ms/)};
 }
+// Runs before credentials. A same-process HOME round trip cannot be replaced
+// by launchApp/force-stop: that would hide a disposed GL context after resume.
+export async function verifyImmersiveResume({adb,serial,maestro,published}){
+  requireSafe(process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_OS==='Linux'&&/^emulator-\d+$/.test(serial),'Resume verification requires the disposable GitHub emulator.');
+  const checks={demoOnly:true,environment:'disposable Android CI emulator',physicalDevice:false,credentialsEntered:false,forceStopUsed:false,backgroundObserved:false,sameProcess:false,stagePreserved:false,glReadinessMarker:false,advancedAndReversed:false};
+  try{
+    await maestro('story-resume-position');
+    const activity=adb('shell','cmd','package','resolve-activity','--brief',PACKAGE).split(/\r?\n/).find(line=>line.startsWith(PACKAGE+'/'));
+    requireSafe(activity&&/^[A-Za-z0-9_.$/]+$/.test(activity),'Unable to resolve the resumed demo activity.');
+    const pid=adb('shell','pidof',PACKAGE).trim();requireSafe(/^\d+$/.test(pid),'Exactly one live demo process is required.');
+    adb('shell','input','keyevent','KEYCODE_HOME');
+    for(let attempt=0;attempt<12;attempt++){
+      const line=adb('shell','dumpsys','activity','activities').split(/\r?\n/).find(value=>/mResumedActivity|topResumedActivity/.test(value));
+      const foreground=line?.match(/\b[A-Za-z0-9_.]+\/[A-Za-z0-9_.$]+/)?.[0];
+      if(foreground&&!foreground.startsWith(PACKAGE+'/')){checks.backgroundObserved=true;break;}
+      await new Promise(resolve=>setTimeout(resolve,250));
+    }
+    requireSafe(checks.backgroundObserved,'HOME did not visibly background the demo activity.');
+    adb('shell','am','start','-W','-a','android.intent.action.MAIN','-c','android.intent.category.LAUNCHER','-n',activity);
+    checks.sameProcess=adb('shell','pidof',PACKAGE).trim()===pid;
+    requireSafe(checks.sameProcess,'The resume scenario must retain the original process.');
+    await maestro('story-resume-check');
+    requireSafe(adb('shell','pidof',PACKAGE).trim()===pid,'The original process must survive resume gestures.');
+    checks.stagePreserved=true;checks.glReadinessMarker=true;checks.advancedAndReversed=true;
+  }finally{
+    await writeFile(join(published,'immersive-resume.json'),JSON.stringify(checks,null,2)+'\n');
+  }
+}
 // The caller has already checked the disposable emulator guard. Everything
 // here finishes BEFORE a credential is typed. Never record account flows.
 export async function runImmersivePerformance({adb,serial,maestro,published,record=true,light=false}){

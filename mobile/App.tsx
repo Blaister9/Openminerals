@@ -23,6 +23,7 @@ import {DemoUpdates} from './components/DemoUpdates';
 import {MetalEmblem,PortfolioComposition} from './components/PortfolioComposition';
 import {IntakePanel} from './components/IntakePanel';
 import {PositionRail} from './components/PositionRail';
+import {parseMineInventory} from './lib/mine-inventory';
 
 // DEMO: todas las cifras, inventarios y solicitudes son simulados.
 // Cuentas de demostración; no hay KYC, pagos, exchange ni bóveda real.
@@ -68,7 +69,7 @@ function checkedMine(value:unknown):MineSummary{
    !metals.every(item=>[mine.inventoryMg?.[item.code],mine.totalSupplyMg?.[item.code],mine.allocatedMg?.[item.code],mine.reservedMg?.[item.code]].every(amount=>Number.isSafeInteger(amount)&&amount>=0))){
   throw new Error('El panel de mina devolvió una respuesta incompleta. Actualiza la consulta.');
  }
- return mine;
+ return {...mine,...parseMineInventory(mine)};
 }
 
 function Chip({label,active,onPress,compact=false,testID}:{label:string;active:boolean;onPress:()=>void;compact?:boolean;testID?:string}){
@@ -368,7 +369,7 @@ export default function App(){
   </View>
   <Button label="Abrir presentación completa" secondary disabled={busy||authBusy||!!pending} onPress={()=>{presentationScrollY.setValue(0);setStoryVisible(true);}}/>
   <Sub>Mercado ilustrativo</Sub>
-  <ScrollView horizontal directionalLockEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:12,paddingBottom:10}}>{metals.map(m=><Pressable key={m.code} onPress={()=>{setCurrentMetal(m.code);setTab('Mercado');}} style={[styles.metalRow,{width:250}]}>
+  <ScrollView horizontal directionalLockEnabled nestedScrollEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:12,paddingBottom:10}}>{metals.map(m=><Pressable key={m.code} onPress={()=>{setCurrentMetal(m.code);setTab('Mercado');}} style={[styles.metalRow,{width:250}]}>
    <MetalEmblem symbol={m.symbol} color={m.color} small/>
    <View style={{flex:1}}><Text style={styles.cardTitle}>{m.name}</Text><Text style={styles.mutedSmall}>Cotización simulada por gramo</Text></View>
    <Text style={styles.rowValue}>{money(state?.priceCentsPerGram[m.code]||0)}/g</Text>
@@ -382,7 +383,7 @@ export default function App(){
   return <><Text style={styles.eyebrow}>COMPRAVENTA DE METALES</Text><Text style={styles.pageTitle}>Mercado</Text><Text style={styles.copy}>Compra fracciones de oro, plata, platino o paladio. La liquidación simulada se realiza en USDT.</Text>
    {account&&marketNavigation()}
    {account&&<Card><Text style={styles.cardTitle}>Inventario compartido</Text><Text style={styles.copy}>{mineIdentity?.name||'Mina de demostración'}. Las compras de otras cuentas reducen la misma disponibilidad.</Text><Row left={`${m.name} disponible en la mina`} right={gram(state?.inventoryMg[currentMetal]||0)}/><Button label="Actualizar mercado" secondary disabled={busy} onPress={refresh}/></Card>}
-   <ScrollView horizontal directionalLockEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:6,paddingVertical:14}}>{metals.map(v=><Pressable key={v.code} testID={`market-metal-${v.code}`} accessibilityRole="button" accessibilityLabel={`Seleccionar ${v.name}`} accessibilityState={{selected:currentMetal===v.code}} onPress={()=>setCurrentMetal(v.code)} style={[styles.metalChoice,{width:72,flexGrow:0,padding:9},currentMetal===v.code&&styles.metalChoiceOn]}>
+   <ScrollView horizontal directionalLockEnabled nestedScrollEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:6,paddingVertical:14}}>{metals.map(v=><Pressable key={v.code} testID={`market-metal-${v.code}`} accessibilityRole="button" accessibilityLabel={`Seleccionar ${v.name}`} accessibilityState={{selected:currentMetal===v.code}} onPress={()=>setCurrentMetal(v.code)} style={[styles.metalChoice,{width:72,flexGrow:0,padding:9},currentMetal===v.code&&styles.metalChoiceOn]}>
     <MetalEmblem symbol={v.symbol} color={v.color} small/><Text style={[styles.choiceName,{fontSize:12}]}>{v.name}</Text>
    </Pressable>)}</ScrollView>
    <Card><Text style={styles.eyebrow}>{m.name.toUpperCase()} · {m.symbol}</Text><Text style={styles.cardTitle}>Comprar gramos</Text><Text style={styles.copy}>Referencia del demo: {money(state?.priceCentsPerGram[currentMetal]||0)} / g</Text>
@@ -412,7 +413,7 @@ export default function App(){
   const withdrawalInsufficient=depositMinor!==null&&depositMinor>(state?.walletMinor[currency]||0);
   return <><Text style={styles.eyebrow}>CUENTAS MULTIDIVISA</Text><Text style={styles.pageTitle}>Billetera</Text><Text style={styles.copy}>Cuatro saldos independientes con movimientos y conversiones simuladas.</Text>
   <Text style={styles.mutedSmall}>Desliza horizontalmente para explorar tus cuatro saldos.</Text>
-  <ScrollView testID="wallet-balances" horizontal directionalLockEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:12,paddingVertical:12}}>{currencies.map(c=><View key={c} style={[styles.walletCard,{width:245}]}><View style={styles.walletTop}><Text style={styles.eyebrow}>{c}</Text><Text style={styles.walletBadge}>DEMO</Text></View><Text numberOfLines={2} style={styles.walletValue}>{money(state?.walletMinor[c]||0,c)}</Text><Text style={styles.mutedSmall}>{{COP:'Peso colombiano',EUR:'Euro',USD:'Dólar estadounidense',USDT:'Unidad simulada USDT'}[c]}</Text></View>)}</ScrollView>
+  <ScrollView testID="wallet-balances" horizontal directionalLockEnabled nestedScrollEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:12,paddingVertical:12}}>{currencies.map(c=><View key={c} style={[styles.walletCard,{width:245}]}><View style={styles.walletTop}><Text style={styles.eyebrow}>{c}</Text><Text style={styles.walletBadge}>DEMO</Text></View><Text numberOfLines={2} style={styles.walletValue}>{money(state?.walletMinor[c]||0,c)}</Text><Text style={styles.mutedSmall}>{{COP:'Peso colombiano',EUR:'Euro',USD:'Dólar estadounidense',USDT:'Unidad simulada USDT'}[c]}</Text></View>)}</ScrollView>
   <Sub>Convertir saldo</Sub><Card><Text style={styles.inputLabel}>De</Text><View style={styles.chips}>{currencies.map(c=><Chip key={c} testID={`convert-from-${c}`} label={c} active={from===c} onPress={()=>{setFrom(c);if(c===to)setTo(c==='USD'?'USDT':'USD');}}/>)}</View>
    <Text style={styles.inputLabel}>A</Text><View style={styles.chips}>{currencies.map(c=><Chip key={c} testID={`convert-to-${c}`} label={c} active={to===c} onPress={()=>{setTo(c);if(c===from)setFrom(c==='USD'?'USDT':'USD');}}/>)}</View>
    <Text style={styles.inputLabel}>Importe</Text><TextInput accessibilityLabel="Cantidad de dinero para convertir" style={styles.input} value={amount} onChangeText={setAmount} keyboardType="decimal-pad"/>

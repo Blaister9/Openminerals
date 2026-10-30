@@ -8,6 +8,8 @@ El huésped usa 4 cores y 4096 MiB en ese mismo runner estándar. La [tabla ofic
 
 ## Preparación del propietario
 
+La excepción es `scenario=immersive-story`: usa un único emulador (`single`), no recibe los seis secretos y no inicia sesión en ninguna cuenta QA. Conserva las guardas de APK, OTA, emulador desechable y salud de la API PostgreSQL. El resto de escenarios mantiene todos los requisitos de aislamiento y cuentas descritos abajo. En respuestas del comprador se exige `Mina virtual ficticia DEMO`; solo el operador ve y valida el nombre privado `Native QA DEMO <tag>`. Las tres identidades deben pertenecer a la misma mina aislada, con dos compradores distintos.
+
 1. Publicar la API 0.2.0 con PostgreSQL. El helper exige health.apiVersion=0.2.0, demoOnly=true y mode=postgres-demo.
 2. Provisionar una **mina nueva aislada** con id mine-* y nombre Native QA DEMO <tag>. Dos compradores y un operador de esa misma mina; exactamente dos compradores, XAU 5000 mg disponibles/5000 mg total/0 mg asignados. Usar las políticas iniciales de entrega: jurisdicción DEMO A, servicio 2/preparación 3/transporte 5 USDT, seguro/impuesto ficticio 0 y requisitos iniciales. Compradores sin movimientos, posiciones, ofertas ni solicitudes; saldos iniciales 250 USDT y 600 USD.
 3. Configurar únicamente estos seis secretos temporales de GitHub, alias de 3–40 caracteres y claves aleatorias de 16–128 caracteres ASCII alfanuméricos, guion o guion bajo:
@@ -23,6 +25,8 @@ El huésped usa 4 cores y 4096 MiB en ese mismo runner estándar. La [tabla ofic
 No introducir DEMO_ADMIN_TOKEN, DATABASE_URL, claves EAS/Railway, claves de recuperación ni credenciales del operador público en este workflow. La provisión administrativa se realiza fuera de GitHub Actions. No guardar archivos de credenciales en Git.
 
 ## Qué recorre
+
+`immersive-story` comprueba las siete etapas, avance y retroceso con deslizamiento, salida a operaciones, movimiento reducido y modo ligero. Mide 3D y modo ligero por separado sin grabación, además del vídeo anónimo. Al terminar hace HOME y vuelve mediante el intent del launcher **sin force-stop**: exige que se conserve el mismo proceso y la etapa 4, que reaparezca el marcador de GL listo y que funcionen de nuevo el avance y el retroceso. `immersive-resume.json` publica únicamente comprobaciones fijas. Esta prueba también se ejecuta antes de introducir credenciales en `full`; nunca graba pantallas autenticadas. Un resultado funcional correcto no acredita fluidez ni rendimiento físico.
 
 El input `scenario` conserva `full` por defecto. `operator-navigation` es una reproducción focalizada, financieramente de consulta: exige `ota_update_id`, instala solamente el APK 0.2.0 en un emulador limpio, verifica ese ID tras dos aperturas anónimas y entra con el operador aislado. Primero ejecuta exactamente el `scrollUntilVisible DOWN` original de `quote.yaml`, sin subir antes ni pulsar Mina. Después entra en Entregas, sale a Cuenta y vuelve a Mina/Entregas; no cotiza, confirma, repone ni cambia políticas. Al finalizar repite las precondiciones API de fixtures vírgenes. Las sesiones de login/logout y la sesión anónima de la instalación sí se crean; no se presenta como una prueba sin escrituras de autenticación. No acredita el recorrido completo ni acepta Android físico.
 

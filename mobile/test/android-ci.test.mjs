@@ -98,13 +98,19 @@ test('Android CI: failure context contains only fixed flow selectors and closed 
 });
 
 test('Android CI: fixtures reject owner mine imported state previous receipts and shared accounts',()=>{
-  const me={demoOnly:true,mine:{id:'mine-isolated-unit',name:'Native QA DEMO unit'}};
+  const me={demoOnly:true,account:{role:'operator',mineId:'mine-isolated-unit'},mine:{id:'mine-isolated-unit',name:'Native QA DEMO unit'}};
   const state=seedState(),summary={inventoryMg:{XAU:5000},totalSupplyMg:{XAU:5000},allocatedMg:{XAU:0},accountCount:2};
   assert.doesNotThrow(()=>cleanFixture(me,state,summary));
   assert.throws(()=>cleanFixture({...me,mine:{id:'openminerals-demo-v1',name:'Native QA DEMO unit'}},state,summary));
   assert.throws(()=>cleanFixture(me,{...state,holdingsMg:{...state.holdingsMg,XAU:100}},summary));
   assert.throws(()=>cleanFixture(me,{...state,receipts:{old:{id:'old'}}},summary));
   assert.throws(()=>cleanFixture(me,state,{...summary,accountCount:3}));
+  const buyer={...me,account:{...me.account,role:'buyer'},mine:{...me.mine,name:'Mina virtual ficticia DEMO'}};
+  assert.doesNotThrow(()=>cleanFixture(buyer,state,summary));
+  assert.throws(()=>cleanFixture({...buyer,mine:me.mine}));
+  assert.throws(()=>cleanFixture({...me,mine:buyer.mine}));
+  assert.throws(()=>cleanFixture({...buyer,account:{...buyer.account,mineId:'mine-other'}}));
+  assert.throws(()=>cleanFixture({...buyer,account:{...buyer.account,role:'admin'}}));
 });
 
 test('Android CI: workflow is manual KVM-only bounded public upload and no secret inputs',async()=>{
@@ -146,6 +152,8 @@ test('Android CI: workflow is manual KVM-only bounded public upload and no secre
   assert.deepEqual(Object.keys(runner.env).sort(),[...SECRET_NAMES,'OTA_INPUT_UPDATE_ID','NATIVE_INPUT_SCENARIO'].sort());
   assert.equal(runner.env.NATIVE_INPUT_SCENARIO,"${{ matrix.asset == 'ACCOUNTS' && 'account-lifecycle' || inputs.scenario != 'full' && inputs.scenario || matrix.asset == 'single' && 'full' || matrix.asset == 'XAU' && 'full' || 'asset-full' }}");
   assert.equal(runner.env.OTA_INPUT_UPDATE_ID,'$'+'{{ inputs.ota_update_id }}');
+  assert.match(job.strategy.matrix.asset,/^\$\{\{ fromJSON\(inputs.scenario == 'immersive-story' && '\["single"\]'/);
+  for(const step of job.steps)for(const key of SECRET_NAMES)if(step.env?.[key])assert.ok(step.env[key].startsWith("${{ inputs.scenario != 'immersive-story' && (")&&step.env[key].endsWith(") || '' }}"));
   const download=job.steps.find(step=>step.run?.endsWith('ci-android.mjs download'));
   assert.equal(download.env.OTA_INPUT_UPDATE_ID,'$'+'{{ inputs.ota_update_id }}');
   for(const step of job.steps)assert.doesNotMatch((step.run??'')+(step.with?.script??''),/inputs\.(?:ota_update_id|scenario)/);

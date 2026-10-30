@@ -28,6 +28,7 @@ export function nativeScenario(value){
   requireSafe(['full','operator-navigation','profile-relaunch','asset-full','account-lifecycle','quality-network','immersive-story'].includes(value),'Expected a supported native scenario.');
   return value;
 }
+export function requiresPrivateFixtures(value){return nativeScenario(value)!=='immersive-story';}
 export const hash=data=>createHash('sha256').update(data).digest('hex');
 export function fixtures(env){
   const values=SECRET_NAMES.map(name=>env[name]);
@@ -67,7 +68,10 @@ export function certificate(text){
   return BASELINE.certificate;
 }
 export function cleanFixture(me,state,summary){
-  requireSafe(me.demoOnly===true&&me.mine?.id?.startsWith('mine-')&&me.mine.name?.startsWith('Native QA DEMO '),'Only a separately provisioned Native QA DEMO mine is allowed.');
+  const role=me.account?.role;
+  requireSafe(me.demoOnly===true&&me.mine?.id?.startsWith('mine-')&&me.account?.mineId===me.mine.id&&
+    (role==='operator'?me.mine.name?.startsWith('Native QA DEMO '):role==='buyer'&&me.mine.name==='Mina virtual ficticia DEMO'),
+    'Only isolated QA identities with role-appropriate mine labels are allowed.');
   if(state)requireSafe(state.walletMinor?.USDT===25000&&state.walletMinor.USD===60000&&Object.values(state.holdingsMg??{}).length===4&&Object.values(state.holdingsMg).every(value=>value===0)&&state.movements?.length===0&&Object.keys(state.receipts??{}).length===0&&state.offers?.length===0&&state.custodyRequests?.length===0,'Buyer fixtures must be unused with their initial demo balances.');
   if(summary)requireSafe(summary.inventoryMg?.XAU===5000&&summary.totalSupplyMg?.XAU===5000&&summary.allocatedMg?.XAU===0&&summary.accountCount===2,'QA mine must have exactly two unused buyers and 5g of gold.');
 }

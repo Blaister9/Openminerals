@@ -87,6 +87,7 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
   const [failure,setFailure]=useState(false),[ready,setReady]=useState(false),[retry,setRetry]=useState(0);
   const renderer=useRef<Renderer|null>(null),scheduler=useRef<Scheduler|null>(null),timeout=useRef<ReturnType<typeof setTimeout>|null>(null);
   const lastScroll=useRef(initialScrollY),drag=useRef(0),dragStart=useRef(0),readyRef=useRef(false);
+  const previousAppState=useRef(AppState.currentState);
   const samples=useRef<number[]>([]),limited=useRef(false),limitCallback=useRef(onLimited);limitCallback.current=onLimited;
   const enabled=active&&foreground&&!reducedMotion&&!failure&&NativeGLView!==null;
   const session=useMemo(()=>Symbol('gold-bar-context'),[enabled,retry,width,height,renderScale]);
@@ -118,7 +119,12 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
   useEffect(()=>{scheduler.current?.invalidate();},[startY,endY,height,width,renderScale]);
   useEffect(()=>{
     const subscription=AppState.addEventListener('change',state=>{
-      if(state!=='active'){currentSession.current=Symbol('background-context');latest.current.enabled=false;stop();}
+      const resumed=state==='active'&&previousAppState.current!=='active';
+      previousAppState.current=state;
+      if(state!=='active'){currentSession.current=Symbol('background-context');latest.current.enabled=false;stop();setReady(false);}
+      // A quick inactive -> active pair can be batched into the same React
+      // commit. The boolean alone would not recreate the disposed GL context.
+      if(resumed)setRetry(value=>value+1);
       setForeground(state==='active');
     });
     return()=>subscription.remove();
