@@ -9,7 +9,7 @@ import {metalMaterial} from '../lib/metal-materials.ts';
 function mockGL(fault={}){
   const live={buffers:new Set(),shaders:new Set(),programs:new Set()};
   const attempts={buffers:0,shaders:0,programs:0},created={buffers:0,shaders:0,programs:0},deleted={buffers:0,shaders:0,programs:0};
-  const draws=[],uploads=[],uniforms=new Map();let current=null,duplicateDeletes=0,frames=0;
+  const draws=[],uploads=[],blends=[],uniforms=new Map();let current=null,duplicateDeletes=0,frames=0;
   const make=kind=>{
     const index=++attempts[kind];if(fault[kind]===index)return null;
     const item={kind,index,attached:[]};created[kind]++;live[kind].add(item);return item;
@@ -22,7 +22,7 @@ function mockGL(fault={}){
   const gl={
     VERTEX_SHADER:1,FRAGMENT_SHADER:2,COMPILE_STATUS:3,LINK_STATUS:4,ARRAY_BUFFER:5,STATIC_DRAW:6,FLOAT:7,
     DEPTH_TEST:8,LEQUAL:9,CULL_FACE:10,BACK:11,CCW:12,COLOR_BUFFER_BIT:16,DEPTH_BUFFER_BIT:32,
-    BLEND:13,SRC_ALPHA:14,ONE_MINUS_SRC_ALPHA:15,TRIANGLES:17,NO_ERROR:0,
+    BLEND:13,SRC_ALPHA:14,ONE_MINUS_SRC_ALPHA:15,TRIANGLES:17,ONE:18,NO_ERROR:0,
     drawingBufferWidth:360,drawingBufferHeight:640,
     createBuffer:()=>make('buffers'),createShader:()=>make('shaders'),createProgram:()=>make('programs'),
     deleteBuffer:item=>remove('buffers',item),deleteShader:item=>remove('shaders',item),deleteProgram:item=>remove('programs',item),
@@ -42,14 +42,16 @@ function mockGL(fault={}){
     },
     enableVertexAttribArray:()=>{},vertexAttribPointer:()=>{},
     enable:()=>{},disable:()=>{},depthFunc:()=>{},cullFace:()=>{},frontFace:()=>{},
-    clearColor:()=>{},clearDepth:()=>{},clear:()=>{},viewport:()=>{},blendFunc:()=>{},depthMask:()=>{},
+    clearColor:()=>{},clearDepth:()=>{},clear:()=>{},viewport:()=>{},depthMask:()=>{},
+    blendFunc:(...factors)=>blends.push({separate:false,factors}),
+    blendFuncSeparate:(...factors)=>blends.push({separate:true,factors}),
     useProgram:program=>{assert.ok(live.programs.has(program));current=program;},
     uniform1f:(location,value)=>setUniform(location,value),uniform3f:(location,...values)=>setUniform(location,values),
     uniformMatrix4fv:(location,transpose,value)=>{assert.equal(transpose,false);assert.ok([...value].every(Number.isFinite));setUniform(location,[...value]);},
     drawArrays:(mode,first,count)=>{assert.equal(mode,gl.TRIANGLES);assert.ok(current);draws.push({scene:current.scene,first,count,uniforms:structuredClone(uniforms.get(current))});},
     flush:()=>{},endFrameEXP:()=>{frames++;},getError:()=>gl.NO_ERROR,isContextLost:()=>false,
   };
-  return {gl,draws,uploads,created,attempts,deleted,get frames(){return frames;},assertReleased(){
+  return {gl,draws,uploads,blends,created,attempts,deleted,get frames(){return frames;},assertReleased(){
     assert.deepEqual(Object.fromEntries(Object.entries(live).map(([key,values])=>[key,values.size])),{buffers:0,shaders:0,programs:0});
     assert.deepEqual(deleted,created);assert.equal(duplicateDeletes,0,'Dispose must never delete a GL handle twice.');
   }};
@@ -62,6 +64,19 @@ test('renderer compuesto conserva cinco buffers y libera cada recurso exactament
   const frameCount=mock.frames,drawCount=mock.draws.length,allocationCount={...mock.created};
   renderer.dispose();renderer.dispose();renderer.draw(.5,0);
   assert.equal(mock.frames,frameCount);assert.equal(mock.draws.length,drawCount);assert.deepEqual(mock.created,allocationCount);mock.assertReleased();
+});
+
+test('mezcla color con SRC_ALPHA y conserva alfa de destino opaco mediante factores separados',()=>{
+  const mock=mockGL(),renderer=createStoryRenderer(mock.gl,true);
+  try{
+    for(const progress of [0,.12,.3,.35,.4,.7,1]){
+      const from=mock.blends.length;renderer.draw(progress,0);
+      assert.deepEqual(mock.blends.slice(from),[{separate:true,factors:[mock.gl.SRC_ALPHA,mock.gl.ONE_MINUS_SRC_ALPHA,mock.gl.ONE,mock.gl.ONE_MINUS_SRC_ALPHA]}]);
+    }
+    // Contract of the submitted alpha factors, not a substitute for the real
+    // WebGL readPixels(alpha===255) check. Opaque clear + source-over alpha is
+    // A_out = A_src * ONE + 1 * (1 - A_src), including dust and both fades.
+  }finally{renderer.dispose();mock.assertReleased();}
 });
 
 for(const [name,fault] of [

@@ -33,7 +33,7 @@ export function createStoryRenderer(gl:ExpoWebGLRenderingContext,cinematic=false
   gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);gl.frontFace(gl.CCW);gl.clearColor(10/255,13/255,16/255,1);gl.clearDepth(1);
   return {draw(progress,drag,metal='XAU',minePeek=drag){
    if(disposed)return;const width=gl.drawingBufferWidth,height=gl.drawingBufferHeight;if(width<=0||height<=0)throw Error('GL viewport unavailable');
-   gl.viewport(0,0,width,height);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+   gl.viewport(0,0,width,height);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
    const mineOpacity=cinematic?mineSceneVisibility(progress):0;
    if(mine&&room&&m&&mineOpacity>0){const camera=mineSceneCamera(progress,width/height,minePeek);gl.useProgram(mine);for(const bind of mineAttributes)bind();gl.uniformMatrix4fv(m.vp,false,camera.vp);gl.uniform3f(m.camera,...camera.camera);gl.uniform1f(m.progress,progress);gl.uniform1f(m.opacity,mineOpacity);gl.drawArrays(gl.TRIANGLES,0,room.vertexCount);}
    const opacity=cinematic?smooth(.08,.25,progress):1;
