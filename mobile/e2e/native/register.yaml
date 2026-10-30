@@ -1,6 +1,7 @@
 appId: com.openminerals.demo.mobile
 name: Register without importing or trading against the default mine
 ---
+- tapOn: ^Actividad$
 - tapOn:
     text: ^Cuenta$
     index: 0
@@ -48,6 +49,13 @@ name: Register without importing or trading against the default mine
     timeout: 30000
 - tapOn: ^Crear cuenta de comprador$
 - extendedWaitUntil:
+    visible:
+      id: home-cinematic-scroll
+    timeout: 30000
+- runFlow:
+    file: story-clean.yaml
+- tapOn: ^Actividad$
+- extendedWaitUntil:
     visible: ^Comprador ·.*
     timeout: 30000
 - tapOn: ^Billetera$
@@ -67,6 +75,13 @@ name: Register without importing or trading against the default mine
     centerElement: true
     timeout: 30000
 - tapOn: ^Cerrar sesión$
+- extendedWaitUntil:
+    visible:
+      id: home-cinematic-scroll
+    timeout: 30000
+- runFlow:
+    file: story-clean.yaml
+- tapOn: ^Actividad$
 - extendedWaitUntil:
     visible: ^Sesión sin cuenta$
     timeout: 30000

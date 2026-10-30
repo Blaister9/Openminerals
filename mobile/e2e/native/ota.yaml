@@ -19,9 +19,12 @@ name: Compatible OTA on cold launch preserves the already completed demo
 - stopApp
 - launchApp
 - extendedWaitUntil:
-    visible: ^Comprador ·.*
+    visible: ^Actividad$
     timeout: 30000
 - tapOn: ^Actividad$
+- extendedWaitUntil:
+    visible: ^Comprador ·.*
+    timeout: 30000
 - scrollUntilVisible:
     element:
       id: demo-update-source
@@ -32,9 +35,12 @@ name: Compatible OTA on cold launch preserves the already completed demo
 - stopApp
 - launchApp
 - extendedWaitUntil:
-    visible: ^Comprador ·.*
+    visible: ^Actividad$
     timeout: 30000
 - tapOn: ^Actividad$
+- extendedWaitUntil:
+    visible: ^Comprador ·.*
+    timeout: 30000
 - scrollUntilVisible:
     element:
       id: demo-update-source

@@ -57,6 +57,10 @@ export async function runImmersivePerformance({adb,serial,maestro,published,reco
   const processObserved=!!appPid();
   await writeFile(join(published,'immersive-launch.json'),JSON.stringify({demoOnly:true,launcherIntent:true,processObserved,status:/Status:\s*(ok|timeout)/.exec(start)?.[1]??'unavailable',...parseAndroidPerformance({before:'',after:'',gfx:'',start})},null,2)+'\n');
   requireSafe(processObserved,'The measured launcher intent did not create the app process.');
+  // Chapter/menu coverage and PNGs precede recording. The clip starts only
+  // after an actual ready frame and contains reversible native swipes only.
+  if(record)await maestro('story');
+  await maestro(light?'story-light-prepare':'story-video-prepare');
   const before=adb('shell','dumpsys','meminfo',PACKAGE);adb('shell','dumpsys','gfxinfo',PACKAGE,'reset');
   const pids=()=>{try{return adb('shell','pidof','screenrecord');}catch{return '';}};
   requireSafe(pids()==='','Another screen recorder is running.');
@@ -66,13 +70,12 @@ export async function runImmersivePerformance({adb,serial,maestro,published,reco
   let recorderPid='',flags={};
   try{
     if(record){await new Promise(resolve=>setTimeout(resolve,1000));recorderPid=pids();requireSafe(/^\d+$/.test(recorderPid),'Screen recording did not start.');}
-    await maestro(light?'story-light':'story');
+    await maestro(record?'story-video':light?'story-light':'story');
     const xmlPath='/sdcard/openminerals-story-flags-'+randomUUID()+'.xml';
     try{
       adb('shell','uiautomator','dump',xmlPath);const xml=adb('exec-out','cat',xmlPath);
       flags={automaticLightObserved:xml.includes('Vista ligera activada por coste de render.'),privateUiPublished:false};
     }finally{adb('shell','rm','-f',xmlPath);}
-    await maestro('story-exit');
   }finally{
     if(recorder){
     const current=pids();if(recorderPid&&current===recorderPid)adb('shell','kill','-INT',recorderPid);
@@ -86,9 +89,14 @@ export async function runImmersivePerformance({adb,serial,maestro,published,reco
   const after=adb('shell','dumpsys','meminfo',PACKAGE),gfx=adb('shell','dumpsys','gfxinfo',PACKAGE),metrics=parseAndroidPerformance({before,after,gfx,start});
   const report={demoOnly:true,environment:'disposable Android CI emulator',physicalDevice:false,...metrics,...flags,
     screenRecording:record,visualMode:light?'light':'3d',
+    measurementScope:record?'continuous native swipes after ready-frame preparation; menus and exit excluded':'unrecorded chapter checks and reversible swipes after visual-mode preparation; exit excluded',
+    ...(record?{videoStartsAfterReadyFrame:true,videoIncludesMenus:false,videoIncludesColdStart:false}:{}),
     hwuiProfilingRequested,
     measurementsComplete:metrics.coldStartTotalMs!==null&&metrics.pssBeforeKiB!==null&&metrics.pssAfterKiB!==null&&metrics.uiFrames>0,
     uiFrameStatisticsAvailable:metrics.uiFrames!==null&&metrics.uiFrames>0,
     interpretation:'Android UI frame statistics; not a measurement of GPU FPS. PSS is sampled before/after, not peak memory. Cold process start uses an already installed APK and cached OTA.',phonePerformanceAcceptance:false};
   await writeFile(join(published,record?'immersive-performance.json':light?'immersive-performance-light-unrecorded.json':'immersive-performance-unrecorded.json'),JSON.stringify(report,null,2)+'\n');
+  // Mode switches, reduced-motion screenshot and operations are checked after
+  // the owned recorder is stopped and the independent metrics are captured.
+  await maestro('story-exit');
 }

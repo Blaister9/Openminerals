@@ -1,6 +1,11 @@
 appId: com.openminerals.demo.mobile
 name: Private synthetic fixture login
 ---
+- runFlow:
+    when:
+      visible: ^Actividad$
+    commands:
+      - tapOn: ^Actividad$
 - tapOn:
     text: ^Cuenta$
     index: 0
@@ -37,3 +42,10 @@ name: Private synthetic fixture login
 - extendedWaitUntil:
     notVisible: ^Cuenta demo$
     timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: home-cinematic-scroll
+    commands:
+      - runFlow:
+          file: story-clean.yaml

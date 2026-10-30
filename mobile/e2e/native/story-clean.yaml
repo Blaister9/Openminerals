@@ -1,0 +1,24 @@
+appId: com.openminerals.demo.mobile
+name: Visible cinematic home without account banners chapter rail or stacked operations
+---
+[
+  {"assertVisible":{"id":"home-cinematic-scroll"}},
+  {"assertVisible":{"id":"immersive-stage"}},
+  {"assertVisible":"^Inicio$"},
+  {"assertVisible":"^Mercado$"},
+  {"assertVisible":"^Billetera$"},
+  {"assertVisible":"^Metales$"},
+  {"assertVisible":"^Actividad$"},
+  {"assertNotVisible":"^Cuenta$"},
+  {"assertNotVisible":"^Sesión sin cuenta$"},
+  {"assertNotVisible":"^Sesión anterior · solo consulta$"},
+  {"assertNotVisible":"^(Comprador|Operador) ·.*"},
+  {"assertNotVisible":"^Tu sesión anterior está vinculada a una cuenta.*"},
+  {"assertNotVisible":"^Datos ficticios · tu historial permanece guardado$"},
+  {"assertNotVisible":"^0?[1-7]\\s*/\\s*0?7$"},
+  {"assertNotVisible":"^Ir a etapa [1-7]: .*"},
+  {"assertNotVisible":"^MIS POSICIONES$"},
+  {"assertNotVisible":"^COMPOSICIÓN DEL PORTAFOLIO$"},
+  {"assertNotVisible":"^Cantidad de metal en gramos$"},
+  {"assertNotVisible":{"id":"operations-scroll"}}
+]

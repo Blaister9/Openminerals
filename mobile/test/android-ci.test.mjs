@@ -187,7 +187,7 @@ test('Android CI: new Maestro documents preserve data and only anonymous phases 
   assert.equal((runner.match(/adb\('install','-r'/g)||[]).length,1);
   assert.doesNotMatch(runner,/pm','clear|adb\('uninstall/);
   const storyExit=yaml.parseAllDocuments(await source('../e2e/native/story-exit.yaml'))[1].toJSON();
-  assert.ok(storyExit.some(command=>command.extendedWaitUntil?.notVisible==='Saltar recorrido y continuar con la demo'));
+  assert.ok(storyExit.some(command=>command.extendedWaitUntil?.notVisible?.id==='home-cinematic-scroll'));
   assert.ok(execution.indexOf('runImmersivePerformance(')<execution.indexOf("'native-registration-no-import'"));
 });
 

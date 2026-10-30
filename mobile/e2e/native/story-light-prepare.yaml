@@ -1,0 +1,18 @@
+appId: com.openminerals.demo.mobile
+name: Prepare the anonymous lightweight scene before measuring
+---
+[
+  {"tapOn":"^Inicio$"},
+  {"tapOn":"Opciones del recorrido"},
+  {"runFlow":{"when":{"visible":{"text":"Usar modo visual ligero","checked":false}},"commands":[{"tapOn":"Usar modo visual ligero"}]}},
+  {"runFlow":{"when":{"visible":{"text":"Reducir movimiento del recorrido","checked":true}},"commands":[{"tapOn":"Reducir movimiento del recorrido"}]}},
+  {"tapOn":"Cerrar opciones del recorrido"},
+  {"tapOn":"Opciones del recorrido"},
+  {"tapOn":"Elegir una etapa"},
+  {"scrollUntilVisible":{"element":{"text":"Ir a etapa 1: ORIGEN MINERAL"},"direction":"DOWN","centerElement":false,"timeout":8000}},
+  {"tapOn":"Ir a etapa 1: ORIGEN MINERAL"},
+  {"extendedWaitUntil":{"visible":"Etapa 1 de 7: ORIGEN MINERAL","timeout":8000}},
+  {"assertNotVisible":"Cerrar opciones del recorrido"},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-scene-light"},"timeout":30000}},
+  {"runFlow":{"file":"story-clean.yaml"}}
+]

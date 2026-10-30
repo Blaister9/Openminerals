@@ -3,10 +3,19 @@ name: 013 to 020 update preserves legacy wallet and historical snapshots
 ---
 - launchApp
 - extendedWaitUntil:
+    visible: ^Actividad$
+    timeout: 30000
+- tapOn: ^Actividad$
+- assertVisible: ^Sesión sin cuenta$
+- tapOn: ^Billetera$
+- extendedWaitUntil:
     visible: ^USDT 268,40$
     timeout: 30000
-- assertVisible: ^Sesión sin cuenta$
-- assertVisible: ^USDT 0,00$
+- tapOn: ^Metales$
+- extendedWaitUntil:
+    visible: ^Todavía no tienes posiciones de metal\..*
+    timeout: 30000
+- assertVisible: ^0,000 g$
 - takeScreenshot: safe-upgrade-preserved
 - tapOn: ^Actividad$
 - scrollUntilVisible:
@@ -34,7 +43,7 @@ name: 013 to 020 update preserves legacy wallet and historical snapshots
     direction: DOWN
     centerElement: true
     timeout: 30000
-- tapOn: ^Inicio$
+- tapOn: ^Billetera$
 - extendedWaitUntil:
     visible: ^USDT 268,40$
     timeout: 30000

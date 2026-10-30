@@ -1,0 +1,19 @@
+appId: com.openminerals.demo.mobile
+name: Anonymous continuous slow finger controlled story with reverse and real final scene
+---
+[
+  {"assertVisible":"Etapa 1 de 7: ORIGEN MINERAL"},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
+  {"runFlow":{"file":"story-clean.yaml"}},
+  {"repeat":{"times":3,"commands":[{"swipe":{"start":"80%,80%","end":"80%,18%","duration":1800,"waitToSettleTimeoutMs":500}}]}},
+  {"extendedWaitUntil":{"visible":"Etapa [3-5] de 7: .*","timeout":8000}},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
+  {"repeat":{"times":4,"while":{"notVisible":"Etapa 1 de 7: ORIGEN MINERAL"},"commands":[{"swipe":{"start":"80%,18%","end":"80%,80%","duration":1800,"waitToSettleTimeoutMs":500}}]}},
+  {"extendedWaitUntil":{"visible":"Etapa 1 de 7: ORIGEN MINERAL","timeout":8000}},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
+  {"repeat":{"times":6,"while":{"notVisible":"Etapa 7 de 7: PORTAFOLIO"},"commands":[{"swipe":{"start":"80%,80%","end":"80%,18%","duration":1800,"waitToSettleTimeoutMs":500}}]}},
+  {"extendedWaitUntil":{"visible":"Etapa 7 de 7: PORTAFOLIO","timeout":8000}},
+  {"assertVisible":"Operar con metales DEMO"},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
+  {"runFlow":{"file":"story-clean.yaml"}}
+]

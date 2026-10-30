@@ -6,7 +6,7 @@ import * as Crypto from 'expo-crypto';
 import {RequestError,type PendingOperation} from './lib/demo-client';
 import {createAccountClient} from './lib/account-client';
 import {authStorage} from './lib/auth-storage';
-import {normalizeDecimalInput,parsePositiveDecimal,quoteBuy,quoteSell,quoteConversion,summarizePortfolio} from './lib/presentation';
+import {normalizeDecimalInput,parsePositiveDecimal,quoteBuy,quoteSell,quoteConversion} from './lib/presentation';
 import {receiptTitle,receiptSummary,type Receipt,type ReceiptHistoryPage} from './lib/receipt-presentation';
 import {MetalStory} from './components/MetalStory';
 import {ReceiptDetails} from './components/ReceiptDetails';
@@ -30,6 +30,7 @@ import {parseMineInventory} from './lib/mine-inventory';
 type Metal = 'XAU'|'XAG'|'XPT'|'XPD';
 type Currency = 'COP'|'EUR'|'USD'|'USDT';
 type Tab = 'Inicio'|'Mercado'|'Billetera'|'Metales'|'Más'|'Mina'|'Cuenta';
+type HomeDestination='Metales'|'Mercado'|'Billetera';
 type Account={id:string;alias:string;role:'buyer'|'operator';mineId:string};
 type Move = {id:string; type:string; label:string; at:string; metal?:Metal; mg?:number; amountMinor?:number};
 type Offer = {id:string;metal:Metal;mg:number;status:string};
@@ -119,6 +120,7 @@ export default function App(){
  const [accountRecovery,setAccountRecovery]=useState<'login'|'logout'|null>(null);
  const [recoveryAlias,setRecoveryAlias]=useState('');
  const authLock=useRef(false);
+ const authDestination=useRef<HomeDestination|null>(null);
  const identityVersion=useRef(0);
  const [mineSummary,setMineSummary]=useState<MineSummary|null>(null);
  const [mineLoading,setMineLoading]=useState(false);
@@ -151,6 +153,7 @@ export default function App(){
  const actionLock=useRef(false);
  const client=useRef(createAccountClient({api:API,storage:AsyncStorage,authStorage,uuid:()=>Crypto.randomUUID()})).current;
  const isOperator=account?.role==='operator';
+ const cinematicHome=!isOperator&&tab==='Inicio';
  const contentRoute=`${account?.id||session}:${tab}:${isOperator?mineSection:tab==='Metales'?metalsSection:tab==='Mercado'?marketSection:''}`;
  const sections=isOperator?operatorSections:buyerSections;
  const tradingBlocked=busy||authBusy||!!pending||authExpired||!!accountRecovery||(!account&&!!state?.legacyReadOnly);
@@ -190,13 +193,15 @@ export default function App(){
   setMineSection('management');setMetalsSection('positions');setMarketSection('mine');
   setSettingsVisible(false);
   setStoryVisible(false);
+   authDestination.current=null;
  }
  function acceptIdentity(initial:{session:string;pending:PendingOperation|null;account:Account|null;mine?:{id:string;name:string}|null;authExpired?:boolean}){
   setSession(initial.session);setPending(initial.pending);setAccount(initial.account);setMineIdentity(initial.mine??null);setAuthExpired(!!initial.authExpired);
   setAccountRecovery(null);setRecoveryAlias('');
  }
- function openAccount(mode:'login'|'register'='login'){
+ function openAccount(mode:'login'|'register'='login',destination:HomeDestination|null=null){
   if(busy||authBusy||actionLock.current||authLock.current||client.isSending())return;
+  authDestination.current=destination;
   setAuthMode(mode);setAuthError('');setAuthVisible(true);
  }
  function openSettings(){
@@ -214,7 +219,8 @@ export default function App(){
   authLock.current=true;setAuthBusy(true);setAuthError('');
   try{
    const initial=mode==='login'?await client.login(alias,password):await client.register(alias,password,importLegacy);
-   clearIdentityViews();acceptIdentity(initial);setTab(initial.account?.role==='operator'?'Mina':'Inicio');setAuthVisible(false);setProblem('');
+   const destination=authDestination.current;
+   clearIdentityViews();acceptIdentity(initial);setTab(initial.account?.role==='operator'?'Mina':destination??'Inicio');setAuthVisible(false);setProblem('');
    try{await load(true);}catch(error){noticeExpired(error);setProblem(`La cuenta está abierta, pero no pudimos actualizar sus datos. ${messageError(error)}`);}
   }catch(error){
    if(client.isIdentityUncertain()){setAccountRecovery('login');setRecoveryAlias(alias);setAuthMode('login');}
@@ -341,7 +347,6 @@ export default function App(){
   confirmationRef.current=null;setConfirmation(null);
   void runOperation(()=>client.submit(operation.action,operation.body,operation.title));
  }
- const portfolio=state?summarizePortfolio(state):{metalsValueMinor:0,usdtAvailableMinor:0,totalUsdtAndMetalsMinor:0};
  const reserved=(metal:Metal)=>state?state.offers.filter(o=>o.metal===metal&&o.status==='OPEN').reduce((a,o)=>a+o.mg,0)+state.custodyRequests.filter(d=>d.metal===metal&&['PENDING_QUOTE','QUOTED','APPROVED','PREPARING','DISPATCHED_DEMO'].includes(d.status)).reduce((a,d)=>a+d.mg,0):0;
  const composition=metals.map(item=>({...item,mg:state?.holdingsMg[item.code]||0,reservedMg:reserved(item.code),valueMinor:Math.ceil((state?.holdingsMg[item.code]||0)*(state?.priceCentsPerGram[item.code]||0)/1000)}));
  function accountCard(){return <Card>
@@ -352,29 +357,14 @@ export default function App(){
   </>}
  </Card>}
  function accountPage(){return <><Text style={styles.eyebrow}>ACCESO A LA DEMOSTRACIÓN</Text><Text style={styles.pageTitle}>Cuenta</Text>{accountCard()}<Text style={styles.copy}>Los roles y el inventario son de prueba. No hay verificación de identidad, pagos, reservas físicas ni custodio conectado.</Text><Text style={styles.copy}>Para usar la misma cuenta en otro dispositivo, entra con el mismo alias y su clave exclusiva de demostración.</Text><DemoUpdates disabled={busy||authBusy||!!pending||authExpired||!!accountRecovery}/></>}
- function home(){return <>
-  {!storyVisible&&<MetalStory scrollY={homeScrollY} viewportHeight={viewportHeight} onSeek={y=>contentScroll.current?.scrollTo({y,animated:false})} onSkip={()=>setTab('Mercado')}/>}
-  <Text style={styles.eyebrow}>TU RELACIÓN CON EL METAL</Text>
-  <Text style={styles.homeTitle}>Propiedad.{`\n`}Gramo a gramo.</Text>
-  <Text style={styles.balanceLabel}>USDT + METALES · VALOR SIMULADO</Text>
-  <Text style={styles.heroNumber}>{money(portfolio.totalUsdtAndMetalsMinor)}</Text>
-  <Text style={styles.muted}>USDT disponible más valoración de metales. No incluye tus saldos COP, EUR y USD.</Text>
-  <Card><Row left="USDT disponible" right={money(portfolio.usdtAvailableMinor)}/><Row left="Valor de tus metales" right={money(portfolio.metalsValueMinor)}/>
-   <Text style={styles.mutedSmall}>{portfolio.metalsValueMinor===0?'Aún no tienes metales. Tu dinero simulado sigue disponible en USDT.':'Valor de referencia ficticio; las comisiones se muestran al operar.'}</Text>
-  </Card>
-  <PortfolioComposition positions={composition}/>
-  <View style={styles.hRow}>
-   <Pressable onPress={()=>setTab('Mercado')} style={styles.quick}><Text style={styles.quickText}>Comprar metales  →</Text></Pressable>
-   <Pressable onPress={()=>setTab('Billetera')} style={styles.quick}><Text style={styles.quickText}>Abrir billetera  →</Text></Pressable>
-  </View>
-  <Button label="Abrir presentación completa" secondary disabled={busy||authBusy||!!pending} onPress={()=>{presentationScrollY.setValue(0);setStoryVisible(true);}}/>
-  <Sub>Mercado ilustrativo</Sub>
-  <ScrollView horizontal directionalLockEnabled nestedScrollEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:12,paddingBottom:10}}>{metals.map(m=><Pressable key={m.code} onPress={()=>{setCurrentMetal(m.code);setTab('Mercado');}} style={[styles.metalRow,{width:250}]}>
-   <MetalEmblem symbol={m.symbol} color={m.color} small/>
-   <View style={{flex:1}}><Text style={styles.cardTitle}>{m.name}</Text><Text style={styles.mutedSmall}>Cotización simulada por gramo</Text></View>
-   <Text style={styles.rowValue}>{money(state?.priceCentsPerGram[m.code]||0)}/g</Text>
-  </Pressable>)}</ScrollView>
- </>}
+ function openHomeAction(target:HomeDestination){
+  if(target==='Metales')setMetalsSection('positions');
+  if(target==='Mercado')setMarketSection('mine');
+  setTab(target);
+  // Navigation never submits a trade. Recovery stays contextual to its screen.
+  if(authExpired||accountRecovery==='login'||(!account&&state?.legacyReadOnly))openAccount('login',target);
+ }
+ function home(){return !storyVisible?<MetalStory scrollY={homeScrollY} viewportHeight={viewportHeight} onSeek={y=>contentScroll.current?.scrollTo({y,animated:false})} onSkip={()=>openHomeAction('Mercado')} onAction={openHomeAction}/>:null;}
  function marketNavigation(){return <View style={styles.chips}><Chip label="Comprar a la mina" active={marketSection==='mine'} onPress={()=>setMarketSection('mine')}/><Chip label="Marketplace" active={marketSection==='peers'} onPress={()=>setMarketSection('peers')}/></View>}
  function market(){const m=meta(currentMetal);const quote=state?quoteBuy(grams,state.priceCentsPerGram[currentMetal],state.feesBps.buy):null;
   if(account&&marketSection==='peers')return <><Text style={styles.eyebrow}>COMERCIO ENTRE CUENTAS DEMO</Text><Text style={styles.pageTitle}>Marketplace</Text>{marketNavigation()}<Text style={styles.copy}>Explora ofertas de compradores de tu mina. Cada liquidación intercambia USDT y derechos simulados sobre lotes; no mueve dinero ni metales reales.</Text><Button label="Publicar una oferta de mis metales" secondary disabled={tradingBlocked} onPress={()=>{setMetalsSection('positions');setMetalAction('offer');setTab('Metales');}}/><MarketplacePanel key={account.id} identityKey={account.id} get={client.get} submit={perform} disabled={tradingBlocked} usdtMinor={state?.walletMinor.USDT||0} refreshKey={String(operationRevision)} onHistory={()=>setTab('Más')} onReceipt={receipt=>void openReceipt(receipt.id,receipt)}/></>;
@@ -525,18 +515,23 @@ export default function App(){
   return <View style={styles.mineNavigation}><Chip compact label="Panel gerencial" active={mineSection==='management'} onPress={()=>select('management')}/><Chip compact label="Inventario" active={mineSection==='inventory'} onPress={()=>select('inventory')}/><Chip compact label="Lotes" active={mineSection==='custody'} onPress={()=>select('custody')}/><Chip compact label="Entregas DEMO" active={mineSection==='delivery'} onPress={()=>select('delivery')}/></View>;
  }
  return <SafeAreaProvider initialMetrics={initialWindowMetrics}><SafeAreaView style={styles.screen}><StatusBar barStyle="light-content"/>
+  {!cinematicHome&&<>
   <View style={styles.header}><View><Text style={styles.logo}>OPEN<Text style={{color:accent}}>MINERALS</Text></Text><Text style={styles.logoSub}>METALS · OWNERSHIP · TECHNOLOGY</Text></View><View style={styles.badge}><Text style={styles.badgeText}>DEMO</Text></View></View>
   <View style={styles.identityBar}><View style={{flex:1}}><Text numberOfLines={1} style={styles.identityTitle}>{account?`${account.role==='operator'?'Operador':'Comprador'} · ${account.alias}`:state?.legacyReadOnly?'Sesión anterior · solo consulta':'Sesión sin cuenta'}</Text><Text numberOfLines={1} style={styles.identityNote}>{account?mineIdentity?.name||'Mina de demostración':'Datos ficticios · tu historial permanece guardado'}</Text></View><Pressable accessibilityRole="button" disabled={busy||authBusy} onPress={()=>openAccount('login')} style={styles.accountLink}><Text style={styles.accountLinkText}>Cuenta</Text></Pressable></View>
   {!!problem&&<Pressable accessibilityRole="button" onPress={refresh} style={styles.errorBox}><Text style={styles.errorText}>{problem}\nToca aquí para actualizar los datos.</Text></Pressable>}
   {!account&&!!state?.legacyReadOnly&&<View style={styles.archiveBanner}><Text style={styles.archiveText}>Tu sesión anterior está vinculada a una cuenta y queda en consulta. Entra en esa cuenta para operar; no se borró el historial.</Text></View>}
   {!!accountRecovery&&<View style={styles.archiveBanner}><Text style={styles.archiveText}>{accountRecovery==='logout'?'El acceso se cerró en el servidor, pero falta finalizar el cierre guardado en este dispositivo. Tus datos permanecen conservados.':'Falta confirmar el acceso a tu cuenta. Entra con el mismo alias y clave demo antes de crear movimientos; no se borró la sesión anterior.'}</Text><Button label={accountRecovery==='logout'?'Reintentar cierre de sesión':'Resolver acceso a cuenta'} disabled={busy||authBusy} onPress={()=>accountRecovery==='logout'?void signOut():openAccount('login')}/></View>}
   {!!pending&&<View style={styles.errorBox}><Text style={styles.errorText}>Pendiente: {pending.title}. Una respuesta perdida no confirma que la operación haya fallado. Reintentar recupera el mismo comprobante y bloquea movimientos duplicados.</Text><Button label={busy?'Consultando…':'Reintentar operación pendiente'} onPress={retryPending} disabled={busy||authBusy||authExpired||!!accountRecovery}/></View>}
-  {authExpired?<View style={styles.center}><Text style={styles.cardTitle}>Vuelve a entrar en tu cuenta demo</Text><Text style={styles.copy}>Conservamos la identidad y cualquier solicitud pendiente. Usa el mismo alias para recuperar el acceso.</Text><Button label="Entrar de nuevo" onPress={()=>openAccount('login')} disabled={busy||authBusy}/></View>:!state&&!isOperator?<View style={styles.center}>{!problem&&<ActivityIndicator color={accent}/>}<Text style={styles.muted}>Preparando experiencia móvil…</Text></View>:
-  <Animated.ScrollView key={contentRoute} ref={contentScroll} removeClippedSubviews={false} style={{flex:1}} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false}
+  </>}
+  <View style={styles.contentFrame}>
+  {authExpired&&!cinematicHome?<View style={styles.center}><Text style={styles.cardTitle}>Vuelve a entrar en tu cuenta demo</Text><Text style={styles.copy}>Conservamos la identidad y cualquier solicitud pendiente. Usa el mismo alias para recuperar el acceso.</Text><Button label="Entrar de nuevo" onPress={()=>openAccount('login')} disabled={busy||authBusy}/></View>:!state&&!isOperator&&!cinematicHome?<View style={styles.center}>{!problem&&<ActivityIndicator color={accent}/>}<Text style={styles.muted}>Preparando experiencia móvil…</Text></View>:
+  <Animated.ScrollView key={contentRoute} testID={cinematicHome?'home-cinematic-scroll':'operations-scroll'} ref={contentScroll} removeClippedSubviews={false} style={{flex:1}} contentContainerStyle={cinematicHome?styles.cinematicBody:styles.body} contentInsetAdjustmentBehavior="never" bounces={!cinematicHome} overScrollMode={cinematicHome?'never':'auto'} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false}
    onLayout={event=>{setViewportHeight(Math.max(1,event.nativeEvent.layout.height));if(laidOutScroll.current!==contentScroll.current){laidOutScroll.current=contentScroll.current;contentScroll.current?.scrollTo({y:0,animated:false});}}}
    onScroll={homeScrollHandler} scrollEventThrottle={16}>
    {isOperator?(tab==='Cuenta'?accountPage():operatorMine()):tab==='Inicio'?home():tab==='Mercado'?market():tab==='Billetera'?wallet():tab==='Metales'?holdings():more()}
   </Animated.ScrollView>}
+  {cinematicHome&&(!!pending||(!!problem&&!authExpired&&!accountRecovery&&!state?.legacyReadOnly))&&<Pressable accessibilityRole="button" disabled={busy||authBusy} onPress={()=>pending?setTab('Más'):void refresh()} style={styles.homeRecovery}><Text numberOfLines={2} style={styles.homeRecoveryText}>{pending?'Operación pendiente · Resolver en Actividad':busy?'Actualizando datos…':'Datos sin actualizar · Reintentar'}</Text><Text style={styles.homeRecoveryArrow}>↗</Text></Pressable>}
+  </View>
   {isOperator&&tab!=='Cuenta'&&!authExpired&&mineNavigation()}
   <View style={styles.tabs}>{sections.map(t=><Pressable accessibilityRole="tab" accessibilityState={{selected:tab===t}} key={t} onPress={()=>setTab(t)} style={styles.tab}><View style={[styles.tabDot,tab===t&&styles.tabDotActive]}/><Text style={[styles.tabLabel,tab===t&&styles.tabLabelActive]}>{t==='Más'?'Actividad':t}</Text></Pressable>)}</View>
   <OperationConfirmation visible={confirmation!==null} title={confirmation?.title||''} detail={confirmation?.detail||''} onCancel={cancelConfirmation} onConfirm={confirmOperation}/>
@@ -545,16 +540,17 @@ export default function App(){
    onHistory={()=>{closeReceipt();setTab(isOperator?'Mina':'Más');}}/>
   <StockReceiptDetails receipt={stockReceipt} onClose={()=>setStockReceipt(null)}/>
   {settingsVisible&&account&&<Modal visible onRequestClose={()=>setSettingsVisible(false)} animationType="none" presentationStyle="pageSheet"><SafeAreaProvider><SafeAreaView style={styles.screen}><View style={styles.identityBar}><Text style={[styles.cardTitle,{flex:1}]}>Perfil de demostración</Text><Pressable accessibilityRole="button" style={styles.accountLink} onPress={()=>setSettingsVisible(false)}><Text style={styles.accountLinkText}>Cerrar</Text></Pressable></View><ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled"><AccountSettings key={account.id} identityKey={account.id} account={account} disabled={busy||authBusy||!!pending||authExpired} getProfile={client.getProfile} saveProfile={client.updateProfile} setupRecovery={client.setupRecovery} onAuthExpired={()=>{setSettingsVisible(false);setAuthExpired(true);}}/></ScrollView></SafeAreaView></SafeAreaProvider></Modal>}
-  {storyVisible&&<Modal visible onRequestClose={()=>setStoryVisible(false)} animationType="none"><SafeAreaProvider><SafeAreaView style={styles.screen}><View style={styles.identityBar}><Text style={[styles.cardTitle,{flex:1}]}>OPENMINERALS · DEMO</Text><Pressable accessibilityRole="button" style={styles.accountLink} onPress={()=>setStoryVisible(false)}><Text style={styles.accountLinkText}>Cerrar presentación</Text></Pressable></View><Animated.ScrollView ref={presentationRef} contentContainerStyle={styles.body} onLayout={event=>setPresentationHeight(event.nativeEvent.layout.height)} onScroll={Animated.event([{nativeEvent:{contentOffset:{y:presentationScrollY}}}],{useNativeDriver:true})} scrollEventThrottle={16}><MetalStory scrollY={presentationScrollY} viewportHeight={presentationHeight} onSeek={y=>presentationRef.current?.scrollTo({y,animated:false})} onSkip={()=>{setStoryVisible(false);if(!isOperator)setTab('Mercado');}}/><Button label={isOperator?'Volver al panel de mina':'Volver a Inicio'} onPress={()=>setStoryVisible(false)}/></Animated.ScrollView></SafeAreaView></SafeAreaProvider></Modal>}
+  {storyVisible&&<Modal visible onRequestClose={()=>setStoryVisible(false)} animationType="none"><SafeAreaProvider><SafeAreaView style={styles.screen}><View style={styles.identityBar}><Text style={[styles.cardTitle,{flex:1}]}>OPENMINERALS · DEMO</Text><Pressable accessibilityRole="button" style={styles.accountLink} onPress={()=>setStoryVisible(false)}><Text style={styles.accountLinkText}>Cerrar presentación</Text></Pressable></View><Animated.ScrollView ref={presentationRef} removeClippedSubviews={false} style={{flex:1}} contentContainerStyle={styles.cinematicBody} contentInsetAdjustmentBehavior="never" onLayout={event=>setPresentationHeight(event.nativeEvent.layout.height)} onScroll={Animated.event([{nativeEvent:{contentOffset:{y:presentationScrollY}}}],{useNativeDriver:true})} scrollEventThrottle={16}><MetalStory scrollY={presentationScrollY} viewportHeight={presentationHeight} onSeek={y=>presentationRef.current?.scrollTo({y,animated:false})} onSkip={()=>{setStoryVisible(false);if(!isOperator)openHomeAction('Mercado');}} onAction={target=>{setStoryVisible(false);if(!isOperator)openHomeAction(target);}}/></Animated.ScrollView></SafeAreaView></SafeAreaProvider></Modal>}
   <AccountAccess visible={authVisible} initialMode={authMode} account={account} mineName={mineIdentity?.name} recoveryAlias={recoveryAlias} expired={authExpired} busy={authBusy} pending={!!pending} canImportLegacy={!account&&!!state&&!state.legacyReadOnly} legacyReadOnly={!!state?.legacyReadOnly}
-   error={authError} onClose={()=>{if(!authBusy){setAuthVisible(false);setAuthError('');}}} onLogout={()=>void signOut()} onSubmit={(mode,alias,password,importLegacy)=>void submitAccount(mode,alias,password,importLegacy)} onSettings={openSettings} startRecovery={client.startRecovery} completeRecovery={client.completeRecovery} cancelRecovery={client.cancelRecovery} onRecoveryDone={alias=>void recoveredAccount(alias)}/>
+   error={authError} onClose={()=>{if(!authBusy){setAuthVisible(false);setAuthError('');authDestination.current=null;}}} onLogout={()=>void signOut()} onSubmit={(mode,alias,password,importLegacy)=>void submitAccount(mode,alias,password,importLegacy)} onSettings={openSettings} startRecovery={client.startRecovery} completeRecovery={client.completeRecovery} cancelRecovery={client.cancelRecovery} onRecoveryDone={alias=>void recoveredAccount(alias)}/>
  </SafeAreaView></SafeAreaProvider>;
 }
 const accent='#DCBC7F';
 const styles=StyleSheet.create({
  screen:{flex:1,backgroundColor:'#090F15'},header:{height:78,paddingHorizontal:22,flexDirection:'row',justifyContent:'space-between',alignItems:'center',borderBottomWidth:1,borderColor:'#24303A'},
  logo:{fontSize:19,fontWeight:'800',color:'#F7F6F2',letterSpacing:2},logoSub:{fontSize:8,color:'#88949D',letterSpacing:2.1,marginTop:5},badge:{paddingHorizontal:10,paddingVertical:6,borderColor:'#8E7350',borderWidth:1,borderRadius:5},badgeText:{color:accent,fontSize:10,fontWeight:'800',letterSpacing:1.5},
- body:{paddingHorizontal:21,paddingTop:25,paddingBottom:50},center:{flex:1,justifyContent:'center',alignItems:'center',gap:15},
+ body:{paddingHorizontal:21,paddingTop:25,paddingBottom:50},cinematicBody:{padding:0},contentFrame:{flex:1},center:{flex:1,justifyContent:'center',alignItems:'center',gap:15},
+ homeRecovery:{position:'absolute',bottom:10,left:16,right:16,minHeight:44,paddingHorizontal:14,paddingVertical:10,borderWidth:1,borderColor:'#8B7560',borderRadius:12,backgroundColor:'#19232BF2',flexDirection:'row',alignItems:'center',gap:12},homeRecoveryText:{flex:1,color:'#EEE2CA',fontSize:12,lineHeight:18},homeRecoveryArrow:{color:'#E3C58B',fontSize:18},
  identityBar:{flexDirection:'row',alignItems:'center',gap:14,paddingHorizontal:21,paddingVertical:10,backgroundColor:'#111E28',borderBottomWidth:1,borderColor:'#273541'},identityTitle:{fontSize:12,color:'#E1D3B3',fontWeight:'700'},identityNote:{fontSize:10,color:'#98A5B0',marginTop:5},accountLink:{paddingHorizontal:14,paddingVertical:12,minHeight:44,borderRadius:8,borderWidth:1,borderColor:'#806948',justifyContent:'center'},accountLinkText:{fontSize:12,color:accent,fontWeight:'700'},archiveBanner:{backgroundColor:'#343025',paddingHorizontal:21,paddingVertical:12},archiveText:{fontSize:12,lineHeight:20,color:'#E7D7B6'},
  eyebrow:{fontSize:10,color:accent,fontWeight:'700',letterSpacing:1.7,marginBottom:10},homeTitle:{fontFamily:Platform.OS==='android'?'serif':'Georgia',fontSize:42,lineHeight:46,fontWeight:'400',letterSpacing:-1,color:'#F2EEE5',marginBottom:25},balanceLabel:{fontSize:9,lineHeight:17,letterSpacing:1.4,color:'#BDA77D',marginBottom:8},heroNumber:{fontSize:35,lineHeight:44,color:'#F7F7F5',fontWeight:'500',letterSpacing:-1,fontVariant:['tabular-nums'],marginBottom:8},pageTitle:{fontFamily:Platform.OS==='android'?'serif':'Georgia',fontSize:34,lineHeight:42,color:'#F2EEE5',fontWeight:'400',letterSpacing:-.6,marginBottom:10},
  muted:{color:'#92A0AC',fontSize:12,lineHeight:20},mutedSmall:{color:'#98A5B0',fontSize:11,lineHeight:18,marginTop:4},copy:{fontSize:13,color:'#BAC4CE',lineHeight:21,marginBottom:13},
