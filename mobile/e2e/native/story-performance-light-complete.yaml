@@ -1,0 +1,9 @@
+appId: com.openminerals.demo.mobile
+name: Verify the fixed light gesture trace after measurements
+---
+[
+  {"extendedWaitUntil":{"visible":"Etapa 7 de 7: .+","timeout":8000}},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-scene-light"},"timeout":30000}},
+  {"assertVisible":"Operar con metales DEMO"},
+  {"assertNotVisible":"Cerrar opciones del recorrido"}
+]

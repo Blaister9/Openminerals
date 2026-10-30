@@ -5,7 +5,7 @@ import {join} from 'node:path';
 import {sanitizeOperatorHierarchy} from './ci-operator-navigation.mjs';
 import {legacyRuntimeState} from './ci-legacy-failure.mjs';
 import {PACKAGE,requireSafe} from './ci-safety.mjs';
-const storyFlows=['story','story-light','story-exit','story-video','story-video-prepare','story-light-prepare','story-resume-position','story-resume-check'];
+const storyFlows=['story','story-light','story-exit','story-video','story-video-prepare','story-light-prepare','story-performance-complete','story-performance-light-complete','story-resume-position','story-resume-check'];
 const tradeFlows=new Set(['ota-before-story','operator-navigation-ota',...storyFlows,'register','buyer-a','buyer-a-buy','buyer-a-offer','buyer-b','request-delivery','quote','accept','operator','operator-stock','profile','ota']);
 // Keep one redacted exception line, never raw logs or stack dumps. Known QA
 // credentials, opaque strings, IDs, URLs and arbitrary quoted values are removed.

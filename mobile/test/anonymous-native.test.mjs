@@ -82,7 +82,7 @@ test('Resume flow asserts retained progress before using reversible native swipe
   assert.deepEqual(commands[1].extendedWaitUntil.visible,{id:'immersive-gl-ready'});
   assert.deepEqual(commands.filter(command=>command.repeat).map(command=>command.repeat.commands[0].swipe.direction),['UP','DOWN']);
   assert.doesNotMatch(raw,/launchApp|stopApp|clearState|inputText|takeScreenshot|Ir a etapa/);
-  for(const name of ['story-resume-position','story-resume-check']){
+  for(const name of ['story-resume-position','story-resume-check','story-performance-complete','story-performance-light-complete']){
     assert.equal(nativeFailureAllowed('immersive-story',name),true);assert.equal(nativeFailureAllowed('full',name),true);assert.equal(nativeFailureAllowed('quality-network',name),false);
   }
 });
