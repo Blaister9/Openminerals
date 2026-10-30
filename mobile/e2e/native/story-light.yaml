@@ -1,0 +1,85 @@
+appId: com.openminerals.demo.mobile
+name: Unrecorded lightweight native narrative
+---
+[
+  {
+    "tapOn": "^Inicio$"
+  },
+  {
+    "tapOn": "Usar modo visual ligero"
+  },
+  {
+    "extendedWaitUntil": {
+      "visible": "Visor 3D desactivado.*",
+      "timeout": 30000
+    }
+  },
+  {
+    "tapOn": "Ir a etapa 1: ORIGEN MINERAL"
+  },
+  {
+    "assertVisible": "Etapa 1 de 7: ORIGEN MINERAL"
+  },
+  {
+    "tapOn": "Ir a etapa 2: EXTRACCIÓN"
+  },
+  {
+    "assertVisible": "Etapa 2 de 7: EXTRACCIÓN"
+  },
+  {
+    "tapOn": "Ir a etapa 3: REFINACIÓN"
+  },
+  {
+    "assertVisible": "Etapa 3 de 7: REFINACIÓN"
+  },
+  {
+    "tapOn": "Ir a etapa 4: FORMACIÓN DEL LINGOTE"
+  },
+  {
+    "assertVisible": "Etapa 4 de 7: FORMACIÓN DEL LINGOTE"
+  },
+  {
+    "tapOn": "Ir a etapa 5: CUSTODIA VIRTUAL"
+  },
+  {
+    "assertVisible": "Etapa 5 de 7: CUSTODIA VIRTUAL"
+  },
+  {
+    "tapOn": "Ir a etapa 6: FRACCIONAMIENTO DIGITAL"
+  },
+  {
+    "assertVisible": "Etapa 6 de 7: FRACCIONAMIENTO DIGITAL"
+  },
+  {
+    "tapOn": "Ir a etapa 7: PORTAFOLIO"
+  },
+  {
+    "assertVisible": "Etapa 7 de 7: PORTAFOLIO"
+  },
+  {
+    "tapOn": "Ir a etapa 4: FORMACIÓN DEL LINGOTE"
+  },
+  {
+    "swipe": {
+      "start": "50%,68%",
+      "end": "50%,35%",
+      "duration": 800
+    }
+  },
+  {
+    "assertNotVisible": "Etapa 4 de 7: FORMACIÓN DEL LINGOTE"
+  },
+  {
+    "swipe": {
+      "start": "50%,35%",
+      "end": "50%,68%",
+      "duration": 800
+    }
+  },
+  {
+    "tapOn": "Ir a etapa 1: ORIGEN MINERAL"
+  },
+  {
+    "assertVisible": "Etapa 1 de 7: ORIGEN MINERAL"
+  }
+]

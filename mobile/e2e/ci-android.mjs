@@ -228,6 +228,8 @@ async function run(){
     await runStage('install-story-apk',async()=>{requireSafe(!adb('shell','pm','list','packages',PACKAGE),'Story coverage requires a fresh disposable emulator.');adb('install',join(root,'new.apk'));});
     await runStage('anonymous-compatible-ota-before-story',()=>maestro('operator-navigation-ota'));
     await runStage('native-story-and-reduced-motion',async()=>{await runImmersivePerformance({adb,serial,maestro,published});await captureSafeScreens('story');await captureSafeScreens('story-exit');});
+    await runStage('unrecorded-3d-native-performance',()=>runImmersivePerformance({adb,serial,maestro,published,record:false}));
+    await runStage('unrecorded-light-native-performance',()=>runImmersivePerformance({adb,serial,maestro,published,record:false,light:true}));
     return;
   }
   if(scenario==='quality-network'){
