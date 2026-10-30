@@ -1,91 +1,113 @@
 # Realismo geológico · Android
 
-**Estado: candidata publicada; comparación Android en ejecución.** La fuente está congelada y la suite local aprobada. El informe separa las verificaciones realizadas de los recorridos nativos y mediciones físicas pendientes.
+**Estado: candidata verificable; rendimiento físico y aceptación estética pendientes.** Los resultados de software, emulador y teléfono se distinguen. La mina es una representación ficticia DEMO.
 
-## Fuente y alcance
+## Fuente y distribución
 
-La base funcional es el [checkpoint de Inicio del informe 21](21-inicio-inmersivo-pantalla-completa.md), UI `a9ae62e`, con continuidad comercial registrada hasta `3e31bdd`. Proviene de la [PR #7](https://github.com/Blaister9/Openminerals/pull/7); `main` contiene `ad78797`. La nueva rama `codex/geological-realism-android-20261030` está apilada sobre ese trabajo, sin mezclar automáticamente sus cambios en main.
+Se revisó la [PR #7](https://github.com/Blaister9/Openminerals/pull/7): su cabeza `3e31bdd` no estaba integrada en `main` (`ad78797`). La [PR #8](https://github.com/Blaister9/Openminerals/pull/8), rama `codex/geological-realism-android-20261030`, se apoya en `codex/immersive-custody-20261029`, sin sobrescribir ese trabajo ni fusionar automáticamente en main. El Inicio aceptado corresponde a `a9ae62e`, OTA `01a18d53`; su evidencia histórica se conserva en el [informe 21](21-inicio-inmersivo-pantalla-completa.md).
 
-| Registro del candidato geológico | Estado |
+| Revisión | Fuente y alcance |
 | --- | --- |
-| Fuente de aplicación congelada | [`c2eaaae`](https://github.com/Blaister9/Openminerals/commit/c2eaaaebc482229e360a1e8385d241595780d2d7). `18e8f8b` añade únicamente pruebas de adaptación, sin cambiar los archivos de aplicación. |
-| PR del nuevo sprint | [PR #8](https://github.com/Blaister9/Openminerals/pull/8), base `codex/immersive-custody-20261029` (PR #7). |
-| OTA Android | `01a18e27-57a7-7069-aa2d-c0e7ca0d118b`, grupo `19551e14-0fc2-4abb-b0b3-de3e713d1720`, **30/10/2026 13:51:45 Bogotá** (18:51:45 UTC), runtime `0.2.0`, canal `demo`. Prefijo `01a18e27`. |
-| Contenido publicado | Hermes de 1.657.560 bytes, SHA-256 `0c4e6d1cd4a8622ee59f6051bb77cf2ecee7b8b6dbcc167febe53f6b792615b6`. La copia exportada por EAS coincide exactamente con el hash del manifiesto público; incluye Railway HTTPS y excluye los orígenes locales de QA. La descarga directa del CDN respondió 403; no se eludió esa protección ni se presenta esa descarga como realizada. |
+| Medición anterior | `8616a58`: solo arnés; conserva la aplicación anterior. |
+| Primera candidata geológica | `c2eaaae`: escena, materiales y selección nativa. OTA `01a18e27-57a7-7069-aa2d-c0e7ca0d118b`, grupo `19551e14-0fc2-4abb-b0b3-de3e713d1720`, 30/10/2026 13:51:45 Bogotá. |
+| Pruebas del componente real | `18e8f8b`: solo pruebas de adaptación y callbacks obsoletos. |
+| Optimización | `39b0f569`: imagen precalculada ligera, retirada del fallback bajo GL listo y mezcla con alfa opaca. **OTA `01a18e58-e304-79e3-9917-7c6d407b9e29`, grupo `38f9c8f3-1193-4b5f-932d-ec2fa7824e95`, 30/10/2026 14:45:52 Bogotá (19:45:52 UTC), runtime `0.2.0`, canal `demo`. Hermes de 1.655.360 bytes, SHA-256 `82e7ce6757b400f5885bd3ef383ddbbd74d0c7f148feaa2040d9332b4b6fdec3`. Hashes Hermes y PNG coinciden con el manifiesto público; no se solicitaron sus URLs CDN.** |
+| Último arnés | **`06643bf913983fff5670fcc145b47229f36d8d5d` (solo seis archivos e2e/tests, runtime idéntico a `39b0f569`)**; conserva exactamente la traza medida y añade una captura anónima del túnel ligero antes de medir. |
 
-El alcance permanece en Android, React Native/Expo, con la composición de Inicio conservada como base. No se añaden dependencias, motores gráficos, WebViews ni módulos nativos. Esta revisión no cambia API, PostgreSQL, inventario o permisos. Dinero, precios, metales, custodia y entregas siguen siendo ficticios; no desarrolla iOS, blockchain ni transacciones reales.
+La API [Railway HTTPS](https://openminerals-api-demo.up.railway.app/health), PostgreSQL, precios, permisos y módulos financieros no cambian en este sprint. La fuente API desplegada sigue siendo `89c38d4`. No se desarrolla iOS, blockchain ni transacciones reales. No se añaden dependencias, motores, WebViews, módulos nativos o permisos. Toda recepción, existencia, precio, saldo, custodia y entrega es ficticia.
 
-## Recorrido y composición conservada
+## Escena y continuidad
 
-Los siete momentos son **Mina → Extracción → Procesamiento → Refinación → Formación del lingote → Custodia virtual → Fraccionamiento digital**. El último conserva el cierre hacia el portafolio y los accesos a Metales, Mercado y Billetera. Operar permite salir hacia Mercado desde el inicio.
+Se conserva el Inicio a pantalla completa sobre la navegación inferior: sin cabecera de cuenta, aviso de vinculación, contador permanente o tarjetas comerciales debajo. Continúan Operar, omisión, capítulos y destinos a Metales, Mercado y Billetera. Las guardas de cuenta, sesión vinculada, acceso vencido y operaciones pendientes permanecen.
 
-Se mantiene un escenario continuo que avanza y retrocede con el dedo. El túnel cede protagonismo a la muestra extraída, que pasa al procesamiento y la formación del lingote. Las transformaciones dependen del desplazamiento, sin una reproducción autónoma que impida volver al mismo punto. La selección del metal modifica su representación y acompaña la selección existente; no crea existencias ni envía órdenes.
+El dedo controla avance y retroceso de **Mina → Extracción → Procesamiento → Refinación → Formación del lingote → Custodia virtual → Fraccionamiento digital**. El cierre mantiene el acceso al portafolio. No son siete pantallas autónomas: cámara, profundidad, visibilidad y transformación comparten progreso. La muestra surge como un sólido y se convierte en lingote, con encuadres recuperables al retroceder. La selección de metal utiliza la selección comercial existente; no coloca órdenes ni crea inventario.
 
-Inicio conserva toda el área disponible sobre la navegación inferior, sin devolver cabeceras de cuenta, avisos de vinculación, contador permanente o tarjetas financieras debajo del relato. El menú mantiene las opciones visuales y los capítulos. Continúan el acceso contextual a la cuenta y los bloqueos de sesiones vinculadas, acceso vencido y operaciones pendientes. El login normal y la entrada del operador a Mina no se convierten en un recorrido financiero nuevo.
+El túnel de geometría propia incorpora paredes, techo y suelo desplazados; normales geométricas, variación de estratos, protuberancias ancladas, roca suelta, mineral escaso, cuatro luminarias cálidas y 48 motas. La oclusión por vértice es una aproximación precalculada. No se utilizan mapas de sombras dinámicas ni instalaciones, coordenadas o procedimientos de seguridad reales.
 
-La mina es una geometría ficticia. No representa una instalación, ubicación, plano de explotación o procedimiento industrial verificado. La secuencia común explica el concepto de transformación; no afirma que los cuatro metales compartan un proceso de extracción o refinación idéntico.
+Es una interpretación procedural: las capturas aún muestran facetas, cuarzos triangulares y luminarias simplificadas. No se presenta como fotogrametría o fotorealismo. La narrativa común tampoco afirma que los cuatro metales sigan el mismo proceso industrial.
 
-## Arquitectura de dibujo
+## Materiales y presupuesto gráfico
 
-El renderer compartido en `mobile/lib/scene-renderer.ts` sirve tanto al componente ExpoGL como a la comprobación de rasterización fuera de Android. Utiliza **un contexto GL y dos pasadas lógicas**: fondo geológico y espécimen en primer plano. La segunda dibuja el suelo y el objeto. La composición entre ambas es intencional; no es un modelo físico de una mina real.
+`metal-materials.ts` define Au, Ag, Pt y Pd. Los shaders añaden bordes redondeados, reflexión controlada, cepillado suave e incisiones con símbolo y **DEMO**. Oro es amarillo; plata, platino y paladio son blancos neutros, diferenciados también por grabado y selección. Sus acabados RGB/rugosidad son presets ilustrativos, no constantes ópticas, ensayos de pureza o identificación química. Referencias primarias: [oro](https://periodic-table.rsc.org/element/79/gold), [plata](https://periodic-table.rsc.org/element/47/silver), [platino](https://periodic-table.rsc.org/element/78/platinum), [paladio](https://periodic-table.rsc.org/element/46/palladium).
 
-Los buffers se preparan por contexto. El progreso, la cámara y el material se actualizan sin reconstruir la malla en cada cuadro. Las superficies rocosas incorporan variación de volumen, normales, oclusión aproximada, vetas, fragmentos y luminarias sintéticas. La extracción utiliza una muestra con más subdivisiones que el lingote anterior, para mejorar su silueta y el relieve sin introducir otro motor.
+Se conserva ExpoGL con un contexto y dos programas. Los buffers se crean por contexto; progreso, cámara y material cambian sin reconstruir mallas por cuadro. El renderer compartido de `scene-renderer.ts` es el que utiliza Android y el que rasterizan las pruebas de software.
 
-| Geometría de la escena cinematográfica | Triángulos |
+| Geometría máxima simultánea | Triángulos |
 | --- | ---: |
-| Mina y sus elementos | 5.926 |
+| Mina y detalles | 5.926 |
 | Espécimen subdividido | 1.600 |
 | Suelo del espécimen | 2 |
-| Máximo cuando ambas pasadas coinciden | **7.528** |
+| Máximo durante el solape | **7.528** |
 
-Estas cantidades no son una medida de FPS ni del coste total por píxel. Se suben **613.128 bytes de atributos**, en cinco buffers, cuatro shaders y dos programas. El máximo de tres draws ocurre durante el solape; el suelo de opacidad cero se omite. El lingote base no cinematográfico conserva sus 400 triángulos. El suelo se ajusta al volumen mineral para evitar que corte la muestra durante su transformación.
+Son 613.128 bytes de atributos en cinco buffers y hasta tres draws; el suelo invisible se omite. El lingote no cinematográfico conserva 400 triángulos. Estas cifras no miden FPS ni coste por píxel. Se registran y liberan recursos incluso ante construcción parcial fallida.
 
-## Metales, relieve y grabados
+## Modo ligero y ciclo de vida
 
-`mobile/lib/metal-materials.ts` define los cuatro materiales: **Au/Oro, Ag/Plata, Pt/Platino y Pd/Paladio**. El shader recibe reflectancia, rugosidad y tipo de grabado. Los bordes, las reflexiones, el microcepillado y la incisión del símbolo aportan volumen; la marca **DEMO** permanece integrada en el objeto. La frecuencia y amplitud del cepillado se redujeron para evitar franjas especulares dominantes.
+La primera candidata mantenía varios arcos y rocas con Views. La medición detectó una regresión; `39b0f569` los sustituye por una sola `Animated.Image` local y conserva el lingote 2D. Su opacidad depende del mismo scroll, sin cámara autónoma ni bucle ocioso. Movimiento reducido permanece respetado. El fallback completo se desmonta tras enviar el primer cuadro GL; vuelve durante preparación/error o al elegir el modo ligero. La mezcla separada conserva alfa 255 en el framebuffer y evita depender de un fondo duplicado durante los fundidos.
 
-El oro mantiene un aspecto amarillo; plata, platino y paladio utilizan materiales blancos neutros, apoyados por nombre y símbolo para identificarlos. No se convierte el platino en azul ni el paladio en violeta para separarlos. Las referencias de aspecto son de la Royal Society of Chemistry: [oro](https://periodic-table.rsc.org/element/79/gold), [plata](https://periodic-table.rsc.org/element/47/silver), [platino](https://periodic-table.rsc.org/element/78/platinum) y [paladio](https://periodic-table.rsc.org/element/46/palladium).
+El [PNG ligero](../mobile/assets/geology-light.png) procede del renderer propio, pose fija: **360 × 640**, **305.228 bytes**, RGBA base **921.600 bytes**, SHA-256 `31bd3f771fbb5475089c14cbaf7c612d73d6cbd5e93a3d7ce83e048ef9e8a755`. [Su metadata](../mobile/assets/geology-light.json) registra las seis fuentes normalizadas a LF. No es una fotografía ni acredita ejecución Android por sí solo. `cover` puede recortar laterales según la proporción.
 
-Los valores RGB lineales y de rugosidad son presets visuales DEMO, no constantes ópticas medidas ni ensayos de pureza. El acabado depende también de fabricación e iluminación: no debe utilizarse una captura para identificar químicamente un metal. No se añaden sellos de terceros, certificaciones o pesos físicos al grabado.
+Se reproduce con `node mobile/scripts/bake-geology-light.mjs`, definiendo `OPENMINERALS_WEBGL_BROWSER` con la ruta del Chrome de pruebas. El script usa el renderer real y no reemplaza el asset si falla la rasterización. Las pruebas verifican hash, fuentes, dimensiones y presupuesto; comprueban alfa opaca en 18 poses.
 
-## Modo ligero, accesibilidad y ciclo de vida
+El scheduler admite 60 como objetivo inicial y dibuja por demanda. Un coste sostenido de envío superior a 20 ms puede bajar a presupuesto 30 y escala 0,75; si sigue siendo alto puede pasar a ligero. Es una heurística CPU de envío, no medición GPU. La preparación, errores, callbacks obsoletos y cambio de material conservan sus guardas. La app está configurada en vertical; no se afirma prueba de paisaje, TalkBack físico ni texto ampliado.
 
-El modo ligero y el movimiento reducido mantienen una alternativa con Views nativas: tres capas fijas de arcos y roca, seguidas de una barra identificada por su símbolo y DEMO. Sus opacidades siguen el desplazamiento en ambos sentidos. No incorpora cámara autónoma, parallax continuo ni un bucle de animación en reposo. Los cantos y contornos de los metales blancos también son neutros.
+## Pruebas
 
-Se conservan las etiquetas accesibles de las siete etapas, los controles de lectura y la preferencia del sistema de movimiento reducido. La app permanece configurada en vertical. Texto ampliado y TalkBack físico siguen pendientes; cambio de metal y paso a segundo plano requieren los resultados Android de la fuente final. Una captura no acredita esos recorridos.
-
-La preparación gráfica mantiene disposición y recreación del contexto, manejo de error y ausencia de dibujo cuando está desactivado. El presupuesto inicial del scheduler pasa a 60, con tolerancia inferior a un milisegundo para timestamps de vsync redondeados; el límite de 30 conserva su guarda anterior. El modo adaptativo puede reducir resolución y presupuesto, y recurrir al modo ligero. Su detector de coste de envío de dibujo no mide directamente FPS de GPU.
-
-## Objetivo y comparación antes/después
-
-El objetivo es una mina de mayor profundidad y detalle con **60 FPS como objetivo físico por verificar**, preservando las operaciones y la alternativa ligera. No basta que el scheduler permita 60 ni que una rasterización de escritorio termine correctamente.
-
-La línea base nativa aprobó **7/7 etapas** en [41106807655](https://github.com/Blaister9/Openminerals/actions/runs/41106807655), arnés `8616a58`, sobre la **OTA anterior `01a18d53`, UI `a9ae62e`**. Los tres perfiles verificaron el final, quince gestos y el mismo hash de traza. HOME conservó proceso, etapa y GL listo, con avance/reversa posteriores. Es evidencia del Inicio anterior, no de la candidata geológica.
-
-La comparación mantiene entrada, viewport, configuración de host, modo y condición de grabación. La ventana medida excluye preparación, menús y aserciones: tres avances, cuatro retrocesos y ocho avances, cada swipe solicitado de 1800 ms más 250 ms de asentamiento. SHA-256 de especificación `1a48933715ea7e75cfb38bbd45807fd8350da58c3513d6d7666c4f170c85ac9a`; traza compilada 1080 × 1920 `0e30040ccbf227ed1328ee314a4968da933464450aaca3ce8021981db201c8b3`.
-
-El 3D nuevo es adaptativo: puede reducir el presupuesto a 30 y la escala del visor al 75% sin activar las Views ligeras. Esta revisión no registra telemetría del nivel intermedio o dimensiones del buffer GL. `automaticLight=false` sólo descarta el fallback a Views. La comparación evalúa experiencia con la misma entrada, sin aislar coste GPU a resolución fija. Arranque de Activity, interacción completa, estadísticas UI, muestras PSS y rasterización GL se distinguen; el promedio de cuadros de un MP4 no equivale a FPS de la app.
-
-| Verificación | Resultado y alcance |
+| Verificación | Resultado y límites |
 | --- | --- |
-| Suite local con todos los GL de software activos | **282/282 aprobadas, cero omitidas**, con concurrencia de dos procesos; fuente `c2eaaae`. Incluye el renderer compuesto real, 13 progresiones distintas, dos retornos exactos, cuatro materiales y liberación de recursos. |
-| CI actual | [41112124443](https://github.com/Blaister9/Openminerals/actions/runs/41112124443), `18e8f8b`: **284 aprobadas y cinco GL opcionales omitidas**, cero fallos, 289 casos totales; tipos, dependencias, toolchain y Expo Doctor **21/21** aprobados. API: 91 casos memoria + 79 PostgreSQL distintos, con base CI desechable. El job PostgreSQL marca 80 porque incluye además un caso memoria ya contado. |
-| Adaptación y sesiones obsoletas | `18e8f8b`: **7/7 pruebas adicionales** de los cierres reales del componente extraídos por AST. Comprueban límites, picos aislados, ready después de draw, cambio de metal, callbacks obsoletos y limpieza; usan reloj y draw simulados, sin medir GPU ni lifecycle nativo completo. |
-| Línea base Android anterior | **7/7**, run `41106807655`, OTA anterior `01a18d53`. |
-| Android del candidato y comparación con la misma traza | [41110591606](https://github.com/Blaister9/Openminerals/actions/runs/41110591606) en curso, fuente/arnés `c2eaaae`, OTA `01a18e27`; **PENDIENTE-NATIVO-GEO**. Añade una etapa de cuatro materiales a las siete anteriores. |
-| Métricas antes/después y evidencia visual anónima | **PENDIENTE-NATIVO-GEO**. |
-| Regresión comercial sobre el candidato | [41111642553](https://github.com/Blaister9/Openminerals/actions/runs/41111642553), alcance XAU, fuente `c2eaaae`, OTA `01a18e27`, en cola/ejecución; **PENDIENTE-NATIVO-GEO**. Conserva las 23 etapas y añade materiales (24). Utiliza un fixture nuevo, sin reiniciar el anterior ni la mina compartida. |
+| Local, fuente final con arnés | **294/294 aprobadas**, cero omitidas, fuente `06643bf`, con los cinco GL opcionales activos en Chrome/SwiftShader y concurrencia dos; TypeScript aprobado. La suite anterior `39b0f569` aprobó 291/291; no se suman resultados superpuestos. |
+| CI fuente optimizada | [41115911014](https://github.com/Blaister9/Openminerals/actions/runs/41115911014) y [41115898389](https://github.com/Blaister9/Openminerals/actions/runs/41115898389): **286/286 aprobadas y cinco WebGL opcionales omitidas**, 291 totales. Tipos, dependencias, toolchain, auditoría y Expo Doctor **21/21** aprobados. Los dos runs repiten la suite; no se suman como casos distintos. |
+| Backend CI, sin modificaciones | 91 casos aprobados y 11 omitidos en la etapa general; PostgreSQL obligatorio **80/80**, incluyendo un caso de recuperación en memoria ya contado. Son **170 casos distintos** aprobados entre las dos etapas. Es una base CI desechable. |
+| Renderer y controles | Trece progresiones distintas, dos retornos exactos y cuatro materiales; presupuesto máximo, alfa opaca y limpieza real de WebGL. Dieciséis pruebas del mock cubren construcción parcial, mezcla y liberación; siete usan los cierres reales del componente extraídos por AST para adaptación/readiness/sesiones obsoletas con reloj y draw simulados. No equivalen a una GPU física. |
+| Android anterior | **7/7** en [41106807655](https://github.com/Blaister9/Openminerals/actions/runs/41106807655), UI `a9ae62e`, arnés `8616a58`, OTA `01a18d53`. |
+| Android C2 visual | **8/8** en [41110591606](https://github.com/Blaister9/Openminerals/actions/runs/41110591606), fuente y arnés `c2eaaae`, OTA `01a18e27`. Materiales con selección exclusiva, frame GL listo, menús cerrados y Au restaurado antes de finanzas. |
+| Android C2 comercial | **24/24 aprobadas, cero fallos, 2.340,320 segundos de etapas**, [41111642553](https://github.com/Blaister9/Openminerals/actions/runs/41111642553), XAU, fixture privado nuevo. |
+| Android optimizado visual/comercial | **EN EJECUCIÓN: [visual 41119063468](https://github.com/Blaister9/Openminerals/actions/runs/41119063468), ocho etapas, y [comercial XAU 41119079540](https://github.com/Blaister9/Openminerals/actions/runs/41119079540), 24 etapas. App39, arnés06643bf, OTA01a18e58. Fixture nueva; C2 aprobado no se atribuye a esta optimización**. |
 
-La validación física en **Samsung Galaxy S23 Ultra** queda pendiente. La conexión USB fue pospuesta por el propietario; no se exige ni se vuelve a solicitar para continuar esta preparación. Rendimiento físico y aceptación visual del nuevo realismo permanecen por comprobar.
+El arnés final `06643bf` aprobó [41118442401](https://github.com/Blaister9/Openminerals/actions/runs/41118442401) y [41118433891](https://github.com/Blaister9/Openminerals/actions/runs/41118433891): **289 aprobadas y cinco GL opcionales omitidas, 294 totales**; Doctor 21/21 y todos los gates aprobados. Sus **54 pruebas dirigidas** de e2e/privacidad aprobaron, con superposición respecto a la suite; no se suman a ella.
 
-## Distribución Android
+El [registro CI](evidence/geology-core-verification-20261030.json) detalla fuentes y jobs. API y móvil conservan sus árboles de dependencias/configuración. Auditoría: API cero avisos; móvil siete bajos, ninguno alto/crítico; no se afirma cero vulnerabilidades móviles. La [regresión comercial C2](evidence/geology-commercial-c2-20261030.json) registra los 24 escenarios, lotes y conciliación antes/después de cold OTA. No inyectó una repetición de la misma clave o pérdida de respuesta: ese alcance pertenece a pruebas backend y cliente separadas. XAG/Pt/Pd se comprobaron visualmente, pero el comercio nativo de esta fixture cubre XAU.
 
-Esta ampliación de JavaScript, geometría y shaders conserva el [APK firmado Android 0.2.0/código 5](https://github.com/Blaister9/Openminerals/releases/download/v0.2.0-demo/Openminerals-Demo-0.2.0-android.apk), la firma, el canal `demo` y el runtime `0.2.0`. La OTA geológica publicada se identifica por **`01a18e27`**; su aplicación nativa sigue bajo comprobación en las ejecuciones anteriores. No requiere descargar otro APK si 0.2.0 ya está instalado.
+## Medición comparable
 
-El procedimiento de actualización conserva datos: resolver los pendientes, buscar actualización desde Actividad o Cuenta, esperar la descarga y cerrar/reabrir cuando no haya operaciones pendientes. El prefijo anterior `01a18d53` identifica la base, no demuestra la recepción de esta mina geológica. No desinstalar, borrar datos o crear otra cuenta para probar una actualización.
+Los perfiles mantienen entrada, viewport 1080 × 1920 y recursos configurados: host Ubuntu con cuatro CPU/15.983 MiB, emulador Pixel2 API29 x86_64, cuatro CPU/4.096 MiB, KVM/SwiftShader. Es una muestra por condición en runners compartidos, sin verificar idéntico host físico.
 
-## Incidencias detectadas durante la preparación
+La ventana excluye menús, preparación, capturas y aserciones. Son 15 gestos: tres avances, cuatro retrocesos y ocho avances, cada swipe solicitado de 1800 ms y 250 ms de asentamiento. Especificación SHA-256 `1a48933715ea7e75cfb38bbd45807fd8350da58c3513d6d7666c4f170c85ac9a`; traza compilada `0e30040ccbf227ed1328ee314a4968da933464450aaca3ce8021981db201c8b3`.
 
-La primera composición de roca resultaba demasiado cúbica y oscura; se reemplazaron los bloques por protuberancias ancladas y se ajustaron exposición, estratos y fisuras. La muestra extraída pasó de un fundido translúcido a crecimiento geométrico sólido. La inversión horizontal después de un arrastre largo tenía una zona muerta por el clamp de cámara combinado con desplazamiento acumulado: se separaron giro y peek incremental, con dos regresiones verificadas. Se omitió además un pase de suelo invisible y se corrigió un buffer sin registrar ante un fallo de atributo.
+| Perfil | Anterior P50/P90/P95 UI, ms | C2 P50/P90/P95 UI, ms | Optimizado |
+| --- | --- | --- | --- |
+| 3D sin grabar | 200 / 500 / 500 | 200 / 500 / 550 | **En medición** |
+| Ligero sin grabar | 57 / 73 / 81 | 73 / 150 / 150 | **En medición** |
+| 3D grabado | 250 / 600 / 650 | 250 / 650 / 750 | **En medición** |
 
-Una ejecución local con todos los renders Chrome en paralelo activó el límite existente de diez segundos al arrancar el parser Python de recuperación. Ese test aprobó aislado y la suite completa aprobó 282/282 con concurrencia dos. El parser, su timeout y los módulos financieros no se modificaron.
+La regresión ligera C2 es un resultado observado, no un éxito de optimización. Motivó retirar Views y overdraw. **La optimización aún requiere medición propia: su menor cantidad de Views no basta para afirmar una mejora Android.**. El JSON comparativo conserva las tres revisiones, muestras PSS, arranque y procedencia de los originales.
+
+La comparación evalúa experiencia adaptativa con la misma entrada; no aísla GPU a resolución fija. `automaticLight=false` solo descarta pasar a Views: no registra el nivel intermedio o las dimensiones GL y no acredita 60 FPS. Estadísticas HWUI, número de cuadros codificados VFR y presupuesto del scheduler tampoco son FPS GPU. `am start` mide arranque de Activity con OTA cacheada, no tiempo completamente interactivo. PSS antes/después no es pico ni prueba de ausencia de fugas; batería, temperatura y latencia física no se midieron.
+
+**Samsung S23 Ultra:** el propietario pospuso conexión física. No se vuelve a solicitar USB ni se intenta conexión inalámbrica. Fluidez física, 60 FPS y aceptación estética permanecen pendientes.
+
+## Capturas y grabaciones
+
+**Las capturas y vídeos siguientes corresponden a la base y a C2, no a39. La captura del túnel ligero y los originales optimizados se incorporarán cuando termine su run.
+
+| Momento | Inicio anterior | C2 geológica |
+| --- | --- | --- |
+| Mina | ![Antes](evidence/geology-before-mine-20261030.png) | ![C2](evidence/geology-after-mine-20261030.png) |
+| Lingote | ![Antes](evidence/geology-before-bar-20261030.png) | ![C2](evidence/geology-after-bar-20261030.png) |
+| Custodia ficticia | ![Antes](evidence/geology-before-custody-20261030.png) | ![C2](evidence/geology-after-custody-20261030.png) |
+
+[Vídeo anterior original](evidence/geology-before-20261030.mp4) · [Vídeo C2 original](evidence/geology-after-20261030.mp4). Materiales C2: [Au](evidence/geology-metal-XAU-20261030.png), [Ag](evidence/geology-metal-XAG-20261030.png), [Pt](evidence/geology-metal-XPT-20261030.png), [Pd](evidence/geology-metal-XPD-20261030.png). [Comparación y procedencia](evidence/geology-android-comparison-20261030.json).**. Los archivos publicados proceden de flujos Android anónimos antes de introducir credenciales; se conservan los bytes y tiempos originales, con SHA-256 y procedencia en el JSON. Las imágenes C2 no se atribuyen a la optimización posterior. Lingote y custodia se comparan por significado: etapas anteriores 4/5 frente a nuevas 5/6. DEMO visible en estas poses no acredita legibilidad en todos los tamaños o ángulos.
+
+## Actualizar sin reinstalar
+
+Se conserva el [APK firmado Android0.2.0/código5](https://github.com/Blaister9/Openminerals/releases/download/v0.2.0-demo/Openminerals-Demo-0.2.0-android.apk), paquete `com.openminerals.demo.mobile`, runtime `0.2.0` y canal `demo`. **La OTA optimizada publicada se identifica por **`01a18e58`**; su aplicación nativa se está comprobando en los dos runs indicados**. No hace falta otro APK si ya está instalado 0.2.0.
+
+Resuelve operaciones pendientes; en Actividad o Cuenta pulsa Buscar actualización, espera la descarga y cierra/reabre cuando no haya operaciones pendientes. No desinstales, borres datos o crees otra cuenta para actualizar. `01a18d53` corresponde al Inicio anterior; `01a18e27` a C2. La comprobación nativa de OTA se identifica por su ID real, no por el enlace de la PR.
+
+## Incidencias y límites conservados
+
+Se corrigieron roca inicialmente cúbica/oscura, espécimen translúcido, zona muerta al invertir un arrastre largo, suelo invisible y registro de buffer ante fallo de atributo. La optimización añadió control de alfa opaca y eliminó el fallback duplicado. La falta de telemetría de nivel adaptativo y validación física permanece expresamente abierta.
+
+La primera suite local con todos los Chrome en paralelo activó el timeout existente de diez segundos del parser Python de recuperación. El caso aprobó aislado y la suite completa con concurrencia dos. No se modificaron parser, timeout o módulos financieros. La descarga directa del CDN EAS respondió403: se verificó el hash del export local contra el manifiesto público, sin eludir esa respuesta, y se complementó con aplicación nativa de OTA.
+
+**Las doce credenciales temporales de CI pertenecen a fixtures privadas y se mantienen durante las dos ejecuciones optimizadas; su retiro queda pendiente de terminar ambas**. Las fixtures son minas explícitas de simulación; no reinician la mina pública o las sesiones del propietario. Ninguna credencial privada, token, dato de recuperación o pantalla de cuenta se incorpora a la evidencia pública.
