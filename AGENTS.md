@@ -11,7 +11,7 @@ El cliente inicial de la presentación es el operador o propietario de una mina.
 - Proyecto **DEMO**, sin dinero, USDT, metales, reservas, precios o entregas reales.
 - La API conserva sesiones anteriores sin cuenta: `x-demo-session` **no** es credencial segura. Las cuentas nuevas tienen alias ficticio, clave demo y token revocable; no verifican identidad ni son autenticación apta para producción financiera. No utilizar con clientes reales ni datos personales sensibles.
 - No existe KYC, AML, custodia física, emisión de tokens, blockchain, integración bancaria, precios en tiempo real ni ledger contable de doble entrada.
-- Android 0.2.0 incorpora malla 3D con ExpoGL, omisión y movimiento reducido. Distinguir las pruebas WebGL de software, la ejecución Android emulada y la aceptación en teléfono; consultar la evidencia por revisión en `docs/20-sprint-inmersivo-2026-10-30.md` y los informes históricos antes de reconstruir o dar por terminado el recorrido.
+- Android 0.2.0 incorpora malla 3D con ExpoGL, omisión y movimiento reducido. Distinguir las pruebas WebGL de software, la ejecución Android emulada y la aceptación en teléfono; consultar la revisión actual de Inicio en `docs/21-inicio-inmersivo-pantalla-completa.md`, el checkpoint de inventario/API en `docs/20-sprint-inmersivo-2026-10-30.md` y los informes históricos antes de reconstruir o dar por terminado el recorrido.
 - No describir como probado lo que no se haya ejecutado. No inventar enlaces de builds, despliegues o credenciales.
 - No comenzar producción financiera ni conectar saldos reales. Requiere análisis legal y de negocio aparte.
 

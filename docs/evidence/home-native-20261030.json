@@ -1,0 +1,418 @@
+{
+  "format": "openminerals-home-native-evidence-v1",
+  "demoOnly": true,
+  "application": {
+    "uiCommit": "a9ae62e3095524272bdb3aa4a9ca7478990229aa",
+    "androidUpdateId": "01a18d53-41bc-7869-9595-9a9b2e3e744c",
+    "runtimeVersion": "0.2.0",
+    "channel": "demo",
+    "appliedPrefixVerified": "01a18d53",
+    "applicationAndApiUnchangedByHarnessFollowups": true,
+    "publishedHermesAsset": {
+      "sha256": "b5599569dad3dd2500447e492ce5d4677b222d02e246a382793c24f62a7500be",
+      "apiOrigin": "https://openminerals-api-demo.up.railway.app",
+      "developmentLocalhostOriginExcluded": true,
+      "verificationSource": "Release publisher independently inspected the published bytecode before dispatch."
+    }
+  },
+  "run": {
+    "id": 41082878671,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41082878671",
+    "harnessCommit": "07ee44248fd4d3c475a3212ccf0125de8eb5e0ac",
+    "branch": "codex/immersive-custody-20261029",
+    "workflow": "Android UI verification",
+    "scenario": "immersive-story",
+    "conclusion": "success"
+  },
+  "artifact": {
+    "id": 12992725301,
+    "name": "android-ui-single-41082878671",
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41082878671/artifacts/12992725301",
+    "bytes": 6111350,
+    "createdAt": "2026-10-30T16:01:25Z",
+    "expiresAt": "2026-10-31T16:01:23Z"
+  },
+  "apk": {
+    "package": "com.openminerals.demo.mobile",
+    "code": 5,
+    "name": "0.2.0",
+    "sha256": "c35719bf44fdc5a1237249be7e80d6d3102e57ee58f0cd0d9b5af3c66f32d83f",
+    "minSdk": 24,
+    "certificate": "3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c"
+  },
+  "environment": {
+    "name": "disposable Android GitHub Actions emulator",
+    "hostOS": "ubuntu-24.04",
+    "androidApi": 29,
+    "systemImage": "google_apis x86_64",
+    "deviceProfile": "pixel_2",
+    "cpuAcceleration": "KVM installed and usable",
+    "graphicsRenderer": "SwiftShader",
+    "availableCpus": 4,
+    "totalMemoryMiB": 15983,
+    "guestCpus": 4,
+    "guestMemoryMiB": 4096,
+    "maestroVersion": "2.12.0",
+    "physicalDevice": false
+  },
+  "junit": {
+    "tests": 7,
+    "failures": 0,
+    "stages": [
+      {
+        "name": "anonymous-postgres-api-preconditions",
+        "seconds": 0.395
+      },
+      {
+        "name": "install-story-apk",
+        "seconds": 40.97
+      },
+      {
+        "name": "anonymous-compatible-ota-before-story",
+        "seconds": 60.78
+      },
+      {
+        "name": "native-story-and-reduced-motion",
+        "seconds": 377.882
+      },
+      {
+        "name": "unrecorded-3d-native-performance",
+        "seconds": 303.868
+      },
+      {
+        "name": "unrecorded-light-native-performance",
+        "seconds": 296.926
+      },
+      {
+        "name": "native-story-resumes-after-home",
+        "seconds": 74.065
+      }
+    ]
+  },
+  "checks": {
+    "sevenChaptersAndReadyNativeGL": true,
+    "fullAvailableViewport": true,
+    "persistentBottomNavigation": true,
+    "accountAndLegacyLinkBannersAbsentFromHome": true,
+    "visualCounterAndPermanentChapterRailAbsent": true,
+    "noStackedFinancialFooter": true,
+    "finalSceneRetainedAfterExtraSwipe": true,
+    "chapterMenuClosesBeforeScreenshots": true,
+    "forwardAndReverseByNativeSwipes": true,
+    "horizontalSwipesSentWithoutChangingChapter": true,
+    "nativeHorizontalRotationEffectMeasured": false,
+    "threeFinalDestinationsVerifiedWithoutFinancialSubmission": [
+      "Metales",
+      "Billetera",
+      "Mercado"
+    ],
+    "skipToMarketVerified": true,
+    "zeroHoldingSaleDisabledVerified": true,
+    "lightweightAndManualReducedMotionVerified": true,
+    "privateQAAccountLogin": false,
+    "financialCommandsPerformed": false,
+    "commercialRegressionIncluded": false,
+    "homeResume": {
+      "backgroundObserved": true,
+      "sameProcess": true,
+      "stagePreserved": true,
+      "glReadinessMarker": true,
+      "advancedAndReversed": true,
+      "forceStopUsed": false,
+      "credentialsEntered": false
+    }
+  },
+  "metrics": {
+    "recorded3D": {
+      "coldStartTotalMs": 1587,
+      "coldStartWaitMs": 1605,
+      "pssBeforeKiB": 126153,
+      "pssAfterKiB": 119052,
+      "uiFrames": 163,
+      "jankyUiFrames": 163,
+      "uiFrameP50Ms": 250,
+      "uiFrameP90Ms": 650,
+      "uiFrameP95Ms": 700,
+      "automaticLightObserved": false,
+      "screenRecording": true,
+      "visualMode": "3d",
+      "measurementScope": "continuous native swipes after ready-frame preparation; menus and exit excluded",
+      "hwuiProfilingRequested": true,
+      "measurementsComplete": true
+    },
+    "unrecorded3D": {
+      "coldStartTotalMs": 1349,
+      "coldStartWaitMs": 1379,
+      "pssBeforeKiB": 115804,
+      "pssAfterKiB": 114892,
+      "uiFrames": 293,
+      "jankyUiFrames": 283,
+      "uiFrameP50Ms": 81,
+      "uiFrameP90Ms": 200,
+      "uiFrameP95Ms": 250,
+      "automaticLightObserved": false,
+      "screenRecording": false,
+      "visualMode": "3d",
+      "measurementScope": "unrecorded chapter checks and reversible swipes after visual-mode preparation; exit excluded",
+      "hwuiProfilingRequested": true,
+      "measurementsComplete": true
+    },
+    "unrecordedLightweight": {
+      "coldStartTotalMs": 1332,
+      "coldStartWaitMs": 1371,
+      "pssBeforeKiB": 114931,
+      "pssAfterKiB": 119428,
+      "uiFrames": 296,
+      "jankyUiFrames": 287,
+      "uiFrameP50Ms": 77,
+      "uiFrameP90Ms": 150,
+      "uiFrameP95Ms": 150,
+      "automaticLightObserved": false,
+      "screenRecording": false,
+      "visualMode": "light",
+      "measurementScope": "unrecorded chapter checks and reversible swipes after visual-mode preparation; exit excluded",
+      "hwuiProfilingRequested": true,
+      "measurementsComplete": true
+    }
+  },
+  "video": {
+    "filename": "home-20261030-gestures.mp4",
+    "sourceArtifactFilename": "safe-immersive-scroll.mp4",
+    "bytes": 867690,
+    "sha256": "9e54192a027e94d65f9bcd944f23243e400701ad7a80c166624f3594f0fa55ac",
+    "codec": "h264",
+    "width": 1080,
+    "height": 1920,
+    "durationSeconds": 73.0095,
+    "encodedFrames": 98,
+    "averageEncodedFrameRate": "1102500/821357",
+    "variableFrameRate": true,
+    "startsAfterReadyFrame": true,
+    "includesMenus": false,
+    "includesColdStart": false,
+    "ownedRecorderAliveThroughVerifiedSequence": true,
+    "publicationPrivacyReviewed": true,
+    "reviewMethod": "Contact sheet sampled every two seconds across the complete duration, original seven chapter screenshots, reduced-motion screenshot, and final decoded video frame inspected.",
+    "observedPath": [
+      {
+        "sampleSecond": 0,
+        "stage": "ORIGEN MINERAL"
+      },
+      {
+        "sampleSecond": 14,
+        "stage": "EXTRACCIÓN"
+      },
+      {
+        "sampleSecond": 16,
+        "stage": "REFINACIÓN"
+      },
+      {
+        "sampleSecond": 20,
+        "stage": "FORMACIÓN DEL LINGOTE"
+      },
+      {
+        "sampleSecond": 24,
+        "stage": "REFINACIÓN",
+        "direction": "reverse"
+      },
+      {
+        "sampleSecond": 28,
+        "stage": "EXTRACCIÓN",
+        "direction": "reverse"
+      },
+      {
+        "sampleSecond": 30,
+        "stage": "ORIGEN MINERAL",
+        "direction": "reverse"
+      },
+      {
+        "sampleSecond": 52,
+        "stage": "CUSTODIA VIRTUAL",
+        "direction": "forward"
+      },
+      {
+        "sampleSecond": 56,
+        "stage": "FRACCIONAMIENTO DIGITAL",
+        "direction": "forward"
+      },
+      {
+        "sampleSecond": 60,
+        "stage": "PORTAFOLIO",
+        "direction": "forward"
+      },
+      {
+        "sampleSecond": 72.005633,
+        "stage": "PORTAFOLIO",
+        "description": "Final decoded frame retains the three destinations and bottom navigation."
+      }
+    ],
+    "initialReadyScenePauseApproxSeconds": 12,
+    "encodedFrameRateInterpretation": "Variable-rate recording includes static assertion waits. Encoded average frame rate is not app rendering FPS."
+  },
+  "screenshots": [
+    {
+      "filename": "home-20261030-origin.png",
+      "sourceArtifactFilename": "safe-story-1.png",
+      "stage": 1,
+      "origin": "original native Maestro screenshot from this successful run; not an extracted video frame",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 913346,
+      "sha256": "5bc50495d60f316d96e92b7d5a6bcf5a36ecbca08fc0d32206dda5a2f5e863d9",
+      "anonymous": true,
+      "visuallyReviewed": true
+    },
+    {
+      "filename": "home-20261030-extraction.png",
+      "sourceArtifactFilename": "safe-story-2.png",
+      "stage": 2,
+      "origin": "original native Maestro screenshot from this successful run; not an extracted video frame",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 1392307,
+      "sha256": "df9bd3c9611dc53050d932a6deb57ba354cdb493d4ce061bbb97c8e74dd6b65f",
+      "anonymous": true,
+      "visuallyReviewed": true
+    },
+    {
+      "filename": "home-20261030-refining.png",
+      "sourceArtifactFilename": "safe-story-3.png",
+      "stage": 3,
+      "origin": "original native Maestro screenshot from this successful run; not an extracted video frame",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 849897,
+      "sha256": "f321148ecfaed485a227bd9e6a5f71005d3f4c5777d35514deecebe8a6398919",
+      "anonymous": true,
+      "visuallyReviewed": true
+    },
+    {
+      "filename": "home-20261030-bar.png",
+      "sourceArtifactFilename": "safe-story-4.png",
+      "stage": 4,
+      "origin": "original native Maestro screenshot from this successful run; not an extracted video frame",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 523686,
+      "sha256": "a327456dbfb71f49c91f5f11439d4ad8b801ee2d0898a262df779b772564a8f0",
+      "anonymous": true,
+      "visuallyReviewed": true
+    },
+    {
+      "filename": "home-20261030-vault.png",
+      "sourceArtifactFilename": "safe-story-5.png",
+      "stage": 5,
+      "origin": "original native Maestro screenshot from this successful run; not an extracted video frame",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 487277,
+      "sha256": "b749aafd778ba8770f1609af8af0b393bc64c22ccecb501a2890415ca5315fa9",
+      "anonymous": true,
+      "visuallyReviewed": true
+    },
+    {
+      "filename": "home-20261030-fractions.png",
+      "sourceArtifactFilename": "safe-story-6.png",
+      "stage": 6,
+      "origin": "original native Maestro screenshot from this successful run; not an extracted video frame",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 549087,
+      "sha256": "fcb8f7c050b25ea4785b85b67eb821d606a7f84792d97e138eaeed16b9833703",
+      "anonymous": true,
+      "visuallyReviewed": true
+    },
+    {
+      "filename": "home-20261030-portfolio.png",
+      "sourceArtifactFilename": "safe-story-7.png",
+      "stage": 7,
+      "origin": "original native Maestro screenshot from this successful run; not an extracted video frame",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 518247,
+      "sha256": "c963f98b3d3846162ca547e51f1e305a179b3d6b510d215982fe08ac431249c6",
+      "anonymous": true,
+      "visuallyReviewed": true
+    },
+    {
+      "filename": "home-20261030-reduced-motion.png",
+      "sourceArtifactFilename": "safe-reduced-motion.png",
+      "stage": null,
+      "origin": "original native Maestro screenshot from this successful run; not an extracted video frame",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 97579,
+      "sha256": "1fb7f1af3ae8aa49d636f2a1d670124ebff7a4fd1ffaf39a16946eca295b1853",
+      "anonymous": true,
+      "visuallyReviewed": true
+    }
+  ],
+  "testBudget": {
+    "nativeBlockNames": [
+      "native-story-and-reduced-motion",
+      "unrecorded-3d-native-performance",
+      "unrecorded-light-native-performance",
+      "native-story-resumes-after-home"
+    ],
+    "currentNativeBlocksSeconds": 1052.741,
+    "previousAnonymousRun": 41061145241,
+    "previousAnonymousNativeBlocksSeconds": 366.636,
+    "deltaAnonymousNativeBlocksSeconds": 686.105,
+    "currentAllStageSeconds": 1154.886,
+    "previousAnonymousAllStageSeconds": 479.395,
+    "previousFullRun": 41061954019,
+    "previousFullAllStageSeconds": 1878.803,
+    "fullIncludesUnrecordedProfiles": false,
+    "currentFullRelevantBlockSeconds": 451.947,
+    "previousFullRelevantBlockSeconds": 163.861,
+    "projectedFullStageSeconds": 2166.889,
+    "interpretation": "Workload budgeting only. Full runs only recorded narrative plus HOME, not the two unrecorded profiles. Projection excludes setup and run-to-run variation and is not a completed full-run result."
+  },
+  "diagnostics": {
+    "lastStage": {
+      "name": "native-story-resumes-after-home",
+      "status": "PASSED"
+    },
+    "lastHandledNonzeroCommand": {
+      "stage": "unrecorded-light-native-performance",
+      "program": "adb",
+      "operation": "shell",
+      "exitCode": 1,
+      "reason": "nonzero-exit"
+    },
+    "interpretation": "A nonzero adb shell result remains in the recorder even when caught by the helper. Public artifacts omit its shell arguments. All seven JUnit stages passed; no failure-context artifact was published."
+  },
+  "priorAttempt": {
+    "run": 41079287567,
+    "conclusion": "failure",
+    "harnessCommit": "d42d7554f157749e44e4544e4f918005ed23a757",
+    "uiCommitUnchanged": true,
+    "completedStages": 3,
+    "failedStages": 1,
+    "cause": "story-exit asserted the purchase confirmation button after centering only the quantity field. Harness 07 explicitly scrolls each destination control into view. No failed-run screenshot or extracted video frame was reused as a successful screenshot."
+  },
+  "privacy": {
+    "screenshotsAndVideoAnonymous": true,
+    "privateAccountScreenshotsPublished": false,
+    "rawUiOrLogsPublished": false,
+    "accountIdentifiersPublished": false,
+    "temporarySignedDownloadUrlsPublished": false
+  },
+  "limitations": [
+    "The application commit and OTA differ from the verification-only harness commit; both are stated explicitly.",
+    "This scenario verifies Home and read-only financial navigation, not a complete commercial journey.",
+    "Physical Android-device performance and TalkBack acceptance have not been established. The visual direction was accepted as a base.",
+    "UI frame timing is slow in the software-graphics emulator; no performance optimization acceptance.",
+    "Android gfxinfo statistics are UI frame timings, not GPU FPS.",
+    "The am-start TotalTime and WaitTime fields are Activity launch measurements, not time until the app is interactive or first-install latency.",
+    "PSS is sampled before and after a workload, not peak memory.",
+    "The three profiles use different workloads: recorded pure gestures versus unrecorded chapter/menu checks. Screen recorder overhead cannot be isolated by directly comparing them.",
+    "The older scenario included different preparation and exit work. Its raw metrics are not a controlled performance baseline for this changed workload.",
+    "Native horizontal swipes and stable chapter were asserted, but bar orientation was not measured in the native test.",
+    "The full commercial continuation, physical performance and later 3D mine realism remain separate work."
+  ],
+  "phoneAcceptance": false,
+  "userDesignAcceptance": "Visual direction accepted as a base; further 3D mine realism remains future work.",
+  "realFunds": false,
+  "realCustody": false
+}
