@@ -5,7 +5,7 @@ Todo el recorrido usa cuentas, USDT, metales, documentos y entregas **simulados*
 ## Preparar el teléfono
 
 1. Conservar la instalación y sus datos. Si aún no está instalado, usar el [APK firmado 0.2.0](https://github.com/Blaister9/Openminerals/releases/download/v0.2.0-demo/Openminerals-Demo-0.2.0-android.apk) como actualización, sin desinstalar.
-2. Abrir **Actividad → Actualizaciones de la demo** como comprador, o **Cuenta** como operador. Buscar actualización cuando no exista una operación pendiente; cerrar completamente y volver a abrir. La candidata publicada muestra **Actualización aplicada · 01a18988**; consultar [sus resultados de aceptación](18-candidata-android-2026-10-29.md).
+2. Abrir **Actividad → Actualizaciones de la demo** como comprador, o **Cuenta** como operador. Buscar actualización cuando no exista una operación pendiente; cerrar completamente y volver a abrir. Comprobar la revisión aplicada indicada en [el informe vigente](19-evolucion-inmersiva-android.md); el mensaje de compatibilidad por sí solo no acredita que se haya aplicado.
 3. Para un recorrido reproducible, usar los dos compradores de la preparación privada descrita en la candidata. Iniciar sesión con sus alias, sin volver a registrarlos. Ambos pertenecen a la misma mina privada y conservan saldos iniciales independientes. La sesión anterior del teléfono permanece guardada.
 4. Usar el operador de esa misma preparación y revisar **Mina → Inventario**, con 5 g iniciales de cada metal. Como alternativa, el [operador público autorizado](../demo-access/operator-public.json) y compradores registrados públicamente pertenecen a la mina compartida histórica; sus registros y existencias pueden ser diferentes. Si hace falta inventario, registrar un lote ficticio trazable, sin modificar gramos ya asignados.
 
@@ -38,7 +38,9 @@ Después de aceptar costes, la demo no ofrece cancelación ni reembolso de esa e
 
 ## Operador: inventario y gerencia
 
+- En **Inventario**, seleccionar oro y registrar **1 g** con **Registrar producido DEMO**. La disponibilidad no debe aumentar. Continuar ese mismo registro con **Pasar a verificación DEMO**; tampoco crea stock. Solo **Recibir en custodia DEMO**, tras su confirmación, crea el lote y el ingreso trazable. No registrar otra producción para reintentar la misma recepción.
 - Verificar disponible/asignado y las reservas dentro de lo asignado. En el escenario aislado de CI, que empieza con 5 g y registra después una reposición de 1 g: original 6 g, entregado 0,5 g, activo 5,5 g, disponible 4,5 g y asignado 1 g. Una mina con datos anteriores tendrá otros totales.
+- Distinguir la fracción de cada comprador del peso total del lote compartido. Abrir el historial del lote que participó en la compraventa y entrega para consultar asignación, transferencia, reservas y salida; un lote recién recibido todavía puede tener únicamente su entrada.
 - En **Panel gerencial**, filtrar por el comprador A y oro. El ejemplo tiene compra directa 2 g, venta directa 0,5 g e intercambio 0,5 g, contado una sola vez. Las comisiones de negociación del ejemplo suman 4,61 USDT; los costes de entrega 10 USDT se muestran separados.
 - Consultar el historial, comprobantes autorizados y los lotes de la mina. El operador no debe recibir saldos de billeteras privadas ni conversiones/ingresos personales.
 - Consultar perfil y guardar preferencias ficticias. Para un comprador, la recuperación se habilita con su contraseña y una clave privada que debe conservar fuera de la app; nunca incluirla en capturas o informes. El operador público no permite recuperación por autoservicio.
@@ -49,6 +51,6 @@ Cerrar y reabrir la app. Confirmar cuenta, saldos, posiciones, oferta vendida, e
 
 Al cerrar una cuenta, revisar el rótulo de identidad. La sesión legacy guardada en el dispositivo conserva su historial y puede reaparecer; la cuenta cerrada debe desaparecer de la vista. El modo sin cuenta es una compatibilidad exclusiva de la demo.
 
-Registrar: fecha, modelo/Android, revisión aplicada, pasos aprobados y cualquier error literal sin credenciales. La candidata amplía la presentación a siete escenas: consultar [su revisión y evidencia](18-candidata-android-2026-10-29.md) antes de actualizar. Comprobar también arrastre del lingote, omisión y movimiento reducido. La ejecución emulada y los tests de API no sustituyen esta aceptación física ni sus medidas de rendimiento.
+Registrar: fecha, modelo/Android, revisión aplicada, pasos aprobados y cualquier error literal sin credenciales. Consultar [la revisión y evidencia vigentes](19-evolucion-inmersiva-android.md). Comprobar las siete etapas mediante desplazamiento continuo, retroceso, arrastre horizontal del objeto, omisión y movimiento reducido. Verificar que el escenario permanece visible en cada etapa y explorar horizontalmente los saldos y posiciones. La ejecución emulada y los tests de API no sustituyen esta aceptación física ni sus medidas de rendimiento.
 
 [Evidencia técnica y pendientes del sprint](16-sprint-android-2026-10-29.md).

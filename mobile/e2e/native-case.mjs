@@ -12,7 +12,7 @@ const select=(id,direction='UP')=>`- scrollUntilVisible:\n    element:\n      id
 // Only reviewed financial/profile flow templates are transformed. Legacy and
 // anonymous OTA/story assertions keep their original balances and identity.
 export function nativeFlow(name,text,code='XAU'){
-  const allowed=['buyer-a-buy','buyer-a-offer','buyer-b','request-delivery','quote','accept','operator','operator-stock','profile','ota'];
+  const allowed=['buyer-a-buy','buyer-a-offer','buyer-b','request-delivery','quote','accept','operator','operator-stock','profile','ota','custody-recheck'];
   if(!allowed.includes(name))return text;
   const item=nativeCase(code);let result=text.replaceAll('\r\n','\n');
   const money={'157,10':item.afterBuy,'297,89':item.afterSell,'287,89':item.finalA,'180,00':item.finalB,'70,00':item.peerBase,'140,00':item.peer};

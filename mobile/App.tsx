@@ -1,4 +1,4 @@
-import React, {useEffect,useLayoutEffect,useRef,useState} from 'react';
+import React, {useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {ActivityIndicator,Animated,Keyboard,Modal,Platform,Pressable,ScrollView,StatusBar,StyleSheet,Text,TextInput,View} from 'react-native';
 import {SafeAreaProvider,SafeAreaView,initialWindowMetrics} from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -94,6 +94,7 @@ export default function App(){
  const [currency,setCurrency]=useState<Currency>('USD');
  const [amount,setAmount]=useState('200.00');
  const homeScrollY=useRef(new Animated.Value(0)).current;
+ const homeScrollHandler=useMemo(()=>Animated.event([{nativeEvent:{contentOffset:{y:homeScrollY}}}],{useNativeDriver:true}),[homeScrollY]);
  const contentScroll=useRef<ScrollView|null>(null);
  const presentationRef=useRef<ScrollView|null>(null);
  const laidOutScroll=useRef<ScrollView|null>(null);
@@ -410,7 +411,8 @@ export default function App(){
   const depositOverflow=depositMinor!==null&&(state?.walletMinor[currency]||0)+depositMinor>MAX_BALANCE_MINOR;
   const withdrawalInsufficient=depositMinor!==null&&depositMinor>(state?.walletMinor[currency]||0);
   return <><Text style={styles.eyebrow}>CUENTAS MULTIDIVISA</Text><Text style={styles.pageTitle}>Billetera</Text><Text style={styles.copy}>Cuatro saldos independientes con movimientos y conversiones simuladas.</Text>
-  <ScrollView horizontal directionalLockEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:12,paddingVertical:12}}>{currencies.map(c=><View key={c} style={[styles.walletCard,{width:245}]}><View style={styles.walletTop}><Text style={styles.eyebrow}>{c}</Text><Text style={styles.walletBadge}>DEMO</Text></View><Text numberOfLines={2} style={styles.walletValue}>{money(state?.walletMinor[c]||0,c)}</Text><Text style={styles.mutedSmall}>{{COP:'Peso colombiano',EUR:'Euro',USD:'Dólar estadounidense',USDT:'Unidad simulada USDT'}[c]}</Text></View>)}</ScrollView>
+  <Text style={styles.mutedSmall}>Desliza horizontalmente para explorar tus cuatro saldos.</Text>
+  <ScrollView testID="wallet-balances" horizontal directionalLockEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:12,paddingVertical:12}}>{currencies.map(c=><View key={c} style={[styles.walletCard,{width:245}]}><View style={styles.walletTop}><Text style={styles.eyebrow}>{c}</Text><Text style={styles.walletBadge}>DEMO</Text></View><Text numberOfLines={2} style={styles.walletValue}>{money(state?.walletMinor[c]||0,c)}</Text><Text style={styles.mutedSmall}>{{COP:'Peso colombiano',EUR:'Euro',USD:'Dólar estadounidense',USDT:'Unidad simulada USDT'}[c]}</Text></View>)}</ScrollView>
   <Sub>Convertir saldo</Sub><Card><Text style={styles.inputLabel}>De</Text><View style={styles.chips}>{currencies.map(c=><Chip key={c} testID={`convert-from-${c}`} label={c} active={from===c} onPress={()=>{setFrom(c);if(c===to)setTo(c==='USD'?'USDT':'USD');}}/>)}</View>
    <Text style={styles.inputLabel}>A</Text><View style={styles.chips}>{currencies.map(c=><Chip key={c} testID={`convert-to-${c}`} label={c} active={to===c} onPress={()=>{setTo(c);if(c===from)setFrom(c==='USD'?'USDT':'USD');}}/>)}</View>
    <Text style={styles.inputLabel}>Importe</Text><TextInput accessibilityLabel="Cantidad de dinero para convertir" style={styles.input} value={amount} onChangeText={setAmount} keyboardType="decimal-pad"/>
@@ -529,9 +531,9 @@ export default function App(){
   {!!accountRecovery&&<View style={styles.archiveBanner}><Text style={styles.archiveText}>{accountRecovery==='logout'?'El acceso se cerró en el servidor, pero falta finalizar el cierre guardado en este dispositivo. Tus datos permanecen conservados.':'Falta confirmar el acceso a tu cuenta. Entra con el mismo alias y clave demo antes de crear movimientos; no se borró la sesión anterior.'}</Text><Button label={accountRecovery==='logout'?'Reintentar cierre de sesión':'Resolver acceso a cuenta'} disabled={busy||authBusy} onPress={()=>accountRecovery==='logout'?void signOut():openAccount('login')}/></View>}
   {!!pending&&<View style={styles.errorBox}><Text style={styles.errorText}>Pendiente: {pending.title}. Una respuesta perdida no confirma que la operación haya fallado. Reintentar recupera el mismo comprobante y bloquea movimientos duplicados.</Text><Button label={busy?'Consultando…':'Reintentar operación pendiente'} onPress={retryPending} disabled={busy||authBusy||authExpired||!!accountRecovery}/></View>}
   {authExpired?<View style={styles.center}><Text style={styles.cardTitle}>Vuelve a entrar en tu cuenta demo</Text><Text style={styles.copy}>Conservamos la identidad y cualquier solicitud pendiente. Usa el mismo alias para recuperar el acceso.</Text><Button label="Entrar de nuevo" onPress={()=>openAccount('login')} disabled={busy||authBusy}/></View>:!state&&!isOperator?<View style={styles.center}>{!problem&&<ActivityIndicator color={accent}/>}<Text style={styles.muted}>Preparando experiencia móvil…</Text></View>:
-  <Animated.ScrollView key={contentRoute} ref={contentScroll} style={{flex:1}} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false}
+  <Animated.ScrollView key={contentRoute} ref={contentScroll} removeClippedSubviews={false} style={{flex:1}} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false}
    onLayout={event=>{setViewportHeight(Math.max(1,event.nativeEvent.layout.height));if(laidOutScroll.current!==contentScroll.current){laidOutScroll.current=contentScroll.current;contentScroll.current?.scrollTo({y:0,animated:false});}}}
-   onScroll={Animated.event([{nativeEvent:{contentOffset:{y:homeScrollY}}}],{useNativeDriver:true})} scrollEventThrottle={16}>
+   onScroll={homeScrollHandler} scrollEventThrottle={16}>
    {isOperator?(tab==='Cuenta'?accountPage():operatorMine()):tab==='Inicio'?home():tab==='Mercado'?market():tab==='Billetera'?wallet():tab==='Metales'?holdings():more()}
   </Animated.ScrollView>}
   {isOperator&&tab!=='Cuenta'&&!authExpired&&mineNavigation()}

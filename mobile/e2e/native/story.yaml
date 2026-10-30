@@ -28,6 +28,9 @@ name: Continuous native story before credentials
     "assertVisible": "Etapa 1 de 7: ORIGEN MINERAL"
   },
   {
+    "assertVisible": "Restablecer orientación del lingote"
+  },
+  {
     "takeScreenshot": "safe-story-1"
   },
   {
@@ -35,6 +38,9 @@ name: Continuous native story before credentials
   },
   {
     "assertVisible": "Etapa 2 de 7: EXTRACCIÓN"
+  },
+  {
+    "assertVisible": "Restablecer orientación del lingote"
   },
   {
     "takeScreenshot": "safe-story-2"
@@ -46,6 +52,9 @@ name: Continuous native story before credentials
     "assertVisible": "Etapa 3 de 7: REFINACIÓN"
   },
   {
+    "assertVisible": "Restablecer orientación del lingote"
+  },
+  {
     "takeScreenshot": "safe-story-3"
   },
   {
@@ -53,6 +62,9 @@ name: Continuous native story before credentials
   },
   {
     "assertVisible": "Etapa 4 de 7: FORMACIÓN DEL LINGOTE"
+  },
+  {
+    "assertVisible": "Restablecer orientación del lingote"
   },
   {
     "takeScreenshot": "safe-story-4"
@@ -64,6 +76,9 @@ name: Continuous native story before credentials
     "assertVisible": "Etapa 5 de 7: CUSTODIA VIRTUAL"
   },
   {
+    "assertVisible": "Restablecer orientación del lingote"
+  },
+  {
     "takeScreenshot": "safe-story-5"
   },
   {
@@ -71,6 +86,9 @@ name: Continuous native story before credentials
   },
   {
     "assertVisible": "Etapa 6 de 7: FRACCIONAMIENTO DIGITAL"
+  },
+  {
+    "assertVisible": "Restablecer orientación del lingote"
   },
   {
     "takeScreenshot": "safe-story-6"
@@ -82,32 +100,75 @@ name: Continuous native story before credentials
     "assertVisible": "Etapa 7 de 7: PORTAFOLIO"
   },
   {
+    "assertVisible": "Restablecer orientación del lingote"
+  },
+  {
     "takeScreenshot": "safe-story-7"
   },
   {
     "tapOn": "Ir a etapa 4: FORMACIÓN DEL LINGOTE"
   },
   {
-    "swipe": {
-      "start": "50%,68%",
-      "end": "50%,35%",
-      "duration": 800
+    "extendedWaitUntil": {
+      "visible": "Etapa 4 de 7: FORMACIÓN DEL LINGOTE",
+      "timeout": 8000
+    }
+  },
+  {
+    "repeat": {
+      "times": 4,
+      "while": {"visible": "Etapa 4 de 7: FORMACIÓN DEL LINGOTE"},
+      "commands": [{"swipe": {
+        "from": {"id": "immersive-stage", "point": "80%,68%"},
+        "direction": "UP",
+        "duration": 800,
+        "waitToSettleTimeoutMs": 500
+      }}]
     }
   },
   {
     "assertNotVisible": "Etapa 4 de 7: FORMACIÓN DEL LINGOTE"
   },
   {
-    "swipe": {
-      "start": "50%,35%",
-      "end": "50%,68%",
-      "duration": 800
+    "extendedWaitUntil": {
+      "visible": "Etapa [5-7] de 7: .*",
+      "timeout": 8000
     }
+  },
+  {
+    "assertVisible": {"id": "immersive-stage"}
+  },
+  {
+    "assertVisible": "Restablecer orientación del lingote"
+  },
+  {
+    "repeat": {
+      "times": 4,
+      "while": {"notVisible": "Etapa 4 de 7: FORMACIÓN DEL LINGOTE"},
+      "commands": [{"swipe": {
+        "from": {"id": "immersive-stage", "point": "80%,42%"},
+        "direction": "DOWN",
+        "duration": 800,
+        "waitToSettleTimeoutMs": 500
+      }}]
+    }
+  },
+  {
+    "extendedWaitUntil": {
+      "visible": "Etapa 4 de 7: FORMACIÓN DEL LINGOTE",
+      "timeout": 8000
+    }
+  },
+  {
+    "assertVisible": {"id": "immersive-stage"}
   },
   {
     "tapOn": "Ir a etapa 1: ORIGEN MINERAL"
   },
   {
     "assertVisible": "Etapa 1 de 7: ORIGEN MINERAL"
+  },
+  {
+    "assertVisible": "Restablecer orientación del lingote"
   }
 ]

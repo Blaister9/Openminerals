@@ -107,7 +107,7 @@ test('profile continuation installs fresh, edits only profile, then verifies com
     runStage:async(name,work)=>{await work();},maestro:async(...args)=>flows.push(args),verifyNative:async()=>checks.push('verified'),
     adb:(...args)=>{adbCalls.push(args);return args[0]==='shell'&&args[1]==='dumpsys'?'versionCode=5':'';}});
   vm.runInContext(fn.getText(ast)+'\nthis.execute=profileRelaunch;',context);await context.execute();
-  assert.deepEqual(flows,[['operator-navigation-ota'],['profile','a'],['ota','a']]);assert.equal(checks.length,2);
+  assert.deepEqual(flows,[['operator-navigation-ota'],['profile','a'],['custody-recheck','a'],['ota','a']]);assert.equal(checks.length,2);
   assert.deepEqual(adbCalls.filter(args=>args[0]==='install'),[['install','/fixture/new.apk']]);
   const guard=ast.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='scenarioFixtures');
   let completed=0,unused=0;const guards=vm.createContext({scenario:'profile-relaunch',verifyCompletedTrades:async()=>{completed++;},unusedFixtures:async()=>{unused++;}});
