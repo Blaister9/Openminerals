@@ -13,6 +13,5 @@ name: Prepare a valid anonymous 3D frame before recording
   {"tapOn":"Ir a etapa 1: ORIGEN MINERAL"},
   {"extendedWaitUntil":{"visible":"Etapa 1 de 7: ORIGEN MINERAL","timeout":8000}},
   {"assertNotVisible":"Cerrar opciones del recorrido"},
-  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
-  {"runFlow":{"file":"story-clean.yaml"}}
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}}
 ]

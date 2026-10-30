@@ -13,6 +13,5 @@ name: Position a live GL scene before HOME
   {"tapOn":"Ir a etapa 4: FORMACIÓN DEL LINGOTE"},
   {"extendedWaitUntil":{"visible":"Etapa 4 de 7: FORMACIÓN DEL LINGOTE","timeout":8000}},
   {"assertNotVisible":"Cerrar opciones del recorrido"},
-  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
-  {"runFlow":{"file":"story-clean.yaml"}}
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}}
 ]

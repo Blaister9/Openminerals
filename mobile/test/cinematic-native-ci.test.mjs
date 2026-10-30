@@ -19,6 +19,7 @@ test('native Home guard checks visible scene and tabs while excluding account ca
   for(const id of ['home-cinematic-scroll','immersive-stage'])assert.ok(commands.some(command=>command.assertVisible?.id===id));
   for(const tab of ['Inicio','Mercado','Billetera','Metales','Actividad'])assert.ok(commands.some(command=>command.assertVisible==='^'+tab+'$'));
   const excluded=commands.map(command=>command.assertNotVisible).filter(value=>typeof value==='string').map(value=>new RegExp(value));
+  assert.equal(excluded.length,3);assert.ok(excluded.every(pattern=>pattern.source.length<=240),'Grouped negative selectors remain within the public diagnostic bound.');
   for(const text of ['Cuenta','Sesión sin cuenta','Sesión anterior · solo consulta','Comprador · synthetic','Tu sesión anterior está vinculada a una cuenta y queda en consulta.','01/07','07 / 07','Ir a etapa 4: FORMACIÓN DEL LINGOTE','MIS POSICIONES','COMPOSICIÓN DEL PORTAFOLIO','Cantidad de metal en gramos'])assert.ok(excluded.some(pattern=>pattern.test(text)),text);
   assert.ok(commands.some(command=>command.assertNotVisible?.id==='operations-scroll'));
   assert.ok(commands.every(command=>Object.keys(command).every(key=>['assertVisible','assertNotVisible'].includes(key))));
@@ -34,6 +35,7 @@ test('anonymous narrative closes its real options before screenshots and checks 
       if(command.takeScreenshot){assert.equal(options,false);snapshots.push(command.takeScreenshot);}
     }
     assert.deepEqual(snapshots,name==='story'?Array.from({length:7},(_,index)=>'safe-story-'+(index+1)):[]);
+    assert.equal(commands.filter(command=>command.runFlow?.file==='story-clean.yaml').length,2,'Full Home invariants are checked at origin and the overscrolled final scene.');
     for(let index=1;index<=7;index++)assert.ok(commands.some(command=>typeof command.tapOn==='string'&&command.tapOn.startsWith('Ir a etapa '+index+': ')));
     const end=commands.findIndex(command=>command.swipe?.from?.point==='80%,75%');assert.ok(end>0);
     assert.match(commands[end+1].assertVisible,/Etapa 7 de 7:/);assert.equal(commands[end+2].runFlow.file,'story-clean.yaml');
@@ -64,8 +66,13 @@ test('anonymous video uses only slow real swipes and verifies reversal and final
   assert.ok(commands.some(command=>command.assertVisible==='Operar con metales DEMO'));
   assert.ok(commands.some(command=>typeof command.extendedWaitUntil?.visible==='string'&&command.extendedWaitUntil.visible.startsWith('Etapa 7 de 7:')));
   assert.ok(nested(commands).every(command=>!command.tapOn&&!command.takeScreenshot&&!command.inputText));
-  assert.ok(commands.filter(command=>command.runFlow).every(command=>command.runFlow.file==='story-clean.yaml'));
+  assert.equal(commands.some(command=>command.runFlow),false,'The recorded clip adds no repeated menu or composition checks.');
   const prepare=await flow('story-video-prepare');assert.ok(prepare.some(command=>command.extendedWaitUntil?.visible?.id==='immersive-gl-ready'));
+});
+
+test('full composition checks cover modes and resume without repeating every chapter preparation or login',async()=>{
+  for(const name of ['story-video-prepare','story-light-prepare','story-resume-position','login'])assert.equal(nested(await flow(name)).some(command=>command.runFlow?.file==='story-clean.yaml'),false,name);
+  for(const name of ['story-exit','story-resume-check','register'])assert.equal(nested(await flow(name)).filter(command=>command.runFlow?.file==='story-clean.yaml').length,1,name);
 });
 
 test('Home content stays standalone and its real skip handler selects Mercado',async()=>{
@@ -95,11 +102,11 @@ test('cold-launch and account continuations reach Actividad before checking an i
   for(const name of ['import','hide-and-logout','reenter']){
     const commands=parse(accountFlow(name));
     for(let index=0;index<commands.length;index++)if(commands[index].extendedWaitUntil?.visible==='^Comprador ·.*'||commands[index].extendedWaitUntil?.visible==='^Sesión anterior · solo consulta$')assert.ok(isTap(commands[index-1],'^Actividad$'),name);
-    assert.ok(commands.some(command=>command.runFlow?.file==='story-clean.yaml'),name);
+    assert.equal(commands.some(command=>command.runFlow?.file==='story-clean.yaml'),name!=='reenter',name);
   }
   const pending=nested(parse(qualityFlow('resolve')));
   const open=pending.findIndex(command=>isTap(command,'Operación pendiente · Resolver en Actividad'));
   assert.ok(open>0);assert.ok(pending.findIndex(command=>isTap(command,'^Reintentar operación pendiente$'))>open);
   const login=nested(await flow('login'));
-  assert.ok(isTap(login[1],'^Actividad$'));assert.ok(login.some(command=>command.runFlow?.file==='story-clean.yaml'));
+  assert.ok(isTap(login[1],'^Actividad$'));
 });

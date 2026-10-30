@@ -71,6 +71,7 @@ export async function runImmersivePerformance({adb,serial,maestro,published,reco
   try{
     if(record){await new Promise(resolve=>setTimeout(resolve,1000));recorderPid=pids();requireSafe(/^\d+$/.test(recorderPid),'Screen recording did not start.');}
     await maestro(record?'story-video':light?'story-light':'story');
+    if(record)requireSafe(recorder.exitCode===null&&pids()===recorderPid,'The owned recorder ended before the verified narrative completed; the video is incomplete.');
     const xmlPath='/sdcard/openminerals-story-flags-'+randomUUID()+'.xml';
     try{
       adb('shell','uiautomator','dump',xmlPath);const xml=adb('exec-out','cat',xmlPath);

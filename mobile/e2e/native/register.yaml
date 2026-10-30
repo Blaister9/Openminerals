@@ -79,8 +79,6 @@ name: Register without importing or trading against the default mine
     visible:
       id: home-cinematic-scroll
     timeout: 30000
-- runFlow:
-    file: story-clean.yaml
 - tapOn: ^Actividad$
 - extendedWaitUntil:
     visible: ^Sesión sin cuenta$

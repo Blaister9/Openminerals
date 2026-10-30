@@ -11,7 +11,7 @@ test('Android performance retains measured values from both meminfo formats with
   assert.ok(Object.values(parseAndroidPerformance({before:'unavailable',after:'',gfx:'',start:''})).every(value=>value===null));
 });
 
-for(const failure of [false,true])test('Recording prepares a valid frame and stops before options, including video failure='+failure,async()=>{
+for(const failure of [null,'flow','early-recorder-exit'])test('Recording prepares a valid frame and rejects incomplete capture: '+(failure??'success'),async()=>{
   const text=await readFile(new URL('../e2e/immersive-performance.mjs',import.meta.url),'utf8'),ast=ts.createSourceFile('immersive-performance.mjs',text,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS);
   const declaration=ast.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='runImmersivePerformance');assert.ok(declaration);
   const events=[],reports=new Map();let app=false,recorder=false,child;
@@ -32,18 +32,28 @@ for(const failure of [false,true])test('Recording prepares a valid frame and sto
     process:{env:{GITHUB_ACTIONS:'true',RUNNER_OS:'Linux'}},PACKAGE,requireSafe,parseAndroidPerformance,
     randomUUID:()=> '00000000-0000-4000-8000-000000000000',join:(...parts)=>parts.join('/'),
     setTimeout:callback=>{queueMicrotask(callback);return 0;},
-    spawn:()=>{events.push(['record-start']);recorder=true;child={exitCode:null,on(){},kill(){events.push(['record-kill']);recorder=false;}};return child;},
+    spawn:()=>{events.push(['record-start']);recorder=true;child={exitCode:null,on(){},kill(){events.push(['record-kill']);recorder=false;child.exitCode=0;}};return child;},
     once:async()=>[],writeFile:async(file,data)=>reports.set(file,data),stat:async()=>({size:1024}),readFile:async()=>header,
   });
   vm.runInContext(declaration.getText(ast).replace(/^export\s+/,'')+'\nthis.execute=runImmersivePerformance;',context);
-  const maestro=async name=>{events.push(['maestro',name]);if(failure&&name==='story-video')throw Error('Real video assertion failed');};
+  const maestro=async name=>{
+    events.push(['maestro',name]);
+    if(name==='story-video'&&failure==='flow')throw Error('Real video assertion failed');
+    if(name==='story-video'&&failure==='early-recorder-exit'){
+      // The remote process reached its cap, while the local child has not yet
+      // reported closure. PID verification must reject this success-looking flow.
+      recorder=false;events.push(['record-ended-early']);
+    }
+  };
   const work=context.execute({adb,serial:'emulator-5554',published:'/tmp/native-unit',maestro});
-  if(failure)await assert.rejects(work,/Real video assertion failed/);else await work;
+  if(failure)await assert.rejects(work,failure==='flow'?/Real video assertion failed/:/owned recorder ended.*video is incomplete/);else await work;
   const start=events.findIndex(event=>event[0]==='record-start'),stop=events.findIndex(event=>event.includes('kill')&&event.includes('-INT'));
   assert.ok(start>events.findIndex(event=>event[0]==='maestro'&&event[1]==='story-video-prepare'));
   assert.ok(start>events.findIndex(event=>event[0]==='maestro'&&event[1]==='story'));
-  assert.ok(stop>start);assert.equal(recorder,false);
-  assert.deepEqual(events.slice(start,stop).filter(event=>event[0]==='maestro').map(event=>event[1]),['story-video']);
+  if(failure==='early-recorder-exit')assert.equal(stop,-1);else assert.ok(stop>start);
+  assert.equal(recorder,false);
+  const capturedEnd=stop===-1?events.findIndex(event=>event[0]==='record-ended-early'):stop;
+  assert.deepEqual(events.slice(start,capturedEnd).filter(event=>event[0]==='maestro').map(event=>event[1]),['story-video']);
   const exit=events.findIndex(event=>event[0]==='maestro'&&event[1]==='story-exit');
   if(failure){assert.equal(exit,-1);assert.equal(reports.has('/tmp/native-unit/immersive-performance.json'),false);}
   else{
