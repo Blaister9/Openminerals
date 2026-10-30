@@ -17,6 +17,7 @@ name: Unrecorded lightweight continuous native narrative
   {"runFlow":{"file":"story-clean.yaml"}},
   {"assertVisible":"Etapa 1 de 7: MINA"},
   {"extendedWaitUntil":{"visible":{"id":"immersive-scene-light"},"timeout":30000}},
+  {"takeScreenshot":"safe-light-mine"},
   {"tapOn":"Opciones del recorrido"},
   {"tapOn":"Elegir una etapa"},
   {"scrollUntilVisible":{"element":{"text":"Ir a etapa 2: EXTRACCIÓN"},"direction":"DOWN","centerElement":false,"timeout":8000}},

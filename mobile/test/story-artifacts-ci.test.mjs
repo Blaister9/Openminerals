@@ -62,3 +62,14 @@ test('Anonymous artifact finalization stays in both story stages before registra
   assert.equal(stories.length,2);
   for(const node of stories){assert.equal(node.arguments[1].getText(ast),'runAnonymousStory');assert.ok(node.getStart(ast)<registration.getStart(ast));}
 });
+
+for(const fails of [false,true])test('Light-mine evidence is copied outside the measured profile and preserves its original failure: '+fails,async()=>{
+  const original=Error('Synthetic original light profile failure'),calls=[];
+  const context=vm.createContext({adb:()=>{},serial:'emulator-5554',maestro:()=>{},published:'/tmp/unit',requireSafe,
+    runImmersivePerformance:async options=>{calls.push('profile');assert.equal(options.record,false);assert.equal(options.light,true);if(fails)throw original;},
+    captureSafeScreens:async name=>{calls.push(name);if(fails)throw Error('Synthetic private copy failure');return ['safe-light-mine.png'];},
+  });
+  vm.runInContext(declaration('runAnonymousLightProfile')+'\nthis.execute=runAnonymousLightProfile;',context);
+  if(fails)await assert.rejects(context.execute(),error=>error===original);else await context.execute();
+  assert.deepEqual(calls,['profile','story-light']);
+});

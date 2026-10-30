@@ -35,7 +35,7 @@ test('anonymous narrative closes its real options before screenshots and checks 
       if(isTap(command,'Cerrar opciones del recorrido')||typeof command.tapOn==='string'&&command.tapOn.startsWith('Ir a etapa '))options=false;
       if(command.takeScreenshot){assert.equal(options,false);snapshots.push(command.takeScreenshot);}
     }
-    assert.deepEqual(snapshots,name==='story'?Array.from({length:7},(_,index)=>'safe-story-'+(index+1)):[]);
+    assert.deepEqual(snapshots,name==='story'?Array.from({length:7},(_,index)=>'safe-story-'+(index+1)):['safe-light-mine']);
     assert.equal(commands.filter(command=>command.runFlow?.file==='story-clean.yaml').length,2,'Full Home invariants are checked at origin and the overscrolled final scene.');
     for(let index=1;index<=7;index++)assert.ok(commands.some(command=>typeof command.tapOn==='string'&&command.tapOn.startsWith('Ir a etapa '+index+': ')));
     const end=commands.findIndex(command=>command.swipe?.from?.point==='80%,75%');assert.ok(end>0);
@@ -173,6 +173,18 @@ test('material PNG approval is closed to exactly four names and the pre-credenti
     for(const scope of ['profile','story','story-exit','operator','register','../story-metals'])assert.equal(anonymousScreenshotAllowed(scope,'safe-material-'+code+'.png'),false);
   }
   for(const name of ['safe-material-XAU.png.exe','safe-material-XAU-extra.png','safe-material-OTHER.png','../safe-material-XAU.png'])assert.equal(anonymousScreenshotAllowed('story-metals',name),false);
+});
+
+test('optimized light-mine PNG is an exact anonymous exception before profiling, not another flow or stage',async()=>{
+  assert.equal(anonymousScreenshotAllowed('story-light','safe-light-mine.png'),true);
+  for(const flow of ['story','story-metals','profile','operator','register','../story-light'])assert.equal(anonymousScreenshotAllowed(flow,'safe-light-mine.png'),false);
+  for(const name of ['safe-light-mine-extra.png','../safe-light-mine.png','safe-light-mine.png.exe'])assert.equal(anonymousScreenshotAllowed('story-light',name),false);
+  const commands=await flow('story-light'),index=commands.findIndex(command=>command.takeScreenshot==='safe-light-mine');
+  assert.ok(index>0);assert.equal(commands[index-1].extendedWaitUntil.visible.id,'immersive-scene-light');
+  assert.equal(commands[index-2].assertVisible,'Etapa 1 de 7: MINA');
+  assert.equal(commands[index+1].tapOn,'Opciones del recorrido');
+  assert.equal(commands.filter(command=>command.takeScreenshot).length,1);
+  const performance=await source('../e2e/immersive-performance.mjs');assert.doesNotMatch(performance,/safe-light-mine|takeScreenshot/);
 });
 
 test('material coverage remains outside measurement and before native account credential entry',async()=>{

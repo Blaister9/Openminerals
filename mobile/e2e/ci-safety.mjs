@@ -11,6 +11,7 @@ export const SECRET_NAMES=['BUYER_A_ALIAS','BUYER_A_PASSWORD','BUYER_B_ALIAS','B
 export function requireSafe(condition,message){if(!condition)throw new Error(message);}
 export function anonymousScreenshotAllowed(flow,name){
   return /^safe-(story-[1-7]|upgrade-preserved|reduced-motion|wallet-cop-before-eur)\.png$/.test(name)||
+    flow==='story-light'&&name==='safe-light-mine.png'||
     flow==='story-metals'&&/^safe-material-(XAU|XAG|XPT|XPD)\.png$/.test(name);
 }
 export function apkUrl(value){

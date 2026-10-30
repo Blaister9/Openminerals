@@ -167,6 +167,15 @@ async function runAnonymousMaterials(){
     }
   }
 }
+async function runAnonymousLightProfile(){
+  let failed=false;
+  try{await runImmersivePerformance({adb,serial,maestro,published,record:false,light:true});}
+  catch(error){failed=true;throw error;}
+  finally{
+    const copies=await Promise.allSettled([captureSafeScreens('story-light')]);
+    if(!failed)requireSafe(copies[0].status==='fulfilled'&&copies[0].value.includes('safe-light-mine.png'),'Required anonymous light-mine screenshot is missing.');
+  }
+}
 async function download(){
   requireSafe(process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_OS==='Linux','Downloads are prepared only on GitHub Linux.');
   const url=apkUrl(process.env.APK_INPUT_URL),digest=sha(process.env.APK_INPUT_SHA256);
@@ -262,7 +271,7 @@ async function run(){
     await runStage('anonymous-compatible-ota-before-story',()=>maestro('operator-navigation-ota'));
     await runStage('native-story-and-reduced-motion',runAnonymousStory);
     await runStage('unrecorded-3d-native-performance',()=>runImmersivePerformance({adb,serial,maestro,published,record:false}));
-    await runStage('unrecorded-light-native-performance',()=>runImmersivePerformance({adb,serial,maestro,published,record:false,light:true}));
+    await runStage('unrecorded-light-native-performance',runAnonymousLightProfile);
     await runStage('native-story-resumes-after-home',()=>verifyImmersiveResume({adb,serial,maestro,published}));
     await runStage('native-four-metal-materials',runAnonymousMaterials);
     return;
