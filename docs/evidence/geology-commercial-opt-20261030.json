@@ -1,0 +1,409 @@
+{
+  "format": "openminerals-home-commercial-native-evidence-v1",
+  "demoOnly": true,
+  "run": {
+    "id": 41119079540,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41119079540",
+    "headSha": "06643bf913983fff5670fcc145b47229f36d8d5d",
+    "branch": "codex/geological-realism-android-20261030",
+    "workflow": "Android UI verification",
+    "scenario": "full",
+    "coverageMetal": "XAU",
+    "conclusion": "success"
+  },
+  "sources": {
+    "uiCommit": "39b0f569bd0ffff35c0e816ba5f6f46fb19e809b",
+    "harnessCommit": "06643bf913983fff5670fcc145b47229f36d8d5d",
+    "apiSourceCommit": "89c38d438ed692c87cb01c36d3b669918bff4ccd",
+    "apiDeploymentEvidence": "api-immersive-20261030.json",
+    "sourceScope": "Geological scene and four material selections; the API and financial command logic remain unchanged."
+  },
+  "artifact": {
+    "id": 13010585847,
+    "name": "android-ui-XAU-41119079540",
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41119079540/artifacts/13010585847",
+    "bytes": 6985049,
+    "createdAt": "2026-10-30T20:35:07Z",
+    "expiresAt": "2026-10-31T20:35:05Z"
+  },
+  "ota": {
+    "requestedUpdateId": "01a18e58-e304-79e3-9917-7c6d407b9e29",
+    "groupId": "38f9c8f3-1193-4b5f-932d-ec2fa7824e95",
+    "runtimeVersion": "0.2.0",
+    "channel": "demo",
+    "appliedPrefixVerified": "01a18e58",
+    "publishedHermesAssetSha256": "82e7ce6757b400f5885bd3ef383ddbbd74d0c7f148feaa2040d9332b4b6fdec3",
+    "publicationChecksSource": "geology-android-comparison-20261030.json",
+    "verification": "Applied update prefix asserted natively before the story and on final cold launch; commerce invariants checked before and after the latter."
+  },
+  "apks": [
+    {
+      "kind": "baseline",
+      "sha256": "fda0953d11a6035100bef9f9c04d070053edc2ae47c31852803a020d89e6b7c7",
+      "package": "com.openminerals.demo.mobile",
+      "code": 4,
+      "name": "0.1.3",
+      "minSdk": 24,
+      "certificate": "3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c"
+    },
+    {
+      "kind": "new",
+      "sha256": "c35719bf44fdc5a1237249be7e80d6d3102e57ee58f0cd0d9b5af3c66f32d83f",
+      "package": "com.openminerals.demo.mobile",
+      "code": 5,
+      "name": "0.2.0",
+      "minSdk": 24,
+      "certificate": "3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c"
+    }
+  ],
+  "environment": {
+    "name": "disposable Android CI emulator",
+    "hostOS": "ubuntu-24.04",
+    "androidApi": 29,
+    "systemImage": "google_apis x86_64",
+    "deviceProfile": "pixel_2",
+    "cpuAcceleration": "KVM",
+    "graphicsRenderer": "SwiftShader",
+    "availableCpus": 4,
+    "totalMemoryMiB": 15983,
+    "guestCpus": 4,
+    "guestMemoryMiB": 4096,
+    "maestroVersion": "2.12.0",
+    "physicalDevice": false
+  },
+  "junit": {
+    "tests": 24,
+    "failures": 0,
+    "stageSeconds": 2319.715,
+    "stages": [
+      {
+        "name": "qa-isolation-preconditions",
+        "seconds": 3.627
+      },
+      {
+        "name": "install-baseline-013",
+        "seconds": 35.471
+      },
+      {
+        "name": "legacy-seed-old-apk",
+        "seconds": 183.053
+      },
+      {
+        "name": "update-without-clearing-data",
+        "seconds": 14.46
+      },
+      {
+        "name": "preserve-legacy-after-update",
+        "seconds": 54.078
+      },
+      {
+        "name": "anonymous-compatible-ota-before-story",
+        "seconds": 52.058
+      },
+      {
+        "name": "native-story-and-reduced-motion",
+        "seconds": 357.912
+      },
+      {
+        "name": "native-story-resumes-after-home",
+        "seconds": 75.211
+      },
+      {
+        "name": "native-four-metal-materials",
+        "seconds": 102.108
+      },
+      {
+        "name": "native-registration-no-import",
+        "seconds": 109.866
+      },
+      {
+        "name": "buyer-a-login-conversion",
+        "seconds": 103.913
+      },
+      {
+        "name": "buyer-a-buy-and-certificate",
+        "seconds": 80.204
+      },
+      {
+        "name": "buyer-a-publish-priced-offer",
+        "seconds": 93.171
+      },
+      {
+        "name": "buyer-b-marketplace-certificate",
+        "seconds": 136.91
+      },
+      {
+        "name": "buyer-a-sale-and-delivery-request",
+        "seconds": 150.659
+      },
+      {
+        "name": "operator-quote-private-mine",
+        "seconds": 107.715
+      },
+      {
+        "name": "buyer-accept-simulated-costs",
+        "seconds": 122.071
+      },
+      {
+        "name": "operator-delivery-lifecycle",
+        "seconds": 186.246
+      },
+      {
+        "name": "operator-restock-management",
+        "seconds": 96.956
+      },
+      {
+        "name": "buyer-history-profile-relaunch",
+        "seconds": 172.771
+      },
+      {
+        "name": "buyer-custody-fraction-is-not-whole-lot",
+        "seconds": 27.535
+      },
+      {
+        "name": "api-verifies-native-wallets-lots-fees",
+        "seconds": 0.717
+      },
+      {
+        "name": "buyer-compatible-ota-cold-launch",
+        "seconds": 52.318
+      },
+      {
+        "name": "api-verifies-data-after-compatible-ota",
+        "seconds": 0.685
+      }
+    ]
+  },
+  "controls": {
+    "isolatedAccounts": {
+      "buyers": 2,
+      "operators": 1,
+      "rolesAndSameMineVerified": true,
+      "distinctBuyersVerified": true,
+      "privateIdentityValuesPublished": false
+    },
+    "upgradeFrom013WithoutClearingData": true,
+    "legacyWalletReceiptsAndHistoryPreserved": true,
+    "legacyNavigation": {
+      "initialPolicy": "null",
+      "temporaryWorkaroundOnlyForOldApk": true,
+      "restoredToNormalBars": true,
+      "newApkRequiresNormalBars": true
+    },
+    "anonymousOtaBeforeStory": true,
+    "fullBleedSevenStageNarrative": true,
+    "reducedMotionAndThreeReadOnlyDestinations": true,
+    "homeResume": {
+      "backgroundObserved": true,
+      "sameProcess": true,
+      "stagePreserved": true,
+      "glReadinessMarker": true,
+      "advancedAndReversed": true,
+      "forceStopUsed": false,
+      "credentialsEntered": false
+    },
+    "fourMaterialSelections": true,
+    "goldRestoredBeforeFinance": true,
+    "registrationWithoutImportingLegacyState": true,
+    "conversion": true,
+    "directBuyAndCertificate": true,
+    "pricedOffer": true,
+    "peerPurchaseAndCertificate": true,
+    "directSale": true,
+    "deliveryRequestQuoteAcceptanceAndCompletion": true,
+    "simulatedReceipt": true,
+    "profileSavedAndSecureStoreRelaunch": true,
+    "ownedFractionIsNotWholeLot": true,
+    "apiVerifiedBeforeAndAfterColdOta": true
+  },
+  "conservation": {
+    "unit": "integer milligrams",
+    "metal": "XAU",
+    "originalWeightAcrossReceivedLotsMg": 6000,
+    "deliveredMg": 500,
+    "activeSupplyMg": 5500,
+    "availableMg": 4500,
+    "allocatedMg": 1000,
+    "reservedMg": 0,
+    "buyerAllocatedMg": [
+      500,
+      500
+    ],
+    "explicitDemoReceiptMg": 1000,
+    "stockAdjustments": 1,
+    "equations": [
+      "6000 = 5500 + 500",
+      "5500 = 4500 + 1000",
+      "1000 = 500 + 500"
+    ],
+    "peerTransferMg": 500,
+    "peerPreservesSellerSourceLot": true,
+    "peerCreatesPhysicalMetal": false,
+    "note": "6000 mg is aggregate original weight across received XAU lots, not the weight of one certificate or one source lot. These are simulated inventory records, not verified physical assets."
+  },
+  "apiAssertions": {
+    "api": "https://openminerals-api-demo.up.railway.app",
+    "apiVersion": "0.2.0",
+    "mode": "postgres-demo",
+    "stages": [
+      "api-verifies-native-wallets-lots-fees",
+      "api-verifies-data-after-compatible-ota"
+    ],
+    "units": {
+      "money": "integer currency minor units",
+      "metal": "integer milligrams"
+    },
+    "buyerA": {
+      "walletMinor": {
+        "USDT": 28789,
+        "USD": 40000
+      },
+      "holdingsMg": {
+        "XAU": 500
+      }
+    },
+    "buyerB": {
+      "walletMinor": {
+        "USDT": 18000,
+        "USD": 60000
+      },
+      "holdingsMg": {
+        "XAU": 500
+      }
+    },
+    "mine": {
+      "reconciled": true,
+      "availableMg": {
+        "XAU": 4500
+      },
+      "allocatedMg": {
+        "XAU": 1000
+      },
+      "reservedMg": {
+        "XAU": 0
+      },
+      "activeSupplyMg": {
+        "XAU": 5500
+      },
+      "deliveredMg": {
+        "XAU": 500
+      },
+      "tradingFeesMinorUSDT": 461,
+      "stockAdjustments": 1,
+      "stockAdjustmentMg": 1000,
+      "originalWeightAcrossReceivedLotsMg": {
+        "XAU": 6000
+      }
+    },
+    "commerce": {
+      "directBuys": 1,
+      "directSells": 1,
+      "marketplaceTrades": 1,
+      "filledOffers": 1,
+      "deliveryStatus": "DELIVERED_DEMO",
+      "paidDeliveryMinorUSDT": 1000,
+      "peerTransferMg": 500,
+      "peerTradePreservedSellerSourceLot": true,
+      "lotHistoryHasOneBuySellTransferAndDelivery": true,
+      "buyerLotHistoryScopedToOwnIdentity": true,
+      "operatorLotHistoryAndManagementExcludeBuyerWalletData": true,
+      "perMetalVolumesMg": {
+        "XAU": {
+          "directBuy": 2000,
+          "directSell": 500,
+          "marketplace": 500
+        },
+        "XAG": {
+          "directBuy": 0,
+          "directSell": 0,
+          "marketplace": 0
+        },
+        "XPT": {
+          "directBuy": 0,
+          "directSell": 0,
+          "marketplace": 0
+        },
+        "XPD": {
+          "directBuy": 0,
+          "directSell": 0,
+          "marketplace": 0
+        }
+      }
+    },
+    "basis": "Both successful API verification stages invoke mobile/e2e/ci-result.mjs against live PostgreSQL responses. Only fixed checked amounts and invariant outcomes are published; private raw snapshots are excluded."
+  },
+  "idempotencyScope": {
+    "normalJourneyEffectsCheckedExactlyOnce": true,
+    "oneBuySellPeerTransferAndDeliveryEvent": true,
+    "singleStockReceiptAndTradingFeeTotalVerified": true,
+    "invariantsRetainedAfterColdRelaunch": true,
+    "explicitSameKeyReplayInjected": false,
+    "networkResponseDropInjected": false,
+    "separateBackendReplayEvidence": "api-immersive-20261030.json",
+    "interpretation": "This native journey checks exact counts, fees, source-lot preservation and persistence. It does not inject duplicate submissions or a lost HTTP response; separate backend replay and durable-client tests provide that additional coverage."
+  },
+  "recordedStoryPerformance": {
+    "coldStartTotalMs": 1350,
+    "coldStartWaitMs": 1353,
+    "pssBeforeKiB": 137542,
+    "pssAfterKiB": 132067,
+    "uiFrames": 201,
+    "jankyUiFrames": 201,
+    "uiFrameP50Ms": 200,
+    "uiFrameP90Ms": 500,
+    "uiFrameP95Ms": 600,
+    "automaticLightObserved": false,
+    "screenRecording": true,
+    "visualMode": "3d",
+    "measurementScope": "fixed ADB gesture trace after ready-frame preparation; menus, assertions, hierarchy dumps, screenshots and exit excluded",
+    "videoStartsAfterReadyFrame": true,
+    "videoIncludesMenus": false,
+    "videoIncludesColdStart": false,
+    "measurementsComplete": true
+  },
+  "diagnostics": {
+    "lastStage": {
+      "name": "api-verifies-data-after-compatible-ota",
+      "status": "PASSED"
+    },
+    "lastHandledNonzeroCommand": {
+      "stage": "native-story-and-reduced-motion",
+      "program": "adb",
+      "operation": "shell",
+      "exitCode": 1,
+      "reason": "nonzero-exit"
+    },
+    "interpretation": "Public progress can retain a caught nonzero adb result. Final success is determined by all 24 JUnit stages and live API postconditions; shell arguments and private logs are excluded."
+  },
+  "visualEvidence": {
+    "sameUiAnonymousSuccessfulRun": 41119063468,
+    "evidence": "geology-android-comparison-20261030.json",
+    "mediaPrefix": "geology-optimized-",
+    "phoneAcceptance": false,
+    "userDirection": "Native geological visuals reviewed in emulator; subjective phone acceptance remains pending."
+  },
+  "limits": [
+    "Android API29 emulator with software graphics; no physical-device performance or TalkBack acceptance.",
+    "Optimized quality is adaptive:60 to30fps and render scale0.75 may occur without the lightweight-Views flag; tier and GL buffer dimensions are unobserved.",
+    "Native commercial operations cover XAU only. XAG, XPT and XPD have zero native trading volume in this fixture.",
+    "The full scenario includes recorded story and HOME/resume; separate unrecorded 3D and light profiles are in the anonymous run, not repeated here.",
+    "am-start TotalTime/WaitTime describe Activity launch with cached OTA, not time until interactive UI.",
+    "Android UI frame statistics are not GPU FPS; memory values are sampled PSS, not peak memory. Recording changes workload.",
+    "All accounts, inventory receipts, custody certificates, prices, balances and delivery records are simulations. No real money, metal custody or shipment.",
+    "The legacy compatibility phase runs against the APK-embedded bundle before forcing the current compatible OTA; it validates numeric balances, positions and receipts rather than new explanatory copy.",
+    "Only anonymous legacy/story media are published by the workflow. Private account screens, raw logs, identifiers and recovery data are excluded."
+  ],
+  "physicalDeviceAcceptance": false,
+  "realCustody": false,
+  "realFunds": false,
+  "optimizationStatus": "Graphics optimization is measured separately in the three-point comparison; physical60fps remains unaccepted.",
+  "temporaryQaSecretsRetired": true,
+  "temporaryQaSecretRetirement": {
+    "verifiedAt": "2026-10-30T20:37:22.702Z",
+    "retiredNameCount": 12,
+    "remainingTemporaryNames": 0,
+    "remainingRepositorySecrets": 0,
+    "fixtureAccountsAndDataPreserved": true,
+    "privateFilesPreserved": true
+  }
+}

@@ -1,6 +1,6 @@
 # Realismo geológico · Android
 
-**Estado: candidata verificable; rendimiento físico y aceptación estética pendientes.** Los resultados de software, emulador y teléfono se distinguen. La mina es una representación ficticia DEMO.
+**Estado: candidata con verificación funcional Android aprobada; rendimiento físico y aceptación estética pendientes.** El modo ligero conserva una regresión observada frente a la base y no se declara optimización completa. Los resultados de software, emulador y teléfono se distinguen. La mina es una representación ficticia DEMO.
 
 ## Fuente y distribución
 
@@ -62,11 +62,14 @@ El scheduler admite 60 como objetivo inicial y dibuja por demanda. Un coste sost
 | Android anterior | **7/7** en [41106807655](https://github.com/Blaister9/Openminerals/actions/runs/41106807655), UI `a9ae62e`, arnés `8616a58`, OTA `01a18d53`. |
 | Android C2 visual | **8/8** en [41110591606](https://github.com/Blaister9/Openminerals/actions/runs/41110591606), fuente y arnés `c2eaaae`, OTA `01a18e27`. Materiales con selección exclusiva, frame GL listo, menús cerrados y Au restaurado antes de finanzas. |
 | Android C2 comercial | **24/24 aprobadas, cero fallos, 2.340,320 segundos de etapas**, [41111642553](https://github.com/Blaister9/Openminerals/actions/runs/41111642553), XAU, fixture privado nuevo. |
-| Android optimizado visual/comercial | **EN EJECUCIÓN: [visual 41119063468](https://github.com/Blaister9/Openminerals/actions/runs/41119063468), ocho etapas, y [comercial XAU 41119079540](https://github.com/Blaister9/Openminerals/actions/runs/41119079540), 24 etapas. App39, arnés06643bf, OTA01a18e58. Fixture nueva; C2 aprobado no se atribuye a esta optimización**. |
+| Android optimizado visual | **8/8 aprobadas**, cero fallos, [41119063468](https://github.com/Blaister9/Openminerals/actions/runs/41119063468), 1.372,895 segundos de etapas. App `39b0f569`, arnés `06643bf`, OTA `01a18e58`: tres perfiles con traza idéntica, final verificado, HOME/reversa y cuatro materiales. El PNG ligero de fase 1 se ve en una captura original anónima fuera de la medición. |
+| Android optimizado comercial | **24/24 aprobadas**, cero fallos, [41119079540](https://github.com/Blaister9/Openminerals/actions/runs/41119079540), 2.319,715 segundos de etapas, fixture nueva. Actualización desde 0.1.3 sin borrar, registro, billetera, compra, venta, marketplace, certificados, perfil, entrega, recepción y Mina; postcondiciones HTTP PostgreSQL antes/después de reabrir con OTA `01a18e58`. |
 
 El arnés final `06643bf` aprobó [41118442401](https://github.com/Blaister9/Openminerals/actions/runs/41118442401) y [41118433891](https://github.com/Blaister9/Openminerals/actions/runs/41118433891): **289 aprobadas y cinco GL opcionales omitidas, 294 totales**; Doctor 21/21 y todos los gates aprobados. Sus **54 pruebas dirigidas** de e2e/privacidad aprobaron, con superposición respecto a la suite; no se suman a ella.
 
-El [registro CI](evidence/geology-core-verification-20261030.json) detalla fuentes y jobs. API y móvil conservan sus árboles de dependencias/configuración. Auditoría: API cero avisos; móvil siete bajos, ninguno alto/crítico; no se afirma cero vulnerabilidades móviles. La [regresión comercial C2](evidence/geology-commercial-c2-20261030.json) registra los 24 escenarios, lotes y conciliación antes/después de cold OTA. No inyectó una repetición de la misma clave o pérdida de respuesta: ese alcance pertenece a pruebas backend y cliente separadas. XAG/Pt/Pd se comprobaron visualmente, pero el comercio nativo de esta fixture cubre XAU.
+El [registro CI](evidence/geology-core-verification-20261030.json) detalla fuentes y jobs. API y móvil conservan sus árboles de dependencias/configuración. Auditoría: API cero avisos; móvil siete bajos, ninguno alto/crítico; no se afirma cero vulnerabilidades móviles. La [regresión comercial final](evidence/geology-commercial-opt-20261030.json) y la [C2 anterior](evidence/geology-commercial-c2-20261030.json) conservan fuentes y verificaciones separadas. Ninguna inyectó una repetición de la misma clave o pérdida de respuesta: ese alcance pertenece a pruebas backend y cliente separadas. Plata, platino y paladio se comprobaron visualmente, pero el comercio nativo de estas fixtures cubre XAU.
+
+El comprador A termina con USDT 287,89, USD 400 y 0,500 g; el comprador B, con USDT 180, USD 600 y 0,500 g. Las comisiones totales son USDT 4,61. Se concilia `6.000 mg originales = 5.500 mg activos + 500 mg entregados` y `5.500 = 4.500 disponibles + 1.000 asignados`, sin reservas abiertas y con una recepción DEMO explícita de 1.000 mg. La operación entre compradores transfiere 500 mg del mismo lote y no aumenta el metal físico registrado. El historial de lotes del comprador queda limitado a su identidad; la vista del operador excluye sus billeteras. Son registros simulados, no acreditación de existencias físicas.
 
 ## Medición comparable
 
@@ -76,11 +79,27 @@ La ventana excluye menús, preparación, capturas y aserciones. Son 15 gestos: t
 
 | Perfil | Anterior P50/P90/P95 UI, ms | C2 P50/P90/P95 UI, ms | Optimizado |
 | --- | --- | --- | --- |
-| 3D sin grabar | 200 / 500 / 500 | 200 / 500 / 550 | **En medición** |
-| Ligero sin grabar | 57 / 73 / 81 | 73 / 150 / 150 | **En medición** |
-| 3D grabado | 250 / 600 / 650 | 250 / 650 / 750 | **En medición** |
+| 3D sin grabar | 200 / 500 / 500 | 200 / 500 / 550 | **150 / 400 / 450** |
+| Ligero sin grabar | 57 / 73 / 81 | 73 / 150 / 150 | **65 / 89 / 101** |
+| 3D grabado | 250 / 600 / 650 | 250 / 650 / 750 | **200 / 550 / 600** |
 
-La regresión ligera C2 es un resultado observado, no un éxito de optimización. Motivó retirar Views y overdraw. **La optimización aún requiere medición propia: su menor cantidad de Views no basta para afirmar una mejora Android.**. El JSON comparativo conserva las tres revisiones, muestras PSS, arranque y procedencia de los originales.
+La regresión ligera C2 motivó retirar Views y overdraw. La nueva muestra mejora los percentiles 3D frente a C2 y la base, y reduce el P95 ligero de 150 a 101 ms frente a C2. **El ligero todavía supera los 81 ms anteriores y su PSS observado aumenta**. No se declara optimización completa ni ausencia de regresiones. Son observaciones descriptivas de una muestra, con calidad adaptativa y sin controlar el host físico; no demuestran causalidad, FPS físicos o aceptación estadística.
+
+| Perfil | PSS anterior antes→después, KiB | C2 antes→después, KiB | Optimizado antes→después, KiB |
+| --- | --- | --- | --- |
+| 3D sin grabar | 128.869→124.618 | 135.920→129.264 | 130.977→128.268 |
+| Ligero sin grabar | 118.079→118.542 | 135.294→124.946 | 137.766→130.572 |
+| 3D grabado | 123.596→118.566 | 126.533→127.128 | 137.346→129.639 |
+
+No se conservó el desglose Java/native/graphics de `meminfo`, solo PSS total. Por tanto no se atribuye el aumento a una categoría, fuga o recolección de memoria concreta. No se midió memoria máxima.
+
+| Arranque de Activity (`am start TotalTime`), ms | Anterior | C2 | Optimizado |
+| --- | ---: | ---: | ---: |
+| 3D sin grabar | 1.358 | 1.321 | 1.574 |
+| Ligero sin grabar | 1.381 | 1.708 | 1.334 |
+| 3D grabado | 1.657 | 1.589 | 1.569 |
+
+La aplicación y OTA ya estaban instaladas/cacheadas; no es tiempo de primera descarga ni hasta primer cuadro/interacción. La carga funcional sí exige marcador GL listo y escenas alcanzables. El [JSON comparativo](evidence/geology-android-comparison-20261030.json) conserva las tres revisiones, arranque, traza y procedencia de originales, sin sustituir los resultados C2.
 
 La comparación evalúa experiencia adaptativa con la misma entrada; no aísla GPU a resolución fija. `automaticLight=false` solo descarta pasar a Views: no registra el nivel intermedio o las dimensiones GL y no acredita 60 FPS. Estadísticas HWUI, número de cuadros codificados VFR y presupuesto del scheduler tampoco son FPS GPU. `am start` mide arranque de Activity con OTA cacheada, no tiempo completamente interactivo. PSS antes/después no es pico ni prueba de ausencia de fugas; batería, temperatura y latencia física no se midieron.
 
@@ -88,19 +107,23 @@ La comparación evalúa experiencia adaptativa con la misma entrada; no aísla G
 
 ## Capturas y grabaciones
 
-**Las capturas y vídeos siguientes corresponden a la base y a C2, no a39. La captura del túnel ligero y los originales optimizados se incorporarán cuando termine su run.
+Las capturas finales proceden del run Android optimizado `41119063468`, no de un navegador o teléfono físico. Se revisaron doce PNG y el clip completo; los nueve medios finales publicados se conservan sin edición. El conjunto comparativo suma 21 medios incluyendo base y C2.
 
-| Momento | Inicio anterior | C2 geológica |
+| Momento | Inicio anterior | Geológica optimizada |
 | --- | --- | --- |
-| Mina | ![Antes](evidence/geology-before-mine-20261030.png) | ![C2](evidence/geology-after-mine-20261030.png) |
-| Lingote | ![Antes](evidence/geology-before-bar-20261030.png) | ![C2](evidence/geology-after-bar-20261030.png) |
-| Custodia ficticia | ![Antes](evidence/geology-before-custody-20261030.png) | ![C2](evidence/geology-after-custody-20261030.png) |
+| Mina | ![Antes](evidence/geology-before-mine-20261030.png) | ![Final](evidence/geology-optimized-mine-20261030.png) |
+| Lingote | ![Antes](evidence/geology-before-bar-20261030.png) | ![Final](evidence/geology-optimized-bar-20261030.png) |
+| Custodia ficticia | ![Antes](evidence/geology-before-custody-20261030.png) | ![Final](evidence/geology-optimized-custody-20261030.png) |
 
-[Vídeo anterior original](evidence/geology-before-20261030.mp4) · [Vídeo C2 original](evidence/geology-after-20261030.mp4). Materiales C2: [Au](evidence/geology-metal-XAU-20261030.png), [Ag](evidence/geology-metal-XAG-20261030.png), [Pt](evidence/geology-metal-XPT-20261030.png), [Pd](evidence/geology-metal-XPD-20261030.png). [Comparación y procedencia](evidence/geology-android-comparison-20261030.json).**. Los archivos publicados proceden de flujos Android anónimos antes de introducir credenciales; se conservan los bytes y tiempos originales, con SHA-256 y procedencia en el JSON. Las imágenes C2 no se atribuyen a la optimización posterior. Lingote y custodia se comparan por significado: etapas anteriores 4/5 frente a nuevas 5/6. DEMO visible en estas poses no acredita legibilidad en todos los tamaños o ángulos.
+[Vídeo anterior original](evidence/geology-before-20261030.mp4) · [Vídeo optimizado original](evidence/geology-optimized-20261030.mp4) · [Vídeo C2 intermedio](evidence/geology-after-20261030.mp4).
+
+El vídeo final dura **37,6521 segundos**, con 97 cuadros VFR codificados, sin menús ni cortes introducidos. No son FPS de la app. Se verificaron avance, retroceso y cierre hacia portafolio, sin banners/cuentas privadas. Materiales finales: [Au](evidence/geology-optimized-metal-XAU-20261030.png), [Ag](evidence/geology-optimized-metal-XAG-20261030.png), [Pt](evidence/geology-optimized-metal-XPT-20261030.png), [Pd](evidence/geology-optimized-metal-XPD-20261030.png). [Túnel ligero en Android](evidence/geology-optimized-light-mine-20261030.png). La navegación inferior está visible y libre; no se observó barra 2D filtrada bajo GL en las capturas. El bitmap ligero es estático y su recorte/detalle difiere del GL.
+
+Los originales C2 permanecen en el JSON y repositorio. Todos proceden de flujos anónimos antes de introducir credenciales, con SHA-256 y procedencia; ninguna imagen C2 se atribuye a la optimización. Lingote y custodia se comparan por significado: etapas anteriores 4/5 frente a nuevas 5/6. DEMO visible en estas poses no acredita legibilidad en todos los tamaños o ángulos.
 
 ## Actualizar sin reinstalar
 
-Se conserva el [APK firmado Android0.2.0/código5](https://github.com/Blaister9/Openminerals/releases/download/v0.2.0-demo/Openminerals-Demo-0.2.0-android.apk), paquete `com.openminerals.demo.mobile`, runtime `0.2.0` y canal `demo`. **La OTA optimizada publicada se identifica por **`01a18e58`**; su aplicación nativa se está comprobando en los dos runs indicados**. No hace falta otro APK si ya está instalado 0.2.0.
+Se conserva el [APK firmado Android 0.2.0/código 5](https://github.com/Blaister9/Openminerals/releases/download/v0.2.0-demo/Openminerals-Demo-0.2.0-android.apk), paquete `com.openminerals.demo.mobile`, runtime `0.2.0` y canal `demo`. La OTA optimizada publicada se identifica por **`01a18e58`**; está verificada tanto en el run visual como después de reabrir la cuenta comercial, conservando sus postcondiciones PostgreSQL. No hace falta otro APK si ya está instalado 0.2.0. SHA-256 del APK conservado: `c35719bf44fdc5a1237249be7e80d6d3102e57ee58f0cd0d9b5af3c66f32d83f`.
 
 Resuelve operaciones pendientes; en Actividad o Cuenta pulsa Buscar actualización, espera la descarga y cierra/reabre cuando no haya operaciones pendientes. No desinstales, borres datos o crees otra cuenta para actualizar. `01a18d53` corresponde al Inicio anterior; `01a18e27` a C2. La comprobación nativa de OTA se identifica por su ID real, no por el enlace de la PR.
 
@@ -110,4 +133,8 @@ Se corrigieron roca inicialmente cúbica/oscura, espécimen translúcido, zona m
 
 La primera suite local con todos los Chrome en paralelo activó el timeout existente de diez segundos del parser Python de recuperación. El caso aprobó aislado y la suite completa con concurrencia dos. No se modificaron parser, timeout o módulos financieros. La descarga directa del CDN EAS respondió403: se verificó el hash del export local contra el manifiesto público, sin eludir esa respuesta, y se complementó con aplicación nativa de OTA.
 
-**Las doce credenciales temporales de CI pertenecen a fixtures privadas y se mantienen durante las dos ejecuciones optimizadas; su retiro queda pendiente de terminar ambas**. Las fixtures son minas explícitas de simulación; no reinician la mina pública o las sesiones del propietario. Ninguna credencial privada, token, dato de recuperación o pantalla de cuenta se incorpora a la evidencia pública.
+**Las doce credenciales temporales de CI se retiraron después de aprobar ambos runs optimizados**: seis nombres `OPENMINERALS_QA_*` y seis `OPENMINERALS_RC_XAU_*`, verificación de cero restantes a las 20:37:22 UTC. No se eliminaron fixtures, cuentas, historiales o archivos privados. Las minas de prueba se provisionaron explícitamente sin reiniciar la mina pública o sesiones del propietario. Para repetir el recorrido comercial se debe crear otra fixture y secretos temporales; no reutilizar una mina ya operada ni restablecerla.
+
+La publicación se revisó contra los valores privados de cuatro fixtures y los 21 hashes de medios: cero coincidencias. No se incorpora ninguna clave, token, dato de recuperación o pantalla de cuenta. El [acceso público autorizado del operador DEMO](../demo-access/operator-public.json) se conserva y no se amplía a las cuentas QA.
+
+La API respondió `ok:true`, `demoOnly:true`, `mode:postgres-demo`, `apiVersion:0.2.0` durante el cierre. La PR #7 sigue abierta en `3e31bdd` y `main` continúa en `ad78797`. La PR #8 permanece en borrador por aceptación estética/rendimiento pendientes, sin conflictos de base. Solo se realizaron commits normales y push; no hubo merge automático, force-push, cambio de infraestructura o despliegue backend.

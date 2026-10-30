@@ -1,5 +1,5 @@
 {
-  "format": "openminerals-geology-android-comparison-v1",
+  "format": "openminerals-geology-android-comparison-v2",
   "demoOnly": true,
   "sources": {
     "beforeUiCommit": "a9ae62e3095524272bdb3aa4a9ca7478990229aa",
@@ -7,7 +7,9 @@
     "afterUiAndHarnessCommit": "c2eaaaebc482229e360a1e8385d241595780d2d7",
     "apiSourceCommit": "89c38d438ed692c87cb01c36d3b669918bff4ccd",
     "api": "https://openminerals-api-demo.up.railway.app",
-    "backendUnchanged": true
+    "backendUnchanged": true,
+    "optimizedUiCommit": "39b0f569bd0ffff35c0e816ba5f6f46fb19e809b",
+    "optimizedHarnessCommit": "06643bf913983fff5670fcc145b47229f36d8d5d"
   },
   "runs": {
     "before": {
@@ -33,6 +35,18 @@
       "artifactUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41110591606/artifacts/13005885504",
       "artifactBytes": 7019055,
       "artifactExpiresAt": "2026-10-31T19:17:23Z"
+    },
+    "optimized": {
+      "id": 41119063468,
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41119063468",
+      "ota": "01a18e58-e304-79e3-9917-7c6d407b9e29",
+      "tests": 8,
+      "failures": 0,
+      "stageSeconds": 1372.895,
+      "artifactId": 13008822269,
+      "artifactUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41119063468/artifacts/13008822269",
+      "artifactBytes": 7722873,
+      "artifactExpiresAt": "2026-10-31T20:19:15Z"
     }
   },
   "publishedBundle": {
@@ -95,12 +109,19 @@
         "totalMemoryMiB": 15983,
         "guestCpus": 4,
         "guestMemoryMiB": 4096
+      },
+      "optimized": {
+        "availableCpus": 4,
+        "totalMemoryMiB": 15983,
+        "guestCpus": 4,
+        "guestMemoryMiB": 4096
       }
     },
     "sameConfiguredResources": true,
     "samePhysicalHostVerified": false,
     "physicalDevice": false,
-    "samplesPerCondition": 1
+    "samplesPerCondition": 1,
+    "optimizedConfiguredResourcesMatchBaseline": true
   },
   "profileTable": [
     {
@@ -142,6 +163,28 @@
         "uiFrameP50Ms": 0,
         "uiFrameP90Ms": 50,
         "uiFrameP95Ms": 100
+      },
+      "optimized": {
+        "coldStartTotalMs": 1569,
+        "coldStartWaitMs": 1579,
+        "pssBeforeKiB": 137346,
+        "pssAfterKiB": 129639,
+        "uiFrames": 193,
+        "jankyUiFrames": 193,
+        "uiFrameP50Ms": 200,
+        "uiFrameP90Ms": 550,
+        "uiFrameP95Ms": 600,
+        "automaticLightObserved": false,
+        "screenRecording": true,
+        "visualMode": "3d",
+        "finalSceneVerified": true,
+        "traceObservedDurationMs": 38806.531
+      },
+      "descriptiveDeltaOptimizedVersusC2": {
+        "pssAfterKiB": 2511,
+        "uiFrameP50Ms": -50,
+        "uiFrameP90Ms": -100,
+        "uiFrameP95Ms": -150
       }
     },
     {
@@ -183,6 +226,28 @@
         "uiFrameP50Ms": 0,
         "uiFrameP90Ms": 0,
         "uiFrameP95Ms": 50
+      },
+      "optimized": {
+        "coldStartTotalMs": 1574,
+        "coldStartWaitMs": 1577,
+        "pssBeforeKiB": 130977,
+        "pssAfterKiB": 128268,
+        "uiFrames": 242,
+        "jankyUiFrames": 240,
+        "uiFrameP50Ms": 150,
+        "uiFrameP90Ms": 400,
+        "uiFrameP95Ms": 450,
+        "automaticLightObserved": false,
+        "screenRecording": false,
+        "visualMode": "3d",
+        "finalSceneVerified": true,
+        "traceObservedDurationMs": 37596.973
+      },
+      "descriptiveDeltaOptimizedVersusC2": {
+        "pssAfterKiB": -996,
+        "uiFrameP50Ms": -50,
+        "uiFrameP90Ms": -100,
+        "uiFrameP95Ms": -100
       }
     },
     {
@@ -224,6 +289,28 @@
         "uiFrameP50Ms": 16,
         "uiFrameP90Ms": 77,
         "uiFrameP95Ms": 69
+      },
+      "optimized": {
+        "coldStartTotalMs": 1334,
+        "coldStartWaitMs": 1338,
+        "pssBeforeKiB": 137766,
+        "pssAfterKiB": 130572,
+        "uiFrames": 596,
+        "jankyUiFrames": 595,
+        "uiFrameP50Ms": 65,
+        "uiFrameP90Ms": 89,
+        "uiFrameP95Ms": 101,
+        "automaticLightObserved": false,
+        "screenRecording": false,
+        "visualMode": "light",
+        "finalSceneVerified": true,
+        "traceObservedDurationMs": 34347.176
+      },
+      "descriptiveDeltaOptimizedVersusC2": {
+        "pssAfterKiB": 5626,
+        "uiFrameP50Ms": -8,
+        "uiFrameP90Ms": -61,
+        "uiFrameP95Ms": -49
       }
     }
   ],
@@ -241,6 +328,18 @@
       "advancedAndReversed": true
     },
     "after": {
+      "demoOnly": true,
+      "environment": "disposable Android CI emulator",
+      "physicalDevice": false,
+      "credentialsEntered": false,
+      "forceStopUsed": false,
+      "backgroundObserved": true,
+      "sameProcess": true,
+      "stagePreserved": true,
+      "glReadinessMarker": true,
+      "advancedAndReversed": true
+    },
+    "optimized": {
       "demoOnly": true,
       "environment": "disposable Android CI emulator",
       "physicalDevice": false,
@@ -393,6 +492,105 @@
       "bytes": 757641,
       "sha256": "bb3132f07af19a531a04a0ad747bdc93260e61ffbc0883ec0e0abcd3608b73fd",
       "originalBytesPreserved": true
+    },
+    {
+      "file": "geology-optimized-mine-20261030.png",
+      "sourceRun": 41119063468,
+      "sourceArtifact": 13008822269,
+      "sourceFile": "safe-story-1.png",
+      "semantic": "Optimized geological mine",
+      "stage": 1,
+      "bytes": 903522,
+      "sha256": "9506978639493510fd5e9389f5fe0c3c168b88bed3433dee09431316b1bde19f",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "geology-optimized-bar-20261030.png",
+      "sourceRun": 41119063468,
+      "sourceArtifact": 13008822269,
+      "sourceFile": "safe-story-5.png",
+      "semantic": "Optimized bar",
+      "stage": 5,
+      "bytes": 383872,
+      "sha256": "b7a65cc23bba7228507e127f1342a83b453846235f15e907c37d438a93444179",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "geology-optimized-custody-20261030.png",
+      "sourceRun": 41119063468,
+      "sourceArtifact": 13008822269,
+      "sourceFile": "safe-story-6.png",
+      "semantic": "Optimized fictional custody",
+      "stage": 6,
+      "bytes": 488617,
+      "sha256": "bf7f45e616406f2abbfa707e7129bb84ef824012ec9b00ca7a09a31880802c92",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "geology-optimized-metal-XAU-20261030.png",
+      "sourceRun": 41119063468,
+      "sourceArtifact": 13008822269,
+      "sourceFile": "safe-material-XAU.png",
+      "semantic": "Optimized illustrative XAU material",
+      "stage": 5,
+      "bytes": 382622,
+      "sha256": "bd0bd37aec772b764677f442742c83ddb1335a74b28cb49ab4689abcf51523ff",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "geology-optimized-metal-XAG-20261030.png",
+      "sourceRun": 41119063468,
+      "sourceArtifact": 13008822269,
+      "sourceFile": "safe-material-XAG.png",
+      "semantic": "Optimized illustrative XAG material",
+      "stage": 5,
+      "bytes": 369583,
+      "sha256": "ce23655d2a3d0cbf02c3af09c090a67e01111d037355f3352237fb8ee669ead5",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "geology-optimized-metal-XPT-20261030.png",
+      "sourceRun": 41119063468,
+      "sourceArtifact": 13008822269,
+      "sourceFile": "safe-material-XPT.png",
+      "semantic": "Optimized illustrative XPT material",
+      "stage": 5,
+      "bytes": 369770,
+      "sha256": "edbe2aa0c319658f88725f0cc2b5241edee0ca169f4db7b64c2b5b36df987bb7",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "geology-optimized-metal-XPD-20261030.png",
+      "sourceRun": 41119063468,
+      "sourceArtifact": 13008822269,
+      "sourceFile": "safe-material-XPD.png",
+      "semantic": "Optimized illustrative XPD material",
+      "stage": 5,
+      "bytes": 370531,
+      "sha256": "19f6ea8a2cf5e29b38411900e37d7f69e43f5f060c3b83ed22d88063733a50e9",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "geology-optimized-light-mine-20261030.png",
+      "sourceRun": 41119063468,
+      "sourceArtifact": 13008822269,
+      "sourceFile": "safe-light-mine.png",
+      "semantic": "Android lightweight mine bitmap before the measured window",
+      "stage": 1,
+      "bytes": 828249,
+      "sha256": "1eca66b5bc55dda8fe993b3d05bc59d38ba7b7021fd6593c8f409e55f5b50f20",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "geology-optimized-20261030.mp4",
+      "sourceRun": 41119063468,
+      "sourceArtifact": 13008822269,
+      "sourceFile": "safe-immersive-scroll.mp4",
+      "semantic": "Original optimized continuous fixed-gesture clip",
+      "stage": null,
+      "bytes": 667832,
+      "sha256": "9d046dcea6306af33845ad33dab47a916380f395eb8876eb09394414e75cc1c7",
+      "originalBytesPreserved": true
     }
   ],
   "videos": {
@@ -413,6 +611,15 @@
       "encodedFrames": 117,
       "originalRecordingTimingPreserved": true,
       "notAppOrGpuFps": true
+    },
+    "optimized": {
+      "codec": "h264",
+      "width": 1080,
+      "height": 1920,
+      "durationSeconds": 37.6521,
+      "encodedFrames": 97,
+      "originalRecordingTimingPreserved": true,
+      "notAppOrGpuFps": true
     }
   },
   "interpretation": {
@@ -426,7 +633,14 @@
     "automaticLightFalseMeans": "No switch to lightweight React Native Views; it does not establish full-resolution rendering or constant60fps.",
     "physical60fpsAccepted": false,
     "physicalModelPending": "Samsung S23 Ultra",
-    "physicalConnectionDeferredByUser": true
+    "physicalConnectionDeferredByUser": true,
+    "c2LightRegressionPreserved": "Unrecorded light-profile p95: previous81ms, C2 150ms. The optimized third column is separate; no historical result is replaced.",
+    "optimizedQualityTierAndRenderBufferDimensionsObserved": false,
+    "performanceAcceptanceComplete": false,
+    "optimizedLightPriorP95Recovered": false,
+    "optimizedLightResidualRegression": "Unrecorded light p95 is 101ms in the optimized emulator run: improved from C2 150ms, still above the previous 81ms. One sample on shared runners is descriptive and does not establish a physical-device performance result.",
+    "memoryBreakdownAvailable": false,
+    "memoryDiagnosticLimit": "Only total PSS before/after was retained. Java, native and graphics categories, raw meminfo, peak allocation and GC timing were not captured, so the sampled increase cannot be assigned to a memory category or cause."
   },
   "limits": [
     "One shared-runner emulator sample per condition; no statistical or physical performance acceptance.",
@@ -443,5 +657,61 @@
   "visualReviewed": true,
   "mediaTransformed": false,
   "realCustody": false,
-  "realFunds": false
+  "realFunds": false,
+  "comparisonPoints": [
+    {
+      "key": "before",
+      "name": "Previous mineral story",
+      "uiCommit": "a9ae62e3095524272bdb3aa4a9ca7478990229aa"
+    },
+    {
+      "key": "after",
+      "name": "C2 first geological candidate, including measured light regression",
+      "uiCommit": "c2eaaaebc482229e360a1e8385d241595780d2d7"
+    },
+    {
+      "key": "optimized",
+      "name": "Graphics-only optimization of fallback and alpha composition",
+      "uiCommit": "39b0f569bd0ffff35c0e816ba5f6f46fb19e809b"
+    }
+  ],
+  "optimizedPublishedBundle": {
+    "demoOnly": true,
+    "updateId": "01a18e58-e304-79e3-9917-7c6d407b9e29",
+    "groupId": "38f9c8f3-1193-4b5f-932d-ec2fa7824e95",
+    "uiCommit": "39b0f569bd0ffff35c0e816ba5f6f46fb19e809b",
+    "platform": "android",
+    "runtimeVersion": "0.2.0",
+    "channel": "demo",
+    "publicManifestUrl": "https://u.expo.dev/update/01a18e58-e304-79e3-9917-7c6d407b9e29",
+    "verificationMethod": "Exact local EAS export bytes matched to SHA-256/base64url values in the public pinned OTA manifest. No asset CDN request was made.",
+    "hermes": {
+      "sha256Hex": "82e7ce6757b400f5885bd3ef383ddbbd74d0c7f148feaa2040d9332b4b6fdec3",
+      "sha256Base64url": "gufOZ1e0APWIW9PvOD3bvXTQx_FI_qogQNkzK0tv3sM",
+      "bytes": 1655360,
+      "manifestHash": "gufOZ1e0APWIW9PvOD3bvXTQx_FI_qogQNkzK0tv3sM",
+      "manifestHashMatches": true,
+      "hermesHeaderVerified": true
+    },
+    "fallbackPng": {
+      "sha256Hex": "31bd3f771fbb5475089c14cbaf7c612d73d6cbd5e93a3d7ce83e048ef9e8a755",
+      "sha256Base64url": "Mb0_dx-7VHUInBTLr3xhLXPWy9XpOj186D4Ejvnop1U",
+      "bytes": 305228,
+      "manifestHash": "Mb0_dx-7VHUInBTLr3xhLXPWy9XpOj186D4Ejvnop1U",
+      "manifestHashMatches": true,
+      "exportedPngMatches": true,
+      "pngHeaderVerified": true
+    },
+    "railwayHttpsApiOriginPresent": true,
+    "developmentApiLoopback8090Excluded": true,
+    "cdnAssetDownloadAttempted": false,
+    "physicalDeviceValidation": false,
+    "checkedAt": "2026-10-30T19:53:37.070Z"
+  },
+  "optimizedLightAsset": {
+    "publicSourceHash": "31bd3f771fbb5475089c14cbaf7c612d73d6cbd5e93a3d7ce83e048ef9e8a755",
+    "nativeScreenshot": "geology-optimized-light-mine-20261030.png",
+    "nativeVisualReviewed": true,
+    "interpretation": "Android screenshot verifies the lightweight mine is displayed; it is a fictional precomputed renderer image, not a physical installation or a performance metric."
+  }
 }
