@@ -12,6 +12,7 @@ on:
           - operator-navigation
           - profile-relaunch
           - quality-network
+          - immersive-story
       case_scope:
         description: Single original scenario, all candidate cases or one isolated case
         type: choice
@@ -61,12 +62,12 @@ jobs:
           APK_INPUT_URL: ${{ inputs.apk_url }}
           APK_INPUT_SHA256: ${{ inputs.apk_sha256 }}
           OTA_INPUT_UPDATE_ID: ${{ inputs.ota_update_id }}
-          NATIVE_INPUT_SCENARIO: ${{ matrix.asset == 'single' && inputs.scenario || matrix.asset == 'ACCOUNTS' && 'account-lifecycle' || matrix.asset == 'XAU' && 'full' || 'asset-full' }}
+          NATIVE_INPUT_SCENARIO: ${{ matrix.asset == 'ACCOUNTS' && 'account-lifecycle' || inputs.scenario != 'full' && inputs.scenario || matrix.asset == 'single' && 'full' || matrix.asset == 'XAU' && 'full' || 'asset-full' }}
         run: node mobile/e2e/ci-android.mjs download
       - name: Require scenario-specific isolated QA fixtures and PostgreSQL API 0.2.0
         env:
           OTA_INPUT_UPDATE_ID: ${{ inputs.ota_update_id }}
-          NATIVE_INPUT_SCENARIO: ${{ matrix.asset == 'single' && inputs.scenario || matrix.asset == 'ACCOUNTS' && 'account-lifecycle' || matrix.asset == 'XAU' && 'full' || 'asset-full' }}
+          NATIVE_INPUT_SCENARIO: ${{ matrix.asset == 'ACCOUNTS' && 'account-lifecycle' || inputs.scenario != 'full' && inputs.scenario || matrix.asset == 'single' && 'full' || matrix.asset == 'XAU' && 'full' || 'asset-full' }}
           OPENMINERALS_QA_BUYER_A_ALIAS: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_A_ALIAS || secrets[format('OPENMINERALS_RC_{0}_BUYER_A_ALIAS', matrix.asset)] }}
           OPENMINERALS_QA_BUYER_A_PASSWORD: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_A_PASSWORD || secrets[format('OPENMINERALS_RC_{0}_BUYER_A_PASSWORD', matrix.asset)] }}
           OPENMINERALS_QA_BUYER_B_ALIAS: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_B_ALIAS || secrets[format('OPENMINERALS_RC_{0}_BUYER_B_ALIAS', matrix.asset)] }}
@@ -134,7 +135,7 @@ jobs:
         timeout-minutes: 35
         env:
           OTA_INPUT_UPDATE_ID: ${{ inputs.ota_update_id }}
-          NATIVE_INPUT_SCENARIO: ${{ matrix.asset == 'single' && inputs.scenario || matrix.asset == 'ACCOUNTS' && 'account-lifecycle' || matrix.asset == 'XAU' && 'full' || 'asset-full' }}
+          NATIVE_INPUT_SCENARIO: ${{ matrix.asset == 'ACCOUNTS' && 'account-lifecycle' || inputs.scenario != 'full' && inputs.scenario || matrix.asset == 'single' && 'full' || matrix.asset == 'XAU' && 'full' || 'asset-full' }}
           OPENMINERALS_QA_BUYER_A_ALIAS: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_A_ALIAS || secrets[format('OPENMINERALS_RC_{0}_BUYER_A_ALIAS', matrix.asset)] }}
           OPENMINERALS_QA_BUYER_A_PASSWORD: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_A_PASSWORD || secrets[format('OPENMINERALS_RC_{0}_BUYER_A_PASSWORD', matrix.asset)] }}
           OPENMINERALS_QA_BUYER_B_ALIAS: ${{ matrix.asset == 'single' && secrets.OPENMINERALS_QA_BUYER_B_ALIAS || secrets[format('OPENMINERALS_RC_{0}_BUYER_B_ALIAS', matrix.asset)] }}

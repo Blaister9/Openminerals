@@ -177,7 +177,7 @@ async function collectNativeSnapshot(){
 }
 async function verifyNative(){verifyNativeSnapshot(await collectNativeSnapshot(),coverageMetal);}
 async function verifyCompletedTrades(){verifyNativeCommercialSnapshot(await collectNativeSnapshot(),coverageMetal);}
-async function scenarioFixtures(){if(scenario==='profile-relaunch')await verifyCompletedTrades();else await unusedFixtures();}
+async function scenarioFixtures(){if(scenario==='immersive-story')return;if(scenario==='profile-relaunch')await verifyCompletedTrades();else await unusedFixtures();}
 async function profileRelaunch(){
   // Resume only after independently checking every completed trade/lot/fee.
   // Existing financial records are never reset or seeded through the API.
@@ -224,6 +224,12 @@ async function run(){
   await runStage('qa-isolation-preconditions',async()=>{await connectFixtures();await scenarioFixtures();});
   if(scenario==='operator-navigation'){await operatorNavigation();return;}
   if(scenario==='profile-relaunch'){await profileRelaunch();return;}
+  if(scenario==='immersive-story'){
+    await runStage('install-story-apk',async()=>{requireSafe(!adb('shell','pm','list','packages',PACKAGE),'Story coverage requires a fresh disposable emulator.');adb('install',join(root,'new.apk'));});
+    await runStage('anonymous-compatible-ota-before-story',()=>maestro('operator-navigation-ota'));
+    await runStage('native-story-and-reduced-motion',async()=>{await runImmersivePerformance({adb,serial,maestro,published});await captureSafeScreens('story');await captureSafeScreens('story-exit');});
+    return;
+  }
   if(scenario==='quality-network'){
     await runStage('install-quality-apk',async()=>{requireSafe(!adb('shell','pm','list','packages',PACKAGE),'Quality coverage requires a fresh disposable emulator.');adb('install',join(root,'new.apk'));});
     await runStage('quality-compatible-ota-before-login',()=>maestro('operator-navigation-ota'));

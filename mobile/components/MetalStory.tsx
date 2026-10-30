@@ -12,6 +12,7 @@ export function MetalStory({scrollY,viewportHeight,onSkip,onSeek}:Props){
   const [screenReader,setScreenReader]=useState(false),[active,setActive]=useState(true);
   const lastY=useRef(0),lastChapter=useRef(0),lastActive=useRef(true);
   const height=Math.max(420,viewportHeight-18),travel=immersiveTravel(height),start=origin??0,end=start+travel;
+  const compact=height<540;
   const reduced=systemReduced||manualReduced||screenReader,reading=fontScale>1.3||screenReader;
   const simplified=reduced||light||limited;
   useEffect(()=>{
@@ -36,15 +37,17 @@ export function MetalStory({scrollY,viewportHeight,onSkip,onSeek}:Props){
     const id=scrollY.addListener(({value})=>update(value));return()=>scrollY.removeListener(id);
   },[scrollY,start,end,height,origin]);
   const pin=useMemo(()=>scrollY.interpolate({inputRange:[start,end],outputRange:[0,travel],extrapolate:'clamp'}),[scrollY,start,end,travel]);
-  const phase=(index:number,values:number[],span=.75)=>scrollY.interpolate({inputRange:[start+Math.max(0,index-span)/6*travel,start+index/6*travel,start+Math.min(6,index+span)/6*travel].filter((value,i,all)=>i===0||value>all[i-1]),outputRange:index===0?values.slice(1):index===6?values.slice(0,2):values,extrapolate:'clamp'});
-  const vaultOpacity=phase(4,[0,.8,0]),vaultScale=scrollY.interpolate({inputRange:[start+travel*.47,start+travel*.67,start+travel*.84],outputRange:[1.6,1,.65],extrapolate:'clamp'});
-  const fractionOpacity=phase(5,[0,1,0]);
+  const layers=useMemo(()=>{
+    const phase=(index:number,values:number[],span=.75)=>scrollY.interpolate({inputRange:[start+Math.max(0,index-span)/6*travel,start+index/6*travel,start+Math.min(6,index+span)/6*travel].filter((value,i,all)=>i===0||value>all[i-1]),outputRange:index===0?values.slice(1):index===6?values.slice(0,2):values,extrapolate:'clamp'});
+    return {vaultOpacity:phase(4,[0,.8,0]),vaultScale:scrollY.interpolate({inputRange:[start+travel*.47,start+travel*.67,start+travel*.84],outputRange:[1.6,1,.65],extrapolate:'clamp'}),fractionOpacity:phase(5,[0,1,0]),headings:immersiveChapters.map((_,index)=>({opacity:phase(index,[0,1,0],.5),translateY:phase(index,[24,0,-24])})),captions:immersiveChapters.map((_,index)=>phase(index,[0,1,0],.5))};
+  },[scrollY,start,travel]);
+  const {vaultOpacity,vaultScale,fractionOpacity}=layers;
   const title=immersiveChapters[chapter];
   const renderChapter=(index:number)=>{
     const scene=immersiveChapters[index];
     return <View><Text style={styles.chapter}>{String(index+1).padStart(2,'0')} / 07 · {scene.label}</Text><Text accessibilityRole="header" style={styles.title}>{scene.title}</Text><Text style={styles.body}>{scene.body}</Text><Text style={styles.detail}>{scene.detail}</Text></View>;
   };
-  return <View testID="immersive-story" style={styles.story} onLayout={event=>setOrigin(event.nativeEvent.layout.y)}>
+  return <View collapsable={false} testID="immersive-story" style={styles.story} onLayout={event=>setOrigin(event.nativeEvent.layout.y)}>
     {reading?<View style={styles.reading}>
       <Text style={styles.eyebrow}>OPENMINERALS / LECTURA ACCESIBLE</Text>
       <Text style={styles.note}>Bóveda y proceso ficticios. Sin instalaciones reales.</Text>
@@ -52,30 +55,30 @@ export function MetalStory({scrollY,viewportHeight,onSkip,onSeek}:Props){
       {immersiveChapters.map((scene,index)=><View key={scene.label} style={styles.readingChapter}>{renderChapter(index)}</View>)}
     </View>:<>
       <View style={{height:travel+height}} importantForAccessibility="no"/>
-      <Animated.View style={[styles.pinned,{height,transform:[{translateY:pin}]}]}>
+      <Animated.View collapsable={false} testID="immersive-stage" style={[styles.pinned,{height,transform:[{translateY:pin}]}]}>
         <View style={styles.topline}><Text style={styles.eyebrow}>OPENMINERALS / MATERIA & VALOR</Text><Text style={styles.demo}>SIMULADO</Text></View>
         <View style={styles.controls}>
           <Pressable accessibilityRole="switch" accessibilityLabel="Reducir movimiento del recorrido" accessibilityState={{checked:reduced,disabled:systemReduced}} disabled={systemReduced} onPress={()=>setManualReduced(value=>!value)} style={styles.control}><Text style={styles.controlText}>{reduced?'Movimiento reducido':'Reducir movimiento'}</Text></Pressable>
           <Pressable accessibilityRole="switch" accessibilityLabel="Usar modo visual ligero" accessibilityState={{checked:light||limited}} onPress={()=>{setLimited(false);setLight(!(light||limited));}} style={styles.control}><Text style={styles.controlText}>{light||limited?'Modo ligero ✓':'Modo ligero'}</Text></Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel="Saltar recorrido y continuar con la demo" onPress={onSkip} style={styles.control}><Text style={styles.actionText}>Operar ↗</Text></Pressable>
         </View>
-        <View style={[styles.visual,{top:Math.max(130,height*.22),height:Math.max(190,height*.48)}]}>
-          <GoldBar3D scrollY={scrollY} initialScrollY={lastY.current} startY={start} endY={end} active={active&&origin!==null} reducedMotion={simplified} height={Math.max(190,height*.48)} cinematic onLimited={()=>setLimited(true)}/>
+        <View style={[styles.visual,{top:compact?126:Math.max(130,height*.22),height:compact?160:Math.max(190,height*.48)}]}>
+          <GoldBar3D scrollY={scrollY} initialScrollY={lastY.current} startY={start} endY={end} active={active&&origin!==null} reducedMotion={simplified} height={compact?160:Math.max(190,height*.48)} cinematic onLimited={()=>setLimited(true)}/>
           {!simplified&&<View pointerEvents="none" style={StyleSheet.absoluteFill}>
             <Animated.View style={[styles.vault,{opacity:vaultOpacity,transform:[{scale:vaultScale}]}]}><View style={styles.vaultInner}/><View style={styles.vaultAxis}/><Text style={styles.vaultLabel}>VIRTUAL / DEMO</Text></Animated.View>
             <Animated.View style={[styles.fractions,{opacity:fractionOpacity}]}>{Array.from({length:12},(_,i)=><View key={i} style={styles.fraction}/>)}</Animated.View>
           </View>}
         </View>
         {simplified?<View style={styles.simpleCaption}><Text style={styles.simpleLabel}>{title.label}</Text><Text style={styles.note}>{limited?'Vista ligera activada por coste de render.':reduced?'Sin movimiento de cámara.':'Visor 3D desactivado.'} La narrativa y las operaciones siguen disponibles.</Text></View>:null}
-        <View pointerEvents="none" style={styles.headings}>
-          {immersiveChapters.map((scene,index)=><Animated.View key={scene.label} aria-hidden={index!==chapter} accessibilityElementsHidden={index!==chapter} importantForAccessibility={index===chapter?'auto':'no-hide-descendants'} style={[styles.heading,{opacity:simplified?(index===chapter?1:0):phase(index,[0,1,0],.5),transform:[{translateY:simplified?0:phase(index,[24,0,-24])}]}]}>
+        <View pointerEvents="none" style={[styles.headings,compact&&{top:76,height:96}]}>
+          {immersiveChapters.map((scene,index)=><Animated.View key={scene.label} aria-hidden={index!==chapter} accessibilityElementsHidden={index!==chapter} importantForAccessibility={index===chapter?'auto':'no-hide-descendants'} style={[styles.heading,{opacity:simplified?(index===chapter?1:0):layers.headings[index].opacity,transform:[{translateY:simplified?0:layers.headings[index].translateY}]}]}>
             <Text style={styles.chapter}>{String(index+1).padStart(2,'0')} / 07 · {scene.label}</Text>
-            <Text accessibilityRole="header" style={styles.title}>{scene.title}</Text>
+            <Text accessibilityRole="header" style={[styles.title,compact&&{fontSize:27,lineHeight:30,marginTop:7}]}>{scene.title}</Text>
           </Animated.View>)}
         </View>
-        <View pointerEvents="none" style={styles.captions}>
-          {immersiveChapters.map((scene,index)=><Animated.View key={scene.label} aria-hidden={index!==chapter} accessibilityElementsHidden={index!==chapter} importantForAccessibility={index===chapter?'auto':'no-hide-descendants'} style={[styles.caption,{opacity:simplified?(index===chapter?1:0):phase(index,[0,1,0],.5)}]}>
-            <Text style={styles.body}>{scene.body}</Text><Text style={styles.detail}>{scene.detail}</Text>
+        <View pointerEvents="none" style={[styles.captions,compact&&{bottom:48,height:80}]}>
+          {immersiveChapters.map((scene,index)=><Animated.View key={scene.label} aria-hidden={index!==chapter} accessibilityElementsHidden={index!==chapter} importantForAccessibility={index===chapter?'auto':'no-hide-descendants'} style={[styles.caption,{opacity:simplified?(index===chapter?1:0):layers.captions[index]}]}>
+            <Text numberOfLines={compact?3:undefined} style={[styles.body,compact&&{fontSize:12,lineHeight:17}]}>{scene.body}</Text><Text numberOfLines={compact?1:undefined} style={[styles.detail,compact&&{fontSize:9.5,lineHeight:13,marginTop:6}]}>{scene.detail}</Text>
           </Animated.View>)}
         </View>
         <View style={styles.bottom}>

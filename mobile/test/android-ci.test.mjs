@@ -111,7 +111,7 @@ test('Android CI: workflow is manual KVM-only bounded public upload and no secre
   const raw=await source('../../.github/workflows/android-ui.yml'),workflow=yaml.parse(raw);
   assert.deepEqual(Object.keys(workflow.on),['workflow_dispatch']);
   assert.deepEqual(Object.keys(workflow.on.workflow_dispatch.inputs),['scenario','case_scope','apk_url','apk_sha256','ota_update_id']);
-  assert.deepEqual(workflow.on.workflow_dispatch.inputs.scenario,{description:'Full acceptance, operator navigation, profile continuation or network quality',type:'choice',required:true,default:'full',options:['full','operator-navigation','profile-relaunch','quality-network']});
+  assert.deepEqual(workflow.on.workflow_dispatch.inputs.scenario,{description:'Full acceptance, operator navigation, profile continuation or network quality',type:'choice',required:true,default:'full',options:['full','operator-navigation','profile-relaunch','quality-network','immersive-story']});
   assert.deepEqual(workflow.on.workflow_dispatch.inputs.ota_update_id,{description:'Optional full published Android update UUID for runtime 0.2.0 on channel demo',type:'string',required:false,default:''});
   const job=workflow.jobs['android-ui'];assert.equal(job['runs-on'],'ubuntu-24.04');
   assert.equal(job.if,'github.event.repository.private == false');
@@ -144,7 +144,7 @@ test('Android CI: workflow is manual KVM-only bounded public upload and no secre
   assert.doesNotMatch(preflight.run,/mknod|modprobe|\/dev\/kvm\s*\|\|\s*true/);
   assert.equal(runner.with['disable-linux-hw-accel'],false);assert.match(runner.with['emulator-options'],/-accel on/);assert.doesNotMatch(raw,/-accel off|software-acceleration fallback/);
   assert.deepEqual(Object.keys(runner.env).sort(),[...SECRET_NAMES,'OTA_INPUT_UPDATE_ID','NATIVE_INPUT_SCENARIO'].sort());
-  assert.equal(runner.env.NATIVE_INPUT_SCENARIO,"${{ matrix.asset == 'single' && inputs.scenario || matrix.asset == 'ACCOUNTS' && 'account-lifecycle' || matrix.asset == 'XAU' && 'full' || 'asset-full' }}");
+  assert.equal(runner.env.NATIVE_INPUT_SCENARIO,"${{ matrix.asset == 'ACCOUNTS' && 'account-lifecycle' || inputs.scenario != 'full' && inputs.scenario || matrix.asset == 'single' && 'full' || matrix.asset == 'XAU' && 'full' || 'asset-full' }}");
   assert.equal(runner.env.OTA_INPUT_UPDATE_ID,'$'+'{{ inputs.ota_update_id }}');
   const download=job.steps.find(step=>step.run?.endsWith('ci-android.mjs download'));
   assert.equal(download.env.OTA_INPUT_UPDATE_ID,'$'+'{{ inputs.ota_update_id }}');
@@ -200,7 +200,7 @@ test('Android CI: optional OTA follows native verification, passes ID only by en
 test('Android CI: requested studio OTA is verified anonymously before story without financial or auth actions',async()=>{
   const runner=await source('../e2e/ci-android.mjs');
   const pre=runner.indexOf("if(expectedOtaId)await runStage('anonymous-compatible-ota-before-story'");
-  assert.ok(runner.indexOf("'preserve-legacy-after-update'")<pre&&pre<runner.indexOf("'native-story-and-reduced-motion'"));
+  assert.ok(runner.indexOf("'preserve-legacy-after-update'")<pre&&pre<runner.indexOf("'native-story-and-reduced-motion'",pre));
   const raw=await source('../e2e/native/ota-before-story.yaml'),commands=yaml.parseAllDocuments(raw)[1].toJSON();
   assert.equal((raw.match(/MAESTRO_EXPECTED_OTA_ID\.slice\(0,8\)/g)||[]).length,2);
   assert.equal(commands.filter(command=>command==='stopApp').length,2);
