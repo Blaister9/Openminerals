@@ -49,7 +49,10 @@ jobs:
         asset: ${{ fromJSON(inputs.scenario == 'immersive-story' && '["single"]' || inputs.case_scope == 'all' && '["XAU","XAG","XPT","XPD","ACCOUNTS"]' || inputs.case_scope == 'metals' && '["XAU","XAG","XPT","XPD"]' || inputs.case_scope == 'single' && '["single"]' || format('["{0}"]', inputs.case_scope)) }}
     env:
       NATIVE_COVERAGE_METAL: ${{ matrix.asset == 'single' && 'XAU' || matrix.asset == 'ACCOUNTS' && 'XAU' || matrix.asset }}
-    timeout-minutes: 45
+    # The measured full journey needs 31.31 minutes before emulator/setup time;
+    # the expanded anonymous narrative adds real gestures and destination checks.
+    # Keep the standard runner and per-command budgets unchanged.
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -132,7 +135,7 @@ jobs:
           echo 'PASS KVM is accessible; software CPU acceleration fallback is disabled.'
       - name: Install APKs and execute selected native demo journeys
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
-        timeout-minutes: 35
+        timeout-minutes: 45
         env:
           OTA_INPUT_UPDATE_ID: ${{ inputs.ota_update_id }}
           NATIVE_INPUT_SCENARIO: ${{ matrix.asset == 'ACCOUNTS' && 'account-lifecycle' || inputs.scenario != 'full' && inputs.scenario || matrix.asset == 'single' && 'full' || matrix.asset == 'XAU' && 'full' || 'asset-full' }}

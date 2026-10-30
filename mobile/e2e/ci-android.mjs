@@ -121,6 +121,7 @@ function captureSecret(id){
 async function captureSafeScreens(name){
   // These phases finish before entering any alias/password, and run alone.
   const directory=join(privateRoot,name,'screenshots');
+  const copied=new Set();
   async function walk(folder){
     let entries;try{entries=await readdir(folder,{withFileTypes:true});}catch(error){if(error.code==='ENOENT')return;throw error;}
     for(const entry of entries){
@@ -130,10 +131,28 @@ async function captureSafeScreens(name){
       else if(/^safe-(story-[1-7]|upgrade-preserved|reduced-motion|wallet-cop-before-eur)\.png$/.test(entry.name)){
         const pixels=await readFile(file);requireSafe(pixels.length<10000000&&pixels.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),'Unexpected safe screenshot.');
         await copyFile(file,join(published,entry.name));
+        copied.add(entry.name);
       }
     }
   }
   await walk(directory);
+  return [...copied];
+}
+async function runAnonymousStory(){
+  let narrativeFailed=false;
+  try{await runImmersivePerformance({adb,serial,maestro,published});}
+  catch(error){narrativeFailed=true;throw error;}
+  finally{
+    // Both directories precede credentials. Copy available approved PNGs even
+    // if a later narrative assertion failed, preserving that original cause.
+    const copies=await Promise.allSettled(['story','story-exit'].map(async name=>captureSafeScreens(name)));
+    if(!narrativeFailed){
+      requireSafe(copies.every(result=>result.status==='fulfilled'&&Array.isArray(result.value)),'Required anonymous screenshots could not be safely copied.');
+      const copied=new Set(copies.flatMap(result=>result.value));
+      const required=[...Array.from({length:7},(_,index)=>'safe-story-'+(index+1)+'.png'),'safe-reduced-motion.png'];
+      requireSafe(required.every(name=>copied.has(name)),'Required anonymous narrative screenshots are missing.');
+    }
+  }
 }
 async function download(){
   requireSafe(process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_OS==='Linux','Downloads are prepared only on GitHub Linux.');
@@ -228,7 +247,7 @@ async function run(){
   if(scenario==='immersive-story'){
     await runStage('install-story-apk',async()=>{requireSafe(!adb('shell','pm','list','packages',PACKAGE),'Story coverage requires a fresh disposable emulator.');adb('install',join(root,'new.apk'));});
     await runStage('anonymous-compatible-ota-before-story',()=>maestro('operator-navigation-ota'));
-    await runStage('native-story-and-reduced-motion',async()=>{await runImmersivePerformance({adb,serial,maestro,published});await captureSafeScreens('story');await captureSafeScreens('story-exit');});
+    await runStage('native-story-and-reduced-motion',runAnonymousStory);
     await runStage('unrecorded-3d-native-performance',()=>runImmersivePerformance({adb,serial,maestro,published,record:false}));
     await runStage('unrecorded-light-native-performance',()=>runImmersivePerformance({adb,serial,maestro,published,record:false,light:true}));
     await runStage('native-story-resumes-after-home',()=>verifyImmersiveResume({adb,serial,maestro,published}));
@@ -282,7 +301,7 @@ async function run(){
   });
   await runStage('preserve-legacy-after-update',async()=>{await maestro('preserve');await captureSafeScreens('preserve');});
   if(expectedOtaId)await runStage('anonymous-compatible-ota-before-story',()=>maestro('ota-before-story'));
-  await runStage('native-story-and-reduced-motion',async()=>{await runImmersivePerformance({adb,serial,maestro,published});await captureSafeScreens('story');await captureSafeScreens('story-exit');});
+  await runStage('native-story-and-reduced-motion',runAnonymousStory);
   await runStage('native-story-resumes-after-home',()=>verifyImmersiveResume({adb,serial,maestro,published}));
   await runStage('native-registration-no-import',async()=>{
     await maestro('register','register');

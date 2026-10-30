@@ -120,11 +120,13 @@ test('Android CI: workflow is manual KVM-only bounded public upload and no secre
   assert.deepEqual(workflow.on.workflow_dispatch.inputs.scenario,{description:'Full acceptance, operator navigation, profile continuation or network quality',type:'choice',required:true,default:'full',options:['full','operator-navigation','profile-relaunch','quality-network','immersive-story']});
   assert.deepEqual(workflow.on.workflow_dispatch.inputs.ota_update_id,{description:'Optional full published Android update UUID for runtime 0.2.0 on channel demo',type:'string',required:false,default:''});
   const job=workflow.jobs['android-ui'];assert.equal(job['runs-on'],'ubuntu-24.04');
+  assert.equal(job['timeout-minutes'],55);
   assert.equal(job.if,'github.event.repository.private == false');
   assert.equal(job.concurrency['cancel-in-progress'],false);
   assert.equal(job.concurrency.group,'openminerals-isolated-native-qa-${{ matrix.asset }}');
   assert.match(raw,/udevadm trigger --name-match=kvm/);
   const runner=job.steps.find(step=>step.uses?.startsWith('ReactiveCircus/'));
+  assert.equal(runner['timeout-minutes'],45);
   assert.equal(runner.with.cores,4);assert.equal(runner.with['ram-size'],'4096M');
   assert.match(raw,/host-resources\.json/);assert.match(raw,/availableParallelism/);assert.match(raw,/STANDARD_HOST_RESOURCES_INSUFFICIENT/);
   const runnerIndex=job.steps.indexOf(runner);
@@ -188,7 +190,8 @@ test('Android CI: new Maestro documents preserve data and only anonymous phases 
   assert.doesNotMatch(runner,/pm','clear|adb\('uninstall/);
   const storyExit=yaml.parseAllDocuments(await source('../e2e/native/story-exit.yaml'))[1].toJSON();
   assert.ok(storyExit.some(command=>command.extendedWaitUntil?.notVisible?.id==='home-cinematic-scroll'));
-  assert.ok(execution.indexOf('runImmersivePerformance(')<execution.indexOf("'native-registration-no-import'"));
+  const storyStage=execution.indexOf("'native-story-and-reduced-motion',runAnonymousStory");
+  assert.ok(storyStage>=0&&storyStage<execution.indexOf("'native-registration-no-import'"));
 });
 
 test('Android CI: optional OTA follows native verification, passes ID only by env and verifies unchanged results again',async()=>{
