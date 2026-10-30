@@ -45,15 +45,25 @@ test('anonymous narrative closes its real options before screenshots and checks 
   }
 });
 
-test('native Operar and skip both leave the cinematic scroll for the actual purchase screen',async()=>{
+test('native destination CTAs scroll separately to the real field and financial button without submitting',async()=>{
   const commands=await flow('story-exit');
-  for(const label of ['Operar con metales DEMO','Saltar recorrido y continuar con la demo']){
+  const cases=[
+    ['Operar con metales DEMO','Mercado','^Cantidad de metal en gramos$','^Confirmar compra simulada$'],
+    ['Saltar recorrido y continuar con la demo','Mercado','^Cantidad de metal en gramos$','^Confirmar compra simulada$'],
+    ['Abrir mi portafolio','Metales','^Gramos para operación$','^Simular venta$',true],
+    ['Abrir mi billetera','Billetera','^Cantidad de dinero para convertir$','^Convertir en demo$'],
+  ];
+  for(const [label,tab,field,button,blocked=false] of cases){
     const index=commands.findIndex(command=>isTap(command,label));assert.ok(index>=0,label);
-    const after=commands.slice(index+1,index+6);
+    const after=commands.slice(index+1,index+8);
     assert.equal(after[0].extendedWaitUntil.notVisible.id,'home-cinematic-scroll');
-    assert.equal(after[1].assertVisible.id,'operations-scroll');assert.equal(after[2].assertVisible,'^Mercado$');
-    assert.equal(after[3].scrollUntilVisible.element.text,'^Cantidad de metal en gramos$');assert.equal(after[4].assertVisible,'^Confirmar compra simulada$');
+    assert.equal(after[1].assertVisible.id,'operations-scroll');assert.equal(after[2].assertVisible,'^'+tab+'$');
+    assert.equal(after[3].scrollUntilVisible.element.text,field);assert.equal(after[4].assertVisible,field);
+    assert.equal(after[5].scrollUntilVisible.element.text,button);assert.equal(after[5].scrollUntilVisible.direction,'DOWN');
+    assert.deepEqual(after[6].assertVisible,blocked?{text:button,enabled:false}:button);
+    assert.equal(commands.some(command=>isTap(command,button)),false,'Anonymous destination checks never submit '+button);
   }
+  assert.equal(nested(commands).some(command=>command.inputText),false);
 });
 
 test('anonymous video uses only slow real swipes and verifies reversal and final scene without menus or cuts',async()=>{
