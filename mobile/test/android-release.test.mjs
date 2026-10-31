@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
-import {RELEASE,RELEASE_BASELINE,releaseScenario,validateReleaseConfig,validateReleaseManifest,apkRuntimeVersion,preservationProjection,assertReleasePreserved,embeddedFlow,authenticatedFlow,buyerPreservedFlow,operatorPreservedFlow} from '../e2e/release-contract.mjs';
+import {RELEASE,RELEASE_BASELINE,releaseScenario,validateReleaseConfig,releaseRegisterFlow,validateReleaseManifest,apkRuntimeVersion,preservationProjection,assertReleasePreserved,embeddedFlow,authenticatedFlow,buyerPreservedFlow,operatorPreservedFlow} from '../e2e/release-contract.mjs';
 import {PACKAGE,BASELINE,SECRET_NAMES,certificate} from '../e2e/ci-safety.mjs';
+import {accountFlow,walletCurrencies} from '../e2e/account-lifecycle.mjs';
 const yaml=createRequire(import.meta.url)('yaml');
 const source=path=>readFile(new URL(path,import.meta.url),'utf8');
 
@@ -15,6 +16,39 @@ test('release: explicit standalone phases reject OTA and retain the established 
   assert.equal(RELEASE_BASELINE.sha256,'c35719bf44fdc5a1237249be7e80d6d3102e57ee58f0cd0d9b5af3c66f32d83f');
   assert.equal(certificate('Signer #1 certificate SHA-256 digest: '+BASELINE.certificate),BASELINE.certificate);
   assert.throws(()=>certificate('Signer #1 certificate SHA-256 digest: '+'a'.repeat(64)));
+});
+test('release: registration changes only its final clean legacy balance and preserves opt-out and mutable origin guards',async()=>{
+  const original=await source('../e2e/native/register.yaml'),rendered=releaseRegisterFlow(original);
+  const before=yaml.parseAllDocuments(original)[1].toJSON(),after=yaml.parseAllDocuments(rendered)[1].toJSON();
+  const lastWait=before.findLastIndex(command=>command.extendedWaitUntil);
+  assert.equal(before[lastWait].extendedWaitUntil.visible,'^USDT 268,40$');
+  assert.equal(after[lastWait].extendedWaitUntil.visible,'^USDT 250,00$');
+  const expected=structuredClone(before);expected[lastWait].extendedWaitUntil.visible='^USDT 250,00$';assert.deepEqual(after,expected);
+  assert.ok(after.some(command=>command.assertVisible?.text==='Conservar mi sesión anterior'&&command.assertVisible.checked===false));
+  assert.deepEqual(after.at(-1),{assertVisible:'^Sesión sin cuenta$'});
+  assert.equal(releaseRegisterFlow(original.replaceAll('\r\n','\n').replaceAll('\n','\r\n')),rendered);
+  assert.match(original,/visible: \^USDT 268,40\$/);assert.equal((rendered.match(/268,40/g)??[]).length,0);
+  const script=await source('../e2e/release-android.mjs');assert.match(script,/source:releaseRegisterFlow\(await readFile\(join\(repo,'e2e\/native\/register\.yaml'\),'utf8'\)\)/);
+  const legacy=await source('../e2e/ci-android.mjs');assert.ok(legacy.includes("await maestro('register','register')"));assert.doesNotMatch(legacy,/releaseRegisterFlow/);
+});
+test('release: registration rejects missing ambiguous or non-text balance nodes instead of broad replacement',async()=>{
+  const original=(await source('../e2e/native/register.yaml')).replaceAll('\r\n','\n');
+  for(const value of [null,undefined,0,{},[],Buffer.from(original),'',original.replace('268,40','269,00'),original+'- tapOn: ^Inicio$\n',original.replace('appId: '+PACKAGE,'appId: foreign.app'),original.replace('---\n','---\n- extendedWaitUntil:\n    visible: ^USDT 268,40$\n    timeout: 30000\n')])assert.throws(()=>releaseRegisterFlow(value));
+});
+test('release: reachable native and generated account flows have no 0.1.3 seeded-balance dependencies',async()=>{
+  const visited=new Set();
+  async function inspect(name){
+    if(visited.has(name))return;visited.add(name);
+    const text=await source('../e2e/native/'+name+'.yaml'),rendered=name==='register'?releaseRegisterFlow(text):text;
+    assert.doesNotMatch(rendered,/268,40|196,77|270,00|73,23|71,63/,'Legacy seed balance reached through '+name);
+    async function visit(value){if(!value||typeof value!=='object')return;if(value.runFlow?.file)await inspect(value.runFlow.file.replace(/\.yaml$/,''));for(const item of Object.values(value))if(item&&typeof item==='object')await visit(item);}
+    await visit(yaml.parseAllDocuments(rendered)[1].toJSON());
+  }
+  for(const name of ['story','story-video-prepare','story-video','story-exit','story-resume-position','story-resume-check','register','buyer-a','buyer-a-buy','buyer-a-offer','buyer-b','request-delivery','quote','accept','operator','operator-stock','profile','custody-recheck'])await inspect(name);
+  for(const name of ['preserve','ota-before-story'])assert.equal(visited.has(name),false);
+  for(const currency of walletCurrencies)assert.doesNotMatch(accountFlow('wallet',currency),/268,40|196,77|270,00/);
+  for(const name of ['import','setup','hide-and-logout','recover-start','recover-complete','reenter'])assert.doesNotMatch(accountFlow(name),/268,40|196,77|270,00/);
+  const script=await source('../e2e/release-android.mjs');assert.doesNotMatch(script,/e2e\/trades\.yaml|maestro\('(?:preserve|ota-before-story)'/);
 });
 test('release: candidate config, release manifest and both native ABIs fail closed',()=>{
   const config={version:'0.3.0',android:{package:PACKAGE,versionCode:6},runtimeVersion:{policy:'appVersion'},updates:{enabled:true}};

@@ -16,6 +16,16 @@ export function validateReleaseConfig(app){
   requireSafe(app.version===RELEASE.version&&app.android?.versionCode===RELEASE.code&&app.android.package===PACKAGE,'Expected standalone 0.3.0/versionCode6 source.');
   requireSafe(app.runtimeVersion?.policy==='appVersion'&&app.updates?.enabled===true,'Release requires its isolated app-version runtime and embedded-source detector.');
 }
+export function releaseRegisterFlow(source){
+  requireSafe(typeof source==='string','Release registration requires the tracked YAML source text.');
+  const text=source.replaceAll('\r\n','\n');
+  const tail='- tapOn: ^Billetera$\n- extendedWaitUntil:\n    visible: ^USDT 268,40$\n    timeout: 30000\n- assertVisible: ^Sesión sin cuenta$\n';
+  const nodes=text.match(/^    visible: \^USDT 268,40\$$/gm)??[];
+  requireSafe(text.startsWith('appId: '+PACKAGE+'\n')&&nodes.length===1&&text.endsWith(tail),'Expected exactly one final legacy balance node in registration.');
+  // Only the final anonymous balance differs. Checkbox=false, registration,
+  // logout and the mutable legacy-session guard are kept after LF normalization.
+  return text.slice(0,-tail.length)+tail.replace('268,40','250,00');
+}
 export function validateReleaseManifest(info,kind,badging,files=''){
   const expected=kind==='baseline'?RELEASE_BASELINE:RELEASE;
   requireSafe(['baseline','new'].includes(kind)&&info.package===PACKAGE&&info.code===expected.code&&info.name===(expected.name??expected.version)&&info.minSdk<=29,'Release APK package, version or minimum SDK differs.');
