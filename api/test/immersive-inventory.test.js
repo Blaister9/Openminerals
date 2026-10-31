@@ -1,34 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {once} from 'node:events';
 import {createStore} from '../src/store.js';
-import {createApiServer} from '../src/server.js';
-import {immersiveInventory} from './immersive-inventory-fixture.js';
+import {immersiveInventory,publicCustodyProjection} from './immersive-inventory-fixture.js';
 
 test('inventario: estados, reservas exactas, concurrencia e invariantes',async t=>{
   const store=await createStore('');try{await immersiveInventory(t,store);}finally{await store.close();}
 });
-test('custodia HTTP: proyección pública excluye textos operativos de lotes y certificados',async()=>{
-  const store=await createStore(''),password='Only-public-projection-tests-2026';let server;
-  try{
-    const mine=await store.createMine({name:'Proyección de custodia',initialInventoryMg:{XAU:0,XAG:0,XPT:0,XPD:0}});
-    const a=await store.createAccount({alias:'projection_buyer',password,mineId:mine.id}),op=await store.createAccount({alias:'projection_operator',password,mineId:mine.id,role:'operator'});
-    const canary='PRIVATE_OPERATIONAL_SENTINEL';
-    const stock=await store.mutateStock(op.id,{metal:'XAU',grams:'1.000',reason:'Entrada DEMO',location:canary,documentTitle:canary,documentContent:canary,requestId:randomUUID()});
-    const purchase=await store.mutateAccount(a.id,{action:'buy',metal:'XAU',grams:'0.100',requestId:randomUUID()});
-    server=createApiServer(store);server.listen(0,'127.0.0.1');await once(server,'listening');
-    const base=`http://127.0.0.1:${server.address().port}`,buyer=(await store.loginAccount(a.alias,password)).token;
-    for(const path of ['/api/demo/custody',`/api/demo/certificates/${purchase.receipt.certificateIds[0]}`,`/api/demo/custody/lots/${stock.receipt.lotId}/history`]){
-      const response=await fetch(base+path,{headers:{Authorization:'Bearer '+buyer}});assert.equal(response.status,200);assert.ok(!(await response.text()).includes(canary));
-    }
-    for(const path of ['/api/demo/mine/intake','/api/demo/mine/custody']){
-      assert.equal((await fetch(base+path,{headers:{Authorization:'Bearer '+buyer}})).status,403);
-      assert.equal((await fetch(base+path,{headers:{Authorization:'Bearer invalid','x-demo-session':'legacy-public-projection-test'}})).status,401);
-    }
-    assert.equal((await fetch(base+'/api/demo/mine/intake_produce',{method:'POST',headers:{Authorization:'Bearer '+buyer,'Content-Type':'application/json','Idempotency-Key':randomUUID()},body:JSON.stringify({metal:'XAU',grams:'0.100',reason:'No permite comprador'})})).status,403);
-    assert.ok(JSON.stringify(await store.getCustody(op.id,'operator')).includes(canary));
-  }finally{if(server)await new Promise(resolve=>server.close(resolve));await store.close();}
+test('custodia HTTP: todos los DTO compradores excluyen nombre y textos operativos; operador los conserva',async()=>{
+  const store=await createStore('');try{await publicCustodyProjection(store);}finally{await store.close();}
 });
 test('custodia: motivos y textos operativos de entrega no salen por estado, comprobantes o políticas del comprador',async()=>{
   const store=await createStore(''),password='Only-delivery-privacy-tests-2026',canary='PRIVATE_CUSTODY_OPERATIONS_SENTINEL';

@@ -79,7 +79,12 @@ try{
     for(const [name,user] of Object.entries(users)){
       const me=await request('/api/demo/accounts/me',{token:user.token});
       check(me.demoOnly===true&&me.account.id===user.account.id&&me.account.alias===user.account.alias&&me.account.role===user.account.role&&me.mine.id===user.mineId,'Fixture identity changed.');
-      check(me.account.alias===`int_${fixtureTag}_${name.toLowerCase()}`&&me.mine.name===`${name.startsWith('other')?'Isolation':'Integral'} DEMO ${fixtureTag}`,'Only the original synthetic fixture accounts and mines may be used.');
+      const fixtureMineName=`${name.startsWith('other')?'Isolation':'Integral'} DEMO ${fixtureTag}`;
+      check(me.account.alias===`int_${fixtureTag}_${name.toLowerCase()}`&&me.mine.name===(user.account.role==='operator'?fixtureMineName:'Mina virtual ficticia DEMO'),'Only the original synthetic fixture accounts and safe public mine view may be used.');
+      if(user.account.role==='buyer'){
+        const originalOperator=users[name.startsWith('other')?'otherOp':'op'];
+        check(originalOperator.account.role==='operator'&&originalOperator.mineId===me.mine.id,'Buyer fixture lost its original operator/mine relation.');
+      }
       result.profiles[name]=await request('/api/demo/accounts/profile',{token:user.token});
       if(user.account.role==='buyer'){
         result.states[name]=await request('/api/demo/state',{token:user.token});
@@ -251,10 +256,12 @@ try{
     const policyBody={jurisdiction:'DEMO_LOCAL',label:'Jurisdiccion integral DEMO',taxBps:'500',service:'2.00',preparation:'3.00',transport:'5.00',insuranceBps:'100',quoteValidityHours:'24',requirements:'Confirm only fictional delivery\nDo not provide a real identity or address',reason:'Isolated integral delivery policy'};
     const policy=await mutate('op','mine/delivery_config',policyBody);
     check(policy.receipt.action==='delivery_config'&&policy.receipt.policyVersion===2&&policy.receipt.actor.id===users.op.account.id,'Delivery policy command receipt is incorrect.');
-    const policies=await get(winner,'deliveries'),operatorPolicies=await get('op','mine/deliveries'),localPolicy=policies.policies.jurisdictions.find(item=>item.id==='DEMO_LOCAL');
+    const policies=await get(winner,'deliveries'),operatorPolicies=await get('op','mine/deliveries'),localPolicy=policies.policies.jurisdictions.find(item=>item.id==='DEMO_LOCAL'),internalPolicy=operatorPolicies.policies.jurisdictions.find(item=>item.id==='DEMO_LOCAL');
     check(policies.demoOnly===true&&policies.view==='buyer'&&policies.policies.jurisdictions.length===3&&policies.policies.version===2&&policies.policies.quoteValidityHours===24,'Delivery policy migration or version is incorrect.');
     check(localPolicy.taxBps===500&&localPolicy.insuranceBps===100&&localPolicy.serviceMinor===200&&localPolicy.preparationMinor===300&&localPolicy.transportMinor===500&&localPolicy.demoOnly===true,'Configured fictional delivery costs differ.');
-    same(localPolicy.requirements,policyBody.requirements.split('\n'),'Fictional requirements differ from configuration.');
+    same(internalPolicy.requirements,policyBody.requirements.split('\n'),'Operator requirements differ from its persisted configuration.');
+    same(localPolicy.requirements,['Usar exclusivamente alias e identificadores ficticios','Confirmar que no se enviará metal ni se aportará una dirección real'],'Buyer policy did not use fixed fictional public requirements.');
+    check(localPolicy.label==='Jurisdicción DEMO A'&&internalPolicy.label===policyBody.label,'Buyer public policy and operator configuration were not separated.');
     check(policies.audit.length===0&&operatorPolicies.audit.length===1,'Delivery policy audit was not isolated to the operator.');
     await reject(winner,'mine/delivery_config',policyBody,403);
     await request('/api/demo/mine/deliveries',{token:users[winner].token,expected:403});
@@ -269,7 +276,10 @@ try{
     check(quoted.receipt.deliveryStatus==='QUOTED'&&quote.demoOnly===true&&quote.currency==='USDT'&&quote.policyVersion===2,'Delivery quote is incomplete.');
     check(quote.metalValueMinor===2900&&quote.insuranceMinor===29&&quote.subtotalMinor===1029&&quote.taxMinor===52&&quote.totalMinor===1081,'Delivery quote rounding or tax/insurance basis is incorrect.');
     check(Date.parse(quote.expiresAt)-Date.parse(quote.createdAt)===24*3_600_000,'Delivery quote expiry differs from policy.');
-    same(quote.requirements,localPolicy.requirements,'Issued quote lost its fictional requirements.');
+    same(quote.requirements,internalPolicy.requirements,'Operator quote lost its configured requirements.');
+    const buyerQuote=(await get(winner,'deliveries')).requests.find(item=>item.id===deliveryId).quote;
+    same(buyerQuote.requirements,localPolicy.requirements,'Buyer quote did not use fictional public requirements.');
+    check(buyerQuote.id===quote.id&&buyerQuote.totalMinor===quote.totalMinor&&buyerQuote.expiresAt===quote.expiresAt,'Public quote changed costs, identity or expiry.');
     same(await get('op',`mine/commands/${quoted.receipt.id}`),quoted.receipt,'Operator command lookup changed its original receipt.');
     check(!Object.hasOwn(quoted.receipt,'balancesAfter'),'Operator quote exposed a buyer wallet.');
     await request(`/api/demo/mine/commands/${quoted.receipt.id}`,{token:users.otherOp.token,expected:404});

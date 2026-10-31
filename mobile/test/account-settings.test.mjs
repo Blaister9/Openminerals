@@ -12,7 +12,7 @@ function storage(){const data=new Map(),writes=[];return {data,writes,async getI
 function defer(){let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};}
 async function fixture(){
   const store=await createStore(''),server=createApiServer(store,{authRateLimit:{limit:200}});server.listen(0,'127.0.0.1');await once(server,'listening');
-  const api=`http://127.0.0.1:${server.address().port}`,mine=await store.createMine({name:'Mina DEMO cuentas móviles'}),buyer=await store.createAccount({alias:'settings_buyer_demo',password:PASSWORD,mineId:mine.id});
+  const api=`http://127.0.0.1:${server.address().port}`,mine=await store.createMine({name:'Mina DEMO cuentas móviles',initialInventoryMg:{XAU:1000,XAG:0,XPT:0,XPD:0}}),buyer=await store.createAccount({alias:'settings_buyer_demo',password:PASSWORD,mineId:mine.id});
   const data=storage(),auth=storage(),calls=[];let loseBuy=false,loseComplete=false,decorateAuth=false,gateStart,gateComplete;
   const options={api,storage:data,authStorage:auth,uuid:randomUUID,fetchImpl:async(url,init)=>{
     calls.push({path:url.slice(api.length),headers:{...init.headers},body:init.body?JSON.parse(init.body):undefined});

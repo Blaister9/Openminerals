@@ -2,7 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {ActivityIndicator,Modal,Pressable,ScrollView,StyleSheet,Text,TextInput,View} from 'react-native';
 import {ModalSurface} from './ModalSurface';
 import {LotHistory} from './LotHistory';
-import {certificatePath,custodyDocumentKind,custodyGrams,custodyMetalName,custodyMetals,custodyStatus,parseCustodyCertificate,parseCustodySummary,validCertificateId,type CustodyCertificate,type CustodyDocument,type CustodySummary} from '../lib/custody';
+import {certificatePath,custodyDocumentKind,custodyGrams,custodyMetalName,custodyMetals,custodyStatus,parseCustodyCertificate,parseCustodySummary,validCertificateId,type CustodyCertificate,type CustodyDocument,type CustodySummary,type CustodyMetal} from '../lib/custody';
 
 type Props={operator:boolean;identityKey:string;get:<T>(path:string)=>Promise<T>;disabled?:boolean;refreshKey?:string};
 type Scoped<T>={scope:string;value:T};
@@ -35,6 +35,7 @@ export function CustodyPanel({operator,identityKey,get,disabled=false,refreshKey
   const [problem,setProblem]=useState<Scoped<string>|null>(null);
   const [certificateInput,setCertificateInput]=useState('');
   const [historyLot,setHistoryLot]=useState<string|null>(null);
+  const [metalFilter,setMetalFilter]=useState<CustodyMetal|'all'>('all');
   const [certificateId,setCertificateId]=useState<Scoped<string>|null>(null);
   const [certificate,setCertificate]=useState<Scoped<CustodyCertificate>|null>(null);
   const [certificateLoading,setCertificateLoading]=useState<Scoped<boolean>|null>(null);
@@ -60,7 +61,7 @@ export function CustodyPanel({operator,identityKey,get,disabled=false,refreshKey
     finally{if(currentScope.current===requestedScope&&request===summaryRequest.current)setLoading({scope,value:false});}
   }
   useEffect(()=>{
-    initialized.current='';setCertificateInput('');setHistoryLot(null);
+    initialized.current='';setCertificateInput('');setHistoryLot(null);setMetalFilter('all');
     return ()=>{summaryRequest.current++;certificateRequest.current++;};
   },[scope]);
   useEffect(()=>{
@@ -93,16 +94,24 @@ export function CustodyPanel({operator,identityKey,get,disabled=false,refreshKey
     {data&&<>
       <Text style={styles.smallHeading}>{data.mine.name}</Text>
       <Text style={styles.note}>{data.disclaimer}</Text>
-      <View style={styles.card}><Text style={styles.cardTitle}>{operator?'Total de lotes registrados':'Resumen de los lotes vinculados'}</Text>
-        {custodyMetals.map(metal=><View key={metal}><Row label={custodyMetalName(metal)} value={custodyGrams(data.totals[metal].activeWeightMg)}/>{data.totals[metal].deliveredMg>0&&<Text style={styles.note}>{custodyGrams(data.totals[metal].deliveredMg)} entregados en la simulación; peso registrado original {custodyGrams(data.totals[metal].weightMg)}.</Text>}</View>)}
+      <View style={styles.card}><Text style={styles.cardTitle}>{operator?'Peso activo de los lotes DEMO':'Mis fracciones registradas DEMO'}</Text>
+        {custodyMetals.map(metal=><View key={metal} accessible accessibilityLabel={`${operator?'Peso activo de lote':'Fracción DEMO de'} ${custodyMetalName(metal)}: ${custodyGrams(operator?data.totals[metal].activeWeightMg:data.totals[metal].allocatedMg)}`}><Row label={custodyMetalName(metal)} value={custodyGrams(operator?data.totals[metal].activeWeightMg:data.totals[metal].allocatedMg)}/>{operator&&data.totals[metal].deliveredMg>0&&<Text style={styles.note}>{custodyGrams(data.totals[metal].deliveredMg)} salidos en la simulación; peso registrado original {custodyGrams(data.totals[metal].weightMg)}.</Text>}</View>)}
       </View>
       {!data.lots.length&&<View style={styles.card}><Text style={styles.cardTitle}>{operator?'No hay lotes registrados':'Todavía no tienes lotes vinculados'}</Text><Text style={styles.note}>{operator?'Los ingresos ficticios de metal permiten registrar lotes para esta demostración.':'Tus compras simuladas podrán vincular gramos a lotes de la mina. Tus saldos anteriores permanecen en el portafolio.'}</Text></View>}
-      {data.lots.map(lot=>{
+      {!!data.lots.length&&<>
+        <Text style={styles.smallHeading}>Explorar lotes por metal</Text>
+        <ScrollView horizontal directionalLockEnabled nestedScrollEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={styles.metalRail}>
+          {(['all',...custodyMetals] as const).map(metal=><Pressable key={metal} accessibilityRole="button" accessibilityLabel={'Filtrar lotes: '+(metal==='all'?'Todos':custodyMetalName(metal))} accessibilityState={{selected:metal===metalFilter}} onPress={()=>setMetalFilter(metal)} style={[styles.metalFilter,metal===metalFilter&&styles.metalFilterSelected]}><Text style={styles.link}>{metal==='all'?'Todos':custodyMetalName(metal)}</Text></Pressable>)}
+        </ScrollView>
+        <Text style={styles.note}>Mostrando {data.lots.filter(lot=>metalFilter==='all'||lot.metal===metalFilter).length} de {data.lots.length} lotes consultados. Desliza los metales ↔ para filtrar sin recorrer toda la lista.</Text>
+        {metalFilter!=='all'&&!data.lots.some(lot=>lot.metal===metalFilter)&&<Text style={styles.note}>No hay lotes de {custodyMetalName(metalFilter)} en esta consulta.</Text>}
+      </>}
+      {data.lots.filter(lot=>metalFilter==='all'||lot.metal===metalFilter).map(lot=>{
         const allocations=data.allocations.filter(entry=>entry.lotId===lot.id);
         return <View key={lot.id} style={styles.card}>
           <Text style={styles.eyebrow}>LOTE DEMO</Text><Text style={styles.cardTitle}>{custodyMetalName(lot.metal)}</Text><Text selectable style={styles.identifier}>{lot.id}</Text>
           <Row label="Pureza declarada de prueba" value={lot.purity}/><Row label="Peso original del lote" value={custodyGrams(lot.originalWeightMg)}/>
-          <Row label="Entregado en la simulación" value={custodyGrams(lot.deliveredMg)}/><Row label="Peso que sigue en custodia demo" value={custodyGrams(lot.activeWeightMg)}/>
+          <Row label="Salidas totales del lote DEMO" value={custodyGrams(lot.deliveredMg)}/><Row label="Peso activo total del lote" value={custodyGrams(lot.activeWeightMg)}/>
           <Row label="Ubicación ficticia" value={lot.location}/><Row label="Estado" value={custodyStatus(lot.status)}/>
           <Row label={operator?'Asignado en el lote':'Asignado a mi cuenta'} value={custodyGrams(lot.allocatedMg)}/><Row label="Disponible en el lote" value={custodyGrams(lot.availableMg)}/>
           {lot.reservedMg!==undefined&&<Row label={operator?'Reservado dentro de lo asignado':'Reserva de mi cuenta en este lote'} value={custodyGrams(lot.reservedMg)}/>}
@@ -149,5 +158,6 @@ export function CustodyPanel({operator,identityKey,get,disabled=false,refreshKey
 }
 
 const styles=StyleSheet.create({
+  metalRail:{gap:8,paddingVertical:8},metalFilter:{minHeight:48,paddingHorizontal:16,justifyContent:'center',borderRadius:24,borderWidth:1,borderColor:'#44554B'},metalFilterSelected:{backgroundColor:'#3C3525',borderColor:'#D4B77D'},
   screen:{flex:1,backgroundColor:'#090F15'},eyebrow:{color:'#DCBC7F',fontSize:10,fontWeight:'800',letterSpacing:1.4,lineHeight:19,marginTop:14},title:{color:'#F6F5F1',fontSize:29,lineHeight:38,fontWeight:'700',marginTop:7,marginBottom:10},copy:{color:'#BAC4CE',fontSize:13,lineHeight:22,marginVertical:7},notice:{padding:16,borderRadius:12,borderWidth:1,borderColor:'#665233',backgroundColor:'#241F18',marginVertical:10},noticeTitle:{color:'#DCBC7F',fontWeight:'800',fontSize:12,lineHeight:20},card:{backgroundColor:'#141E28',borderColor:'#273541',borderWidth:1,borderRadius:14,padding:17,marginTop:18},cardTitle:{color:'#F6F5F1',fontSize:18,lineHeight:27,fontWeight:'700'},smallHeading:{color:'#F6F5F1',fontSize:15,lineHeight:23,fontWeight:'700',marginTop:21,marginBottom:6},row:{flexDirection:'row',gap:16,alignItems:'flex-start',justifyContent:'space-between',paddingVertical:9},label:{color:'#AAB6C0',fontSize:12,lineHeight:21,flex:1},value:{color:'#F6F5F1',fontSize:13,lineHeight:21,fontWeight:'600',flex:1,textAlign:'right'},note:{color:'#98A5B0',fontSize:12,lineHeight:21,marginVertical:5},identifier:{color:'#AAB6C0',fontSize:11,lineHeight:19,marginTop:6},secondary:{minHeight:48,padding:14,borderRadius:10,borderWidth:1,borderColor:'#4E6576',backgroundColor:'#1D2B37',alignItems:'center',justifyContent:'center',marginTop:12},secondaryText:{color:'#EDF1F3',fontSize:13,fontWeight:'700',textAlign:'center'},primary:{minHeight:48,padding:15,borderRadius:10,backgroundColor:'#DCBC7F',alignItems:'center',justifyContent:'center',marginTop:12},primaryText:{color:'#15212B',fontSize:13,fontWeight:'800',textAlign:'center'},disabled:{opacity:.45},loading:{flexDirection:'row',gap:12,alignItems:'center',marginVertical:12},error:{backgroundColor:'#4B2E2A',padding:15,borderRadius:12,marginTop:15},errorText:{color:'#FCE4D9',fontSize:13,lineHeight:22},document:{marginTop:10,padding:12,borderRadius:10,borderWidth:1,borderColor:'#33414D',backgroundColor:'#101A23'},documentButton:{minHeight:48,flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12},documentTitle:{color:'#F6F5F1',fontSize:13,lineHeight:22,fontWeight:'600',flexShrink:1},documentContent:{color:'#D4DBE0',fontSize:13,lineHeight:23,marginTop:12},link:{color:'#DCBC7F',fontSize:13,fontWeight:'700'},allocation:{borderTopWidth:1,borderColor:'#33414D',paddingTop:12,marginTop:12},input:{color:'#FAF9F3',fontSize:15,lineHeight:23,minHeight:50,paddingHorizontal:14,paddingVertical:12,backgroundColor:'#09131C',borderWidth:1,borderColor:'#3C4B56',borderRadius:10,marginTop:12},header:{paddingHorizontal:20,paddingVertical:12,borderBottomWidth:1,borderColor:'#273541',flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12},headerTitle:{color:'#F6F5F1',fontSize:20,fontWeight:'700',flexShrink:1},close:{padding:12,minHeight:48,justifyContent:'center'},modalBody:{padding:22,paddingBottom:40},certificateTitle:{color:'#F6F5F1',fontSize:23,lineHeight:33,fontWeight:'700',marginTop:20},verification:{backgroundColor:'#152D26',borderColor:'#315449',borderWidth:1,borderRadius:12,padding:15,marginVertical:20},ok:{color:'#9FCAB6',fontSize:14,fontWeight:'700',lineHeight:22},
 });

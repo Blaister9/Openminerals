@@ -4,7 +4,7 @@ import {randomUUID} from 'node:crypto';
 import {once} from 'node:events';
 import {seedState,applyCommand} from '../src/domain.js';
 import {seedMine} from '../src/shared-mine.js';
-import {ensureCustody,validateCustody} from '../src/custody.js';
+import {ensureCustody,validateCustody,custodyView,custodyCertificate} from '../src/custody.js';
 import {createStore} from '../src/store.js';
 import {createApiServer} from '../src/server.js';
 
@@ -44,6 +44,22 @@ test('custodia: migración rechaza conciliación anterior inválida sin reinicia
   assert.throws(()=>ensureCustody(valid,[]),{code:'INVALID_CUSTODY'});
   const invalidDelivered=ensureCustody(seedMine(),[]).mine;invalidDelivered.custody.lots[0].deliveredMg=null;
   assert.throws(()=>ensureCustody(invalidDelivered,[]),{code:'INVALID_CUSTODY'});
+});
+
+test('custodia: campos operativos desconocidos en asignaciones legacy no llegan al comprador',()=>{
+  const canary='PRIVATE_ALLOCATION_OPERATIONS_SENTINEL',mine=seedMine();
+  const state=applyCommand(seedState(),command('buy','XAU','0.100')).state;mine.inventoryMg.XAU-=100;
+  const buyer={id:'buyer-allocation-projection',alias:'buyer_projection',role:'buyer',state};
+  const operator={id:'operator-allocation-projection',alias:'operator_projection',role:'operator',state:seedState()};
+  const accounts=[buyer,operator],migrated=ensureCustody(mine,accounts).mine;
+  const allocation=migrated.custody.allocations[0];
+  allocation.internalOperations={site:canary,securityNotes:canary};allocation.privateReference=canary;
+  const before=structuredClone(migrated),view=custodyView(migrated,accounts,buyer);
+  assert.ok(!JSON.stringify(view).includes(canary));
+  assert.deepEqual(Object.keys(view.allocations[0]).sort(),['id','lotId','metal','mg','certificateId','createdAt','account','status','demoOnly'].sort());
+  assert.ok(!JSON.stringify(custodyCertificate(migrated,accounts,buyer,allocation.certificateId)).includes(canary));
+  assert.ok(JSON.stringify(custodyView(migrated,accounts,operator)).includes(canary));
+  assert.deepEqual(migrated,before);
 });
 
 test('custodia: compras concurrentes no sobreasignan lotes y replay conserva certificados',async()=>{

@@ -1,0 +1,18 @@
+appId: com.openminerals.demo.mobile
+name: Explore wallet balances horizontally without a scenario-name collision
+---
+- scrollUntilVisible:
+    element:
+      id: wallet-balances
+    direction: UP
+    centerElement: true
+    timeout: 30000
+- repeat:
+    times: 3
+    commands:
+      - swipe:
+          from:
+            id: wallet-balances
+            point: 85%,50%
+          direction: LEFT
+          duration: 500

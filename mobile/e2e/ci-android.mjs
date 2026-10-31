@@ -5,9 +5,9 @@ import {closeSync,openSync} from 'node:fs';
 import {copyFile,mkdir,readFile,readdir,writeFile} from 'node:fs/promises';
 import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,certificate,cleanFixture,emulatorGuard,fixtures,hash,manifest,nativeScenario,otaUpdateId,publicJunit,requireSafe,sha} from './ci-safety.mjs';
+import {API,BASELINE,PACKAGE,SECRET_NAMES,apkUrl,certificate,cleanFixture,emulatorGuard,fixtures,hash,manifest,nativeScenario,otaUpdateId,publicJunit,requireSafe,requiresPrivateFixtures,sha} from './ci-safety.mjs';
 import {verifyNativeCommercialSnapshot,verifyNativeSnapshot} from './ci-result.mjs';
-import {runImmersivePerformance} from './immersive-performance.mjs';
+import {runImmersivePerformance,verifyImmersiveResume} from './immersive-performance.mjs';
 import {flowSelectors,collectFailureDiagnostic} from './ci-diagnostics.mjs';
 import {captureLegacyFailure} from './ci-legacy-failure.mjs';
 import {withLegacyNavigation} from './ci-legacy-navigation.mjs';
@@ -19,6 +19,7 @@ import {runAccountLifecycle} from './account-lifecycle.mjs';
 import {privateRecoveryKey} from './private-recovery.mjs';
 import {captureNativeFailure,nativeFailureAllowed} from './ci-native-failure.mjs';
 import {runNetworkQuality} from './network-quality.mjs';
+import {horizontalWalletNavigation} from './wallet-navigation.mjs';
 import {createObserverRequest} from './ci-http.mjs';
 
 const repo=resolve(dirname(fileURLToPath(import.meta.url)),'..'),root=resolve(process.env.RUNNER_TEMP||'.','openminerals-native');
@@ -47,7 +48,7 @@ function mask(value){
 }
 async function connectFixtures(){
   requireSafe(process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_OS==='Linux','QA preflight runs only in GitHub Linux.');
-  users=fixtures(process.env);
+  users=requiresPrivateFixtures(scenario)?fixtures(process.env):{};
   for(const value of Object.values(users))for(const secret of [value.alias,value.password])mask(secret);
   const health=await request('/health');
   requireSafe(health.ok===true&&health.demoOnly===true&&health.mode==='postgres-demo'&&health.apiVersion==='0.2.0','The deployed PostgreSQL API 0.2.0 is required.');
@@ -56,9 +57,10 @@ async function connectFixtures(){
     requireSafe(auth.account?.role===user.role&&auth.account.alias===user.alias,'QA account role or alias mismatch.');
     user.token=auth.token;mask(user.token);sessions.push(user.token);
     user.me=await request('/api/demo/accounts/me',user.token);
+    requireSafe(user.me.account?.role===user.role&&user.me.account.alias===user.alias&&user.me.account.id===auth.account.id,'QA current identity must match its authenticated fixture.');
     cleanFixture(user.me);
   }
-  requireSafe(new Set(Object.values(users).map(user=>user.me.mine.id)).size===1,'QA fixture accounts must belong to exactly the same isolated mine.');
+  if(requiresPrivateFixtures(scenario))requireSafe(Object.keys(users).length===3&&users.a.me.account.id!==users.b.me.account.id&&new Set(Object.values(users).map(user=>user.me.mine.id)).size===1,'Two distinct QA buyers and their operator must belong to exactly the same isolated mine.');
 }
 async function unusedFixtures(){
   for(const name of ['a','b']){
@@ -90,11 +92,14 @@ async function maestro(name,role,{source,extraEnv={}}={}){
   requireSafe(/^[a-z0-9-]{3,70}$/.test(name),'Invalid private native flow name.');
   for(const [key,value] of Object.entries(extraEnv))requireSafe(['MAESTRO_RECOVERY_KEY','MAESTRO_NEXT_PASSWORD'].includes(key)&&typeof value==='string'&&/^[A-Za-z0-9_-]{32,43}$/.test(value),'Invalid private account flow environment.');
   const directory=join(privateRoot,name);await mkdir(directory,{recursive:true,mode:0o700});
-  const user=role==='register'?users.register:users[role];
+  const user=role==='register'?users?.register:users?.[role];
   const env={...process.env,MAESTRO_CLI_NO_ANALYTICS:'1',MAESTRO_LOGIN_ALIAS:user?.alias||'',MAESTRO_LOGIN_PASSWORD:user?.password||'',MAESTRO_EXPECTED_OTA_ID:['ota','ota-before-story','operator-navigation-ota'].includes(name)?(expectedOtaId??''):'',...extraEnv};
   const generated=join(privateRoot,'flows');await mkdir(generated,{recursive:true,mode:0o700});
-  for(const file of await readdir(join(repo,'e2e/native')))if(file.endsWith('.yaml'))await writeFile(join(generated,file),nativeFlow(file.slice(0,-5),await readFile(join(repo,'e2e/native',file),'utf8'),coverageMetal),{mode:0o600});
-  if(source){requireSafe((scenario==='account-lifecycle'&&/^(?:wallet-(?:cop|eur|usd|usdt)|account-[a-z-]+)$/.test(name)||scenario==='quality-network'&&/^quality-(?:login|insufficient|prepare|offline|resolve)$/.test(name)),'Custom native flow outside account lifecycle.');await writeFile(join(generated,name+'.yaml'),source,{mode:0o600});}
+  for(const file of await readdir(join(repo,'e2e/native')))if(file.endsWith('.yaml')){
+    const flowName=file.slice(0,-5),definition=nativeFlow(flowName,await readFile(join(repo,'e2e/native',file),'utf8'),coverageMetal);
+    await writeFile(join(generated,file),flowName==='preserve'?definition:horizontalWalletNavigation(definition),{mode:0o600});
+  }
+  if(source){requireSafe((scenario==='account-lifecycle'&&/^(?:wallet-(?:cop|eur|usd|usdt)|account-[a-z-]+)$/.test(name)||scenario==='quality-network'&&/^quality-(?:login|insufficient|prepare|offline|resolve)$/.test(name)),'Custom native flow outside account lifecycle.');await writeFile(join(generated,name+'.yaml'),horizontalWalletNavigation(source),{mode:0o600});}
   try{
     command('maestro',['--no-ansi','--device',serial,'test','--format','JUNIT','--output',join(directory,'raw-report.xml'),'--debug-output',join(directory,'debug'),'--test-output-dir',join(directory,'screenshots'),join(generated,name+'.yaml')],{env,timeout:420000,output:join(directory,'console.txt')});
   }catch(error){
@@ -116,6 +121,7 @@ function captureSecret(id){
 async function captureSafeScreens(name){
   // These phases finish before entering any alias/password, and run alone.
   const directory=join(privateRoot,name,'screenshots');
+  const copied=new Set();
   async function walk(folder){
     let entries;try{entries=await readdir(folder,{withFileTypes:true});}catch(error){if(error.code==='ENOENT')return;throw error;}
     for(const entry of entries){
@@ -125,10 +131,28 @@ async function captureSafeScreens(name){
       else if(/^safe-(story-[1-7]|upgrade-preserved|reduced-motion|wallet-cop-before-eur)\.png$/.test(entry.name)){
         const pixels=await readFile(file);requireSafe(pixels.length<10000000&&pixels.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),'Unexpected safe screenshot.');
         await copyFile(file,join(published,entry.name));
+        copied.add(entry.name);
       }
     }
   }
   await walk(directory);
+  return [...copied];
+}
+async function runAnonymousStory(){
+  let narrativeFailed=false;
+  try{await runImmersivePerformance({adb,serial,maestro,published});}
+  catch(error){narrativeFailed=true;throw error;}
+  finally{
+    // Both directories precede credentials. Copy available approved PNGs even
+    // if a later narrative assertion failed, preserving that original cause.
+    const copies=await Promise.allSettled(['story','story-exit'].map(async name=>captureSafeScreens(name)));
+    if(!narrativeFailed){
+      requireSafe(copies.every(result=>result.status==='fulfilled'&&Array.isArray(result.value)),'Required anonymous screenshots could not be safely copied.');
+      const copied=new Set(copies.flatMap(result=>result.value));
+      const required=[...Array.from({length:7},(_,index)=>'safe-story-'+(index+1)+'.png'),'safe-reduced-motion.png'];
+      requireSafe(required.every(name=>copied.has(name)),'Required anonymous narrative screenshots are missing.');
+    }
+  }
 }
 async function download(){
   requireSafe(process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_OS==='Linux','Downloads are prepared only on GitHub Linux.');
@@ -173,7 +197,7 @@ async function collectNativeSnapshot(){
 }
 async function verifyNative(){verifyNativeSnapshot(await collectNativeSnapshot(),coverageMetal);}
 async function verifyCompletedTrades(){verifyNativeCommercialSnapshot(await collectNativeSnapshot(),coverageMetal);}
-async function scenarioFixtures(){if(scenario==='profile-relaunch')await verifyCompletedTrades();else await unusedFixtures();}
+async function scenarioFixtures(){if(scenario==='immersive-story')return;if(scenario==='profile-relaunch')await verifyCompletedTrades();else await unusedFixtures();}
 async function profileRelaunch(){
   // Resume only after independently checking every completed trade/lot/fee.
   // Existing financial records are never reset or seeded through the API.
@@ -184,6 +208,7 @@ async function profileRelaunch(){
   });
   await runStage('profile-compatible-ota-before-login',()=>maestro('operator-navigation-ota'));
   await runStage('buyer-history-profile-relaunch',()=>maestro('profile','a'));
+  await runStage('buyer-custody-fraction-is-not-whole-lot',()=>maestro('custody-recheck','a'));
   await runStage('api-verifies-native-wallets-lots-fees',verifyNative);
   await runStage('buyer-compatible-ota-cold-launch',()=>maestro('ota','a'));
   await runStage('api-verifies-data-after-compatible-ota',verifyNative);
@@ -216,9 +241,18 @@ async function run(){
   emulatorGuard(process.env,devices,candidate?command('adb',['-s',candidate,'shell','getprop','ro.kernel.qemu']):'');
   serial=candidate;
   progress.stageEnd('emulator-preconditions',true);
-  await runStage('qa-isolation-preconditions',async()=>{await connectFixtures();await scenarioFixtures();});
+  await runStage(requiresPrivateFixtures(scenario)?'qa-isolation-preconditions':'anonymous-postgres-api-preconditions',async()=>{await connectFixtures();await scenarioFixtures();});
   if(scenario==='operator-navigation'){await operatorNavigation();return;}
   if(scenario==='profile-relaunch'){await profileRelaunch();return;}
+  if(scenario==='immersive-story'){
+    await runStage('install-story-apk',async()=>{requireSafe(!adb('shell','pm','list','packages',PACKAGE),'Story coverage requires a fresh disposable emulator.');adb('install',join(root,'new.apk'));});
+    await runStage('anonymous-compatible-ota-before-story',()=>maestro('operator-navigation-ota'));
+    await runStage('native-story-and-reduced-motion',runAnonymousStory);
+    await runStage('unrecorded-3d-native-performance',()=>runImmersivePerformance({adb,serial,maestro,published,record:false}));
+    await runStage('unrecorded-light-native-performance',()=>runImmersivePerformance({adb,serial,maestro,published,record:false,light:true}));
+    await runStage('native-story-resumes-after-home',()=>verifyImmersiveResume({adb,serial,maestro,published}));
+    return;
+  }
   if(scenario==='quality-network'){
     await runStage('install-quality-apk',async()=>{requireSafe(!adb('shell','pm','list','packages',PACKAGE),'Quality coverage requires a fresh disposable emulator.');adb('install',join(root,'new.apk'));});
     await runStage('quality-compatible-ota-before-login',()=>maestro('operator-navigation-ota'));
@@ -267,7 +301,8 @@ async function run(){
   });
   await runStage('preserve-legacy-after-update',async()=>{await maestro('preserve');await captureSafeScreens('preserve');});
   if(expectedOtaId)await runStage('anonymous-compatible-ota-before-story',()=>maestro('ota-before-story'));
-  await runStage('native-story-and-reduced-motion',async()=>{await runImmersivePerformance({adb,serial,maestro,published});await captureSafeScreens('story');await captureSafeScreens('story-exit');});
+  await runStage('native-story-and-reduced-motion',runAnonymousStory);
+  await runStage('native-story-resumes-after-home',()=>verifyImmersiveResume({adb,serial,maestro,published}));
   await runStage('native-registration-no-import',async()=>{
     await maestro('register','register');
     const auth=await request('/api/demo/accounts/login',null,{alias:users.register.alias,password:users.register.password});mask(auth.token);sessions.push(auth.token);
@@ -285,6 +320,7 @@ async function run(){
   await runStage('operator-delivery-lifecycle',()=>maestro('operator','op'));
   await runStage('operator-restock-management',()=>maestro('operator-stock','op'));
   await runStage('buyer-history-profile-relaunch',()=>maestro('profile','a'));
+  await runStage('buyer-custody-fraction-is-not-whole-lot',()=>maestro('custody-recheck','a'));
   await runStage('api-verifies-native-wallets-lots-fees',verifyNative);
   if(expectedOtaId){
     await runStage('buyer-compatible-ota-cold-launch',()=>maestro('ota','a'));
@@ -298,7 +334,7 @@ async function report(){
   // Fixed labels and counts only. No raw Maestro XML, stderr, hierarchy, logcat,
   // account failure screenshot, alias, password, token or recovery key is copied.
   // The isolated anonymous 0.1.3 phase has its own explicit screenshot policy.
-  const summary={demoOnly:true,scenario,coverageMetal:['account-lifecycle','quality-network'].includes(scenario)?null:coverageMetal,environment:'disposable Android CI emulator',phoneAcceptance:false,realCustody:false,ota:{requested:expectedOtaId!==null,expectedUpdateId:expectedOtaId},completed:results.filter(item=>item.ok).map(item=>item.name),failed:results.filter(item=>!item.ok).map(item=>item.name),safeScreenshots:'Anonymous legacy/story before credentials only',privateDiagnosticsPublished:false};
+  const summary={demoOnly:true,scenario,coverageMetal:['account-lifecycle','quality-network','immersive-story'].includes(scenario)?null:coverageMetal,environment:'disposable Android CI emulator',phoneAcceptance:false,realCustody:false,ota:{requested:expectedOtaId!==null,expectedUpdateId:expectedOtaId},completed:results.filter(item=>item.ok).map(item=>item.name),failed:results.filter(item=>!item.ok).map(item=>item.name),safeScreenshots:'Anonymous legacy/story before credentials only',privateDiagnosticsPublished:false};
   const text=JSON.stringify(summary,null,2)+'\n';
   requireSafe([...privateValues].every(value=>!text.includes(value)),'Refusing to publish private values.');
   await writeFile(join(published,'summary.json'),text);
@@ -312,7 +348,7 @@ try{
   const mode=process.argv[2];
   if(['download','preflight','run'].includes(mode))progress=createProgress(published,mode,()=>[...privateValues]);
   if(mode==='download'){progress.stageStart('download-apks');await download();progress.stageEnd('download-apks',true);}
-  else if(mode==='preflight'){progress.stageStart('qa-preflight');await connectFixtures();await scenarioFixtures();progress.stageEnd('qa-preflight',true);console.log('PASS scenario-specific isolated QA accounts and PostgreSQL API 0.2.0');}
+  else if(mode==='preflight'){progress.stageStart('qa-preflight');await connectFixtures();await scenarioFixtures();progress.stageEnd('qa-preflight',true);console.log(requiresPrivateFixtures(scenario)?'PASS scenario-specific isolated QA accounts and PostgreSQL API 0.2.0':'PASS anonymous PostgreSQL API readiness; no private account login');}
   else if(mode==='run'){progress.stageStart('emulator-preconditions');await run();}
   else throw new Error('Unknown native CI mode.');
 }catch{

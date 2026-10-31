@@ -98,27 +98,35 @@ test('Android CI: failure context contains only fixed flow selectors and closed 
 });
 
 test('Android CI: fixtures reject owner mine imported state previous receipts and shared accounts',()=>{
-  const me={demoOnly:true,mine:{id:'mine-isolated-unit',name:'Native QA DEMO unit'}};
+  const me={demoOnly:true,account:{role:'operator',mineId:'mine-isolated-unit'},mine:{id:'mine-isolated-unit',name:'Native QA DEMO unit'}};
   const state=seedState(),summary={inventoryMg:{XAU:5000},totalSupplyMg:{XAU:5000},allocatedMg:{XAU:0},accountCount:2};
   assert.doesNotThrow(()=>cleanFixture(me,state,summary));
   assert.throws(()=>cleanFixture({...me,mine:{id:'openminerals-demo-v1',name:'Native QA DEMO unit'}},state,summary));
   assert.throws(()=>cleanFixture(me,{...state,holdingsMg:{...state.holdingsMg,XAU:100}},summary));
   assert.throws(()=>cleanFixture(me,{...state,receipts:{old:{id:'old'}}},summary));
   assert.throws(()=>cleanFixture(me,state,{...summary,accountCount:3}));
+  const buyer={...me,account:{...me.account,role:'buyer'},mine:{...me.mine,name:'Mina virtual ficticia DEMO'}};
+  assert.doesNotThrow(()=>cleanFixture(buyer,state,summary));
+  assert.throws(()=>cleanFixture({...buyer,mine:me.mine}));
+  assert.throws(()=>cleanFixture({...me,mine:buyer.mine}));
+  assert.throws(()=>cleanFixture({...buyer,account:{...buyer.account,mineId:'mine-other'}}));
+  assert.throws(()=>cleanFixture({...buyer,account:{...buyer.account,role:'admin'}}));
 });
 
 test('Android CI: workflow is manual KVM-only bounded public upload and no secret inputs',async()=>{
   const raw=await source('../../.github/workflows/android-ui.yml'),workflow=yaml.parse(raw);
   assert.deepEqual(Object.keys(workflow.on),['workflow_dispatch']);
   assert.deepEqual(Object.keys(workflow.on.workflow_dispatch.inputs),['scenario','case_scope','apk_url','apk_sha256','ota_update_id']);
-  assert.deepEqual(workflow.on.workflow_dispatch.inputs.scenario,{description:'Full acceptance, operator navigation, profile continuation or network quality',type:'choice',required:true,default:'full',options:['full','operator-navigation','profile-relaunch','quality-network']});
+  assert.deepEqual(workflow.on.workflow_dispatch.inputs.scenario,{description:'Full acceptance, operator navigation, profile continuation or network quality',type:'choice',required:true,default:'full',options:['full','operator-navigation','profile-relaunch','quality-network','immersive-story']});
   assert.deepEqual(workflow.on.workflow_dispatch.inputs.ota_update_id,{description:'Optional full published Android update UUID for runtime 0.2.0 on channel demo',type:'string',required:false,default:''});
   const job=workflow.jobs['android-ui'];assert.equal(job['runs-on'],'ubuntu-24.04');
+  assert.equal(job['timeout-minutes'],55);
   assert.equal(job.if,'github.event.repository.private == false');
   assert.equal(job.concurrency['cancel-in-progress'],false);
   assert.equal(job.concurrency.group,'openminerals-isolated-native-qa-${{ matrix.asset }}');
   assert.match(raw,/udevadm trigger --name-match=kvm/);
   const runner=job.steps.find(step=>step.uses?.startsWith('ReactiveCircus/'));
+  assert.equal(runner['timeout-minutes'],45);
   assert.equal(runner.with.cores,4);assert.equal(runner.with['ram-size'],'4096M');
   assert.match(raw,/host-resources\.json/);assert.match(raw,/availableParallelism/);assert.match(raw,/STANDARD_HOST_RESOURCES_INSUFFICIENT/);
   const runnerIndex=job.steps.indexOf(runner);
@@ -144,8 +152,10 @@ test('Android CI: workflow is manual KVM-only bounded public upload and no secre
   assert.doesNotMatch(preflight.run,/mknod|modprobe|\/dev\/kvm\s*\|\|\s*true/);
   assert.equal(runner.with['disable-linux-hw-accel'],false);assert.match(runner.with['emulator-options'],/-accel on/);assert.doesNotMatch(raw,/-accel off|software-acceleration fallback/);
   assert.deepEqual(Object.keys(runner.env).sort(),[...SECRET_NAMES,'OTA_INPUT_UPDATE_ID','NATIVE_INPUT_SCENARIO'].sort());
-  assert.equal(runner.env.NATIVE_INPUT_SCENARIO,"${{ matrix.asset == 'single' && inputs.scenario || matrix.asset == 'ACCOUNTS' && 'account-lifecycle' || matrix.asset == 'XAU' && 'full' || 'asset-full' }}");
+  assert.equal(runner.env.NATIVE_INPUT_SCENARIO,"${{ matrix.asset == 'ACCOUNTS' && 'account-lifecycle' || inputs.scenario != 'full' && inputs.scenario || matrix.asset == 'single' && 'full' || matrix.asset == 'XAU' && 'full' || 'asset-full' }}");
   assert.equal(runner.env.OTA_INPUT_UPDATE_ID,'$'+'{{ inputs.ota_update_id }}');
+  assert.match(job.strategy.matrix.asset,/^\$\{\{ fromJSON\(inputs.scenario == 'immersive-story' && '\["single"\]'/);
+  for(const step of job.steps)for(const key of SECRET_NAMES)if(step.env?.[key])assert.ok(step.env[key].startsWith("${{ inputs.scenario != 'immersive-story' && (")&&step.env[key].endsWith(") || '' }}"));
   const download=job.steps.find(step=>step.run?.endsWith('ci-android.mjs download'));
   assert.equal(download.env.OTA_INPUT_UPDATE_ID,'$'+'{{ inputs.ota_update_id }}');
   for(const step of job.steps)assert.doesNotMatch((step.run??'')+(step.with?.script??''),/inputs\.(?:ota_update_id|scenario)/);
@@ -158,7 +168,7 @@ test('Android CI: workflow is manual KVM-only bounded public upload and no secre
 
 test('Android CI: new Maestro documents preserve data and only anonymous phases capture screenshots',async()=>{
   const folder=new URL('../e2e/native/',import.meta.url),files=await readdir(folder);
-  const actions=new Set(['tapOn','scrollUntilVisible','extendedWaitUntil','assertVisible','assertNotVisible','inputText','runFlow','takeScreenshot','swipe','eraseText']);
+  const actions=new Set(['tapOn','scrollUntilVisible','extendedWaitUntil','assertVisible','assertNotVisible','inputText','runFlow','takeScreenshot','swipe','eraseText','repeat']);
   for(const file of files){
     const text=await readFile(new URL(file,folder),'utf8'),documents=yaml.parseAllDocuments(text);
     assert.equal(documents.length,2);assert.ok(documents.every(document=>document.errors.length===0));
@@ -179,8 +189,9 @@ test('Android CI: new Maestro documents preserve data and only anonymous phases 
   assert.equal((runner.match(/adb\('install','-r'/g)||[]).length,1);
   assert.doesNotMatch(runner,/pm','clear|adb\('uninstall/);
   const storyExit=yaml.parseAllDocuments(await source('../e2e/native/story-exit.yaml'))[1].toJSON();
-  assert.ok(storyExit.some(command=>command.extendedWaitUntil?.notVisible==='Saltar recorrido y continuar con la demo'));
-  assert.ok(execution.indexOf('runImmersivePerformance(')<execution.indexOf("'native-registration-no-import'"));
+  assert.ok(storyExit.some(command=>command.extendedWaitUntil?.notVisible?.id==='home-cinematic-scroll'));
+  const storyStage=execution.indexOf("'native-story-and-reduced-motion',runAnonymousStory");
+  assert.ok(storyStage>=0&&storyStage<execution.indexOf("'native-registration-no-import'"));
 });
 
 test('Android CI: optional OTA follows native verification, passes ID only by env and verifies unchanged results again',async()=>{
@@ -200,7 +211,7 @@ test('Android CI: optional OTA follows native verification, passes ID only by en
 test('Android CI: requested studio OTA is verified anonymously before story without financial or auth actions',async()=>{
   const runner=await source('../e2e/ci-android.mjs');
   const pre=runner.indexOf("if(expectedOtaId)await runStage('anonymous-compatible-ota-before-story'");
-  assert.ok(runner.indexOf("'preserve-legacy-after-update'")<pre&&pre<runner.indexOf("'native-story-and-reduced-motion'"));
+  assert.ok(runner.indexOf("'preserve-legacy-after-update'")<pre&&pre<runner.indexOf("'native-story-and-reduced-motion'",pre));
   const raw=await source('../e2e/native/ota-before-story.yaml'),commands=yaml.parseAllDocuments(raw)[1].toJSON();
   assert.equal((raw.match(/MAESTRO_EXPECTED_OTA_ID\.slice\(0,8\)/g)||[]).length,2);
   assert.equal(commands.filter(command=>command==='stopApp').length,2);

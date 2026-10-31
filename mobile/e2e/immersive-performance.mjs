@@ -13,42 +13,91 @@ export function parseAndroidPerformance({before,after,gfx,start}){
     uiFrames:numeric(gfx,/Total frames rendered:\s*(\d+)/),jankyUiFrames:numeric(gfx,/Janky frames:\s*(\d+)/),
     uiFrameP50Ms:numeric(gfx,/50th percentile:\s*(\d+)ms/),uiFrameP90Ms:numeric(gfx,/90th percentile:\s*(\d+)ms/),uiFrameP95Ms:numeric(gfx,/95th percentile:\s*(\d+)ms/)};
 }
+// Runs before credentials. A same-process HOME round trip cannot be replaced
+// by launchApp/force-stop: that would hide a disposed GL context after resume.
+export async function verifyImmersiveResume({adb,serial,maestro,published}){
+  requireSafe(process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_OS==='Linux'&&/^emulator-\d+$/.test(serial),'Resume verification requires the disposable GitHub emulator.');
+  const checks={demoOnly:true,environment:'disposable Android CI emulator',physicalDevice:false,credentialsEntered:false,forceStopUsed:false,backgroundObserved:false,sameProcess:false,stagePreserved:false,glReadinessMarker:false,advancedAndReversed:false};
+  try{
+    await maestro('story-resume-position');
+    const activity=adb('shell','cmd','package','resolve-activity','--brief',PACKAGE).split(/\r?\n/).find(line=>line.startsWith(PACKAGE+'/'));
+    requireSafe(activity&&/^[A-Za-z0-9_.$/]+$/.test(activity),'Unable to resolve the resumed demo activity.');
+    const pid=adb('shell','pidof',PACKAGE).trim();requireSafe(/^\d+$/.test(pid),'Exactly one live demo process is required.');
+    adb('shell','input','keyevent','KEYCODE_HOME');
+    for(let attempt=0;attempt<12;attempt++){
+      const line=adb('shell','dumpsys','activity','activities').split(/\r?\n/).find(value=>/mResumedActivity|topResumedActivity/.test(value));
+      const foreground=line?.match(/\b[A-Za-z0-9_.]+\/[A-Za-z0-9_.$]+/)?.[0];
+      if(foreground&&!foreground.startsWith(PACKAGE+'/')){checks.backgroundObserved=true;break;}
+      await new Promise(resolve=>setTimeout(resolve,250));
+    }
+    requireSafe(checks.backgroundObserved,'HOME did not visibly background the demo activity.');
+    adb('shell','am','start','-W','-a','android.intent.action.MAIN','-c','android.intent.category.LAUNCHER','-n',activity);
+    checks.sameProcess=adb('shell','pidof',PACKAGE).trim()===pid;
+    requireSafe(checks.sameProcess,'The resume scenario must retain the original process.');
+    await maestro('story-resume-check');
+    requireSafe(adb('shell','pidof',PACKAGE).trim()===pid,'The original process must survive resume gestures.');
+    checks.stagePreserved=true;checks.glReadinessMarker=true;checks.advancedAndReversed=true;
+  }finally{
+    await writeFile(join(published,'immersive-resume.json'),JSON.stringify(checks,null,2)+'\n');
+  }
+}
 // The caller has already checked the disposable emulator guard. Everything
 // here finishes BEFORE a credential is typed. Never record account flows.
-export async function runImmersivePerformance({adb,serial,maestro,published}){
+export async function runImmersivePerformance({adb,serial,maestro,published,record=true,light=false}){
   requireSafe(process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_OS==='Linux'&&/^emulator-\d+$/.test(serial),'Performance recording requires the disposable GitHub emulator.');
   const activity=adb('shell','cmd','package','resolve-activity','--brief',PACKAGE).split(/\r?\n/).find(line=>line.startsWith(PACKAGE+'/'));
   requireSafe(activity&&/^[A-Za-z0-9_.$/]+$/.test(activity),'Unable to resolve the demo activity.');
+  let hwuiProfilingRequested=false;
+  try{adb('shell','setprop','debug.hwui.profile','true');hwuiProfilingRequested=true;}catch{ /* Keep functional acceptance independent of optional profiler access. */ }
   adb('shell','am','force-stop',PACKAGE);
-  const start=adb('shell','am','start','-W','-n',activity);
+  const appPid=()=>{try{return adb('shell','pidof',PACKAGE);}catch{return '';}};
+  for(let attempt=0;attempt<12&&appPid();attempt++)await new Promise(resolve=>setTimeout(resolve,250));
+  const start=adb('shell','am','start','-W','-a','android.intent.action.MAIN','-c','android.intent.category.LAUNCHER','-n',activity);
+  for(let attempt=0;attempt<20&&!appPid();attempt++)await new Promise(resolve=>setTimeout(resolve,250));
+  const processObserved=!!appPid();
+  await writeFile(join(published,'immersive-launch.json'),JSON.stringify({demoOnly:true,launcherIntent:true,processObserved,status:/Status:\s*(ok|timeout)/.exec(start)?.[1]??'unavailable',...parseAndroidPerformance({before:'',after:'',gfx:'',start})},null,2)+'\n');
+  requireSafe(processObserved,'The measured launcher intent did not create the app process.');
+  // Chapter/menu coverage and PNGs precede recording. The clip starts only
+  // after an actual ready frame and contains reversible native swipes only.
+  if(record)await maestro('story');
+  await maestro(light?'story-light-prepare':'story-video-prepare');
   const before=adb('shell','dumpsys','meminfo',PACKAGE);adb('shell','dumpsys','gfxinfo',PACKAGE,'reset');
   const pids=()=>{try{return adb('shell','pidof','screenrecord');}catch{return '';}};
   requireSafe(pids()==='','Another screen recorder is running.');
   const remote='/sdcard/openminerals-story-'+randomUUID()+'.mp4';
-  const recorder=spawn('adb',['-s',serial,'shell','screenrecord','--bit-rate','1500000','--time-limit','180',remote],{stdio:'ignore',windowsHide:true});
-  recorder.on('error',()=>{});const closed=once(recorder,'close').catch(()=>[]);
+  const recorder=record?spawn('adb',['-s',serial,'shell','screenrecord','--bit-rate','1500000','--time-limit','180',remote],{stdio:'ignore',windowsHide:true}):null;
+  recorder?.on('error',()=>{});const closed=recorder?once(recorder,'close').catch(()=>[]):Promise.resolve([]);
   let recorderPid='',flags={};
   try{
-    await new Promise(resolve=>setTimeout(resolve,1000));recorderPid=pids();
-    requireSafe(/^\d+$/.test(recorderPid),'Screen recording did not start.');
-    await maestro('story');
+    if(record){await new Promise(resolve=>setTimeout(resolve,1000));recorderPid=pids();requireSafe(/^\d+$/.test(recorderPid),'Screen recording did not start.');}
+    await maestro(record?'story-video':light?'story-light':'story');
+    if(record)requireSafe(recorder.exitCode===null&&pids()===recorderPid,'The owned recorder ended before the verified narrative completed; the video is incomplete.');
     const xmlPath='/sdcard/openminerals-story-flags-'+randomUUID()+'.xml';
     try{
       adb('shell','uiautomator','dump',xmlPath);const xml=adb('exec-out','cat',xmlPath);
       flags={automaticLightObserved:xml.includes('Vista ligera activada por coste de render.'),privateUiPublished:false};
     }finally{adb('shell','rm','-f',xmlPath);}
-    await maestro('story-exit');
   }finally{
+    if(recorder){
     const current=pids();if(recorderPid&&current===recorderPid)adb('shell','kill','-INT',recorderPid);
     await Promise.race([closed,new Promise(resolve=>setTimeout(resolve,8000))]);
     if(recorder.exitCode===null)recorder.kill('SIGKILL');
     requireSafe(!recorderPid||pids()!==recorderPid,'The owned recorder must stop before any credential entry.');
     const file=join(published,'safe-immersive-scroll.mp4');
     try{adb('pull',remote,file);const metadata=await stat(file),header=await readFile(file);requireSafe(metadata.size>1000&&metadata.size<60_000_000&&header.subarray(4,8).toString()==='ftyp','Invalid anonymous demonstration video.');}finally{adb('shell','rm','-f',remote);}
+    }
   }
   const after=adb('shell','dumpsys','meminfo',PACKAGE),gfx=adb('shell','dumpsys','gfxinfo',PACKAGE),metrics=parseAndroidPerformance({before,after,gfx,start});
-  requireSafe(metrics.coldStartTotalMs!==null&&metrics.pssBeforeKiB!==null&&metrics.pssAfterKiB!==null&&metrics.uiFrames>0,'Android did not expose the required measured metrics.');
   const report={demoOnly:true,environment:'disposable Android CI emulator',physicalDevice:false,...metrics,...flags,
+    screenRecording:record,visualMode:light?'light':'3d',
+    measurementScope:record?'continuous native swipes after ready-frame preparation; menus and exit excluded':'unrecorded chapter checks and reversible swipes after visual-mode preparation; exit excluded',
+    ...(record?{videoStartsAfterReadyFrame:true,videoIncludesMenus:false,videoIncludesColdStart:false}:{}),
+    hwuiProfilingRequested,
+    measurementsComplete:metrics.coldStartTotalMs!==null&&metrics.pssBeforeKiB!==null&&metrics.pssAfterKiB!==null&&metrics.uiFrames>0,
+    uiFrameStatisticsAvailable:metrics.uiFrames!==null&&metrics.uiFrames>0,
     interpretation:'Android UI frame statistics; not a measurement of GPU FPS. PSS is sampled before/after, not peak memory. Cold process start uses an already installed APK and cached OTA.',phonePerformanceAcceptance:false};
-  await writeFile(join(published,'immersive-performance.json'),JSON.stringify(report,null,2)+'\n');
+  await writeFile(join(published,record?'immersive-performance.json':light?'immersive-performance-light-unrecorded.json':'immersive-performance-unrecorded.json'),JSON.stringify(report,null,2)+'\n');
+  // Mode switches, reduced-motion screenshot and operations are checked after
+  // the owned recorder is stopped and the independent metrics are captured.
+  await maestro('story-exit');
 }

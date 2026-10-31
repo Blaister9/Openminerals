@@ -3,9 +3,9 @@ import {Animated,AppState,PanResponder,PixelRatio,Platform,Pressable,StyleSheet,
 import {requireOptionalNativeModule} from 'expo-modules-core';
 import type {ExpoWebGLRenderingContext,GLViewProps} from 'expo-gl';
 import {createFrameScheduler,createGoldBarMesh,createStudioFloorMesh,goldBarMatrices,goldBarPose,goldRenderScale,horizontalDrag,scrollProgress,GOLD_FRAGMENT_SHADER,GOLD_VERTEX_SHADER} from '../lib/gold-bar-3d';
-import {immersivePose,IMMERSIVE_VERTEX_SHADER,IMMERSIVE_FRAGMENT_SHADER,renderBudget} from '../lib/immersive-story';
+import {immersivePose,immersiveMatrices,IMMERSIVE_VERTEX_SHADER,IMMERSIVE_FRAGMENT_SHADER,renderBudget} from '../lib/immersive-story';
 
-type Props={scrollY:Animated.Value;initialScrollY:number;startY:number;endY:number;active:boolean;reducedMotion:boolean;height?:number;cinematic?:boolean;onLimited?:()=>void};
+type Props={scrollY:Animated.Value;initialScrollY:number;startY:number;endY:number;active:boolean;reducedMotion:boolean;height?:number;cinematic?:boolean;sceneDescription?:string;onLimited?:()=>void};
 type Renderer={draw:(progress:number,drag:number)=>void;dispose:()=>void};
 type Scheduler=ReturnType<typeof createFrameScheduler>;
 
@@ -59,7 +59,7 @@ function createRenderer(gl:ExpoWebGLRenderingContext,cinematic=false):Renderer {
         if(disposed)return;
         const width=gl.drawingBufferWidth,height=gl.drawingBufferHeight;
         if(width<=0||height<=0)throw new Error('GL viewport unavailable.');
-        const pose=cinematic?immersivePose(progress,drag):goldBarPose(progress,drag),matrices=goldBarMatrices(pose,width/height);
+        const pose=cinematic?immersivePose(progress,drag):goldBarPose(progress,drag),matrices=cinematic?immersiveMatrices(pose,width/height,progress):goldBarMatrices(pose,width/height);
         gl.viewport(0,0,width,height);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);
         if(storyProgress!==null)gl.uniform1f(storyProgress,progress);
         gl.uniform3f(locations.camera,...matrices.camera);gl.uniform3f(locations.light,...pose.light);gl.uniform1f(locations.refinement,pose.refinement);gl.uniform1f(locations.shadowAngle,pose.yaw);
@@ -79,7 +79,7 @@ class GLBoundary extends React.Component<{children:ReactNode;onFailure:()=>void}
   render(){return this.state.failed?null:this.props.children;}
 }
 
-export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMotion,height=290,cinematic=false,onLimited}:Props){
+export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMotion,height=290,cinematic=false,sceneDescription='Materia virtual DEMO',onLimited}:Props){
   const [width,setWidth]=useState(0);
   const renderScale=goldRenderScale(width,height,PixelRatio.get());
   const NativeGLView=useMemo(availableGLView,[]);
@@ -87,6 +87,7 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
   const [failure,setFailure]=useState(false),[ready,setReady]=useState(false),[retry,setRetry]=useState(0);
   const renderer=useRef<Renderer|null>(null),scheduler=useRef<Scheduler|null>(null),timeout=useRef<ReturnType<typeof setTimeout>|null>(null);
   const lastScroll=useRef(initialScrollY),drag=useRef(0),dragStart=useRef(0),readyRef=useRef(false);
+  const previousAppState=useRef(AppState.currentState);
   const samples=useRef<number[]>([]),limited=useRef(false),limitCallback=useRef(onLimited);limitCallback.current=onLimited;
   const enabled=active&&foreground&&!reducedMotion&&!failure&&NativeGLView!==null;
   const session=useMemo(()=>Symbol('gold-bar-context'),[enabled,retry,width,height,renderScale]);
@@ -118,7 +119,12 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
   useEffect(()=>{scheduler.current?.invalidate();},[startY,endY,height,width,renderScale]);
   useEffect(()=>{
     const subscription=AppState.addEventListener('change',state=>{
-      if(state!=='active'){currentSession.current=Symbol('background-context');latest.current.enabled=false;stop();}
+      const resumed=state==='active'&&previousAppState.current!=='active';
+      previousAppState.current=state;
+      if(state!=='active'){currentSession.current=Symbol('background-context');latest.current.enabled=false;stop();setReady(false);}
+      // A quick inactive -> active pair can be batched into the same React
+      // commit. The boolean alone would not recreate the disposed GL context.
+      if(resumed)setRetry(value=>value+1);
       setForeground(state==='active');
     });
     return()=>subscription.remove();
@@ -150,21 +156,22 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
   const reset=()=>{drag.current=0;scheduler.current?.invalidate();};
   const retry3D=()=>{stop();setReady(false);setFailure(false);setRetry(value=>value+1);};
   const fallback=reducedMotion?'Movimiento reducido':failure||!NativeGLView?'Vista simplificada':!foreground?'Visor pausado':enabled?'Preparando 3D…':'Recorrido del metal';
-  return <View style={[styles.stage,{height}]} onLayout={event=>setWidth(previous=>Math.abs(previous-event.nativeEvent.layout.width)>.5?event.nativeEvent.layout.width:previous)} {...responder.panHandlers}>
+  return <View collapsable={false} accessible={cinematic} accessibilityRole={cinematic?'image':undefined} accessibilityLabel={cinematic?sceneDescription:undefined} testID={cinematic?(enabled&&ready?'immersive-gl-ready':reducedMotion||failure||!NativeGLView?'immersive-scene-light':'immersive-scene-pending'):undefined} style={[styles.stage,cinematic&&styles.cinematicStage,{height}]} onLayout={event=>{const nextWidth=event.nativeEvent.layout.width;setWidth(previous=>Math.abs(previous-nextWidth)>.5?nextWidth:previous);}} {...responder.panHandlers}>
     <View style={styles.fallback} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      <View style={styles.halo}/><View style={styles.floorLine}/><View style={styles.staticShadow}/><View style={styles.staticBar}><View style={styles.staticFace}><Text style={styles.maker}>⌁</Text><Text style={styles.symbol}>AU</Text><Text style={styles.word}>DEMO</Text></View><View style={styles.staticEdge}/></View>
+      {!cinematic&&<><View style={styles.halo}/><View style={styles.floorLine}/></>}<View style={styles.staticShadow}/><View style={[styles.staticBar,cinematic&&styles.cinematicStaticBar]}><View style={styles.staticFace}>{!cinematic&&<><Text style={styles.maker}>⌁</Text><Text style={styles.symbol}>AU</Text><Text style={styles.word}>DEMO</Text></>}</View><View style={styles.staticEdge}/></View>
     </View>
     {enabled&&NativeGLView&&width>0&&<GLBoundary key={`${retry}:${width}:${height}:${renderScale}`} onFailure={()=>fail(session)}>
       <NativeGLView style={{position:'absolute',top:0,left:0,width:width*renderScale,height:height*renderScale,transformOrigin:'top left',transform:[{scale:1/renderScale}],opacity:ready?1:0}} onContextCreate={gl=>createContext(gl,session)} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"/>
     </GLBoundary>}
     {!cinematic&&<><View pointerEvents="none" style={styles.edition}><Text style={styles.simulated}>OBJETO DE ESTUDIO</Text><Text style={styles.editionNumber}>Au / 79</Text></View>
     <Text pointerEvents="none" style={styles.demo}>METAL SIMULADO</Text></>}
-    {ready?<View style={styles.helpRow}><Text style={styles.hint}>Arrastra ↔ · Desliza ↓</Text><Pressable accessibilityRole="button" accessibilityLabel="Restablecer orientación del lingote" onPress={reset} style={styles.smallButton}><Text style={styles.smallButtonText}>Restablecer</Text></Pressable></View>:
-      <View style={styles.status}><Text style={styles.statusText}>{fallback}</Text>{(failure||!NativeGLView)&&!reducedMotion&&<Pressable accessibilityRole="button" onPress={retry3D} style={styles.smallButton}><Text style={styles.smallButtonText}>Reintentar 3D</Text></Pressable>}</View>}
+    {!cinematic&&(ready?<View style={styles.helpRow}><Text style={styles.hint}>Arrastra ↔ · Desliza ↓</Text><Pressable accessibilityRole="button" accessibilityLabel="Restablecer orientación del lingote" onPress={reset} style={styles.smallButton}><Text style={styles.smallButtonText}>Restablecer</Text></Pressable></View>:
+      <View style={styles.status}><Text style={styles.statusText}>{fallback}</Text>{(failure||!NativeGLView)&&!reducedMotion&&<Pressable accessibilityRole="button" onPress={retry3D} style={styles.smallButton}><Text style={styles.smallButtonText}>Reintentar 3D</Text></Pressable>}</View>)}
   </View>;
 }
 
 const styles=StyleSheet.create({
+  cinematicStage:{borderRadius:0},cinematicStaticBar:{width:280,height:150},
   stage:{overflow:'hidden',backgroundColor:'#0A0D10',borderRadius:12},fallback:{position:'absolute',top:0,right:0,bottom:0,left:0,alignItems:'center',justifyContent:'center'},
   halo:{position:'absolute',width:250,height:180,borderRadius:120,backgroundColor:'#141C21'},floorLine:{position:'absolute',left:22,right:22,bottom:'24%',height:1,backgroundColor:'#20282C'},staticShadow:{position:'absolute',width:205,height:33,borderRadius:30,backgroundColor:'#070C10',top:'62%',transform:[{rotate:'-8deg'}]},
   staticBar:{width:190,height:105,borderRadius:15,borderWidth:2,borderTopColor:'#FAE6AA',borderLeftColor:'#CBA355',borderRightColor:'#AE7D30',borderBottomColor:'#715022',backgroundColor:'#C59A48',transform:[{perspective:700},{rotateX:'24deg'},{rotateZ:'-9deg'}],elevation:9,shadowColor:'#000',shadowOffset:{width:0,height:14},shadowOpacity:.4,shadowRadius:15},staticFace:{flex:1,borderRadius:11,borderWidth:1,borderColor:'#94713A',margin:6,alignItems:'center',justifyContent:'center'},staticEdge:{position:'absolute',left:3,right:3,bottom:-5,height:5,borderBottomLeftRadius:12,borderBottomRightRadius:12,backgroundColor:'#7C591F'},maker:{color:'#755018',fontSize:18,lineHeight:18},symbol:{fontSize:36,lineHeight:40,fontWeight:'600',letterSpacing:4,color:'#5D421D',textShadowColor:'#F9D88D',textShadowOffset:{width:0,height:1},textShadowRadius:1},word:{fontSize:8,fontWeight:'700',letterSpacing:4,color:'#765326'},

@@ -2,6 +2,7 @@ import {createHash} from 'node:crypto';
 import {DomainError,availableHoldingMg,METALS} from './domain.js';
 import {accountError} from './account-auth.js';
 import {transferCustody} from './custody.js';
+import {publicMine} from './public-custody.js';
 
 export const MARKETPLACE_DISCLAIMER='MERCADO SIMULADO · Ofertas, USDT, metales y comisiones ficticios. La liquidación DEMO no representa pagos, transmisión de propiedad ni custodia física.';
 const MAX_MINOR=10_000_000_000,copy=value=>structuredClone(value);
@@ -28,7 +29,7 @@ export function marketplaceCatalog(mine,accounts,viewer){
     return {id:offer.id,seller:{id:seller.id,alias:seller.alias},metal:offer.metal,mg:offer.mg,status:'OPEN',createdAt:offer.createdAt,priceMinorPerGram:priced?offer.priceMinorPerGram:null,
       ...quote,currency:'USDT',isOwn,canBuy:priced&&!isOwn,unavailableReason:!priced?'LEGACY_NO_PRICE':isOwn?'OWN_OFFER':null,demoOnly:true};
   })).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||a.seller.id.localeCompare(b.seller.id)||a.id.localeCompare(b.id));
-  return {demoOnly:true,disclaimer:MARKETPLACE_DISCLAIMER,mine:{id:mine.id,name:mine.name},currency:'USDT',feeBps:mine.feesBps.sell,offers};
+  return {demoOnly:true,disclaimer:MARKETPLACE_DISCLAIMER,mine:publicMine(mine,viewer),currency:'USDT',feeBps:mine.feesBps.sell,offers};
 }
 export function marketReplay(state,command){
   validateKey(command);

@@ -46,7 +46,7 @@ test('private recovery parser selects one exact field and rejects entities dupli
 test('candidate matrix remains manual and binds independent private fixtures with bounded public runners',async()=>{
   const workflow=yaml.parse(await readFile(new URL('../../.github/workflows/android-ui.yml',import.meta.url),'utf8'));
   assert.deepEqual(Object.keys(workflow.on),['workflow_dispatch']);assert.equal(workflow.on.workflow_dispatch.inputs.case_scope.default,'single');
-  assert.deepEqual(workflow.on.workflow_dispatch.inputs.case_scope.options,['single','all','XAU','XAG','XPT','XPD','ACCOUNTS']);
+  assert.deepEqual(workflow.on.workflow_dispatch.inputs.case_scope.options,['single','all','metals','XAU','XAG','XPT','XPD','ACCOUNTS']);
   const job=workflow.jobs['android-ui'];assert.equal(job.strategy['fail-fast'],false);assert.equal(job.strategy['max-parallel'],4);assert.equal(job['runs-on'],'ubuntu-24.04');
   const credentials=job.steps.find(step=>step.env?.OPENMINERALS_QA_BUYER_A_ALIAS).env;
   for(const [name,value] of Object.entries(credentials).filter(([name])=>name.startsWith('OPENMINERALS_QA_')))assert.ok(value.includes("format('OPENMINERALS_RC_{0}_"));

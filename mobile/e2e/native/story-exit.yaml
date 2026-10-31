@@ -1,69 +1,72 @@
 appId: com.openminerals.demo.mobile
-name: Visual alternatives and immediate operations
+name: Visible visual alternatives and immediate market navigation
 ---
 [
-  {
-    "runFlow": {
-      "when": {
-        "visible": {
-          "text": "Usar modo visual ligero",
-          "checked": false
-        }
-      },
-      "commands": [
-        {
-          "tapOn": "Usar modo visual ligero"
-        }
-      ]
-    }
-  },
-  {
-    "assertVisible": {
-      "text": "Usar modo visual ligero",
-      "checked": true
-    }
-  },
-  {
-    "tapOn": "Usar modo visual ligero"
-  },
-  {
-    "assertVisible": {
-      "text": "Usar modo visual ligero",
-      "checked": false
-    }
-  },
-  {
-    "tapOn": "Reducir movimiento del recorrido"
-  },
-  {
-    "assertVisible": {
-      "text": "Reducir movimiento del recorrido",
-      "checked": true
-    }
-  },
-  {
-    "takeScreenshot": "safe-reduced-motion"
-  },
-  {
-    "tapOn": "Saltar recorrido y continuar con la demo"
-  },
-  {
-    "extendedWaitUntil": {
-      "notVisible": "Saltar recorrido y continuar con la demo",
-      "timeout": 30000
-    }
-  },
-  {
-    "scrollUntilVisible": {
-      "element": {
-        "text": "^Cantidad de metal en gramos$"
-      },
-      "direction": "DOWN",
-      "centerElement": true,
-      "timeout": 30000
-    }
-  },
-  {
-    "assertVisible": "^Cantidad de metal en gramos$"
-  }
+  {"tapOn":"Opciones del recorrido"},
+  {"runFlow":{"when":{"visible":{"text":"Usar modo visual ligero","checked":false}},"commands":[{"tapOn":"Usar modo visual ligero"}]}},
+  {"assertVisible":{"text":"Usar modo visual ligero","checked":true}},
+  {"tapOn":"Usar modo visual ligero"},
+  {"assertVisible":{"text":"Usar modo visual ligero","checked":false}},
+  {"runFlow":{"when":{"visible":{"text":"Reducir movimiento del recorrido","checked":false}},"commands":[{"tapOn":"Reducir movimiento del recorrido"}]}},
+  {"assertVisible":{"text":"Reducir movimiento del recorrido","checked":true}},
+  {"tapOn":"Cerrar opciones del recorrido"},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-scene-light"},"timeout":30000}},
+  {"runFlow":{"file":"story-clean.yaml"}},
+  {"takeScreenshot":"safe-reduced-motion"},
+  {"tapOn":"Opciones del recorrido"},
+  {"tapOn":"Elegir una etapa"},
+  {"scrollUntilVisible":{"element":{"text":"Ir a etapa 7: PORTAFOLIO"},"direction":"DOWN","centerElement":false,"timeout":8000}},
+  {"tapOn":"Ir a etapa 7: PORTAFOLIO"},
+  {"extendedWaitUntil":{"visible":"Etapa 7 de 7: PORTAFOLIO","timeout":8000}},
+  {"assertNotVisible":"Cerrar opciones del recorrido"},
+  {"tapOn":"Operar con metales DEMO"},
+  {"extendedWaitUntil":{"notVisible":{"id":"home-cinematic-scroll"},"timeout":30000}},
+  {"assertVisible":{"id":"operations-scroll"}},
+  {"assertVisible":"^Mercado$"},
+  {"scrollUntilVisible":{"element":{"text":"^Cantidad de metal en gramos$"},"direction":"DOWN","centerElement":true,"timeout":30000}},
+  {"assertVisible":"^Cantidad de metal en gramos$"},
+  {"scrollUntilVisible":{"element":{"text":"^Confirmar compra simulada$"},"direction":"DOWN","centerElement":true,"timeout":30000}},
+  {"assertVisible":"^Confirmar compra simulada$"},
+  {"tapOn":"^Inicio$"},
+  {"extendedWaitUntil":{"visible":{"id":"home-cinematic-scroll"},"timeout":8000}},
+  {"tapOn":"Opciones del recorrido"},
+  {"tapOn":"Elegir una etapa"},
+  {"scrollUntilVisible":{"element":{"text":"Ir a etapa 7: PORTAFOLIO"},"direction":"DOWN","centerElement":false,"timeout":8000}},
+  {"tapOn":"Ir a etapa 7: PORTAFOLIO"},
+  {"extendedWaitUntil":{"visible":"Etapa 7 de 7: PORTAFOLIO","timeout":8000}},
+  {"assertNotVisible":"Cerrar opciones del recorrido"},
+  {"tapOn":"Abrir mi portafolio"},
+  {"extendedWaitUntil":{"notVisible":{"id":"home-cinematic-scroll"},"timeout":30000}},
+  {"assertVisible":{"id":"operations-scroll"}},
+  {"assertVisible":"^Metales$"},
+  {"scrollUntilVisible":{"element":{"text":"^Gramos para operación$"},"direction":"DOWN","centerElement":true,"timeout":30000}},
+  {"assertVisible":"^Gramos para operación$"},
+  {"scrollUntilVisible":{"element":{"text":"^Simular venta$"},"direction":"DOWN","centerElement":true,"timeout":30000}},
+  {"assertVisible":{"text":"^Simular venta$","enabled":false}},
+  {"tapOn":"^Inicio$"},
+  {"extendedWaitUntil":{"visible":{"id":"home-cinematic-scroll"},"timeout":8000}},
+  {"tapOn":"Opciones del recorrido"},
+  {"tapOn":"Elegir una etapa"},
+  {"scrollUntilVisible":{"element":{"text":"Ir a etapa 7: PORTAFOLIO"},"direction":"DOWN","centerElement":false,"timeout":8000}},
+  {"tapOn":"Ir a etapa 7: PORTAFOLIO"},
+  {"extendedWaitUntil":{"visible":"Etapa 7 de 7: PORTAFOLIO","timeout":8000}},
+  {"assertNotVisible":"Cerrar opciones del recorrido"},
+  {"tapOn":"Abrir mi billetera"},
+  {"extendedWaitUntil":{"notVisible":{"id":"home-cinematic-scroll"},"timeout":30000}},
+  {"assertVisible":{"id":"operations-scroll"}},
+  {"assertVisible":"^Billetera$"},
+  {"scrollUntilVisible":{"element":{"text":"^Cantidad de dinero para convertir$"},"direction":"DOWN","centerElement":true,"timeout":30000}},
+  {"assertVisible":"^Cantidad de dinero para convertir$"},
+  {"scrollUntilVisible":{"element":{"text":"^Convertir en demo$"},"direction":"DOWN","centerElement":true,"timeout":30000}},
+  {"assertVisible":"^Convertir en demo$"},
+  {"tapOn":"^Inicio$"},
+  {"extendedWaitUntil":{"visible":{"id":"home-cinematic-scroll"},"timeout":8000}},
+  {"tapOn":"Saltar recorrido y continuar con la demo"},
+  {"extendedWaitUntil":{"notVisible":{"id":"home-cinematic-scroll"},"timeout":30000}},
+  {"assertVisible":{"id":"operations-scroll"}},
+  {"assertVisible":"^Mercado$"},
+  {"scrollUntilVisible":{"element":{"text":"^Cantidad de metal en gramos$"},"direction":"DOWN","centerElement":true,"timeout":30000}},
+  {"assertVisible":"^Cantidad de metal en gramos$"},
+  {"scrollUntilVisible":{"element":{"text":"^Confirmar compra simulada$"},"direction":"DOWN","centerElement":true,"timeout":30000}},
+  {"assertVisible":"^Confirmar compra simulada$"}
 ]

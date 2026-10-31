@@ -85,6 +85,10 @@ name: Buyer history profile saving and SecureStore relaunch
 - stopApp
 - launchApp
 - extendedWaitUntil:
+    visible: ^Actividad$
+    timeout: 30000
+- tapOn: ^Actividad$
+- extendedWaitUntil:
     visible: ^Comprador ·.*
     timeout: 30000
 - tapOn: ^Billetera$

@@ -1,6 +1,11 @@
 appId: com.openminerals.demo.mobile
 name: Private synthetic fixture login
 ---
+- runFlow:
+    when:
+      visible: ^Actividad$
+    commands:
+      - tapOn: ^Actividad$
 - tapOn:
     text: ^Cuenta$
     index: 0

@@ -4,6 +4,10 @@ const copy=value=>structuredClone(value);
 const pick=(value,keys)=>Object.fromEntries(keys.filter(key=>Object.hasOwn(value,key)).map(key=>[key,copy(value[key])]));
 const publicRequirements=['Usar exclusivamente alias e identificadores ficticios','Confirmar que no se enviará metal ni se aportará una dirección real'];
 const labels={DEMO_LOCAL:'Jurisdicción DEMO A',DEMO_REGIONAL:'Jurisdicción DEMO B',DEMO_INTERNATIONAL:'Jurisdicción DEMO C'};
+export const PUBLIC_MINE_NAME='Mina virtual ficticia DEMO';
+export function publicMine(mine,viewer){
+  return {id:mine.id,name:viewer.role==='operator'?mine.name:PUBLIC_MINE_NAME};
+}
 export function publicPolicy(policy){
   return {...pick(policy,['id','taxBps','serviceMinor','preparationMinor','transportMinor','insuranceBps','demoOnly']),label:labels[policy.id]??'Jurisdicción ficticia DEMO',requirements:[...publicRequirements]};
 }

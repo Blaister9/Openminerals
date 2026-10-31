@@ -1,113 +1,102 @@
 appId: com.openminerals.demo.mobile
-name: Continuous native story before credentials
+name: Full viewport native story before credentials
 ---
 [
-  {
-    "tapOn": "^Inicio$"
-  },
-  {
-    "extendedWaitUntil": {
-      "visible": "Restablecer orientación del lingote",
-      "timeout": 30000
-    }
-  },
-  {
-    "swipe": {
-      "start": "30%,46%",
-      "end": "65%,46%",
-      "duration": 600
-    }
-  },
-  {
-    "tapOn": "Restablecer orientación del lingote"
-  },
-  {
-    "tapOn": "Ir a etapa 1: ORIGEN MINERAL"
-  },
-  {
-    "assertVisible": "Etapa 1 de 7: ORIGEN MINERAL"
-  },
-  {
-    "takeScreenshot": "safe-story-1"
-  },
-  {
-    "tapOn": "Ir a etapa 2: EXTRACCIÓN"
-  },
-  {
-    "assertVisible": "Etapa 2 de 7: EXTRACCIÓN"
-  },
-  {
-    "takeScreenshot": "safe-story-2"
-  },
-  {
-    "tapOn": "Ir a etapa 3: REFINACIÓN"
-  },
-  {
-    "assertVisible": "Etapa 3 de 7: REFINACIÓN"
-  },
-  {
-    "takeScreenshot": "safe-story-3"
-  },
-  {
-    "tapOn": "Ir a etapa 4: FORMACIÓN DEL LINGOTE"
-  },
-  {
-    "assertVisible": "Etapa 4 de 7: FORMACIÓN DEL LINGOTE"
-  },
-  {
-    "takeScreenshot": "safe-story-4"
-  },
-  {
-    "tapOn": "Ir a etapa 5: CUSTODIA VIRTUAL"
-  },
-  {
-    "assertVisible": "Etapa 5 de 7: CUSTODIA VIRTUAL"
-  },
-  {
-    "takeScreenshot": "safe-story-5"
-  },
-  {
-    "tapOn": "Ir a etapa 6: FRACCIONAMIENTO DIGITAL"
-  },
-  {
-    "assertVisible": "Etapa 6 de 7: FRACCIONAMIENTO DIGITAL"
-  },
-  {
-    "takeScreenshot": "safe-story-6"
-  },
-  {
-    "tapOn": "Ir a etapa 7: PORTAFOLIO"
-  },
-  {
-    "assertVisible": "Etapa 7 de 7: PORTAFOLIO"
-  },
-  {
-    "takeScreenshot": "safe-story-7"
-  },
-  {
-    "tapOn": "Ir a etapa 4: FORMACIÓN DEL LINGOTE"
-  },
-  {
-    "swipe": {
-      "start": "50%,68%",
-      "end": "50%,35%",
-      "duration": 800
-    }
-  },
-  {
-    "assertNotVisible": "Etapa 4 de 7: FORMACIÓN DEL LINGOTE"
-  },
-  {
-    "swipe": {
-      "start": "50%,35%",
-      "end": "50%,68%",
-      "duration": 800
-    }
-  },
-  {
-    "tapOn": "Ir a etapa 1: ORIGEN MINERAL"
-  },
-  {
-    "assertVisible": "Etapa 1 de 7: ORIGEN MINERAL"
-  }
+  {"tapOn":"^Inicio$"},
+  {"tapOn":"Opciones del recorrido"},
+  {"runFlow":{"when":{"visible":{"text":"Usar modo visual ligero","checked":true}},"commands":[{"tapOn":"Usar modo visual ligero"}]}},
+  {"runFlow":{"when":{"visible":{"text":"Reducir movimiento del recorrido","checked":true}},"commands":[{"tapOn":"Reducir movimiento del recorrido"}]}},
+  {"tapOn":"Cerrar opciones del recorrido"},
+  {"tapOn":"Opciones del recorrido"},
+  {"tapOn":"Elegir una etapa"},
+  {"scrollUntilVisible":{"element":{"text":"Ir a etapa 1: ORIGEN MINERAL"},"direction":"DOWN","centerElement":false,"timeout":8000}},
+  {"tapOn":"Ir a etapa 1: ORIGEN MINERAL"},
+  {"extendedWaitUntil":{"visible":"Etapa 1 de 7: ORIGEN MINERAL","timeout":8000}},
+  {"assertNotVisible":"Cerrar opciones del recorrido"},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
+  {"runFlow":{"file":"story-clean.yaml"}},
+  {"swipe":{"start":"30%,46%","end":"65%,46%","duration":600}},
+  {"swipe":{"start":"65%,46%","end":"30%,46%","duration":600}},
+  {"assertVisible":"Etapa 1 de 7: ORIGEN MINERAL"},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
+  {"assertVisible":"Etapa 1 de 7: ORIGEN MINERAL"},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
+  {"takeScreenshot":"safe-story-1"},
+  {"tapOn":"Opciones del recorrido"},
+  {"tapOn":"Elegir una etapa"},
+  {"scrollUntilVisible":{"element":{"text":"Ir a etapa 2: EXTRACCIÓN"},"direction":"DOWN","centerElement":false,"timeout":8000}},
+  {"tapOn":"Ir a etapa 2: EXTRACCIÓN"},
+  {"extendedWaitUntil":{"visible":"Etapa 2 de 7: EXTRACCIÓN","timeout":8000}},
+  {"assertNotVisible":"Cerrar opciones del recorrido"},
+  {"assertVisible":"Etapa 2 de 7: EXTRACCIÓN"},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
+  {"takeScreenshot":"safe-story-2"},
+  {"tapOn":"Opciones del recorrido"},
+  {"tapOn":"Elegir una etapa"},
+  {"scrollUntilVisible":{"element":{"text":"Ir a etapa 3: REFINACIÓN"},"direction":"DOWN","centerElement":false,"timeout":8000}},
+  {"tapOn":"Ir a etapa 3: REFINACIÓN"},
+  {"extendedWaitUntil":{"visible":"Etapa 3 de 7: REFINACIÓN","timeout":8000}},
+  {"assertNotVisible":"Cerrar opciones del recorrido"},
+  {"assertVisible":"Etapa 3 de 7: REFINACIÓN"},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
+  {"takeScreenshot":"safe-story-3"},
+  {"tapOn":"Opciones del recorrido"},
+  {"tapOn":"Elegir una etapa"},
+  {"scrollUntilVisible":{"element":{"text":"Ir a etapa 4: FORMACIÓN DEL LINGOTE"},"direction":"DOWN","centerElement":false,"timeout":8000}},
+  {"tapOn":"Ir a etapa 4: FORMACIÓN DEL LINGOTE"},
+  {"extendedWaitUntil":{"visible":"Etapa 4 de 7: FORMACIÓN DEL LINGOTE","timeout":8000}},
+  {"assertNotVisible":"Cerrar opciones del recorrido"},
+  {"assertVisible":"Etapa 4 de 7: FORMACIÓN DEL LINGOTE"},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
+  {"takeScreenshot":"safe-story-4"},
+  {"tapOn":"Opciones del recorrido"},
+  {"tapOn":"Elegir una etapa"},
+  {"scrollUntilVisible":{"element":{"text":"Ir a etapa 5: CUSTODIA VIRTUAL"},"direction":"DOWN","centerElement":false,"timeout":8000}},
+  {"tapOn":"Ir a etapa 5: CUSTODIA VIRTUAL"},
+  {"extendedWaitUntil":{"visible":"Etapa 5 de 7: CUSTODIA VIRTUAL","timeout":8000}},
+  {"assertNotVisible":"Cerrar opciones del recorrido"},
+  {"assertVisible":"Etapa 5 de 7: CUSTODIA VIRTUAL"},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
+  {"takeScreenshot":"safe-story-5"},
+  {"tapOn":"Opciones del recorrido"},
+  {"tapOn":"Elegir una etapa"},
+  {"scrollUntilVisible":{"element":{"text":"Ir a etapa 6: FRACCIONAMIENTO DIGITAL"},"direction":"DOWN","centerElement":false,"timeout":8000}},
+  {"tapOn":"Ir a etapa 6: FRACCIONAMIENTO DIGITAL"},
+  {"extendedWaitUntil":{"visible":"Etapa 6 de 7: FRACCIONAMIENTO DIGITAL","timeout":8000}},
+  {"assertNotVisible":"Cerrar opciones del recorrido"},
+  {"assertVisible":"Etapa 6 de 7: FRACCIONAMIENTO DIGITAL"},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
+  {"takeScreenshot":"safe-story-6"},
+  {"tapOn":"Opciones del recorrido"},
+  {"tapOn":"Elegir una etapa"},
+  {"scrollUntilVisible":{"element":{"text":"Ir a etapa 7: PORTAFOLIO"},"direction":"DOWN","centerElement":false,"timeout":8000}},
+  {"tapOn":"Ir a etapa 7: PORTAFOLIO"},
+  {"extendedWaitUntil":{"visible":"Etapa 7 de 7: PORTAFOLIO","timeout":8000}},
+  {"assertNotVisible":"Cerrar opciones del recorrido"},
+  {"assertVisible":"Etapa 7 de 7: PORTAFOLIO"},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
+  {"takeScreenshot":"safe-story-7"},
+  {"swipe":{"from":{"id":"immersive-stage","point":"80%,75%"},"direction":"UP","duration":800,"waitToSettleTimeoutMs":500}},
+  {"assertVisible":"Etapa 7 de 7: PORTAFOLIO"},
+  {"runFlow":{"file":"story-clean.yaml"}},
+  {"tapOn":"Opciones del recorrido"},
+  {"tapOn":"Elegir una etapa"},
+  {"scrollUntilVisible":{"element":{"text":"Ir a etapa 4: FORMACIÓN DEL LINGOTE"},"direction":"DOWN","centerElement":false,"timeout":8000}},
+  {"tapOn":"Ir a etapa 4: FORMACIÓN DEL LINGOTE"},
+  {"extendedWaitUntil":{"visible":"Etapa 4 de 7: FORMACIÓN DEL LINGOTE","timeout":8000}},
+  {"assertNotVisible":"Cerrar opciones del recorrido"},
+  {"repeat":{"times":4,"while":{"visible":"Etapa 4 de 7: FORMACIÓN DEL LINGOTE"},"commands":[{"swipe":{"from":{"id":"immersive-stage","point":"80%,68%"},"direction":"UP","duration":800,"waitToSettleTimeoutMs":500}}]}},
+  {"assertNotVisible":"Etapa 4 de 7: FORMACIÓN DEL LINGOTE"},
+  {"extendedWaitUntil":{"visible":"Etapa [5-7] de 7: .*","timeout":8000}},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
+  {"repeat":{"times":4,"while":{"notVisible":"Etapa 4 de 7: FORMACIÓN DEL LINGOTE"},"commands":[{"swipe":{"from":{"id":"immersive-stage","point":"80%,42%"},"direction":"DOWN","duration":800,"waitToSettleTimeoutMs":500}}]}},
+  {"extendedWaitUntil":{"visible":"Etapa 4 de 7: FORMACIÓN DEL LINGOTE","timeout":8000}},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}},
+  {"tapOn":"Opciones del recorrido"},
+  {"tapOn":"Elegir una etapa"},
+  {"scrollUntilVisible":{"element":{"text":"Ir a etapa 1: ORIGEN MINERAL"},"direction":"DOWN","centerElement":false,"timeout":8000}},
+  {"tapOn":"Ir a etapa 1: ORIGEN MINERAL"},
+  {"extendedWaitUntil":{"visible":"Etapa 1 de 7: ORIGEN MINERAL","timeout":8000}},
+  {"assertNotVisible":"Cerrar opciones del recorrido"},
+  {"extendedWaitUntil":{"visible":{"id":"immersive-gl-ready"},"timeout":30000}}
 ]

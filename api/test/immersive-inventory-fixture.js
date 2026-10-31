@@ -1,12 +1,28 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
+import {once} from 'node:events';
+import {createApiServer} from '../src/server.js';
 
 export async function immersiveInventory(t,store,second=store){
   const password='Only-simulated-inventory-tests-2026';
-  const mine=await store.createMine({name:'Inventario inmersivo DEMO',initialInventoryMg:{XAU:0,XAG:0,XPT:0,XPD:0}});
+  const mine=await store.createMine({name:'Inventario inmersivo DEMO'});
   const suffix=randomUUID().slice(0,8),a=await store.createAccount({alias:'intake_a_'+suffix,password,mineId:mine.id}),b=await store.createAccount({alias:'intake_b_'+suffix,password,mineId:mine.id}),op=await store.createAccount({alias:'intake_op_'+suffix,password,mineId:mine.id,role:'operator'});
   const cmd=(action,body={})=>({action,requestId:randomUUID(),...body});
   let batch,received,offer,lot;
+  await t.test('una mina nueva sin saldo inicial no inventa inventario ni lotes',async()=>{
+    const summary=await store.getMineSummary(op.id),custody=await store.getCustody(op.id,'operator');
+    assert.deepEqual(summary.inventoryMg,{XAU:0,XAG:0,XPT:0,XPD:0});
+    assert.deepEqual(summary.totalSupplyMg,summary.inventoryMg);assert.deepEqual(custody.lots,[]);
+    for(const metal of ['XAU','XAG','XPT','XPD'])await assert.rejects(store.mutateAccount(a.id,cmd('buy',{metal,grams:'0.100'})),{code:'INSUFFICIENT_INVENTORY'});
+  });
+  await t.test('saldo inicial parcial solo acredita los metales explícitos',async()=>{
+    const partial=await store.createMine({name:'Saldo inicial explícito DEMO',initialInventoryMg:{XAG:500}});
+    const actor=await store.createAccount({alias:'intake_partial_'+suffix,password,mineId:partial.id,role:'operator'});
+    const summary=await store.getMineSummary(actor.id),custody=await store.getCustody(actor.id,'operator');
+    assert.deepEqual(summary.inventoryMg,{XAU:0,XAG:500,XPT:0,XPD:0});
+    assert.equal(custody.lots.length,1);assert.equal(custody.lots[0].metal,'XAG');assert.equal(custody.lots[0].weightMg,500);
+    assert.equal((await store.getIntake(actor.id)).totals.XAG.receivedMg,500);
+  });
   await t.test('producción y verificación no crean inventario vendible ni permiten comprar',async()=>{
     const body=cmd('intake_produce',{metal:'XAU',grams:'1.000',reason:'Producción ficticia controlada'});
     const concurrent=await Promise.all([store.mutateIntake(op.id,body),second.mutateIntake(op.id,body)]);
@@ -64,4 +80,51 @@ export async function immersiveInventory(t,store,second=store){
     assert.equal((await store.getCustody(b.id)).allocations.filter(item=>item.lotId===lot).reduce((sum,item)=>sum+item.mg,0),1000);
   });
   return {op,a,b,mine,intake:await store.getIntake(op.id),custody:await store.getCustody(op.id,'operator')};
+}
+
+export async function publicCustodyProjection(store){
+  const password='Only-public-projection-tests-2026',canary='PRIVATE_OPERATIONAL_SENTINEL',suffix=randomUUID().slice(0,8);
+  const command=(action,body)=>({action,...body,requestId:randomUUID()});
+  let server;
+  try{
+    // Even a legacy operational name must not become a public label.
+    const mine=await store.createMine({name:canary});
+    const a=await store.createAccount({alias:'projection_buyer_'+suffix,password,mineId:mine.id}),op=await store.createAccount({alias:'projection_operator_'+suffix,password,mineId:mine.id,role:'operator'});
+    const stock=await store.mutateStock(op.id,{metal:'XAU',grams:'1.000',reason:'Entrada DEMO',location:canary,documentTitle:canary,documentContent:canary,requestId:randomUUID()});
+    const purchase=await store.mutateAccount(a.id,command('buy',{metal:'XAU',grams:'0.100'}));
+    const delivery=(await store.mutateAccount(a.id,command('delivery',{metal:'XAU',grams:'0.100'}))).receipt.delivery;
+    await store.mutateDelivery(op.id,command('delivery_config',{jurisdiction:'DEMO_LOCAL',label:canary,taxBps:'0',service:'1.00',preparation:'1.00',transport:'1.00',insuranceBps:'0',quoteValidityHours:'24',requirements:canary,reason:canary}));
+    const quote=(await store.mutateDelivery(op.id,command('delivery_quote',{buyerId:a.id,deliveryId:delivery.id,jurisdiction:'DEMO_LOCAL'}))).receipt.quote;
+    await store.mutateAccount(a.id,command('delivery_accept',{deliveryId:delivery.id,quoteId:quote.id}));
+    await store.mutateDelivery(op.id,command('delivery_transition',{buyerId:a.id,deliveryId:delivery.id,status:'PREPARING',reason:canary}));
+    const receipts=Object.values((await store.getAccountState(a.id)).receipts);
+    server=createApiServer(store);server.listen(0,'127.0.0.1');await once(server,'listening');
+    const base=`http://127.0.0.1:${server.address().port}`;
+    const login=async alias=>{
+      const response=await fetch(base+'/api/demo/accounts/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alias,password})});
+      assert.equal(response.status,200);return response.json();
+    };
+    const buyer=await login(a.alias),operator=await login(op.alias);
+    assert.equal(buyer.mine.id,mine.id);assert.equal(buyer.mine.name,'Mina virtual ficticia DEMO');assert.ok(!JSON.stringify(buyer).includes(canary));
+    assert.equal(operator.mine.name,canary);
+    const registered=await fetch(base+'/api/demo/accounts/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alias:'projection_registered_'+suffix,password})});
+    assert.equal(registered.status,201);assert.equal((await registered.json()).mine.name,'Mina virtual ficticia DEMO');
+    const historyPath=`/api/demo/custody/lots/${stock.receipt.lotId}/history`;
+    const paths=['/api/demo/accounts/me','/api/demo/state','/api/demo/history','/api/demo/custody',`/api/demo/certificates/${purchase.receipt.certificateIds[0]}`,historyPath,'/api/demo/marketplace','/api/demo/deliveries',...receipts.map(receipt=>`/api/demo/receipts/${receipt.id}`)];
+    for(const path of paths){
+      const response=await fetch(base+path,{headers:{Authorization:'Bearer '+buyer.token}});assert.equal(response.status,200,path);
+      const result=await response.json();assert.ok(!JSON.stringify(result).includes(canary),path);
+      if(result.mine)assert.deepEqual(result.mine,{id:mine.id,name:'Mina virtual ficticia DEMO'},path);
+    }
+    for(const path of ['/api/demo/accounts/me','/api/demo/mine/custody','/api/demo/mine/deliveries',historyPath,`/api/demo/certificates/${purchase.receipt.certificateIds[0]}`]){
+      const response=await fetch(base+path,{headers:{Authorization:'Bearer '+operator.token}});assert.equal(response.status,200,path);
+      assert.equal((await response.json()).mine.name,canary,path);
+    }
+    for(const path of ['/api/demo/mine/intake','/api/demo/mine/custody']){
+      assert.equal((await fetch(base+path,{headers:{Authorization:'Bearer '+buyer.token}})).status,403);
+      assert.equal((await fetch(base+path,{headers:{Authorization:'Bearer invalid','x-demo-session':'legacy-public-projection-test'}})).status,401);
+    }
+    assert.equal((await fetch(base+'/api/demo/mine/intake_produce',{method:'POST',headers:{Authorization:'Bearer '+buyer.token,'Content-Type':'application/json','Idempotency-Key':randomUUID()},body:JSON.stringify({metal:'XAU',grams:'0.100',reason:'No permite comprador'})})).status,403);
+    assert.ok(JSON.stringify(await store.getCustody(op.id,'operator')).includes(canary));
+  }finally{if(server)await new Promise(resolve=>server.close(resolve));}
 }

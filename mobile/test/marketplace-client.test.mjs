@@ -15,7 +15,7 @@ test('marketplace: respuesta perdida y reapertura conservan identidad, comproban
   const api=`http://127.0.0.1:${server.address().port}`;
   const password='Exclusive-market-client-fixture-123';
   try{
-    const mine=await store.createMine({name:'Mina DEMO cliente marketplace'});
+    const mine=await store.createMine({name:'Mina DEMO cliente marketplace',initialInventoryMg:{XAU:1000,XAG:0,XPT:0,XPD:0}});
     const seller=await store.createAccount({alias:'market_client_seller',password,mineId:mine.id});
     const buyer=await store.createAccount({alias:'market_client_buyer',password,mineId:mine.id});
     await store.mutateAccount(seller.id,{action:'buy',metal:'XAU',grams:'0.500',requestId:randomUUID()});

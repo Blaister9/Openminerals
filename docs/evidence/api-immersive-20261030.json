@@ -1,0 +1,28 @@
+{
+  "projectId": "1442be94-b13f-4067-9fee-ea99caf5715a",
+  "environmentId": "1e835541-fd3a-49dd-8ae3-0315d4118940",
+  "serviceId": "00e2d919-2cd1-4293-befd-d8af58df8069",
+  "deploymentId": "8d5d5f99-047f-45e9-b89d-5176787caadb",
+  "status": "SUCCESS",
+  "createdAt": "2026-10-30T13:11:55.047Z",
+  "bootLogTimestamp": "2026-10-30T13:12:15.695896623Z",
+  "sourceCommit": "89c38d438ed692c87cb01c36d3b669918bff4ccd",
+  "equivalentApiTreeInCommit": "62937b63207417d4658fb7f9fa90465709b01feb",
+  "cliMessage": "Openminerals DEMO API 89c38d438ed692c87cb01c36d3b669918bff4ccd",
+  "api": "https://openminerals-api-demo.up.railway.app",
+  "health": {
+    "ok": true,
+    "mode": "postgres-demo",
+    "demoOnly": true,
+    "apiVersion": "0.2.0"
+  },
+  "defaultMineQuantityHash": "6d774e792b5310c727d3b46306335e744940d0e52fd53d85c600d97d76585003",
+  "allFiveQuantityRecordsUnchanged": true,
+  "postgresDeploymentUnchanged": "3f688aed-0426-43d5-bc2b-c691c8d614cb",
+  "sourceRepoPreserved": "Blaister9/Openminerals",
+  "serviceManifestUnchanged": true,
+  "noSourceConfigOrVariableMutations": true,
+  "legacyPersistence": "PASS: state hash, receipt and idempotent replay survived API replacement",
+  "smoke": "PASS: fresh isolated legacy session; health, conversion, buy/replay, sell, offer, delivery, state/operator summary",
+  "completedAt": "2026-10-30T13:14:59.9745089Z"
+}

@@ -4,11 +4,11 @@ const tap=text=>({tapOn:text}),wait=text=>({extendedWaitUntil:{visible:text,time
 const field=(text,value)=>[scroll({text}),{tapOn:{text,point:'95%,50%'}},{eraseText:100},{inputText:value},'hideKeyboard'];
 export function qualityFlow(name){
   let commands;
-  if(name==='login')commands=[{runFlow:{file:'login.yaml'}},wait('^Comprador ·.*')];
+  if(name==='login')commands=[{runFlow:{file:'login.yaml'}},tap('^Actividad$'),wait('^Comprador ·.*')];
   else if(name==='insufficient')commands=[tap('^Mercado$'),scroll({id:'market-metal-XAU'}),{tapOn:{id:'market-metal-XAU'}},...field('Cantidad de metal en gramos','2'),scroll({text:'Tu saldo USDT no alcanza.*'}),{assertVisible:'Tu saldo USDT no alcanza.*'},scroll({text:'^Confirmar compra simulada$'}),{assertVisible:{text:'^Confirmar compra simulada$',enabled:false}}];
   else if(name==='prepare')commands=[tap('^Billetera$'),scroll({id:'transfer-currency-USD'}),{tapOn:{id:'transfer-currency-USD'}},...field('Cantidad para ingresar o retirar','0.01'),scroll({text:'^Simular retiro$'}),tap('^Simular retiro$'),wait('^Confirmar demo$')];
   else if(name==='offline')commands=[tap('^Confirmar demo$'),wait('^Reintentar operación pendiente$'),{assertNotVisible:'^Comprobante$'}];
-  else if(name==='resolve')commands=['stopApp','launchApp',wait('^Comprador ·.*'),wait('^Reintentar operación pendiente$'),tap('^Reintentar operación pendiente$'),wait('^Comprobante$'),tap('Cerrar comprobante'),{assertNotVisible:'^Reintentar operación pendiente$'},tap('^Billetera$'),scroll({id:'transfer-currency-USD'}),{tapOn:{id:'transfer-currency-USD'}},...field('Cantidad para ingresar o retirar','0.01'),scroll({text:'^Simular ingreso$'}),tap('^Simular ingreso$'),tap('^Confirmar demo$'),wait('^Comprobante$'),tap('Cerrar comprobante')];
+  else if(name==='resolve')commands=['stopApp','launchApp',wait({id:'home-cinematic-scroll'}),wait('Operación pendiente · Resolver en Actividad'),tap('Operación pendiente · Resolver en Actividad'),wait('^Comprador ·.*'),wait('^Reintentar operación pendiente$'),tap('^Reintentar operación pendiente$'),wait('^Comprobante$'),tap('Cerrar comprobante'),{assertNotVisible:'^Reintentar operación pendiente$'},tap('^Billetera$'),scroll({id:'transfer-currency-USD'}),{tapOn:{id:'transfer-currency-USD'}},...field('Cantidad para ingresar o retirar','0.01'),scroll({text:'^Simular ingreso$'}),tap('^Simular ingreso$'),tap('^Confirmar demo$'),wait('^Comprobante$'),tap('Cerrar comprobante')];
   else throw new Error('Unknown private network-quality flow.');
   return JSON.stringify({appId:'com.openminerals.demo.mobile',name:'Native quality '+name})+'\n---\n'+JSON.stringify(commands,null,2)+'\n';
 }

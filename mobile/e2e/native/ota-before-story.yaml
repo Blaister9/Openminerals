@@ -15,9 +15,12 @@ name: Anonymous compatible OTA before studio story
 - stopApp
 - launchApp
 - extendedWaitUntil:
-    visible: ^Sesión sin cuenta$
+    visible: ^Actividad$
     timeout: 30000
 - tapOn: ^Actividad$
+- extendedWaitUntil:
+    visible: ^Sesión sin cuenta$
+    timeout: 30000
 - scrollUntilVisible:
     element:
       id: demo-update-source
@@ -28,9 +31,12 @@ name: Anonymous compatible OTA before studio story
 - stopApp
 - launchApp
 - extendedWaitUntil:
-    visible: ^Sesión sin cuenta$
+    visible: ^Actividad$
     timeout: 30000
 - tapOn: ^Actividad$
+- extendedWaitUntil:
+    visible: ^Sesión sin cuenta$
+    timeout: 30000
 - scrollUntilVisible:
     element:
       id: demo-update-source

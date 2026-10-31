@@ -1,0 +1,42 @@
+{
+  "format": "openminerals-core-ci-evidence-v1",
+  "demoOnly": true,
+  "run": {
+    "id": 41089641722,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41089641722",
+    "headCommit": "ec660d1fc81b913ce1d05d463d1f618a40567e0c",
+    "conclusion": "success"
+  },
+  "uiCommit": "a9ae62e3095524272bdb3aa4a9ca7478990229aa",
+  "apiCommit": "89c38d438ed692c87cb01c36d3b669918bff4ccd",
+  "applicationSourcesUnchangedByHarnessAndDocumentationCommits": true,
+  "jobs": {
+    "mobile": {
+      "conclusion": "success",
+      "tests": 243,
+      "passed": 241,
+      "failed": 0,
+      "skipped": 2,
+      "optionalSkips": "Desktop GL execution; software raster and Android execution are documented separately.",
+      "typecheck": "success",
+      "expoDependencyCheck": "success",
+      "toolchainCheck": "success",
+      "highAndCriticalAuditGate": "success",
+      "expoDoctor": "21/21 checks passed"
+    },
+    "api": {
+      "conclusion": "success",
+      "memoryPhase": {"tests": 102, "passed": 91, "failed": 0, "skipped": 11},
+      "requiredDatabasePhase": {"tests": 80, "passed": 80, "failed": 0, "skipped": 0},
+      "countInterpretation": "The required-database runner includes 79 PostgreSQL tests and one memory recovery test also counted in the memory phase: 170 distinct tests, not 171.",
+      "database": "Disposable CI PostgreSQL 18; not the Railway database.",
+      "highAndCriticalAuditGate": "success"
+    }
+  },
+  "verification": {
+    "summaryCountersReadFromCompletedJobLogs": true,
+    "logBodiesPublished": false,
+    "signedDownloadUrlsPublished": false,
+    "nativeAndPhoneAcceptanceIncluded": false
+  }
+}

@@ -55,6 +55,12 @@ name: Operator production verification receipt and management
 - extendedWaitUntil:
     visible: ^Recepción DEMO registrada$
     timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: ^Lote DEMO creado$
+    direction: DOWN
+    centerElement: true
+    timeout: 30000
 - assertVisible: ^Lote DEMO creado$
 - tapOn: Cerrar comprobante
 

@@ -4,6 +4,7 @@ import {normalizeDecimalInput,parsePositiveDecimal} from '../lib/presentation';
 import {receiptSummary,receiptTitle,type Receipt} from '../lib/receipt-presentation';
 import {deliveryStatusLabel,type DeliveryStatus} from '../lib/delivery';
 import {institutional} from '../lib/visual-theme';
+import {mineInventoryIsReconciled} from '../lib/mine-inventory';
 
 type Metal='XAU'|'XAG'|'XPT'|'XPD';
 type Account={id:string;alias:string};
@@ -32,9 +33,9 @@ export function MineDashboard({summary,loading,error,blocked,lastStockId,onRefre
   useEffect(()=>{if(lastStockId)setReason('');},[lastStockId]);
   const units=parsePositiveDecimal(grams,3);const mg=units===null?null:Math.round(units*1000);
   const invalid=mg===null||mg<100;const overflow=!!summary&&mg!==null&&summary.totalSupplyMg[metal]+mg>1_000_000_000;
-  const balanced=summary?.reconciled&&metals.every(item=>summary.inventoryMg[item.code]+summary.allocatedMg[item.code]===summary.totalSupplyMg[item.code]&&summary.reservedMg[item.code]<=summary.allocatedMg[item.code]);
+  const balanced=mineInventoryIsReconciled(summary);
   const metadataValid=/^[1-9]\d{0,4}$/.test(purity)&&Number(purity)<=10000&&location.trim().length>=3&&location.trim().length<=120&&documentTitle.trim().length>=3&&documentContent.trim().length>=3;
-  const canSubmit=!!balanced&&!blocked&&!loading&&!invalid&&!overflow&&metadataValid&&reason.trim().length>=3&&reason.trim().length<=160;
+  const canSubmit=balanced&&!blocked&&!loading&&!error&&!invalid&&!overflow&&metadataValid&&reason.trim().length>=3&&reason.trim().length<=160;
   return <>
     <Text style={styles.eyebrow}>OPERADOR · INVENTARIO COMPARTIDO</Text>
     <Text accessibilityRole="header" style={[styles.title,institutional.heading]}>{summary?.mine.name||'Panel de mina'}</Text>
@@ -48,7 +49,7 @@ export function MineDashboard({summary,loading,error,blocked,lastStockId,onRefre
       </View>
       <Text accessibilityRole="header" style={styles.section}>Existencias por metal</Text>
       <Text style={[styles.note,balanced?styles.ok:styles.errorText]} accessibilityRole={balanced?undefined:'alert'}>{balanced?'Disponible + asignado coincide con el total registrado en esta demo.':'Hay una diferencia en el inventario. Actualiza el panel antes de operar.'}</Text>
-      <ScrollView horizontal directionalLockEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:12,paddingBottom:10}}>{metals.map(item=><View key={item.code} style={[styles.card,{width:285}]}><Text style={styles.cardTitle}>{item.name}</Text><Row label="Disponible para compras" value={gram(summary.inventoryMg[item.code])}/><Row label="Asignado a compradores" value={gram(summary.allocatedMg[item.code])}/><Row label="Reservado dentro de esas posiciones" value={gram(summary.reservedMg[item.code])}/><Row label="Comprometido para entrega" value={gram(summary.deliveryCommittedMg?.[item.code]??0)}/><Row label="Suministro activo DEMO" value={gram(summary.totalSupplyMg[item.code])}/><Text style={styles.note}>Reserva y compromiso son subconjuntos del asignado; no se suman otra vez al suministro.</Text></View>)}</ScrollView>
+      <ScrollView horizontal directionalLockEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:12,paddingBottom:10}}>{metals.map(item=><View key={item.code} style={[styles.card,{width:285}]}><Text style={styles.cardTitle}>{item.name}</Text><Row label="Disponible para compras" value={gram(summary.inventoryMg[item.code])}/><Row label="Asignado a compradores" value={gram(summary.allocatedMg[item.code])}/><Row label="Reservado dentro de esas posiciones" value={gram(summary.reservedMg[item.code])}/><Row label="Comprometido para entrega" value={summary.deliveryCommittedMg?.[item.code]===undefined?'No informado':gram(summary.deliveryCommittedMg[item.code])}/><Row label="Suministro activo DEMO" value={gram(summary.totalSupplyMg[item.code])}/><Text style={styles.note}>Reserva y compromiso son subconjuntos del asignado; no se suman otra vez al suministro.</Text></View>)}</ScrollView>
       <Text accessibilityRole="header" style={styles.section}>Recepción directa DEMO</Text>
       <View style={styles.card}>
         <Text style={styles.copy}>Compatibilidad: registra una recepción ya verificada en la simulación. Para producción nueva, usa las tres etapas de arriba. No acredita recepción ni custodia física real.</Text>

@@ -3,9 +3,12 @@ name: Require exact compatible OTA before read-only operator diagnosis
 ---
 - launchApp
 - extendedWaitUntil:
-    visible: ^Sesión sin cuenta$
+    visible: ^Actividad$
     timeout: 30000
 - tapOn: ^Actividad$
+- extendedWaitUntil:
+    visible: ^Sesión sin cuenta$
+    timeout: 30000
 - scrollUntilVisible:
     element:
       text: ^Buscar actualización$
@@ -19,9 +22,12 @@ name: Require exact compatible OTA before read-only operator diagnosis
 - stopApp
 - launchApp
 - extendedWaitUntil:
-    visible: ^Sesión sin cuenta$
+    visible: ^Actividad$
     timeout: 30000
 - tapOn: ^Actividad$
+- extendedWaitUntil:
+    visible: ^Sesión sin cuenta$
+    timeout: 30000
 - scrollUntilVisible:
     element:
       id: demo-update-source
@@ -32,9 +38,12 @@ name: Require exact compatible OTA before read-only operator diagnosis
 - stopApp
 - launchApp
 - extendedWaitUntil:
-    visible: ^Sesión sin cuenta$
+    visible: ^Actividad$
     timeout: 30000
 - tapOn: ^Actividad$
+- extendedWaitUntil:
+    visible: ^Sesión sin cuenta$
+    timeout: 30000
 - scrollUntilVisible:
     element:
       id: demo-update-source

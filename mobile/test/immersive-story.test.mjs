@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {immersivePose,chapterAt,immersiveTravel,immersiveChapters,renderBudget} from '../lib/immersive-story.ts';
+import {immersivePose,immersiveMatrices,chapterAt,immersiveTravel,immersiveChapters,renderBudget} from '../lib/immersive-story.ts';
 import {goldBarMatrices,transformPoint,createGoldBarMesh} from '../lib/gold-bar-3d.ts';
 test('recorrido: cámara continua, reversible y finita en todas las transiciones y tamaños',()=>{
   const before=structuredClone(immersiveChapters),mesh=createGoldBarMesh();
@@ -18,4 +18,13 @@ test('recorrido: cámara continua, reversible y finita en todas las transiciones
 test('presupuesto: coste aislado no desactiva 3D; ventana sostenida lenta sí',()=>{
   assert.equal(renderBudget([100]),false);assert.equal(renderBudget(Array(120).fill(7)),false);assert.equal(renderBudget([...Array(119).fill(7),200]),false);assert.equal(renderBudget(Array(120).fill(55)),true);
   assert.equal(renderBudget([NaN,Infinity,...Array(89).fill(100)]),false);
+});
+test('suelo inmersivo deja visible el volumen mineral y converge al apoyo del lingote',()=>{
+  for(const progress of [0,.12,.26,.33,.4,.49,.5,.8,1]){
+    const pose=immersivePose(progress),before=structuredClone(pose),base=goldBarMatrices(pose,.56),scene=immersiveMatrices(pose,.56,progress);
+    assert.deepEqual(pose,before);assert.deepEqual(scene.model,base.model);assert.deepEqual(scene.mvp,base.mvp);
+    assert.ok([...scene.floorMvp].every(Number.isFinite));assert.ok(scene.floorModel[13]<=base.floorModel[13]);
+    if(progress===0)assert.ok(base.floorModel[13]-scene.floorModel[13]>1.2);
+    if(progress>=.5){assert.deepEqual(scene.floorModel,base.floorModel);assert.deepEqual(scene.floorMvp,base.floorMvp);}
+  }
 });

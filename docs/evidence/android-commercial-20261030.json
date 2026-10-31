@@ -1,0 +1,347 @@
+{
+  "format": "openminerals-android-commercial-evidence-v1",
+  "demoOnly": true,
+  "run": {
+    "id": 41061954019,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41061954019",
+    "headSha": "62937b63207417d4658fb7f9fa90465709b01feb",
+    "branch": "codex/immersive-custody-20261029",
+    "workflow": "Android UI verification",
+    "scenario": "full",
+    "coverageMetal": "XAU",
+    "conclusion": "success"
+  },
+  "artifact": {
+    "id": 12981639508,
+    "name": "android-ui-single-41061954019",
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41061954019/artifacts/12981639508",
+    "bytes": 2751892,
+    "createdAt": "2026-10-30T13:53:59Z",
+    "expiresAt": "2026-10-31T13:53:57Z"
+  },
+  "ota": {
+    "requestedUpdateId": "01a18cef-46db-7dfe-b633-becbc8366716",
+    "runtimeVersion": "0.2.0",
+    "channel": "demo",
+    "appliedPrefixVerified": "01a18cef",
+    "verification": "Expected applied update prefix asserted on native Actividad screen, then API postconditions checked again after cold opens."
+  },
+  "apks": [
+    {
+      "kind": "baseline",
+      "sha256": "fda0953d11a6035100bef9f9c04d070053edc2ae47c31852803a020d89e6b7c7",
+      "package": "com.openminerals.demo.mobile",
+      "code": 4,
+      "name": "0.1.3",
+      "minSdk": 24,
+      "certificate": "3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c"
+    },
+    {
+      "kind": "new",
+      "sha256": "c35719bf44fdc5a1237249be7e80d6d3102e57ee58f0cd0d9b5af3c66f32d83f",
+      "package": "com.openminerals.demo.mobile",
+      "code": 5,
+      "name": "0.2.0",
+      "minSdk": 24,
+      "certificate": "3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c"
+    }
+  ],
+  "environment": {
+    "name": "disposable Android CI emulator",
+    "hostOS": "ubuntu-24.04",
+    "androidApi": 29,
+    "systemImage": "google_apis x86_64",
+    "deviceProfile": "pixel_2",
+    "cpuAcceleration": "KVM installed and usable",
+    "graphicsRenderer": "SwiftShader",
+    "availableCpus": 4,
+    "totalMemoryMiB": 15983,
+    "guestCpus": 4,
+    "guestMemoryMiB": 4096,
+    "maestroVersion": "2.12.0",
+    "physicalDevice": false
+  },
+  "junit": {
+    "tests": 23,
+    "failures": 0,
+    "stages": [
+      {
+        "name": "qa-isolation-preconditions",
+        "seconds": 2.724
+      },
+      {
+        "name": "install-baseline-013",
+        "seconds": 34.789
+      },
+      {
+        "name": "legacy-seed-old-apk",
+        "seconds": 182.293
+      },
+      {
+        "name": "update-without-clearing-data",
+        "seconds": 12.248
+      },
+      {
+        "name": "preserve-legacy-after-update",
+        "seconds": 40.895
+      },
+      {
+        "name": "anonymous-compatible-ota-before-story",
+        "seconds": 53.863
+      },
+      {
+        "name": "native-story-and-reduced-motion",
+        "seconds": 101.698
+      },
+      {
+        "name": "native-story-resumes-after-home",
+        "seconds": 62.163
+      },
+      {
+        "name": "native-registration-no-import",
+        "seconds": 97.317
+      },
+      {
+        "name": "buyer-a-login-conversion",
+        "seconds": 100.259
+      },
+      {
+        "name": "buyer-a-buy-and-certificate",
+        "seconds": 76.709
+      },
+      {
+        "name": "buyer-a-publish-priced-offer",
+        "seconds": 92.743
+      },
+      {
+        "name": "buyer-b-marketplace-certificate",
+        "seconds": 132.916
+      },
+      {
+        "name": "buyer-a-sale-and-delivery-request",
+        "seconds": 143.013
+      },
+      {
+        "name": "operator-quote-private-mine",
+        "seconds": 100.911
+      },
+      {
+        "name": "buyer-accept-simulated-costs",
+        "seconds": 116.009
+      },
+      {
+        "name": "operator-delivery-lifecycle",
+        "seconds": 177.485
+      },
+      {
+        "name": "operator-restock-management",
+        "seconds": 100.451
+      },
+      {
+        "name": "buyer-history-profile-relaunch",
+        "seconds": 165.149
+      },
+      {
+        "name": "buyer-custody-fraction-is-not-whole-lot",
+        "seconds": 30.558
+      },
+      {
+        "name": "api-verifies-native-wallets-lots-fees",
+        "seconds": 0.515
+      },
+      {
+        "name": "buyer-compatible-ota-cold-launch",
+        "seconds": 53.577
+      },
+      {
+        "name": "api-verifies-data-after-compatible-ota",
+        "seconds": 0.518
+      }
+    ]
+  },
+  "controls": {
+    "isolatedAccounts": {
+      "buyers": 2,
+      "operators": 1,
+      "rolesAndSameMineVerified": true,
+      "distinctBuyersVerified": true,
+      "privateIdentityValuesPublished": false
+    },
+    "upgradeFrom013WithoutClearingData": true,
+    "legacyHistoryPreserved": true,
+    "legacyNavigation": {
+      "initialPolicy": "null",
+      "temporarilyAdjustedOnlyForOldApk": true,
+      "restoredToNormalBars": true,
+      "newApkRequiresNormalBars": true
+    },
+    "anonymousOtaBeforeStory": true,
+    "nativeSevenStageNarrative": true,
+    "reducedMotionAndSkipToOperations": true,
+    "homeResume": {
+      "backgroundObserved": true,
+      "sameProcess": true,
+      "stagePreserved": true,
+      "glReadinessMarker": true,
+      "advancedAndReversed": true,
+      "forceStopUsed": false,
+      "credentialsEntered": false
+    },
+    "registrationWithoutImportingLegacyState": true,
+    "conversion": true,
+    "directBuyAndCertificate": true,
+    "pricedOffer": true,
+    "peerPurchaseAndCertificate": true,
+    "directSale": true,
+    "deliveryRequestQuoteAcceptanceAndCompletion": true,
+    "simulatedRestock": true,
+    "profileSavedAndSecureStoreRelaunch": true,
+    "ownedFractionIsNotWholeLot": true,
+    "apiVerifiedBeforeAndAfterColdOta": true
+  },
+  "apiAssertions": {
+    "api": "https://openminerals-api-demo.up.railway.app",
+    "apiVersion": "0.2.0",
+    "mode": "postgres-demo",
+    "stages": [
+      "api-verifies-native-wallets-lots-fees",
+      "api-verifies-data-after-compatible-ota"
+    ],
+    "units": {
+      "money": "integer currency minor units",
+      "metal": "integer milligrams"
+    },
+    "buyerA": {
+      "walletMinor": {
+        "USDT": 28789,
+        "USD": 40000
+      },
+      "holdingsMg": {
+        "XAU": 500
+      }
+    },
+    "buyerB": {
+      "walletMinor": {
+        "USDT": 18000,
+        "USD": 60000
+      },
+      "holdingsMg": {
+        "XAU": 500
+      }
+    },
+    "mine": {
+      "reconciled": true,
+      "availableMg": {
+        "XAU": 4500
+      },
+      "allocatedMg": {
+        "XAU": 1000
+      },
+      "reservedMg": {
+        "XAU": 0
+      },
+      "activeSupplyMg": {
+        "XAU": 5500
+      },
+      "originalLotWeightMg": {
+        "XAU": 6000
+      },
+      "deliveredMg": {
+        "XAU": 500
+      },
+      "tradingFeesMinorUSDT": 461,
+      "stockAdjustments": 1,
+      "stockAdjustmentMg": 1000
+    },
+    "commerce": {
+      "directBuys": 1,
+      "directSells": 1,
+      "marketplaceTrades": 1,
+      "filledOffers": 1,
+      "deliveryStatus": "DELIVERED_DEMO",
+      "paidDeliveryMinorUSDT": 1000,
+      "peerTransferMg": 500,
+      "peerTradePreservedSellerSourceLot": true,
+      "lotHistoryHasOneBuySellTransferAndDelivery": true,
+      "buyerLotHistoryScopedToOwnIdentity": true,
+      "operatorLotHistoryAndManagementExcludeBuyerWalletData": true,
+      "perMetalVolumesMg": {
+        "XAU": {
+          "directBuy": 2000,
+          "directSell": 500,
+          "marketplace": 500
+        },
+        "XAG": {
+          "directBuy": 0,
+          "directSell": 0,
+          "marketplace": 0
+        },
+        "XPT": {
+          "directBuy": 0,
+          "directSell": 0,
+          "marketplace": 0
+        },
+        "XPD": {
+          "directBuy": 0,
+          "directSell": 0,
+          "marketplace": 0
+        }
+      }
+    },
+    "basis": "These exact postconditions are enforced by mobile/e2e/ci-result.mjs against live PostgreSQL API responses; no private raw snapshot is published."
+  },
+  "recordedStoryPerformance": {
+    "coldStartTotalMs": 1264,
+    "coldStartWaitMs": 1267,
+    "pssBeforeKiB": 57314,
+    "pssAfterKiB": 124877,
+    "uiFrames": 97,
+    "jankyUiFrames": 95,
+    "uiFrameP50Ms": 109,
+    "uiFrameP90Ms": 300,
+    "uiFrameP95Ms": 650,
+    "automaticLightObserved": false,
+    "screenRecording": true,
+    "visualMode": "3d",
+    "measurementsComplete": true
+  },
+  "diagnostics": {
+    "lastStage": {
+      "name": "api-verifies-data-after-compatible-ota",
+      "status": "PASSED"
+    },
+    "lastHandledNonzeroCommand": {
+      "stage": "native-story-and-reduced-motion",
+      "program": "adb",
+      "operation": "shell",
+      "exitCode": 1,
+      "reason": "nonzero-exit"
+    },
+    "interpretation": "The progress recorder retains a nonzero adb shell result caught by the story runner. Public artifacts omit shell arguments. All 23 stages and JUnit passed; no API or native failure-context artifact was published."
+  },
+  "limits": [
+    "This complete commercial native run validates source 62937b6 and OTA 01a18cef, not the later fe37dd1 update.",
+    "Native purchases, sales, peer trade and delivery cover XAU only; the other three metals have zero trading volume in this fixture.",
+    "The 0.1.3 seed phase used its documented temporary navigation-bar workaround; normal bars were restored before 0.2.0 installation.",
+    "Account and mine fixtures are isolated simulations; no real money, custody or shipment.",
+    "Android API29 emulator with software graphics; no physical-device acceptance.",
+    "Recorded story UI frame statistics are not GPU FPS and do not establish transaction latency.",
+    "Memory is sampled PSS before/after, not peak usage.",
+    "The recorded profile remains slow and does not constitute performance optimization acceptance.",
+    "Snapshots and videos published by the workflow are restricted to anonymous phases; private account screens and raw logs are excluded."
+  ],
+  "safeArtifactScreenshots": [
+    "safe-upgrade-preserved.png",
+    "safe-story-1.png",
+    "safe-story-2.png",
+    "safe-story-3.png",
+    "safe-story-4.png",
+    "safe-story-5.png",
+    "safe-story-6.png",
+    "safe-story-7.png",
+    "safe-reduced-motion.png"
+  ],
+  "physicalDeviceAcceptance": false,
+  "realCustody": false,
+  "realFunds": false
+}
