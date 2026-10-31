@@ -6,7 +6,7 @@ import {readFile,writeFile,mkdir,readdir,copyFile} from 'node:fs/promises';
 import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {PACKAGE,apkUrl,sha,hash,certificate,manifest,fixtures,cleanFixture,emulatorGuard,publicJunit,requireSafe} from './ci-safety.mjs';
-import {RELEASE,RELEASE_BASELINE,releaseScenario,validateReleaseConfig,validateReleaseManifest,apkRuntimeVersion,assertReleasePreserved,embeddedFlow,authenticatedFlow,buyerPreservedFlow,operatorPreservedFlow} from './release-contract.mjs';
+import {RELEASE,RELEASE_BASELINE,releaseScenario,validateReleaseConfig,releaseRegisterFlow,validateReleaseManifest,apkRuntimeVersion,assertReleasePreserved,embeddedFlow,authenticatedFlow,buyerPreservedFlow,operatorPreservedFlow} from './release-contract.mjs';
 import {createProgress} from './ci-progress.mjs';
 import {adbBudget,runBounded} from './ci-process.mjs';
 import {createObserverRequest} from './ci-http.mjs';
@@ -110,7 +110,7 @@ async function cleanCommerce(){
   await runStage('native-story-resumes-after-home',()=>verifyImmersiveResume({adb,serial,maestro,published}));
   await runStage('embedded-after-resume-before-credentials',()=>embedded(RELEASE.version));
   users.register={alias:'native_'+randomBytes(9).toString('hex'),password:randomBytes(24).toString('base64url')};mask(users.register.alias);mask(users.register.password);
-  await runStage('native-registration-without-import',async()=>{await maestro('register','register');const auth=await request('/api/demo/accounts/login',null,users.register);mask(auth.token);sessions.push(auth.token);const state=await request('/api/demo/state',auth.token);requireSafe(auth.account.role==='buyer'&&auth.account.mineId!==users.a.me.mine.id&&state.walletMinor.USDT===25000&&Object.values(state.holdingsMg).every(value=>value===0)&&Object.keys(state.receipts).length===0,'Release registration imported or changed balances.');});
+  await runStage('native-registration-without-import',async()=>{await maestro('register','register',{source:releaseRegisterFlow(await readFile(join(repo,'e2e/native/register.yaml'),'utf8'))});const auth=await request('/api/demo/accounts/login',null,users.register);mask(auth.token);sessions.push(auth.token);const state=await request('/api/demo/state',auth.token);requireSafe(auth.account.role==='buyer'&&auth.account.mineId!==users.a.me.mine.id&&state.walletMinor.USDT===25000&&Object.values(state.holdingsMg).every(value=>value===0)&&Object.keys(state.receipts).length===0,'Release registration imported or changed balances.');});
   for(const [name,flow,role] of [
     ['buyer-a-login-conversion','buyer-a','a'],['buyer-a-buy-and-certificate','buyer-a-buy','a'],['buyer-a-publish-priced-offer','buyer-a-offer','a'],['buyer-b-marketplace-certificate','buyer-b','b'],['buyer-a-sale-and-delivery-request','request-delivery','a'],['operator-quote-private-mine','quote','op'],['buyer-accept-simulated-costs','accept','a'],['operator-delivery-lifecycle','operator','op'],['operator-restock-management','operator-stock','op'],['buyer-history-profile-relaunch','profile','a'],['buyer-custody-fraction-is-not-whole-lot','custody-recheck','a'],
   ])await runStage(name,()=>maestro(flow,role));
