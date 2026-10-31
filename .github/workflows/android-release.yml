@@ -1,0 +1,274 @@
+name: Android standalone release acceptance
+on:
+  workflow_dispatch:
+    inputs:
+      apk_url:
+        description: Public HTTPS standalone 0.3.0 APK URL
+        type: string
+        required: true
+      apk_sha256:
+        description: Verified lowercase SHA256 of the signed versionCode 6 APK
+        type: string
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: openminerals-isolated-native-qa-single
+  cancel-in-progress: false
+jobs:
+  clean-commerce:
+    if: github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    env:
+      NATIVE_RELEASE_SCENARIO: clean-commerce
+      APK_INPUT_URL: ${{ inputs.apk_url }}
+      APK_INPUT_SHA256: ${{ inputs.apk_sha256 }}
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+      - name: Verify 0.2.0 baseline and standalone 0.3.0 APK hashes signatures versions and ABIs
+        run: node mobile/e2e/release-android.mjs download
+      - name: Require the isolated PostgreSQL QA state for this release phase
+        env:
+          OPENMINERALS_QA_BUYER_A_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_A_ALIAS }}
+          OPENMINERALS_QA_BUYER_A_PASSWORD: ${{ secrets.OPENMINERALS_QA_BUYER_A_PASSWORD }}
+          OPENMINERALS_QA_BUYER_B_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_B_ALIAS }}
+          OPENMINERALS_QA_BUYER_B_PASSWORD: ${{ secrets.OPENMINERALS_QA_BUYER_B_PASSWORD }}
+          OPENMINERALS_QA_OPERATOR_ALIAS: ${{ secrets.OPENMINERALS_QA_OPERATOR_ALIAS }}
+          OPENMINERALS_QA_OPERATOR_PASSWORD: ${{ secrets.OPENMINERALS_QA_OPERATOR_PASSWORD }}
+        run: node mobile/e2e/release-android.mjs preflight
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Install pinned open-source Maestro CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          curl --fail --location --proto '=https' --proto-redir '=https' \
+            --retry 2 --max-time 180 --max-filesize 400000000 \
+            --output maestro.zip \
+            https://github.com/mobile-dev-inc/Maestro/releases/download/cli-2.12.0/maestro.zip
+          echo 'a6044a84542f522f434c5dc3d609e60c7446d423f3ed1b2ae513f5c48663ec5e  maestro.zip' | sha256sum --check
+          unzip -q maestro.zip -d maestro-cli
+          mapfile -t maestro_bins < <(find "$RUNNER_TEMP/maestro-cli" -type f -path '*/bin/maestro')
+          test "${#maestro_bins[@]}" -eq 1
+          chmod +x "${maestro_bins[0]}"
+          dirname "${maestro_bins[0]}" >> "$GITHUB_PATH"
+          "${maestro_bins[0]}" --version > "$RUNNER_TEMP/openminerals-release/public/maestro-version.txt"
+      - name: Repair KVM permissions and fail before boot without acceleration
+        shell: bash
+        run: |
+          set -euo pipefail
+          acceleration_log="$RUNNER_TEMP/openminerals-release/public/acceleration.txt"
+          node <<'NODE'
+          const fs=require('node:fs'),os=require('node:os');
+          const resource={availableCpus:os.availableParallelism(),totalMemoryMiB:Math.floor(os.totalmem()/1048576),guestCpus:4,guestMemoryMiB:4096};
+          fs.writeFileSync(process.env.RUNNER_TEMP+'/openminerals-release/public/host-resources.json',JSON.stringify(resource,null,2)+'\n');
+          if(resource.availableCpus<4||resource.totalMemoryMiB<8192){console.error('STANDARD_HOST_RESOURCES_INSUFFICIENT');process.exit(1);}
+          NODE
+          printf 'KVM preflight on disposable public Ubuntu runner\n' > "$acceleration_log"
+          id >> "$acceleration_log"
+          if ! test -c /dev/kvm; then
+            printf 'FAIL KVM_DEVICE_MISSING: /dev/kvm is not a character device.\n' | tee -a "$acceleration_log"
+            exit 1
+          fi
+          stat -c 'KVM before udev: mode=%a uid=%u gid=%g type=%F' /dev/kvm >> "$acceleration_log"
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo udevadm settle --timeout=30 >> "$acceleration_log" 2>&1
+          sudo chmod 0666 /dev/kvm
+          stat -c 'KVM after settle/chmod: mode=%a uid=%u gid=%g type=%F' /dev/kvm >> "$acceleration_log"
+          if ! test -r /dev/kvm; then
+            printf 'FAIL KVM_NOT_READABLE: runner cannot read /dev/kvm.\n' | tee -a "$acceleration_log"
+            exit 1
+          fi
+          if ! test -w /dev/kvm; then
+            printf 'FAIL KVM_NOT_WRITABLE: runner cannot write /dev/kvm.\n' | tee -a "$acceleration_log"
+            exit 1
+          fi
+          # The next action installs the emulator binary; it is not present yet.
+          printf 'PASS KVM character device is readable and writable by this runner.\n' >> "$acceleration_log"
+          echo 'PASS KVM is accessible; software CPU acceleration fallback is disabled.'
+      - name: Execute the standalone release phase on a disposable emulator
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        timeout-minutes: 45
+        env:
+          OPENMINERALS_QA_BUYER_A_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_A_ALIAS }}
+          OPENMINERALS_QA_BUYER_A_PASSWORD: ${{ secrets.OPENMINERALS_QA_BUYER_A_PASSWORD }}
+          OPENMINERALS_QA_BUYER_B_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_B_ALIAS }}
+          OPENMINERALS_QA_BUYER_B_PASSWORD: ${{ secrets.OPENMINERALS_QA_BUYER_B_PASSWORD }}
+          OPENMINERALS_QA_OPERATOR_ALIAS: ${{ secrets.OPENMINERALS_QA_OPERATOR_ALIAS }}
+          OPENMINERALS_QA_OPERATOR_PASSWORD: ${{ secrets.OPENMINERALS_QA_OPERATOR_PASSWORD }}
+        with:
+          api-level: 29
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          cores: 4
+          ram-size: 4096M
+          emulator-boot-timeout: 360
+          disable-linux-hw-accel: false
+          emulator-options: -accel on -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim
+          disable-animations: false
+          script: '"$ANDROID_HOME/emulator/emulator" -accel-check >> "$RUNNER_TEMP/openminerals-release/public/acceleration.txt" 2>&1 && node mobile/e2e/release-android.mjs run'
+      - name: Show the already sanitized failure metadata
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          folder = pathlib.Path(os.environ['RUNNER_TEMP']) / 'openminerals-release' / 'public'
+          for name in ('failure-context.json', 'native-failure-state.json'):
+              file = folder / name
+              if file.is_file() and not file.is_symlink():
+                  print(name, json.dumps(json.loads(file.read_text()), ensure_ascii=False))
+          PY
+      - name: Upload only sanitized JUnit metadata and anonymous pre-login images
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: android-release-${{ env.NATIVE_RELEASE_SCENARIO }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/openminerals-release/public/
+          if-no-files-found: warn
+          retention-days: 1
+          compression-level: 9
+  preservation-and-wallets:
+    if: github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    env:
+      NATIVE_RELEASE_SCENARIO: ${{ matrix.scenario }}
+      APK_INPUT_URL: ${{ inputs.apk_url }}
+      APK_INPUT_SHA256: ${{ inputs.apk_sha256 }}
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+      - name: Verify 0.2.0 baseline and standalone 0.3.0 APK hashes signatures versions and ABIs
+        run: node mobile/e2e/release-android.mjs download
+      - name: Require the isolated PostgreSQL QA state for this release phase
+        env:
+          OPENMINERALS_QA_BUYER_A_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_A_ALIAS }}
+          OPENMINERALS_QA_BUYER_A_PASSWORD: ${{ secrets.OPENMINERALS_QA_BUYER_A_PASSWORD }}
+          OPENMINERALS_QA_BUYER_B_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_B_ALIAS }}
+          OPENMINERALS_QA_BUYER_B_PASSWORD: ${{ secrets.OPENMINERALS_QA_BUYER_B_PASSWORD }}
+          OPENMINERALS_QA_OPERATOR_ALIAS: ${{ secrets.OPENMINERALS_QA_OPERATOR_ALIAS }}
+          OPENMINERALS_QA_OPERATOR_PASSWORD: ${{ secrets.OPENMINERALS_QA_OPERATOR_PASSWORD }}
+        run: node mobile/e2e/release-android.mjs preflight
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Install pinned open-source Maestro CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          curl --fail --location --proto '=https' --proto-redir '=https' \
+            --retry 2 --max-time 180 --max-filesize 400000000 \
+            --output maestro.zip \
+            https://github.com/mobile-dev-inc/Maestro/releases/download/cli-2.12.0/maestro.zip
+          echo 'a6044a84542f522f434c5dc3d609e60c7446d423f3ed1b2ae513f5c48663ec5e  maestro.zip' | sha256sum --check
+          unzip -q maestro.zip -d maestro-cli
+          mapfile -t maestro_bins < <(find "$RUNNER_TEMP/maestro-cli" -type f -path '*/bin/maestro')
+          test "${#maestro_bins[@]}" -eq 1
+          chmod +x "${maestro_bins[0]}"
+          dirname "${maestro_bins[0]}" >> "$GITHUB_PATH"
+          "${maestro_bins[0]}" --version > "$RUNNER_TEMP/openminerals-release/public/maestro-version.txt"
+      - name: Repair KVM permissions and fail before boot without acceleration
+        shell: bash
+        run: |
+          set -euo pipefail
+          acceleration_log="$RUNNER_TEMP/openminerals-release/public/acceleration.txt"
+          node <<'NODE'
+          const fs=require('node:fs'),os=require('node:os');
+          const resource={availableCpus:os.availableParallelism(),totalMemoryMiB:Math.floor(os.totalmem()/1048576),guestCpus:4,guestMemoryMiB:4096};
+          fs.writeFileSync(process.env.RUNNER_TEMP+'/openminerals-release/public/host-resources.json',JSON.stringify(resource,null,2)+'\n');
+          if(resource.availableCpus<4||resource.totalMemoryMiB<8192){console.error('STANDARD_HOST_RESOURCES_INSUFFICIENT');process.exit(1);}
+          NODE
+          printf 'KVM preflight on disposable public Ubuntu runner\n' > "$acceleration_log"
+          id >> "$acceleration_log"
+          if ! test -c /dev/kvm; then
+            printf 'FAIL KVM_DEVICE_MISSING: /dev/kvm is not a character device.\n' | tee -a "$acceleration_log"
+            exit 1
+          fi
+          stat -c 'KVM before udev: mode=%a uid=%u gid=%g type=%F' /dev/kvm >> "$acceleration_log"
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo udevadm settle --timeout=30 >> "$acceleration_log" 2>&1
+          sudo chmod 0666 /dev/kvm
+          stat -c 'KVM after settle/chmod: mode=%a uid=%u gid=%g type=%F' /dev/kvm >> "$acceleration_log"
+          if ! test -r /dev/kvm; then
+            printf 'FAIL KVM_NOT_READABLE: runner cannot read /dev/kvm.\n' | tee -a "$acceleration_log"
+            exit 1
+          fi
+          if ! test -w /dev/kvm; then
+            printf 'FAIL KVM_NOT_WRITABLE: runner cannot write /dev/kvm.\n' | tee -a "$acceleration_log"
+            exit 1
+          fi
+          # The next action installs the emulator binary; it is not present yet.
+          printf 'PASS KVM character device is readable and writable by this runner.\n' >> "$acceleration_log"
+          echo 'PASS KVM is accessible; software CPU acceleration fallback is disabled.'
+      - name: Execute the standalone release phase on a disposable emulator
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        timeout-minutes: 45
+        env:
+          OPENMINERALS_QA_BUYER_A_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_A_ALIAS }}
+          OPENMINERALS_QA_BUYER_A_PASSWORD: ${{ secrets.OPENMINERALS_QA_BUYER_A_PASSWORD }}
+          OPENMINERALS_QA_BUYER_B_ALIAS: ${{ secrets.OPENMINERALS_QA_BUYER_B_ALIAS }}
+          OPENMINERALS_QA_BUYER_B_PASSWORD: ${{ secrets.OPENMINERALS_QA_BUYER_B_PASSWORD }}
+          OPENMINERALS_QA_OPERATOR_ALIAS: ${{ secrets.OPENMINERALS_QA_OPERATOR_ALIAS }}
+          OPENMINERALS_QA_OPERATOR_PASSWORD: ${{ secrets.OPENMINERALS_QA_OPERATOR_PASSWORD }}
+        with:
+          api-level: 29
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          cores: 4
+          ram-size: 4096M
+          emulator-boot-timeout: 360
+          disable-linux-hw-accel: false
+          emulator-options: -accel on -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim
+          disable-animations: false
+          script: '"$ANDROID_HOME/emulator/emulator" -accel-check >> "$RUNNER_TEMP/openminerals-release/public/acceleration.txt" 2>&1 && node mobile/e2e/release-android.mjs run'
+      - name: Show the already sanitized failure metadata
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          folder = pathlib.Path(os.environ['RUNNER_TEMP']) / 'openminerals-release' / 'public'
+          for name in ('failure-context.json', 'native-failure-state.json'):
+              file = folder / name
+              if file.is_file() and not file.is_symlink():
+                  print(name, json.dumps(json.loads(file.read_text()), ensure_ascii=False))
+          PY
+      - name: Upload only sanitized JUnit metadata and anonymous pre-login images
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: android-release-${{ env.NATIVE_RELEASE_SCENARIO }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/openminerals-release/public/
+          if-no-files-found: warn
+          retention-days: 1
+          compression-level: 9
+    needs:
+      - clean-commerce
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        scenario:
+          - upgrade-buyer
+          - upgrade-operator
+          - accounts-wallets
