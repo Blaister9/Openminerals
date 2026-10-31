@@ -61,7 +61,7 @@ async function pristineCopy(directory){
 
 test('SDK57 toolchain uses the scoped Zod fix and retains the real deepmerge version',async()=>{
   const project=JSON.parse(await readFile(path.join(projectRoot,'package.json'),'utf8'));
-  assert.equal(project.version,'0.2.0');assert.equal(project.overrides['@expo/cli'].zod,'4.6.7');assert.match(project.dependencies.expo,/57\./);
+  assert.equal(project.version,'0.3.0');assert.equal(project.overrides['@expo/cli'].zod,'4.6.7');assert.match(project.dependencies.expo,/57\./);
   assert.equal(project.dependencies['expo-updates'],'~57.0.26');assert.match(JSON.parse(await readFile(require.resolve('expo-updates/package.json'),'utf8')).version,/^57\./);
   const expoRequire=createRequire(require.resolve('expo/package.json')),cliPackage=expoRequire.resolve('@expo/cli/package.json'),cliRequire=createRequire(cliPackage);
   assert.equal(JSON.parse(await readFile(cliRequire.resolve('zod/package.json'),'utf8')).version,'4.6.7');

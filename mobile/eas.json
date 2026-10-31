@@ -9,6 +9,7 @@
       "env": { "EXPO_PUBLIC_API_URL": "https://openminerals-api-demo.up.railway.app" },
       "android": { "buildType": "apk" }
     },
+    "release-demo": { "extends": "preview", "android": { "buildType": "apk" } },
     "ios-simulator": { "extends": "preview", "ios": { "simulator": true } },
     "production": {}
   },
