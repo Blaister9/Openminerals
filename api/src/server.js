@@ -7,6 +7,7 @@ import {historyPage,parseHistoryQuery,readReceipt} from './receipt-history.js';
 import {accountError,bearerToken,adminMatches,createAuthLimiter} from './account-auth.js';
 import {createMarketService} from './market/service.js';
 import {buildCommercialQuote} from './market/quotes.js';
+import {referenceRateKey} from './market/rate-limit.js';
 
 const API_VERSION=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8')).version;
 const ACTIONS=new Set(['deposit','withdraw','convert','buy','sell','offer','cancel_offer','delivery','cancel_delivery']);
@@ -27,6 +28,9 @@ export function createApiServer(store,config={}){
   const adminToken=config.adminToken ?? process.env.DEMO_ADMIN_TOKEN;
   const allowAuth=createAuthLimiter(config.authRateLimit);
   const allowMarket=createAuthLimiter(config.marketRateLimit);
+  const allowMarketGlobal=createAuthLimiter({...config.marketRateLimit,limit:config.marketRateLimit?.globalLimit??120});
+  const trustMarketProxy=config.trustMarketProxy??process.env.MARKET_TRUST_RAILWAY_PROXY==='true';
+  const checkMarketLimit=req=>{allowMarketGlobal('reference-service');allowMarket(referenceRateKey(req,trustMarketProxy));};
   const market=config.market??createMarketService({repository:()=>store.marketRepository()});
   return http.createServer(async (req,res)=>{
     try {
@@ -78,7 +82,7 @@ export function createApiServer(store,config={}){
       const token=bearerToken(req.headers.authorization);
       const identity=token?await store.authenticate(token):null;
       if(req.method==='GET'&&path.startsWith('/api/demo/market/')){
-        allowMarket(req.socket.remoteAddress||'unknown');
+        checkMarketLimit(req);
         const parts=path.slice('/api/demo/market/'.length).split('/');
         if(parts.length===1&&parts[0]==='exchange'&&url.search==='')return send(res,200,await market.exchange());
         if(parts.length===2&&parts[0]==='metals'&&url.search==='')return send(res,200,await market.spot(parts[1]));
@@ -87,7 +91,7 @@ export function createApiServer(store,config={}){
       }
       if(req.method==='POST'&&path==='/api/demo/reference-quotes'){
         const {account}=requireIdentity(identity);if(account.role!=='buyer')throw accountError(403,'Requiere comprador DEMO.','FORBIDDEN');
-        allowMarket(req.socket.remoteAddress||'unknown');
+        checkMarketLimit(req);
         const body=await readJson(req);onlyKeys(body,['action','metal','grams']);
         const quote=await buildCommercialQuote(market,body);
         return send(res,201,{quote:await store.rememberMarketQuote(account.id,quote),demoOnly:true});

@@ -10,10 +10,10 @@ assert.ok(['before','after'].includes(phase));
 const credentials=JSON.parse(readFileSync(credentialsFile,'utf8'));
 assert.equal(credentials.environmentId,'c4c1afd1-2ed7-40e1-8955-f173a6880518');
 assert.equal(credentials.apiServiceId,'373995aa-3925-4e3e-a74b-7ca652bb713e');
-const report={observedAt:new Date().toISOString(),base,phase,demoOnly:true,metalsProviderRequestsInitiated:0,endpoints:[],blockedChecks:['Live metal spot/history validation requires a valid key and display rights.','Successful reference quote/trade and native expiry checks require authorized real reference sources.','USDT/USD external display/use requires provider permission.']};
-async function request(path,{body,token,idempotencyKey}={}){
-  const response=await fetch(base+path,{method:body?'POST':'GET',headers:{...(body?{'Content-Type':'application/json'}:{}),...(token?{Authorization:'Bearer '+token}:{}),...(idempotencyKey?{'Idempotency-Key':idempotencyKey}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(15000)});
-  return {status:response.status,data:await response.json()};
+const report={observedAt:new Date().toISOString(),base,phase,demoOnly:true,metalsProviderRequestsInitiated:0,endpoints:[],blockedChecks:['Public/mobile metal spot/history delivery requires confirmed display rights.','Successful reference quote/trade and native expiry checks require authorized metal and USDT sources.','USDT/USD external display/use requires provider permission.']};
+async function request(path,{body,token,idempotencyKey,testForwardedIp}={}){
+  const response=await fetch(base+path,{method:body?'POST':'GET',headers:{...(body?{'Content-Type':'application/json'}:{}),...(token?{Authorization:'Bearer '+token}:{}),...(idempotencyKey?{'Idempotency-Key':idempotencyKey}:{}),...(testForwardedIp?{'X-Real-IP':testForwardedIp}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(15000)});
+  const data=await response.json();report.lastRequest={path,status:response.status,code:data.code??null,referenceState:data.status??null,fiatState:data.fiat?.status??null};return {status:response.status,data};
 }
 const fingerprint=state=>createHash('sha256').update(JSON.stringify({wallet:state.walletMinor,holdings:state.holdingsMg,receipts:Object.keys(state.receipts??{})})).digest('hex');
 try{
@@ -35,7 +35,7 @@ try{
     for(const metal of ['XAU','XAG','XPT','XPD']){
       const spotPath='/api/demo/market/metals/'+metal,historyPath=spotPath+'/history?period=7d';
       for(const path of [spotPath,historyPath]){
-        const result=await request(path);assert.equal(result.status,200);assert.equal(result.data.status,'not-configured');assert.equal(result.data.data,null);
+        const result=await request(path);assert.equal(result.status,200);assert.ok(['not-configured','permission-required'].includes(result.data.status));assert.equal(result.data.data,null);
         report.endpoints.push({path,...result});
       }
     }
@@ -50,7 +50,8 @@ try{
     const denied=await request('/api/demo/reference-quotes',{body:{action:'buy',metal:'XAU',grams:'0.100'}});assert.equal(denied.status,401);report.unauthenticatedQuoteRejected=true;
     const stateAfter=await request('/api/demo/state',{token:auth.token});assert.equal(fingerprint(stateAfter.data),report.buyerStateSha256);report.rejectedRequestsPreservedBalances=true;
     let limited=false,attempts=0;
-    for(;attempts<24;attempts++){const result=await request('/api/demo/market/metals/INVALID');if(result.status===429){limited=true;attempts++;break;}assert.equal(result.status,400);}
+    // The edge must overwrite these synthetic headers with the actual client IP.
+    for(;attempts<24;attempts++){const result=await request('/api/demo/market/metals/INVALID',{testForwardedIp:'192.0.2.'+(attempts+1)});if(result.status===429){limited=true;attempts++;break;}assert.equal(result.status,400);}
     assert.equal(limited,true);report.httpRateLimit={observed429:true,boundedInvalidSymbolRequests:attempts,upstreamMetalCalls:0};
   }else{
     const before=JSON.parse(readFileSync(join(outputDirectory,'endpoints-before.json'),'utf8'));
@@ -60,4 +61,4 @@ try{
   }
   report.passed=true;mkdirSync(outputDirectory,{recursive:true});writeFileSync(join(outputDirectory,'endpoints-'+phase+'.json'),JSON.stringify(report,null,2)+'\n');
   console.log(JSON.stringify({phase,passed:true,endpointObservations:report.endpoints.length,metalsCalls:0,acceptedLiveMetals:false,persistence:report.persistence??null}));
-}catch(error){console.error('Market deployment integration failed:',error.code||error.name);process.exitCode=1;}
+}catch(error){report.passed=false;report.failure={code:error.code||error.name,location:error.stack?.split('\n').find(line=>line.includes('check-market-deployment.mjs:'))??null};mkdirSync(outputDirectory,{recursive:true});writeFileSync(join(outputDirectory,'endpoints-'+phase+'.failed.json'),JSON.stringify(report,null,2)+'\n');console.error(JSON.stringify({failed:true,...report.failure,lastRequest:report.lastRequest}));process.exitCode=1;}

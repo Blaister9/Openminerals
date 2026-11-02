@@ -72,3 +72,9 @@ test('HTTP reference requests are limited before spending provider budget',async
   try{assert.equal((await fetch(root+'/api/demo/market/metals/XAU')).status,200);assert.equal((await fetch(root+'/api/demo/market/metals/XAG')).status,429);}
   finally{await new Promise(resolve=>server.close(resolve));await store.close();}
 });
+test('global reference limit bounds traffic even across different trusted client IP keys',async()=>{
+  const store=await createStore(''),server=createApiServer(store,{market:createMarketService({env:{}}),trustMarketProxy:true,marketRateLimit:{limit:100,globalLimit:2,windowMs:60000}});
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const root='http://127.0.0.1:'+server.address().port;
+  try{for(let n=1;n<=3;n++){const response=await fetch(root+'/api/demo/market/metals/XAU',{headers:{'x-real-ip':'192.0.2.'+n}});assert.equal(response.status,n<3?200:429);}}
+  finally{await new Promise(resolve=>server.close(resolve));await store.close();}
+});

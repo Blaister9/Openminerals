@@ -5,6 +5,7 @@ import {createProviderHttp} from '../src/market/http.js';
 import {createMarketService} from '../src/market/service.js';
 import {memoryMarketRepository} from '../src/market/repository.js';
 import {metalsDevProvider} from '../src/market/providers.js';
+import {referenceRateKey} from '../src/market/rate-limit.js';
 
 const time=Date.parse('2026-11-02T14:00:00Z');
 const spot=(overrides={})=>({status:'success',metal:'gold',currency:'USD',unit:'toz',timestamp:new Date(time).toISOString(),rate:{price:3100,bid:3090,ask:3110,high:3150,low:3000,change_percent:1.2,...overrides}});
@@ -96,4 +97,10 @@ test('four metal histories reuse a single all-metals window, including concurren
   const results=await Promise.all(['XAU','XAG','XPT','XPD'].map(code=>provider.history(code,'2026-10-29','2026-10-30')));
   assert.equal(calls,1);assert.equal(results.length,4);assert.ok(results.every(rows=>rows.length===1));
   await provider.history('XAU','2026-10-29','2026-10-30');assert.equal(calls,1);
+});
+test('reference rate keys trust a valid edge IP only when deployment explicitly opts in',()=>{
+  const req={socket:{remoteAddress:'10.0.0.2'},headers:{'x-real-ip':'192.0.2.4'}};
+  assert.equal(referenceRateKey(req),'10.0.0.2');assert.equal(referenceRateKey(req,true),'192.0.2.4');
+  assert.equal(referenceRateKey({...req,headers:{'x-real-ip':'192.0.2.4, 192.0.2.5'}},true),'10.0.0.2');
+  assert.equal(referenceRateKey({...req,headers:{'x-real-ip':['192.0.2.4']}},true),'10.0.0.2');
 });
