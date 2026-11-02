@@ -178,6 +178,13 @@ def main():
     for name, figure in figures.items():
         figure.savefig(output / (name+".png"), dpi=180, facecolor="white", metadata={"Software": "Openminerals evidence plot"})
         figure.savefig(output / (name+".svg"), facecolor="white", metadata={"Date": None, "Creator": "Openminerals evidence plot"})
+        # Matplotlib wraps path data with spaces before newlines. Normalize only
+        # generated SVG formatting; measured source evidence stays byte-exact.
+        svg = output / (name+".svg")
+        with svg.open("r", encoding="utf-8") as stream:
+            lines = stream.read().splitlines()
+        with svg.open("w", encoding="utf-8", newline="\n") as stream:
+            stream.write("\n".join(line.rstrip() for line in lines)+"\n")
         plt.close(figure)
     inputs = [baseline_path, *software_paths] + ([args.native_comparison.resolve()] if args.native_comparison else [])
     chart_data = {
