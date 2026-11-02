@@ -3,8 +3,8 @@ import {Animated,AppState,PanResponder,PixelRatio,Platform,Pressable,StyleSheet,
 import {requireOptionalNativeModule} from 'expo-modules-core';
 import type {ExpoWebGLRenderingContext,GLViewProps} from 'expo-gl';
 import {createFrameScheduler,goldRenderScale,horizontalDrag,scrollProgress} from '../lib/gold-bar-3d';
-import {renderBudget} from '../lib/immersive-story';
 import {createStoryRenderer} from '../lib/scene-renderer';
+import {isSoftwareSceneContext,sceneCostExceeded,SCENE_COST_HISTORY} from '../lib/scene-performance';
 import {metalMaterial,type MetalCode} from '../lib/metal-materials';
 import {advanceSceneOrbit} from '../lib/scene-controls';
 
@@ -28,9 +28,9 @@ class GLBoundary extends React.Component<{children:ReactNode;onFailure:()=>void}
 }
 
 export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMotion,height=290,cinematic=false,sceneDescription='Materia virtual DEMO',metal='XAU',onLimited}:Props){
-  const [width,setWidth]=useState(0),[balanced,setBalanced]=useState(false);
+  const [width,setWidth]=useState(0),[balanced,setBalanced]=useState(false),[software,setSoftware]=useState(false);
   const material=metalMaterial(metal),metalRef=useRef(metal);metalRef.current=metal;
-  const renderScale=goldRenderScale(width,height,PixelRatio.get())*(balanced?.75:1);
+  const renderScale=goldRenderScale(width,height,PixelRatio.get())*(software?.625:balanced?.75:1);
   const NativeGLView=useMemo(availableGLView,[]);
   const [foreground,setForeground]=useState(AppState.currentState===null||AppState.currentState==='active');
   const [failure,setFailure]=useState(false),[ready,setReady]=useState(false),[retry,setRetry]=useState(0);
@@ -88,12 +88,17 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
     if(currentSession.current!==expected||!latest.current.enabled)return;
     stop();
     try{
+      // Remount at <=640 physical pixels before submitting the first software
+      // frame. Real/unknown GPU contexts keep the 1024-pixel high tier.
+      if(cinematic&&!software&&isSoftwareSceneContext(gl)){setSoftware(true);setBalanced(true);return;}
       samples.current=[];const next=createStoryRenderer(gl,cinematic);renderer.current=next;
       scheduler.current=createFrameScheduler({request:callback=>requestAnimationFrame(callback),cancel:cancelAnimationFrame,maxFps:balanced?30:60,now:()=>performance.now(),
         draw:()=>{
           if(currentSession.current!==expected||!latest.current.enabled)return;
           const began=performance.now();next.draw(scrollProgress(lastScroll.current,latest.current.startY,latest.current.endY),drag.current,metalRef.current,minePeek.current);
-          if(cinematic&&!limited.current){samples.current.push(performance.now()-began);if(samples.current.length>120)samples.current.shift();if(!balanced&&samples.current.length>=45&&[...samples.current].sort((a,b)=>a-b)[Math.floor(samples.current.length*.9)]>20)setBalanced(true);if(balanced&&renderBudget(samples.current)){limited.current=true;limitCallback.current?.();}}
+          // On native ExpoGL draw returns after its completion barrier, so this
+          // includes queue/GPU wait and submission work, not only JS enqueueing.
+          if(cinematic&&!limited.current){samples.current.push(performance.now()-began);if(samples.current.length>SCENE_COST_HISTORY)samples.current.shift();if(sceneCostExceeded(samples.current,balanced)){if(!balanced)setBalanced(true);else{limited.current=true;limitCallback.current?.();}}}
           if(!readyRef.current){readyRef.current=true;if(timeout.current!==null){clearTimeout(timeout.current);timeout.current=null;}setReady(true);}
         },onError:()=>fail(expected)});
       timeout.current=setTimeout(()=>fail(expected),8000);scheduler.current.invalidate();

@@ -21,7 +21,7 @@ test('mine preview: local and EAS configs isolate the application, runtime and u
   assert.equal(app.android.package,'com.openminerals.demo.minepreview');assert.notEqual(app.android.package,stable.android.package);
   assert.equal(app.name,'Openminerals Mina Preview');assert.equal(app.scheme,'openminerals-mine-preview');assert.notEqual(app.scheme,stable.scheme);
   assert.equal(app.version,'0.4.0');assert.equal(app.runtimeVersion,'0.4.0');assert.notEqual(app.runtimeVersion,stable.version);assert.notEqual(app.runtimeVersion,'0.2.0');
-  assert.equal(app.android.versionCode,1);assert.deepEqual(app.platforms,['android']);assert.equal(app.extra.demoOnly,true);
+  assert.equal(app.android.versionCode,2);assert.deepEqual(app.platforms,['android']);assert.equal(app.extra.demoOnly,true);
   assert.equal(app.updates.requestHeaders['expo-channel-name'],'mine-realism');assert.equal(app.updates.useEmbeddedUpdate,true);assert.equal(app.updates.disableAntiBrickingMeasures,false);assert.equal(app.updates.fallbackToCacheTimeout,0);
   assert.equal(app.extra.eas.projectId,stable.extra.eas.projectId);
 });

@@ -51,7 +51,14 @@ export function createStoryRenderer(gl:ExpoWebGLRenderingContext,cinematic=false
     if(subjectOpacity!==null)gl.uniform1f(subjectOpacity,1);
     gl.uniform1f(u.u_surface,0);gl.uniformMatrix4fv(u.u_model,false,matrices.model);gl.uniformMatrix4fv(u.u_mvp,false,matrices.mvp);gl.drawArrays(gl.TRIANGLES,0,mesh.vertexCount);
    }
-   gl.disable(gl.BLEND);gl.flush();gl.endFrameEXP();
+   gl.disable(gl.BLEND);
+   if(typeof gl.flushEXP==='function'){
+    // ExpoGL queues finish rather than waiting on the JS thread. endFrameEXP
+    // submits that batch; flushEXP then waits for a following native operation.
+    // A draw cannot return with an earlier frame still in the native GL queue.
+    // This does not measure compositor presentation or display frame rate.
+    gl.finish();gl.endFrameEXP();gl.flushEXP();
+   }else{gl.flush();gl.endFrameEXP();}
   },dispose};
  }catch(error){dispose();throw error;}
 }

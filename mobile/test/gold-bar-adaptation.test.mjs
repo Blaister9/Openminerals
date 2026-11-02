@@ -4,10 +4,11 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import ts from 'typescript';
 import {createFrameScheduler,goldRenderScale,scrollProgress} from '../lib/gold-bar-3d.ts';
-import {renderBudget} from '../lib/immersive-story.ts';
+import {isSoftwareSceneContext,sceneCostExceeded,SCENE_COST_HISTORY} from '../lib/scene-performance.ts';
 
 // Execute GoldBar3D's actual closure, not a second implementation of its policy.
-// The controlled clock measures fake submission work only. This proves neither
+// The controlled clock models completed draw work, including a simulated native
+// barrier wait. Renderer queue ordering is tested separately. This proves neither
 // Android GPU timings, physical FPS nor the React/native lifecycle as a whole.
 const source=await readFile(new URL('../components/GoldBar3D.tsx',import.meta.url),'utf8');
 const ast=ts.createSourceFile('GoldBar3D.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
@@ -31,17 +32,17 @@ const executable=ts.transpileModule([
 const ref=current=>({current});
 function fixture(){
   return {
-    clock:0,cost:5,nextId:0,frames:new Map(),timers:new Map(),events:[],renderers:[],balancedChanges:[],readyChanges:[],failures:[],limitedCalls:0,
+    clock:0,cost:5,waitCost:0,nextId:0,frames:new Map(),timers:new Map(),events:[],renderers:[],balancedChanges:[],softwareChanges:[],readyChanges:[],failures:[],limitedCalls:0,
     throwCreate:false,throwDraw:false,
     refs:{renderer:ref(null),scheduler:ref(null),timeout:ref(null),currentSession:ref(null),latest:ref({startY:100,endY:1100,enabled:true}),
       lastScroll:ref(350),drag:ref(.3),minePeek:ref(.2),metalRef:ref('XAU'),readyRef:ref(false),samples:ref([]),limited:ref(false),limitCallback:ref(null)},
   };
 }
-function mount({balanced=false,cinematic=true,state=fixture()}={}){
+function mount({balanced=false,software=false,cinematic=true,state=fixture(),gl={}}={}){
   const expected=Symbol('test GL session'),schedulerOptions=[];state.refs.currentSession.current=expected;
   state.refs.limitCallback.current=()=>{state.limitedCalls++;state.events.push('limited');};
   const context=vm.createContext({
-    ...state.refs,balanced,cinematic,width:360,height:640,PixelRatio:{get:()=>3},goldRenderScale,scrollProgress,renderBudget,
+    ...state.refs,balanced,software,cinematic,width:360,height:640,PixelRatio:{get:()=>3},goldRenderScale,scrollProgress,isSoftwareSceneContext,sceneCostExceeded,SCENE_COST_HISTORY,
     useCallback:callback=>callback,
     performance:{now:()=>state.clock},
     requestAnimationFrame:callback=>{const id=++state.nextId;state.frames.set(id,callback);return id;},
@@ -53,18 +54,20 @@ function mount({balanced=false,cinematic=true,state=fixture()}={}){
       state.events.push('create renderer');if(state.throwCreate)throw Error('simulated shader creation failure');
       const next={mode,draws:[],disposed:0,draw(...args){
         assert.equal(next.disposed,0,'A disposed context must not draw.');state.events.push('draw start');state.clock+=state.cost;
+        if(state.waitCost){state.events.push('native completion wait');state.clock+=state.waitCost;}
         if(state.throwDraw)throw Error('simulated draw failure');next.draws.push(args);state.events.push('draw complete');
       },dispose(){next.disposed++;state.events.push('dispose renderer');}};
       state.renderers.push(next);return next;
     },
     setBalanced:value=>{state.balancedChanges.push(value);state.events.push('balanced');},
+    setSoftware:value=>{state.softwareChanges.push(value);state.events.push('software');},
     setReady:value=>{state.readyChanges.push(value);state.events.push('ready '+value);},
     setFailure:value=>{state.failures.push(value);state.events.push('failure '+value);},
   });
   vm.runInContext(executable,context,{filename:'GoldBar3D-policy-extracted.js'});
   return {
     state,context,expected,schedulerOptions,
-    create(){context.createContext({},expected);},
+    create(){context.createContext(gl,expected);},
     frame(elapsed=50){
       const entry=state.frames.entries().next().value;assert.ok(entry,'A real scheduler callback must be queued.');
       state.frames.delete(entry[0]);state.clock+=elapsed;entry[1]();
@@ -77,45 +80,66 @@ function mount({balanced=false,cinematic=true,state=fixture()}={}){
   };
 }
 
-test('cierre real adapta 60 a 30 y 75% de resolución, después solicita ligero tras 90 muestras equilibradas',()=>{
+test('cierre real adapta tras12 costes completados y solicita ligero tras24 muestras equilibradas',()=>{
   const high=mount();high.create();
   try{
     assert.equal(high.schedulerOptions[0].maxFps,60);
-    high.render(44,25);assert.equal(high.state.balancedChanges.length,0);assert.equal(high.state.limitedCalls,0);
+    high.render(11,25);assert.equal(high.state.balancedChanges.length,0);assert.equal(high.state.limitedCalls,0);
     high.render(1,25);assert.deepEqual(high.state.balancedChanges,[true]);assert.equal(high.state.limitedCalls,0,'The first tier must not skip directly to light.');
     const balanced=mount({balanced:true,state:high.state});balanced.create();
     assert.equal(high.state.renderers[0].disposed,1,'Recreation releases the previous renderer.');
     assert.equal(balanced.schedulerOptions[0].maxFps,30);assert.equal(balanced.context.renderScale,high.context.renderScale*.75);
     assert.equal(high.state.refs.samples.current.length,0,'The balanced tier gets its own sample window.');
-    balanced.render(89,45);assert.equal(high.state.limitedCalls,0);
+    balanced.render(23,45);assert.equal(high.state.limitedCalls,0);
     balanced.render(1,45);assert.equal(high.state.limitedCalls,1);assert.equal(high.state.refs.limited.current,true);
     balanced.render(5,45);assert.equal(high.state.limitedCalls,1,'The light callback is emitted only once.');
   }finally{high.stop();}
   assert.equal(high.state.frames.size,0);assert.equal(high.state.timers.size,0);
 });
 
+test('el coste inclusivo observa la espera nativa aunque encolar el frame solo cueste1ms',()=>{
+  const view=mount();view.state.waitCost=24;view.create();
+  try{
+    view.render(12,1);assert.deepEqual(view.state.balancedChanges,[true]);
+    assert.deepEqual([...view.state.refs.samples.current],Array(12).fill(25));
+    assert.ok(view.state.events.indexOf('native completion wait')<view.state.events.indexOf('ready true'));
+  }finally{view.stop();}
+});
+
 test('umbrales reales son estrictos: 20ms conserva calidad y 40ms conserva modo equilibrado',()=>{
   const high=mount(),balanced=mount({balanced:true});high.create();balanced.create();
   try{
-    high.render(45,20);assert.equal(high.state.balancedChanges.length,0);
-    balanced.render(90,40);assert.equal(balanced.state.limitedCalls,0);
+    high.render(12,20);assert.equal(high.state.balancedChanges.length,0);
+    balanced.render(24,40);assert.equal(balanced.state.limitedCalls,0);
   }finally{high.stop();balanced.stop();}
   const aboveHigh=mount(),aboveBalanced=mount({balanced:true});aboveHigh.create();aboveBalanced.create();
   try{
-    aboveHigh.render(45,20.01);assert.deepEqual(aboveHigh.state.balancedChanges,[true]);
-    aboveBalanced.render(90,40.01);assert.equal(aboveBalanced.state.limitedCalls,1);
+    aboveHigh.render(12,20.01);assert.deepEqual(aboveHigh.state.balancedChanges,[true]);
+    aboveBalanced.render(24,40.01);assert.equal(aboveBalanced.state.limitedCalls,1);
   }finally{aboveHigh.stop();aboveBalanced.stop();}
 });
 
-test('picos aislados no degradan y el historial de costes permanece acotado a 120 muestras',()=>{
+test('picos aislados no degradan y el historial de costes permanece acotado a24 muestras',()=>{
   for(const balanced of [false,true]){
     const view=mount({balanced});view.create();
     try{
       for(let i=0;i<150;i++)view.render(1,i%30===0?160:5);
       assert.equal(view.state.balancedChanges.length,0);assert.equal(view.state.limitedCalls,0);
-      assert.equal(view.state.refs.samples.current.length,120);assert.deepEqual(view.state.readyChanges,[true]);
+      assert.equal(view.state.refs.samples.current.length,24);assert.deepEqual(view.state.readyChanges,[true]);
     }finally{view.stop();}
   }
+});
+
+test('software nativo se remonta en equilibrado a640 antes de crear shaders o dibujar',()=>{
+  const gl={flushEXP(){},RENDERER:1,getParameter:()=>'Android Emulator OpenGL ES Translator (Google SwiftShader)'};
+  const initial=mount({gl});initial.create();
+  try{
+    assert.deepEqual(initial.state.softwareChanges,[true]);assert.deepEqual(initial.state.balancedChanges,[true]);
+    assert.equal(initial.state.renderers.length,0);assert.equal(initial.state.frames.size,0);assert.equal(initial.state.timers.size,0);
+    const software=mount({balanced:true,software:true,state:initial.state,gl});software.create();
+    assert.equal(software.schedulerOptions[0].maxFps,30);assert.equal(software.context.renderScale,initial.context.renderScale*.625);
+    assert.ok(640*3*software.context.renderScale<=640);software.frame();assert.deepEqual(initial.state.readyChanges,[true]);software.stop();
+  }finally{initial.stop();}
 });
 
 test('ready llega después del frame y el cambio de metal espera el frame con sus uniforms',()=>{

@@ -12,7 +12,7 @@
     "metal": "XAU"
   },
   "sourceHashesLF": {
-    "lib/scene-renderer.ts": "4a6f986cff3c4018572a48bc98e86714cb0737043fb28a2dcd8104153c18a549",
+    "lib/scene-renderer.ts": "69a633010d62bd6942bba53c09fff421e867587ba02a031349c584d492c09250",
     "lib/geological-scene.ts": "dad385018f3da9694a90080892618f08353303f65f0407ed36224899f79c67da",
     "lib/gold-bar-3d.ts": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c",
     "lib/immersive-story.ts": "91468daf97f3b9fa70a57e12ba8949ea09cc06996e0ea4f244f44f5b55f81c37",

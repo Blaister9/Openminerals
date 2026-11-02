@@ -145,3 +145,43 @@ test('visor de metal fuera del relato conserva la malla de 400 triángulos y no 
     assert.equal(mock.draws.reduce((sum,draw)=>sum+draw.count/3,0),402*4);
   }finally{renderer.dispose();mock.assertReleased();}
 });
+
+test('native draw waits for finish and its submitted frame before returning, without accumulating batches',()=>{
+  const mock=mockGL(),events=[];let batch=[],backlog=[],clock=0,gpuPending=0,completedDraws=0;
+  const draw=mock.gl.drawArrays,end=mock.gl.endFrameEXP;
+  mock.gl.drawArrays=(...args)=>{draw(...args);batch.push(()=>{clock+=1;gpuPending++;completedDraws++;});};
+  mock.gl.finish=()=>{events.push('finish');batch.push(()=>{clock+=gpuPending*8;gpuPending=0;});};
+  mock.gl.endFrameEXP=()=>{events.push('endFrameEXP');backlog.push(batch);batch=[];end();};
+  mock.gl.flushEXP=()=>{
+    events.push('flushEXP');backlog.push(batch);batch=[];
+    for(const work of backlog)for(const operation of work)operation();backlog=[];clock+=2;
+  };
+  mock.gl.flush=()=>assert.fail('The native completion path must use the blocking Expo barrier.');
+  const renderer=createStoryRenderer(mock.gl,true);
+  try{
+    for(const progress of [0,.12,.35,.5,1,.35,.12,0]){
+      const start=clock,offset=events.length;renderer.draw(progress,0);
+      assert.deepEqual(events.slice(offset),['finish','endFrameEXP','flushEXP']);
+      assert.ok(clock>start,'Native completion work must occur before draw returns.');
+      assert.equal(gpuPending,0);assert.equal(backlog.length,0);assert.equal(batch.length,0);
+      assert.equal(completedDraws,mock.draws.length,'Every submitted draw completes before the next frame.');
+    }
+    const before=events.length;renderer.dispose();renderer.draw(.5,0);assert.equal(events.length,before);
+  }finally{renderer.dispose();mock.assertReleased();}
+});
+
+test('browser path retains flush/endFrame behavior and never invokes finish',()=>{
+  const mock=mockGL(),events=[],end=mock.gl.endFrameEXP;
+  mock.gl.finish=()=>assert.fail('Offline/browser rendering must not add a native completion wait.');
+  mock.gl.flush=()=>events.push('flush');mock.gl.endFrameEXP=()=>{events.push('endFrameEXP');end();};
+  const renderer=createStoryRenderer(mock.gl,true);
+  try{renderer.draw(0,0);assert.deepEqual(events,['flush','endFrameEXP']);}
+  finally{renderer.dispose();mock.assertReleased();}
+});
+
+test('a failed native completion barrier propagates so the owning component can select its fallback',()=>{
+  const mock=mockGL();mock.gl.finish=()=>{};mock.gl.flushEXP=()=>{throw Error('native barrier failed');};
+  const renderer=createStoryRenderer(mock.gl,true);
+  try{assert.throws(()=>renderer.draw(0,0),/native barrier failed/);}
+  finally{renderer.dispose();mock.assertReleased();}
+});
