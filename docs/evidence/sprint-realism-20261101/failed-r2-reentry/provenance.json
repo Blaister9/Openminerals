@@ -1,0 +1,191 @@
+{
+  "format": "openminerals-public-failure-archive-v1",
+  "demoOnly": true,
+  "archivedAtUtc": "2026-11-02T03:28:55.087Z",
+  "source": {
+    "runId": 41380976770,
+    "runUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41380976770",
+    "event": "pull_request",
+    "branchHead": "ff85b6d083c7bf91cd5b52640333e9f3b1e2feeb",
+    "verificationCheckoutCommit": "b55196c0030027a945780f576e82b0b3eb8f6db8",
+    "checkoutScope": "GITHUB_SHA of pull-request merge checkout; distinct from branch head and APK build source.",
+    "createdAtUtc": "2026-11-02T03:03:39Z",
+    "completedAtUtc": "2026-11-02T03:12:24Z",
+    "artifactId": 13113563102,
+    "artifactName": "android-mine-preview-41380976770",
+    "artifactUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41380976770/artifacts/13113563102",
+    "artifactBytes": 1810491,
+    "artifactDigestReportedByGitHub": "sha256:428f9cc204bad7bba432c22159b4f5272ceb01f9bb91305b95026a8d06ff89fe",
+    "artifactArchiveDigestIndependentlyVerified": false,
+    "artifactExpiryUtc": "2026-11-09T03:12:19Z"
+  },
+  "app": {
+    "revision": "r2",
+    "sourceCommit": "618655495ac2365ce09c665ae03f9d8e7d361228",
+    "version": "0.4.0",
+    "versionCode": 2,
+    "package": "com.openminerals.demo.minepreview",
+    "runtime": "0.4.0",
+    "channel": "mine-realism",
+    "apkSha256": "b0de666a762697992c2a0174e473c1ff53c15ced2350f3dda9f9f24670a88a6a",
+    "sourceBinding": "Frozen EAS build record and exact APK digest; workflow checkout is not the APK source."
+  },
+  "result": {
+    "conclusion": "failure",
+    "validationScope": "regression",
+    "passedNativeStages": 5,
+    "failedStage": "preview-live-gl-home-resume",
+    "failedFlow": "story-resume-position",
+    "failedCommandIndex": 14,
+    "failedSelector": "immersive-gl-ready",
+    "failedBeforeHome": true,
+    "strictInitialGlProved": true,
+    "reducedMotionAndExitRoutesPassed": true,
+    "observedLightWithoutDeclaredReason": true,
+    "automaticLightObserved": false,
+    "internalRendererFailurePathSuspected": true,
+    "exactRendererFailureCauseProved": false,
+    "commerceReached": false,
+    "authenticationReached": false,
+    "benchmarksIncluded": false,
+    "physicalDevice": false,
+    "phonePerformanceAccepted": false
+  },
+  "archivePractice": {
+    "explicitFileAllowlist": true,
+    "sourceBytesComparedAfterCopy": true,
+    "differingExistingEvidenceNeverOverwritten": true,
+    "reviewAuthoredLocallyFromPublicArtifact": true,
+    "rawPrivateDiagnosticsCopied": false,
+    "rawUiXmlCopied": false,
+    "rawLogsCopied": false,
+    "credentialsEnteredInSourceRun": false,
+    "imagesPreviouslyInspected": true,
+    "sourceAndWorkflowUntouched": true,
+    "comparisonRun41377075737RemainsFailedAndSeparate": true,
+    "initialGlScreenshotUnavailable": "Strict initial GL proof is the public JSON marker, not a new PNG.",
+    "copiedOriginalArtifactFiles": 12,
+    "locallyAuthoredReviewFiles": 1
+  },
+  "files": [
+    {
+      "file": "review.json",
+      "sourceFile": "artifacts/mine-preview-native-41380976770/review.json",
+      "bytes": 4567,
+      "sha256": "7342536ce4cd68d02d74162ac78912414c3f98770d34b3e183061ed6ee3f44cf",
+      "originalBytesPreserved": true,
+      "publicArtifactSource": false,
+      "sourceKind": "locally authored review of downloaded public artifact"
+    },
+    {
+      "file": "summary-run.json",
+      "sourceFile": "artifacts/mine-preview-native-41380976770/summary-run.json",
+      "bytes": 1369,
+      "sha256": "9753dcd10b5483bb19d7f70c958ee3eff48842a1329cf3d8e41912c1771c41fb",
+      "originalBytesPreserved": true,
+      "publicArtifactSource": true,
+      "sourceKind": "downloaded public artifact original"
+    },
+    {
+      "file": "report-run.xml",
+      "sourceFile": "artifacts/mine-preview-native-41380976770/report-run.xml",
+      "bytes": 905,
+      "sha256": "2adf3e394cd3d338357345d4374e0d4bec5000a6237e3ee5bb0f607be5fd8e91",
+      "originalBytesPreserved": true,
+      "publicArtifactSource": true,
+      "sourceKind": "downloaded public artifact original"
+    },
+    {
+      "file": "progress.json",
+      "sourceFile": "artifacts/mine-preview-native-41380976770/progress.json",
+      "bytes": 1205,
+      "sha256": "43d6af787cd3f663084055317e2405551798ce2199807382ed60f6e9a1e2e302",
+      "originalBytesPreserved": true,
+      "publicArtifactSource": true,
+      "sourceKind": "downloaded public artifact original"
+    },
+    {
+      "file": "after-anonymous-flow-failure.json",
+      "sourceFile": "artifacts/mine-preview-native-41380976770/after-anonymous-flow-failure.json",
+      "bytes": 2763,
+      "sha256": "27c7474fee1654b7a2d68f2bde4d31435fa8e7265c38adfb0a929c5d74f646a4",
+      "originalBytesPreserved": true,
+      "publicArtifactSource": true,
+      "sourceKind": "downloaded public artifact original"
+    },
+    {
+      "file": "anonymous-scene-state.json",
+      "sourceFile": "artifacts/mine-preview-native-41380976770/anonymous-scene-state.json",
+      "bytes": 437,
+      "sha256": "cdd41d55f5bdb5be5b5909c3024e53ebada55a13b475933305b7188a36713f6a",
+      "originalBytesPreserved": true,
+      "publicArtifactSource": true,
+      "sourceKind": "downloaded public artifact original"
+    },
+    {
+      "file": "anonymous-failure-flags.json",
+      "sourceFile": "artifacts/mine-preview-native-41380976770/anonymous-failure-flags.json",
+      "bytes": 234,
+      "sha256": "faba9237bcab77d938f86d47728de11393a7bd96a8d9d88937d752658aed781e",
+      "originalBytesPreserved": true,
+      "publicArtifactSource": true,
+      "sourceKind": "downloaded public artifact original"
+    },
+    {
+      "file": "regression-first-gl.json",
+      "sourceFile": "artifacts/mine-preview-native-41380976770/regression-first-gl.json",
+      "bytes": 432,
+      "sha256": "bccf6ff6deff370347d6ef1e080a66657911e1d5bc2cfa816c67f61f80475137",
+      "originalBytesPreserved": true,
+      "publicArtifactSource": true,
+      "sourceKind": "downloaded public artifact original"
+    },
+    {
+      "file": "after-screenshots.json",
+      "sourceFile": "artifacts/mine-preview-native-41380976770/after-screenshots.json",
+      "bytes": 431,
+      "sha256": "2911d39f5c12ad235dfece85951805d18026d18a582aaa07242f304905613769",
+      "originalBytesPreserved": true,
+      "publicArtifactSource": true,
+      "sourceKind": "downloaded public artifact original"
+    },
+    {
+      "file": "apk-verification.json",
+      "sourceFile": "artifacts/mine-preview-native-41380976770/apk-verification.json",
+      "bytes": 1205,
+      "sha256": "821b04af47668bf5b38860f74df2f7a4a80b74f6cc9f6d17fdf0c7980fccedb8",
+      "originalBytesPreserved": true,
+      "publicArtifactSource": true,
+      "sourceKind": "downloaded public artifact original"
+    },
+    {
+      "file": "host-resources.json",
+      "sourceFile": "artifacts/mine-preview-native-41380976770/host-resources.json",
+      "bytes": 96,
+      "sha256": "aec645a3e637184082e111daffd80de460f44fb7c531eee45961609bb9c0cc51",
+      "originalBytesPreserved": true,
+      "publicArtifactSource": true,
+      "sourceKind": "downloaded public artifact original"
+    },
+    {
+      "file": "after-safe-reduced-motion.png",
+      "sourceFile": "artifacts/mine-preview-native-41380976770/after-safe-reduced-motion.png",
+      "bytes": 844230,
+      "sha256": "b7bd88108038c739a4cef699d5ebe940e532b3ebf2a2ce0e834156bfdacb1e5d",
+      "originalBytesPreserved": true,
+      "publicArtifactSource": true,
+      "visuallyInspected": true,
+      "sourceKind": "downloaded public artifact original"
+    },
+    {
+      "file": "anonymous-failure.png",
+      "sourceFile": "artifacts/mine-preview-native-41380976770/anonymous-failure.png",
+      "bytes": 960805,
+      "sha256": "8a69aa3c19c15b52493e6b68864f0003966e1723830760525936fa9b0b76a554",
+      "originalBytesPreserved": true,
+      "publicArtifactSource": true,
+      "visuallyInspected": true,
+      "sourceKind": "downloaded public artifact original"
+    }
+  ]
+}

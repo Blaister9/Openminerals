@@ -5,7 +5,9 @@ import {createRequire} from 'node:module';
 import {mkdtemp,mkdir,writeFile,readdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve,sep} from 'node:path';
-import {PRESENTED,PREVIEW,previewInputs,previewFlow,gestureTrace,executeTrace,metadataValue,verifyArtifact,installedIdentity,assertStablePreserved,legacyCommerceFlow,publicFailureReason,anonymousSceneFlags,authorizedAuthFlow,authorizedPublicOperator,publicOperatorPreflight,observeColdLaunch,videoCoverage,publishAnonymousScreenshots,adaptiveCandidateStory,nativeValidationScope,anonymousSceneState,adaptiveCandidateResume,nativeGlDiagnostics} from '../e2e/mine-preview.mjs';
+import {randomUUID} from 'node:crypto';
+import {seedState,applyCommand,availableHoldingMg} from '../../api/src/domain.js';
+import {PRESENTED,PREVIEW,previewInputs,previewFlow,gestureTrace,executeTrace,metadataValue,verifyArtifact,installedIdentity,assertStablePreserved,legacyCommerceFlow,publicFailureReason,anonymousSceneFlags,authorizedAuthFlow,authorizedPublicOperator,publicOperatorPreflight,observeColdLaunch,videoCoverage,publishAnonymousScreenshots,adaptiveCandidateStory,nativeValidationScope,effectiveValidationScope,anonymousSceneState,adaptiveCandidateResume,nativeGlDiagnostics,legacyReservationFlow,legacyHistoryFlow} from '../e2e/mine-preview.mjs';
 import {API,PACKAGE} from '../e2e/ci-safety.mjs';
 import {embeddedFlow} from '../e2e/release-contract.mjs';
 const yaml=createRequire(import.meta.url)('yaml');
@@ -98,6 +100,24 @@ test('preview native legacy regression uses fresh demo balances and never enters
   assert.doesNotThrow(()=>previewFlow(source,PREVIEW.package));
 });
 
+test('legacy reservation protocol matches domain balances releases and immutable receipts without shared inventory',()=>{
+  let state=seedState();const run=body=>{const command={...body,requestId:randomUUID()},result=applyCommand(state,command);state=result.state;return {command,receipt:result.receipt};};
+  run({action:'convert',from:'USD',to:'USDT',amount:'200'});const buy=run({action:'buy',metal:'XAU',grams:'2'});run({action:'sell',metal:'XAU',grams:'0.5'});
+  const offer=run({action:'offer',metal:'XAU',grams:'0.5'}),delivery=run({action:'delivery',metal:'XAU',grams:'0.5'});assert.equal(availableHoldingMg(state,'XAU'),500);assert.equal(state.walletMinor.USDT,22873);
+  const held=JSON.stringify(state);assert.throws(()=>applyCommand(state,{action:'delivery',metal:'XAU',grams:'1',requestId:randomUUID()}));assert.equal(JSON.stringify(state),held);
+  run({action:'cancel_offer',offerId:offer.receipt.offer.id});run({action:'cancel_delivery',deliveryId:delivery.receipt.delivery.id});assert.equal(availableHoldingMg(state,'XAU'),1500);assert.equal(state.holdingsMg.XAU,1500);assert.equal(state.walletMinor.USDT,22873);assert.equal(state.movements.length,7);assert.equal(Object.keys(state.receipts).length,7);
+  assert.equal(state.receipts[buy.command.requestId].balancesAfter.walletMinor.USDT,15710);const before=JSON.stringify(state),replay=applyCommand(state,buy.command);assert.equal(replay.receipt.replayed,true);assert.equal(JSON.stringify(replay.state),before);
+});
+
+test('native legacy reservation and historical-read flows preserve the private boundary and distinguish peer settlement',()=>{
+  const reservations=legacyReservationFlow(),commands=yaml.parseAllDocuments(reservations)[1].toJSON(),history=legacyHistoryFlow();
+  assert.equal(commands.filter(command=>command.tapOn==='^Confirmar demo$').length,4);assert.ok(commands.some(command=>command.assertVisible?.enabled===false));
+  for(const selector of ['^Publicar oferta demo$','^Solicitar cotización de entrega$','^Cancelar oferta$','^Cancelar solicitud$'])assert.ok(commands.some(command=>command.tapOn===selector));
+  assert.match(history,/157,10/);assert.match(history,/228,73/);assert.match(history,/Mostrando/);assert.equal(yaml.parseAllDocuments(history)[1].toJSON().filter(command=>command.tapOn==='(?i)^Ver comprobante: Compra de oro,.*').length,2);
+  assert.doesNotMatch(reservations+history,/takeScreenshot|MAESTRO_|clearState|uninstall|Precio por gramo de oferta marketplace|mine\/stock|intake/);assert.doesNotMatch(history,/Confirmar demo|inputText/);
+  assert.doesNotThrow(()=>previewFlow(reservations,PREVIEW.package));assert.doesNotThrow(()=>previewFlow(history,PREVIEW.package));
+});
+
 test('preview public failures accept only static known reasons and redact unrecognized exception text',()=>{
   assert.equal(publicFailureReason(Error('Unexpected native update channel.')),'Unexpected native update channel.');
   for(const value of [Error('secret-token-value'),{message:'command stdout with account alias'},null])assert.equal(publicFailureReason(value),'Unclassified assertion or infrastructure failure; raw diagnostics withheld.');
@@ -161,8 +181,9 @@ test('candidate chapter adapter preserves initial GL proof and accepts only expl
   const parts=source.replaceAll('\r\n','\n').split('\n---\n'),commands=JSON.parse(parts[1]);commands.unshift({swipe:{start:'80%,80%',end:'80%,18%',duration:800}});assert.throws(()=>adaptiveCandidateStory(parts[0]+'\n---\n'+JSON.stringify(commands)));
 });
 
-test('native validation scope defaults to comparison and permits only the committed regression case',()=>{
+test('native validation scope permits only closed comparison regression and independent commerce cases',()=>{
   assert.equal(nativeValidationScope(), 'comparison');assert.equal(nativeValidationScope('comparison'),'comparison');assert.equal(nativeValidationScope('regression'),'regression');
+  assert.equal(nativeValidationScope('commerce'),'commerce');assert.equal(effectiveValidationScope('comparison','commerce'),'commerce');assert.equal(effectiveValidationScope('regression',''),'regression');assert.throws(()=>effectiveValidationScope('comparison','commerce; unsafe'));
   for(const value of [null,'','all','../regression',0,{}])assert.throws(()=>nativeValidationScope(value));
 });
 
@@ -241,15 +262,18 @@ test('preview workflow limits automatic runs to the trusted sprint PR and isolat
   assert.deepEqual(Object.keys(workflow.on),['pull_request','workflow_dispatch']);assert.deepEqual(workflow.on.pull_request.branches,['main']);assert.deepEqual(Object.keys(workflow.on.workflow_dispatch.inputs),['apk_url','apk_sha256','apk_certificate_sha256']);
   assert.deepEqual(workflow.permissions,{contents:'read'});assert.equal(workflow.concurrency['cancel-in-progress'],false);
   const job=workflow.jobs['before-after'],runner=job.steps.find(step=>step.uses?.startsWith('ReactiveCircus/'));
+  assert.deepEqual(job.strategy.matrix.validation_scope,['comparison','commerce']);assert.equal(job.strategy['fail-fast'],false);assert.equal(job.strategy['max-parallel'],2);assert.equal(job.env.MINE_PREVIEW_QA_SCOPE,'${{ matrix.validation_scope }}');
   const mediaIndex=job.steps.findIndex(step=>step.run?.includes('apt-get install -y --no-install-recommends ffmpeg'));
   const verificationIndex=job.steps.findIndex(step=>step.run==='node mobile/e2e/mine-preview.mjs download');
   assert.ok(mediaIndex>=0&&mediaIndex<verificationIndex,'ffprobe/ffmpeg must be installed before host media verification.');
   assert.match(job.steps[mediaIndex].run,/command -v ffprobe/);assert.match(job.steps[mediaIndex].run,/command -v ffmpeg/);
+  assert.equal(job.steps[mediaIndex].if,"matrix.validation_scope != 'commerce'");
   assert.match(job.if,/head\.repo\.full_name == github\.repository/);assert.match(job.if,/head\.ref == 'codex\/android-mine-realism-20261101'/);assert.doesNotMatch(Object.keys(workflow.on).join(','),/pull_request_target/);
   assert.equal(job['runs-on'],'ubuntu-24.04');assert.equal(runner.with['api-level'],29);assert.equal(runner.with.arch,'x86_64');assert.equal(runner.with['disable-linux-hw-accel'],false);assert.match(runner.with['emulator-options'],/-accel on/);
   assert.equal(job.env.APK_INPUT_CERT_SHA256,'${{ inputs.apk_certificate_sha256 }}');
   for(const step of job.steps.filter(step=>step.uses))assert.match(step.uses,/@[a-f0-9]{40}$/);
   const upload=job.steps.find(step=>step.uses?.startsWith('actions/upload-artifact'));assert.equal(upload.with.path,'${{ runner.temp }}/openminerals-mine-preview/public/');
+  assert.equal(upload.with.name,'android-mine-preview-${{ github.run_id }}-${{ matrix.validation_scope }}');
   const text=await read('../../.github/workflows/android-mine-preview.yml');assert.doesNotMatch(text,/secrets\.|DEMO_ADMIN_TOKEN|DATABASE_URL|eas update|release-android\.mjs|ci-android\.mjs/);
   const script=await read('../e2e/mine-preview.mjs');assert.match(script,/emulatorGuard\(process\.env/);assert.doesNotMatch(script,/adb\('uninstall|pm','clear|clearState:\s*true|MAESTRO_LOGIN_PASSWORD/);
   const commerce=script.indexOf("await step('preview-new-legacy-commerce'");assert.ok(commerce>script.indexOf("await step('preview-reduced-motion-and-exits'"));

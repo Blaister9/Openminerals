@@ -1,0 +1,17 @@
+{
+  "demoOnly": true,
+  "strictGlReadinessRequired": true,
+  "automaticLightObserved": false,
+  "qualityTierObserved": "balanced",
+  "knownIds": [
+    "immersive-gl-ready",
+    "home-cinematic-scroll"
+  ],
+  "readiness": "gl-ready",
+  "mode": "gl",
+  "manualLightDescriptionObserved": false,
+  "reducedMotionDescriptionObserved": false,
+  "genericSimplifiedTextObserved": false,
+  "xmlTruncated": false,
+  "rawUiPublished": false
+}

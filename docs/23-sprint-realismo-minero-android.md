@@ -1,6 +1,6 @@
 # Realismo minero Android · sprint del 1 de noviembre de 2026
 
-**En desarrollo. Todo es DEMO.** La candidata de este sprint se instala como aplicación Android independiente para conservar la entrega comercial. No hay aceptación física ni rendimiento a 60 FPS acreditados. El informe se ampliará con la fuente final, regresión, métricas y evidencia comparativa nueva.
+**En desarrollo. Todo es DEMO.** La candidata de este sprint se instala como aplicación Android independiente para conservar la entrega comercial. R2 tiene evidencia comparativa, pero falla al volver al 3D; se prepara r3/código 3, fuente `0d3fa50791a6e86d8944c2d07026fcc5bc5c6999`. No hay aceptación física ni rendimiento a 60 FPS acreditados.
 
 ## Entrega conservada
 
@@ -36,6 +36,10 @@ El scheduler dibuja por demanda. En GPU real/desconocida comienza con presupuest
 
 ## Validación y pendientes
 
+R3 mantiene la superficie GL nativa con opacidad 1 durante su creación y la cubre con un fallback opaco hasta completar el primer frame. Añade propiedad de recursos por sesión, un reintento automático de timeout y recuperación manual. Los fallos `context-timeout`, `create`, `draw`, `boundary` y `unavailable` se distinguen del modo ligero por rendimiento; los diagnósticos publican únicamente códigos estáticos. Aprobaron **338/338 pruebas móviles locales**, sin omisiones y con shaders de software reales, además de TypeScript. [Registro de validación r3](evidence/sprint-realism-20261101/visual-validation.json).
+
+La creación diferida de la superficie durante el dibujo está documentada en [TextureView de AOSP](https://android.googlesource.com/platform/frameworks/base.git/+/84ddbe542bed39183d84de57bca93d99d7330bc5/core/java/android/view/TextureView.java). Que opacidad cero haya causado el fallo r2 es **una hipótesis**, pendiente del contraste nativo. La barrera síncrona de ExpoGL no tiene timeout nativo; un watchdog JavaScript no interrumpe una llamada nativa bloqueada. No se atribuye el fallo observado a esa barrera. [Revisión de las fuentes nativas instaladas](evidence/sprint-realism-20261101/native-completion-review.json).
+
 Las pruebas nuevas de configuración ejecutan el resolvedor real para comprobar identidad local/build equivalente, canal/runtime distintos, preservación de `app.json`, rechazo de perfiles antiguos/opt-in ausente/iOS y URL API HTTPS sin secretos. El 1/11 aprobaron **15/15 pruebas dirigidas**: cuatro nuevas de preview y once existentes de entrega, mediante `node --experimental-strip-types --test test/mine-preview-config.test.mjs test/android-release.test.mjs` desde `mobile`. `npx expo config --type public --json` resolvió la identidad aislada y `git diff --check` aprobó. Estas pruebas no ejecutan Android ni acreditan una compilación nueva.
 
 La validación inicial sobre `ed87d2e` aprobó **91 ejecuciones API en memoria y 80 sobre PostgreSQL 17.4 local desechable**, smoke local y **252 pruebas móviles**, con dos GL opcionales omitidas. Son **170 casos API distintos**: el runner PostgreSQL repite un caso adversarial de recuperación de memoria. TypeScript, compatibilidad Expo, parche de toolchain y Doctor 21/21 aprobaron. [Resultados iniciales](evidence/sprint-realism-20261101/initial-validation.json). No se reinició ni modificó Railway/PostgreSQL compartido.
@@ -55,7 +59,9 @@ Estas filas pertenecen al emulador API29/x86_64/SwiftShader del run r2; las siet
 
 ## Comparación Android r2 y límites observados
 
-El [run41377075737](https://github.com/Blaister9/Openminerals/actions/runs/41377075737) aprobó **13 fases nativas**: identidad/coexistencia de APK, siete capítulos de ambas versiones, las tres mediciones de cada APK y reanudación de la estable. **El workflow completo falló después** al esperar GL listo en una preparación redundante antes de movimiento reducido. No hay evidencia para atribuir ese fallo únicamente a auto-ligero, renderer, compositor o proceso. [Revisión y hashes](evidence/sprint-realism-20261101/android-r2-comparison/provenance.json). La regresión funcional restante se ejecutará por separado sobre el mismo APK, conservando este resultado.
+El [run41377075737](https://github.com/Blaister9/Openminerals/actions/runs/41377075737) aprobó **13 fases nativas**: identidad/coexistencia de APK, siete capítulos de ambas versiones, las tres mediciones de cada APK y reanudación de la estable. **El workflow completo falló después** al esperar GL listo en una preparación redundante antes de movimiento reducido. No hay evidencia para atribuir ese fallo únicamente a auto-ligero, renderer, compositor o proceso. [Revisión y hashes](evidence/sprint-realism-20261101/android-r2-comparison/provenance.json).
+
+La [regresión dirigida r2](https://github.com/Blaister9/Openminerals/actions/runs/41380976770) aprobó **cinco fases**, incluidas GL inicial, movimiento reducido y salidas comerciales. Falló preparando el capítulo 4 antes de enviar HOME: la vista pasó a ligero sin motivo automático, manual ni reducido. No alcanzó comercio, autenticación ni persistencia de la candidata. Se conserva el [fallo de reentrada y sus originales](evidence/sprint-realism-20261101/failed-r2-reentry/provenance.json); r3 debe volver a probar el recorrido completo, sin aceptar este estado como degradación por rendimiento.
 
 [Vídeo Android anterior](evidence/sprint-realism-20261101/android-r2-comparison/before-anonymous-scroll.mp4) · [Vídeo Android r2 adaptativo](evidence/sprint-realism-20261101/android-r2-comparison/after-anonymous-scroll.mp4). Ambos muestran avance, retroceso y final Portafolio: 35,51 s/96,27% de cobertura PTS en el anterior y 30,87 s/89,85% en r2. Se revisaron la línea temporal, las muestras decodificadas finales y las capturas de extremo. El vídeo r2 cambia pronto a **fallback 2D automático**; no se presenta como un vídeo 3D completo ni como prueba de fluidez física.
 

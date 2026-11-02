@@ -30,10 +30,16 @@ jobs:
       github.event.pull_request.head.ref == 'codex/android-mine-realism-20261101'))
     runs-on: ubuntu-24.04
     timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        validation_scope: [comparison, commerce]
     env:
       APK_INPUT_URL: ${{ inputs.apk_url }}
       APK_INPUT_SHA256: ${{ inputs.apk_sha256 }}
       APK_INPUT_CERT_SHA256: ${{ inputs.apk_certificate_sha256 }}
+      MINE_PREVIEW_QA_SCOPE: ${{ matrix.validation_scope }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -42,6 +48,7 @@ jobs:
         with:
           node-version: '22'
       - name: Install media inspection tools from the Ubuntu repository
+        if: matrix.validation_scope != 'commerce'
         shell: bash
         run: |
           set -euo pipefail
@@ -110,7 +117,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: android-mine-preview-${{ github.run_id }}
+          name: android-mine-preview-${{ github.run_id }}-${{ matrix.validation_scope }}
           path: ${{ runner.temp }}/openminerals-mine-preview/public/
           if-no-files-found: warn
           retention-days: 7

@@ -20,7 +20,8 @@ export const PRESENTED=Object.freeze({
   certificate:BASELINE.certificate,
 });
 export const PREVIEW=Object.freeze({package:'com.openminerals.demo.minepreview',version:'0.4.0',code:3,runtime:'0.4.0',channel:'mine-realism'});
-export function nativeValidationScope(value){requireSafe(value===undefined||['comparison','regression'].includes(value),'Expected comparison or regression validation scope.');return value??'comparison';}
+export function nativeValidationScope(value){requireSafe(value===undefined||['comparison','regression','commerce'].includes(value),'Expected comparison, regression or commerce validation scope.');return value??'comparison';}
+export function effectiveValidationScope(committed,override){return nativeValidationScope(override===undefined||override===''?committed:override);}
 export function previewInputs(env,manifest={}){
   requireSafe(manifest&&typeof manifest==='object'&&!Array.isArray(manifest),'Invalid preview build record.');
   const supplied=[env.APK_INPUT_URL,env.APK_INPUT_SHA256,env.APK_INPUT_CERT_SHA256].filter(value=>value!==undefined&&value!=='');
@@ -269,6 +270,30 @@ export function legacyCommerceFlow(){
     tap('^Metales$'),...input('Gramos para operación','0.5'),scroll('^Simular venta$'),tap('^Simular venta$'),...receipt('228,73'),
   ]);
 }
+export function legacyReservationFlow(){
+  const up=text=>({scrollUntilVisible:{element:{text},direction:'UP',centerElement:true,timeout:30000}});
+  const input=value=>[scroll('Gramos para operación'),tap('Gramos para operación'),{eraseText:null},{inputText:value},{hideKeyboard:null}];
+  const receipt=(reserved,available)=>[tap('^Confirmar demo$'),wait('^Comprobante$'),up('^SIMULACIÓN · SIN FONDOS NI METALES REALES$'),scroll('^Saldo USDT después$'),{assertVisible:'^USDT 228,73$'},scroll('^Oro total después$'),{assertVisible:'^1,500 g$'},scroll('^Oro reservado después$'),{assertVisible:'^'+reserved+' g$'},scroll('^Oro disponible después$'),{assertVisible:'^'+available+' g$'},tap('Cerrar comprobante')];
+  return document('Owned legacy reservations and releases without shared-mine writes',[
+    tap('^Metales$'),up('^COMPOSICIÓN DEL PORTAFOLIO$'),{assertVisible:'^COMPOSICIÓN DEL PORTAFOLIO$'},scroll('^1,500 g disponibles$'),{assertVisible:'^1,500 g disponibles$'},
+    scroll('^Publicar oferta$'),tap('^Publicar oferta$'),...input('0.5'),scroll('^Publicar oferta demo$'),tap('^Publicar oferta demo$'),...receipt('0,500','1,000'),
+    up('^Entrega física$'),tap('^Entrega física$'),...input('0.5'),scroll('^Solicitar cotización de entrega$'),tap('^Solicitar cotización de entrega$'),...receipt('1,000','0,500'),
+    scroll('^Pendiente de cotización · sin envío real\\.$'),{assertVisible:'^Pendiente de cotización · sin envío real\\.$'},
+    up('^Gramos para operación$'),...input('1'),scroll('^Solicitar cotización de entrega$'),{assertVisible:{text:'^Solicitar cotización de entrega$',enabled:false}},
+    scroll('^Cancelar oferta$'),tap('^Cancelar oferta$'),...receipt('0,500','1,000'),
+    scroll('^Cancelar solicitud$'),tap('^Cancelar solicitud$'),...receipt('0,000','1,500'),
+  ]);
+}
+export function legacyHistoryFlow(){
+  const buy='(?i)^Ver comprobante: Compra de oro,.*',count='^Mostrando\\s+7\\s+de\\s+7\\s+operaciones registradas\\.$';
+  const history=[tap('^Actividad$'),{scrollUntilVisible:{element:{text:'^CONTROL Y TRANSPARENCIA$'},direction:'UP',centerElement:true,timeout:30000}},scroll('^Actualizar historial$'),tap('^Actualizar historial$'),scroll(count),{assertVisible:count}];
+  const readBuy=[{scrollUntilVisible:{element:{text:buy},direction:'UP',centerElement:true,timeout:30000}},tap(buy),wait('^Comprobante$'),{assertVisible:'(?i)^Compra de oro$'},scroll('^Saldo USDT después$'),{assertVisible:'^USDT 157,10$'},tap('Cerrar comprobante')];
+  return document('Legacy portfolio and immutable receipt rereads preserve seven operations',[
+    tap('^Metales$'),{scrollUntilVisible:{element:{text:'^COMPOSICIÓN DEL PORTAFOLIO$'},direction:'UP',centerElement:true,timeout:30000}},scroll('^1,500 g disponibles$'),{assertVisible:'^1,500 g disponibles$'},
+    ...history,...readBuy,...history,...readBuy,
+    tap('^Billetera$'),{runFlow:{file:'wallet-balance-rail.yaml'}},wait('^USDT 228,73$'),...history,
+  ]);
+}
 const AUTH_PHASES=new Set(['register-buyer','buyer-persisted','buyer-logout','operator-login','operator-readonly','operator-logout']);
 export function authorizedAuthFlow(phase){
   requireSafe(AUTH_PHASES.has(phase),'Unexpected authorized preview authentication phase.');
@@ -321,6 +346,7 @@ const preservedWalletFlow=()=>document('Verify preview legacy balance after cold
 async function main(){
   let serial,progress,stage='configuration',failureReason=null,commerceStarted=false,anonymousReady=false,scope='comparison';const results=[],privateValues=new Set();
   const authChecks={buyerCreatedWithoutImport:false,buyerColdLaunchSecureStore:false,legacyRestoredAfterBuyerLogout:false,publicOperatorReadOnlyLogin:false,publicOperatorMineAndAccountWithoutBuyerWallet:false,publicOperatorLoggedOut:false};
+  const commerceChecks={conversionBuySell:false,reservationsAndOvercommitProtection:false,reservationRelease:false,portfolioAndHistoricalReceipts:false,restartPreservesLegacy:false,nativeSameRequestReplayTested:false};
   const repo=resolve(dirname(fileURLToPath(import.meta.url)),'..'),root=resolve(process.env.RUNNER_TEMP||'.','openminerals-mine-preview');
   const published=join(root,'public'),privateRoot=join(root,'private');
   const mode=process.argv[2];
@@ -494,11 +520,11 @@ async function main(){
     requireSafe(['download','run'].includes(mode),'Expected preview download or run mode.');
     let buildRecord={};
     try{buildRecord=JSON.parse(await readFile(join(repo,'../docs/evidence/sprint-realism-20261101/candidate-build.json'),'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;}
-    scope=nativeValidationScope(buildRecord.validationScope);
+    scope=effectiveValidationScope(buildRecord.validationScope,process.env.MINE_PREVIEW_QA_SCOPE);
     const {url,digest,certificate,baselineUrl}=previewInputs(process.env,buildRecord);
     await mkdir(published,{recursive:true});await mkdir(privateRoot,{recursive:true,mode:0o700});progress=createProgress(published,mode,()=>[...privateValues]);
     if(mode==='download'){
-      await step('require-host-media-inspection-tools',async()=>{
+      if(scope!=='commerce')await step('require-host-media-inspection-tools',async()=>{
         try{
           const probe=command('ffprobe',['-version'],{timeout:20000}).split(/\r?\n/)[0],encoder=command('ffmpeg',['-version'],{timeout:20000}).split(/\r?\n/)[0];
           const probeVersion=/^ffprobe version ([A-Za-z0-9.+_-]{1,60})\b/.exec(probe)?.[1],encoderVersion=/^ffmpeg version ([A-Za-z0-9.+_-]{1,60})\b/.exec(encoder)?.[1];
@@ -542,14 +568,19 @@ async function main(){
       await step('preview-light-unrecorded-fixed-trace',()=>measure('after',trace,{record:false,light:true}));
       await step('preview-recorded-fixed-trace',()=>measure('after',trace,{record:true}));
       await step('preview-unrecorded-fixed-trace',()=>measure('after',trace,{record:false}));
-      }else await step('preview-regression-first-gl-proof',async()=>{await maestro('after','story-video-prepare');const scene=await sampleScene();await json('regression-first-gl.json',{demoOnly:true,strictGlReadinessRequired:true,...scene});requireSafe(scene.mode==='gl','Candidate regression requires an actual GL-ready scene.');});
+      }else if(scope==='regression')await step('preview-regression-first-gl-proof',async()=>{await maestro('after','story-video-prepare');const scene=await sampleScene();await json('regression-first-gl.json',{demoOnly:true,strictGlReadinessRequired:true,...scene});requireSafe(scene.mode==='gl','Candidate regression requires an actual GL-ready scene.');});
+      if(scope!=='commerce'){
       await step('preview-reduced-motion-and-exits',async()=>{await maestro('after','open-story-for-options',{source:document('Open narrative options without a 3D prerequisite',[tap('^Inicio$'),wait({id:'home-cinematic-scroll'})])});await maestro('after','story-exit');await publishAnonymousScreenshots({kind:'after',privateRoot,published,requireChapters:scope==='comparison',requireReduced:true});});
       await step('preview-live-gl-home-resume',()=>resume('after'));
+      }
       // No recording, copying of UI or public raw Maestro output follows this
       // boundary. Mutations use only this fresh app-owned DEMO legacy session.
+      if(scope!=='comparison'){
       commerceStarted=true;
-      await step('preview-new-legacy-commerce',()=>maestro('after','legacy-commerce',{source:legacyCommerceFlow()}));
-      await step('preview-legacy-balance-after-restart',async()=>{await coldOpen(PREVIEW);await embedded('after');await maestro('after','legacy-preserved',{source:preservedWalletFlow()});});
+      await step('preview-new-legacy-commerce',async()=>{await maestro('after','legacy-commerce',{source:legacyCommerceFlow()});commerceChecks.conversionBuySell=true;});
+      await step('preview-legacy-reservations-release-overcommit',async()=>{await maestro('after','legacy-reservations',{source:legacyReservationFlow()});commerceChecks.reservationsAndOvercommitProtection=true;commerceChecks.reservationRelease=true;});
+      await step('preview-legacy-portfolio-historical-receipts',async()=>{await maestro('after','legacy-history',{source:legacyHistoryFlow()});commerceChecks.portfolioAndHistoricalReceipts=true;});
+      await step('preview-legacy-balance-after-restart',async()=>{await coldOpen(PREVIEW);await embedded('after');await maestro('after','legacy-preserved',{source:preservedWalletFlow()});commerceChecks.restartPreservesLegacy=true;});
       const buyer={alias:'mineqa_'+randomUUID().replaceAll('-','').slice(0,20),password:randomUUID().replaceAll('-','')+randomUUID().replaceAll('-','')};mask(buyer.alias);mask(buyer.password);
       await step('preview-buyer-register-without-import',async()=>{await maestroAuth('register-buyer',buyer,{password:true});authChecks.buyerCreatedWithoutImport=true;});
       await step('preview-buyer-securestore-after-cold-launch',async()=>{await coldOpen(PREVIEW);await maestroAuth('buyer-persisted',buyer);authChecks.buyerColdLaunchSecureStore=true;});
@@ -559,6 +590,7 @@ async function main(){
       await step('preview-public-operator-readonly-login',async()=>{await maestroAuth('operator-login',operator,{password:true});authChecks.publicOperatorReadOnlyLogin=true;});
       await step('preview-public-operator-mine-account-readonly',async()=>{await maestroAuth('operator-readonly',operator);authChecks.publicOperatorMineAndAccountWithoutBuyerWallet=true;});
       await step('preview-public-operator-logout',async()=>{await maestroAuth('operator-logout',operator);authChecks.publicOperatorLoggedOut=true;});
+      }
       await step('stable-package-uid-and-version-preserved',async()=>{assertStablePreserved(stable,identity(PRESENTED));await json('stable-preservation.json',{demoOnly:true,sameUid:true,sameVersion:true,stable,preview:identity(PREVIEW),noStableUninstall:true,noStableDataClear:true,noStableCommerce:true});});
     }
   }catch(error){
@@ -577,7 +609,7 @@ async function main(){
     }
   }
   finally{
-    if(results.length){await json('summary-'+mode+'.json',{demoOnly:true,validationScope:scope,previousComparison:scope==='regression'?{url:'https://github.com/Blaister9/Openminerals/actions/runs/41377075737',status:'failed after completed comparative profiles; scoped regression does not replace that failed comparison result'}:null,benchmarksIncluded:scope==='comparison',environment:'disposable Android API29 emulator',physicalDevice:false,phonePerformanceAcceptance:false,gpuFpsMeasured:false,completed:results.filter(item=>item.ok).map(item=>item.name),failed:results.filter(item=>!item.ok).map(item=>item.name),failureReason,nativeAuthentication:authChecks,nativeAuthenticatedCommerce:'NOT RUN: authenticated trading, marketplace transfers, certificates and deliveries require isolated fixtures; read-only native account access is reported separately.',privateUiPublished:false});await writeFile(join(published,'report-'+mode+'.xml'),publicJunit(results,[...privateValues]));}
+    if(results.length){await json('summary-'+mode+'.json',{demoOnly:true,validationScope:scope,previousComparison:scope==='regression'?{url:'https://github.com/Blaister9/Openminerals/actions/runs/41377075737',status:'failed after completed comparative profiles; scoped regression does not replace that failed comparison result'}:null,benchmarksIncluded:scope==='comparison',glJourneyAssertionsIncluded:scope!=='commerce',functionalChecksIncluded:scope!=='comparison',environment:'disposable Android API29 emulator',physicalDevice:false,phonePerformanceAcceptance:false,gpuFpsMeasured:false,completed:results.filter(item=>item.ok).map(item=>item.name),failed:results.filter(item=>!item.ok).map(item=>item.name),failureReason,nativeLegacyCommerce:commerceChecks,nativeAuthentication:authChecks,nativeAuthenticatedCommerce:'NOT RUN: authenticated trading, peer marketplace, lot custody/certificates and full delivery lifecycle require isolated funded fixtures; legacy offers/quote reservations are not peer settlement or physical custody.',privateUiPublished:false});await writeFile(join(published,'report-'+mode+'.xml'),publicJunit(results,[...privateValues]));}
   }
 }
 if(process.argv[1]&&pathToFileURL(resolve(process.argv[1])).href===import.meta.url)await main();

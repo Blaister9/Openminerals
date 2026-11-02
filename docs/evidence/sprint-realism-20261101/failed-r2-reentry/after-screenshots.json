@@ -1,0 +1,17 @@
+{
+  "demoOnly": true,
+  "kind": "after",
+  "chapterCount": 0,
+  "chaptersComplete": false,
+  "reducedMotionPresent": true,
+  "initialGlScreenshotPresent": false,
+  "complete": false,
+  "scope": "0 of seven chapter screenshots and reduced motion",
+  "files": [
+    {
+      "file": "after-safe-reduced-motion.png",
+      "sha256": "b7bd88108038c739a4cef699d5ebe940e532b3ebf2a2ce0e834156bfdacb1e5d",
+      "bytes": 844230
+    }
+  ]
+}

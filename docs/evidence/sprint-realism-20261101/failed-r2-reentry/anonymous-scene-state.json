@@ -1,0 +1,17 @@
+{
+  "demoOnly": true,
+  "stage": "preview-live-gl-home-resume",
+  "automaticLightObserved": false,
+  "qualityTierObserved": "light",
+  "knownIds": [
+    "immersive-scene-light",
+    "home-cinematic-scroll"
+  ],
+  "readiness": "light",
+  "mode": "light",
+  "manualLightDescriptionObserved": false,
+  "reducedMotionDescriptionObserved": false,
+  "genericSimplifiedTextObserved": false,
+  "xmlTruncated": false,
+  "rawUiPublished": false
+}

@@ -1,0 +1,28 @@
+{
+  "demoOnly": true,
+  "date": "2026-11-01",
+  "visualSourceCommit": "618655495ac2365ce09c665ae03f9d8e7d361228",
+  "mobile": {
+    "command": "OPENMINERALS_WEBGL_BROWSER=<Chrome> node --experimental-strip-types --test --test-concurrency=2 test/*.test.mjs",
+    "tests": 329,
+    "passed": 329,
+    "failed": 0,
+    "skipped": 0,
+    "environment": "Windows Node22.22.3; actual Chrome SwiftShader shader execution",
+    "androidPerformance": false
+  },
+  "export": {
+    "platform": "android",
+    "hermes": true,
+    "httpsApi": "https://openminerals-api-demo.up.railway.app",
+    "success": true,
+    "source": "Initial31e62ae Android Hermes export; actual R2 embedded bundle inspected independently by APK verifier."
+  },
+  "preservation": {
+    "apiTree": "12eb7c4fdf83cefc96e5df70fa5d656e67ff353a",
+    "apiAndAppBusinessDiff": "",
+    "stableReleaseModified": false
+  },
+  "physicalPhoneAcceptance": false,
+  "scope": "R2 full local suite329/329. After grouping one QA readiness regex, targeted21/21 also passed; final source CI records the pushed tree separately."
+}

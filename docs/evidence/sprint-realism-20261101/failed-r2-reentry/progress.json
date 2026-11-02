@@ -1,0 +1,44 @@
+{
+  "format": "openminerals.native-progress",
+  "version": 1,
+  "mode": "run",
+  "updatedAt": "2026-11-02T03:12:17.955Z",
+  "stage": {
+    "name": "preview-live-gl-home-resume",
+    "status": "FAILED",
+    "startedAt": "2026-11-02T03:11:08.467Z",
+    "completedAt": "2026-11-02T03:12:15.818Z"
+  },
+  "command": {
+    "program": "adb",
+    "operation": "logcat",
+    "status": "PASSED",
+    "timeoutMs": 20000,
+    "timeoutSignal": "SIGKILL",
+    "startedAt": "2026-11-02T03:12:17.887Z",
+    "exitCode": 0,
+    "signal": null,
+    "reason": "completed",
+    "completedAt": "2026-11-02T03:12:17.955Z"
+  },
+  "lastFailure": {
+    "stage": "preview-live-gl-home-resume",
+    "program": "maestro",
+    "operation": "test",
+    "status": "FAILED",
+    "timeoutMs": 420000,
+    "timeoutSignal": "SIGKILL",
+    "startedAt": "2026-11-02T03:11:08.480Z",
+    "exitCode": 1,
+    "signal": null,
+    "reason": "nonzero-exit",
+    "completedAt": "2026-11-02T03:12:15.780Z"
+  },
+  "completed": [
+    "guard-disposable-api29-emulator",
+    "install-presented-stable-separate-package",
+    "install-preview-alongside-preserved-stable",
+    "preview-regression-first-gl-proof",
+    "preview-reduced-motion-and-exits"
+  ]
+}

@@ -1,0 +1,171 @@
+{
+  "recordedDate": "2026-11-01",
+  "timezone": "America/Bogota",
+  "reviewType": "read-only installed native-source inspection",
+  "sourcePackage": {
+    "name": "expo-gl",
+    "version": "57.0.2",
+    "packageJson": "mobile/node_modules/expo-gl/package.json"
+  },
+  "reviewedApplicationSource": "618655495ac2365ce09c665ae03f9d8e7d361228",
+  "sources": [
+    {
+      "path": "mobile/node_modules/expo-gl/common/EXGLNativeContext.cpp",
+      "sha256LF": "b6279c04fca006f58f093e2b84b5a60941af486b590e1ea87fa96b6cc9bcbdf3",
+      "lineReferences": [
+        {
+          "start": 70,
+          "end": 76,
+          "subject": "Blocking operation enqueues, flushes and calls future.wait without timeout."
+        }
+      ]
+    },
+    {
+      "path": "mobile/node_modules/expo-gl/common/EXGLContextManager.cpp",
+      "sha256LF": "9928932f11d968c4d6c3f9c39d0c84574a85bfbd65dd883ee2d05af984c48341",
+      "lineReferences": [
+        {
+          "start": 22,
+          "end": 37,
+          "subject": "Unique-lock try loop allows other shared operations to proceed while destruction waits."
+        },
+        {
+          "start": 40,
+          "end": 47,
+          "subject": "ContextGet returns the native context together with its shared mutex lock."
+        },
+        {
+          "start": 67,
+          "end": 75,
+          "subject": "ContextDestroy obtains the exclusive context lock before deleting the native context."
+        }
+      ]
+    },
+    {
+      "path": "mobile/node_modules/expo-gl/common/EXWebGLMethodsMacros.h",
+      "sha256LF": "25761b86b097f9e3e44cca8af2659fc84c49b37a834ab4f84da403c8fa9e2ad0",
+      "lineReferences": [
+        {
+          "start": 30,
+          "end": 35,
+          "subject": "CTX retains the context-with-lock result for the native method scope; absent context returns undefined."
+        }
+      ]
+    },
+    {
+      "path": "mobile/node_modules/expo-gl/common/EXWebGLMethods.cpp",
+      "sha256LF": "8455568588444b678daeddc77b6171f723bb0046fb8901bd4099422dd31cfa4a",
+      "lineReferences": [
+        {
+          "start": 25,
+          "end": 26,
+          "subject": "Native isContextLost returns false unconditionally."
+        }
+      ]
+    },
+    {
+      "path": "mobile/node_modules/expo-gl/common/EXWebGLMethodsDraw.cpp",
+      "sha256LF": "b70311cc67548798f86f1cb8d83b5a61cc385ae8ba2eb1cdfc6ccff73e29f007",
+      "lineReferences": [
+        {
+          "start": 400,
+          "end": 400,
+          "subject": "finish queues native glFinish."
+        },
+        {
+          "start": 844,
+          "end": 855,
+          "subject": "endFrameEXP submits the batch; flushEXP appends a blocking operation."
+        }
+      ]
+    },
+    {
+      "path": "mobile/node_modules/expo-gl/android/src/main/java/expo/modules/gl/GLContext.java",
+      "sha256LF": "a206dd7d02efce02cbdd5d8b2f27eab77f6ddc6ac4fcd3283daffffc4be6df5e",
+      "lineReferences": [
+        {
+          "start": 115,
+          "end": 131,
+          "subject": "Android flush enqueues a GL-thread runnable which flushes the native context and may swap buffers."
+        },
+        {
+          "start": 163,
+          "end": 170,
+          "subject": "Android destroy invokes native ContextDestroy before GLThread interrupt and join."
+        },
+        {
+          "start": 353,
+          "end": 364,
+          "subject": "GL thread processes its event queue; the loop catches InterruptedException, not arbitrary runtime errors."
+        }
+      ]
+    },
+    {
+      "path": "mobile/node_modules/expo-gl/android/src/main/java/expo/modules/gl/GLView.kt",
+      "sha256LF": "aed137a4f87417dfe798844c4723c54879b2ef288ffc42497547be0bb3eba86d",
+      "lineReferences": [
+        {
+          "start": 61,
+          "end": 66,
+          "subject": "Surface destruction calls GLContext.destroy and resets the creation flag."
+        }
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "normal-destruction-coordination",
+      "finding": "An already-entered native method retains the shared context lock. Ordinary ContextDestroy must obtain the exclusive context lock before deleting the context, and Android interrupts the GL thread only after that native destruction call. Source inspection does not establish that ordinary surface destruction cancels an active flushEXP operation.",
+      "evidence": [
+        "mobile/node_modules/expo-gl/common/EXWebGLMethodsMacros.h:30-35",
+        "mobile/node_modules/expo-gl/common/EXGLContextManager.cpp:22-47",
+        "mobile/node_modules/expo-gl/common/EXGLContextManager.cpp:67-75",
+        "mobile/node_modules/expo-gl/android/src/main/java/expo/modules/gl/GLContext.java:163-170"
+      ],
+      "scope": "Source-level coordination, not a reproduction or proof that every native lifecycle path is safe."
+    },
+    {
+      "id": "unbounded-completion-wait",
+      "finding": "flushEXP reaches addBlockingToNextBatch, which calls future.wait with no timeout. If native GL/GPU processing does not reach that operation, this synchronous call can retain the JavaScript thread indefinitely. A JavaScript setTimeout watchdog, Promise.race or AppState handler cannot interrupt a synchronous native wait while that thread is blocked.",
+      "evidence": [
+        "mobile/node_modules/expo-gl/common/EXWebGLMethodsDraw.cpp:400",
+        "mobile/node_modules/expo-gl/common/EXWebGLMethodsDraw.cpp:844-855",
+        "mobile/node_modules/expo-gl/common/EXGLNativeContext.cpp:70-76"
+      ],
+      "scope": "Concrete missing timeout in installed source. A native stall in the observed R2 run has not been established."
+    },
+    {
+      "id": "context-loss-query-limit",
+      "finding": "The installed native isContextLost implementation returns false unconditionally, so it cannot establish that the native context remains valid or make the completion wait bounded.",
+      "evidence": [
+        "mobile/node_modules/expo-gl/common/EXWebGLMethods.cpp:25-26"
+      ]
+    },
+    {
+      "id": "observed-r2-cause-unproven",
+      "finding": "The R2 comparison encountered a GL-ready timeout on Home reentry after three profiles. Its failure cause remains UNPROVEN. This review does not relabel the failure as automatic lightweight selection or a demonstrated native completion deadlock.",
+      "evidence": [
+        "https://github.com/Blaister9/Openminerals/actions/runs/41377075737"
+      ],
+      "scope": "Observed failure reported by the comparison; no native thread dump or causal reproduction was produced by this review."
+    }
+  ],
+  "reviewActions": {
+    "applicationCodeChanged": false,
+    "nativePackageChanged": false,
+    "buildRequested": false,
+    "pushPerformed": false
+  },
+  "mitigationLimit": "No small JavaScript-only timeout can guarantee interruption of the installed synchronous future.wait. No architecture or dependency change was made in this review.",
+  "acceptance": {
+    "postBenchmarkHomeReentry": "unresolved",
+    "physicalPhonePerformance": "not accepted",
+    "physical60Fps": "not established",
+    "generalPerformance": "not accepted"
+  },
+  "followup": {
+    "functionalRun": "https://github.com/Blaister9/Openminerals/actions/runs/41380976770",
+    "statusAtReview": "Pending separate verification; not inspected by this review.",
+    "limit": "Even a passing fresh functional run would not resolve the earlier post-benchmark reentry timeout or establish physical-phone FPS."
+  }
+}

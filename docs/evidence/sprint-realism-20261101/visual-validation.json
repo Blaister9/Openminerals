@@ -1,15 +1,16 @@
 {
   "demoOnly": true,
   "date": "2026-11-01",
-  "visualSourceCommit": "618655495ac2365ce09c665ae03f9d8e7d361228",
+  "visualSourceCommit": "0d3fa50791a6e86d8944c2d07026fcc5bc5c6999",
   "mobile": {
     "command": "OPENMINERALS_WEBGL_BROWSER=<Chrome> node --experimental-strip-types --test --test-concurrency=2 test/*.test.mjs",
-    "tests": 329,
-    "passed": 329,
+    "tests": 338,
+    "passed": 338,
     "failed": 0,
     "skipped": 0,
     "environment": "Windows Node22.22.3; actual Chrome SwiftShader shader execution",
-    "androidPerformance": false
+    "androidPerformance": false,
+    "durationMs": 41071.5044
   },
   "export": {
     "platform": "android",
@@ -24,5 +25,20 @@
     "stableReleaseModified": false
   },
   "physicalPhoneAcceptance": false,
-  "scope": "R2 full local suite329/329. After grouping one QA readiness regex, targeted21/21 also passed; final source CI records the pushed tree separately."
+  "scope": "R3 full local suite338/338 after lifecycle/readiness and Android QA diagnostics changes. Actual native APK validation is separate; physical acceptance false.",
+  "lifecycle": {
+    "visibleNativeSurfaceBeforeReady": true,
+    "opaqueCoverUntilCompletedFrame": true,
+    "sessionOwnedCleanup": true,
+    "automaticContextTimeoutRetries": 1,
+    "manualRetry": true,
+    "alphaZeroRootCauseProven": false,
+    "nativeSynchronousWaitBounded": false
+  },
+  "qaAfterApkSource": {
+    "tests": 28,
+    "passed": 28,
+    "failed": 0,
+    "scope": "Native harness/code diagnostics, independent commerce scope and owned legacy domain fixture; does not execute Android."
+  }
 }
