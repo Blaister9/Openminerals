@@ -107,17 +107,20 @@ export function goldBarMatrices(pose:GoldBarPose,aspect:number):{model:Mat4;mvp:
 // Demand rendering: input changes coalesce into at most one queued frame.
 // No idle RAF loop, and disabled/disposed renderers cannot submit a frame.
 export function createFrameScheduler({request,cancel,draw,onError,maxFps=0,now=Date.now}:{request:(callback:()=>void)=>number;cancel:(id:number)=>void;draw:()=>void;onError:(error:unknown)=>void;maxFps?:number;now?:()=>number}){
-  let pending:number|null=null,enabled=true,dirty=false,disposed=false,lastDraw=-Infinity;
+  let pending:number|null=null,enabled=true,dirty=false,disposed=false,nextDraw=-Infinity;
   const interval=Number.isFinite(maxFps)&&maxFps>0?1000/maxFps:0;
-  // Rounded 16 ms vsync timestamps must not turn a 60 fps budget into 30.
-  // The existing 30 fps cap keeps its exact threshold; faster budgets receive
-  // only a sub-millisecond allowance, bounded relative to their own interval.
-  const tolerance=maxFps>=50?Math.min(.75,interval*.05):0;
+  // Keep fractional cadence between vsyncs: restarting the interval at each
+  // draw would reduce a 60 budget to 45 on a 90 Hz display. At 30, only absorb
+  // floating-point boundary error; faster budgets also allow rounded vsyncs.
+  const tolerance=maxFps>=50?Math.min(.75,interval*.05):.000001;
   const schedule=()=>{if(!disposed&&enabled&&dirty&&pending===null)pending=request(frame);};
   const frame=()=>{
     pending=null;if(disposed||!enabled||!dirty)return;
-    const time=now();if(time-lastDraw+tolerance<interval){schedule();return;}
-    dirty=false;lastDraw=time;
+    const time=now();if(interval>0&&time+tolerance<nextDraw){schedule();return;}
+    // Rebase after a missed full interval (including idle/background stalls).
+    // A late frame never accrues a backlog of catch-up draws.
+    nextDraw=interval>0?(time-nextDraw>=interval?time+interval:nextDraw+interval):time;
+    dirty=false;
     try{draw();}catch(error){enabled=false;onError(error);}
     schedule();
   };

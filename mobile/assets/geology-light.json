@@ -14,7 +14,7 @@
   "sourceHashesLF": {
     "lib/scene-renderer.ts": "4a6f986cff3c4018572a48bc98e86714cb0737043fb28a2dcd8104153c18a549",
     "lib/geological-scene.ts": "dad385018f3da9694a90080892618f08353303f65f0407ed36224899f79c67da",
-    "lib/gold-bar-3d.ts": "f15bd6c9ef7b54fb352d59b2c02efd3d25d99d3cdea33d570e22559fb82f02f9",
+    "lib/gold-bar-3d.ts": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c",
     "lib/immersive-story.ts": "91468daf97f3b9fa70a57e12ba8949ea09cc06996e0ea4f244f44f5b55f81c37",
     "lib/geological-specimen.ts": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778",
     "lib/metal-materials.ts": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81"
