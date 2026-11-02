@@ -1,6 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {R4,profilePair,hwuiFrameStats,parseSurfaceLatency,selectPresentationSurface,presentationStats,memoryStats,threadCpuTicks,threadCpuDelta,shaderMarkerCounts,collectShaderMarkers,anonymousProfilePng} from '../e2e/mine-profile.mjs';
+import {R4,profilePair,profileCaptureEnabled,hwuiFrameStats,parseSurfaceLatency,selectPresentationSurface,presentationStats,memoryStats,threadCpuTicks,threadCpuDelta,shaderMarkerCounts,collectShaderMarkers,anonymousProfilePng} from '../e2e/mine-profile.mjs';
+
+test('profile still capture stays off unless explicitly requested',()=>{
+  for(const value of [undefined,'','0'])assert.equal(profileCaptureEnabled(value),false);
+  assert.equal(profileCaptureEnabled('1'),true);
+  for(const value of ['true','yes',1,true])assert.throws(()=>profileCaptureEnabled(value));
+});
 
 test('profile arms fix 030 and r4 identities and reject incomplete r5 provenance',()=>{
   const [stable,r4]=profilePair();assert.equal(stable.code,6);assert.equal(r4,R4);assert.equal(r4.code,4);

@@ -1,9 +1,12 @@
 name: Android mine preview comparison
 on:
-  pull_request:
-    branches: [main]
   workflow_dispatch:
     inputs:
+      record_video:
+        description: Explicitly request anonymous video for this run
+        type: boolean
+        required: true
+        default: false
       apk_url:
         description: Public HTTPS APK URL for the separate 0.4.0 minepreview package
         type: string
@@ -22,9 +25,9 @@ jobs:
   scopes:
     if: >-
       github.event.repository.private == false &&
-      (github.event_name == 'workflow_dispatch' ||
-      (github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'codex/android-mine-realism-20261101'))
+      github.event_name == 'workflow_dispatch' && inputs.record_video == true &&
+      github.repository == 'Blaister9/Openminerals' &&
+      github.ref == 'refs/heads/codex/android-mine-realism-20261101'
     runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.scopes.outputs.matrix }}
@@ -48,9 +51,9 @@ jobs:
     needs: scopes
     if: >-
       github.event.repository.private == false &&
-      (github.event_name == 'workflow_dispatch' ||
-      (github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'codex/android-mine-realism-20261101'))
+      github.event_name == 'workflow_dispatch' && inputs.record_video == true &&
+      github.repository == 'Blaister9/Openminerals' &&
+      github.ref == 'refs/heads/codex/android-mine-realism-20261101'
     runs-on: ubuntu-24.04
     timeout-minutes: 50
     strategy:

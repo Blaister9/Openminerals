@@ -1,0 +1,131 @@
+{
+  "format": "openminerals-public-native-r5-archive-v1",
+  "demoOnly": true,
+  "archivedAtUtc": "2026-11-02T16:19:18.967272+00:00",
+  "run": {
+    "id": 41477328613,
+    "conclusion": "failure",
+    "headSha": "df8d985e9074fac603430bffd639b6437f353d33",
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41477328613",
+    "jobId": 125386426683,
+    "jobConclusion": "success",
+    "jobUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41477328613/job/125386426683",
+    "jobStartedAtUtc": "2026-11-02T16:01:39Z",
+    "jobCompletedAtUtc": "2026-11-02T16:16:16Z",
+    "artifact": {
+      "id": 13158946684,
+      "name": "android-mine-preview-41477328613-commerce",
+      "size_in_bytes": 8683,
+      "digest": "sha256:57cdc8da7f3ed18e4c6636a993149e1cebf5d2809e8a17025e788062a322feca",
+      "created_at": "2026-11-02T16:16:12Z",
+      "expires_at": "2026-11-09T16:16:11Z"
+    },
+    "artifactArchiveDigestIndependentlyVerified": false
+  },
+  "candidate": {
+    "id": "41aae522-abab-44f6-b8c4-e89b99dc1aa8",
+    "buildUrl": "https://expo.dev/accounts/chipirips-team/projects/openminerals-demo/builds/41aae522-abab-44f6-b8c4-e89b99dc1aa8",
+    "sourceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+    "version": "0.4.0",
+    "versionCode": 5,
+    "sha256": "7a3608be4a29996bb7d1713706669fd5acab12d73286f3931c1b45226145f4ec",
+    "bytes": 77360408,
+    "certificate": "86c84db35e91b187f3f818c0cc74ddb91df9a95014cba138ac7e04611957aa09",
+    "apkUrl": "https://github.com/Blaister9/Openminerals/releases/download/android-mine-preview-0.4.0-r5-20261102/Openminerals-Mina-Preview-0.4.0-r5-android.apk"
+  },
+  "harnessVerificationCommit": "8cc6a6dcd9d20d9cf0b29863db9896218b33b17c",
+  "apkSourceLinkage": "APK SHA matches the independently downloaded and inspected EAS build record; workflow head/verification checkout are not substituted for APK source.",
+  "archivePractice": {
+    "publicArtifactOnly": true,
+    "fullProgressNdjsonExcluded": true,
+    "rawPrivateUiOrLogsCopied": false,
+    "downloadedOriginalBytesPreserved": true,
+    "noVideoRepairOrRemux": true
+  },
+  "files": [
+    {
+      "file": "acceleration.txt",
+      "bytes": 112,
+      "sha256": "b52571637c73b4132bbabab0a846c86cabfba6ddf7503c317c79971fda6a18fb",
+      "source": "GitHub public artifact 13158946684/acceleration.txt",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-launch-1.json",
+      "bytes": 617,
+      "sha256": "8d5b577e5cfffba531e18128537ed111495f81cd4cf2f89240a7506bfed47315",
+      "source": "GitHub public artifact 13158946684/after-launch-1.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "apk-verification.json",
+      "bytes": 1205,
+      "sha256": "073de3deb269aba7cc7f97736542a1d614cefd0a3de0c289c7f1d5c295b95a34",
+      "source": "GitHub public artifact 13158946684/apk-verification.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "before-launch-1.json",
+      "bytes": 612,
+      "sha256": "8030a5ca03f0a81c8b5a458d96f173edb0bceaf4f75e4a46dd9bf4787dcf29be",
+      "source": "GitHub public artifact 13158946684/before-launch-1.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "host-resources.json",
+      "bytes": 96,
+      "sha256": "be482ed6fe5df0a24a226a6d13718756ac100cc60143dfb0189d5d776144ed97",
+      "source": "GitHub public artifact 13158946684/host-resources.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "maestro-version.txt",
+      "bytes": 136,
+      "sha256": "e965ba7b69fd265831428ae69482aeb948488c4933f2ef20e51dc3582d04c22b",
+      "source": "GitHub public artifact 13158946684/maestro-version.txt",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "progress.json",
+      "bytes": 1363,
+      "sha256": "e55b9f067b001ecdc98a0c68dc325e28437aa7acf5c95805e06b52426d79120a",
+      "source": "GitHub public artifact 13158946684/progress.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "report-download.xml",
+      "bytes": 225,
+      "sha256": "a6ef79aecdb0974161b71632f7e1cacaf02a81a4f745b1ea744df275881c5130",
+      "source": "GitHub public artifact 13158946684/report-download.xml",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "report-run.xml",
+      "bytes": 1890,
+      "sha256": "1f5a1a0cb1772b42b7f428dde5a62706f34f45bcda14890d645bad54965c2b55",
+      "source": "GitHub public artifact 13158946684/report-run.xml",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "stable-preservation.json",
+      "bytes": 320,
+      "sha256": "da457dfbde23ac9dbe9a7b3ce61c32d79166496040381380635d2b23c6556b6f",
+      "source": "GitHub public artifact 13158946684/stable-preservation.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "summary-download.json",
+      "bytes": 1289,
+      "sha256": "8cc952f1a501d081f055a9b8d2037f2f16104372a15f341937811a0ff589d1f4",
+      "source": "GitHub public artifact 13158946684/summary-download.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "summary-run.json",
+      "bytes": 1947,
+      "sha256": "4ad4c2cecd68d34dc44e1da0d1949798eca101e8e6bffe46170a4c7fb99f4391",
+      "source": "GitHub public artifact 13158946684/summary-run.json",
+      "originalBytesPreserved": true
+    }
+  ]
+}

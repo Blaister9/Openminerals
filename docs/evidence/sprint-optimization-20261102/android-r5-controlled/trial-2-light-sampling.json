@@ -1,0 +1,170 @@
+{
+  "samples": [
+    {
+      "atMs": 61.125505,
+      "pssKiB": 131927
+    },
+    {
+      "atMs": 1262.780334,
+      "pssKiB": 128250
+    },
+    {
+      "atMs": 2111.8088629999997,
+      "pssKiB": 127462
+    },
+    {
+      "atMs": 3190.642332,
+      "pssKiB": 126292
+    },
+    {
+      "atMs": 4257.936082,
+      "pssKiB": 126867
+    },
+    {
+      "atMs": 5212.914647,
+      "pssKiB": 126804
+    },
+    {
+      "atMs": 6221.387091,
+      "pssKiB": 126452
+    },
+    {
+      "atMs": 7198.518322,
+      "pssKiB": 126759
+    },
+    {
+      "atMs": 8167.156577000001,
+      "pssKiB": 126735
+    },
+    {
+      "atMs": 9159.116885000001,
+      "pssKiB": 126690
+    },
+    {
+      "atMs": 10163.562100000001,
+      "pssKiB": 126560
+    },
+    {
+      "atMs": 11253.359057000001,
+      "pssKiB": 126696
+    },
+    {
+      "atMs": 12164.935273000001,
+      "pssKiB": 126632
+    },
+    {
+      "atMs": 13273.697497000001,
+      "pssKiB": 125896
+    },
+    {
+      "atMs": 14057.420962,
+      "pssKiB": 125626
+    },
+    {
+      "atMs": 15070.570543000002,
+      "pssKiB": 125522
+    },
+    {
+      "atMs": 16351.565623000002,
+      "pssKiB": 125528
+    },
+    {
+      "atMs": 17278.7061,
+      "pssKiB": 126112
+    },
+    {
+      "atMs": 18131.001217,
+      "pssKiB": 126280
+    },
+    {
+      "atMs": 19193.571743,
+      "pssKiB": 126148
+    },
+    {
+      "atMs": 20192.637876,
+      "pssKiB": 126356
+    },
+    {
+      "atMs": 21221.506028,
+      "pssKiB": 126157
+    },
+    {
+      "atMs": 22271.085756,
+      "pssKiB": 126689
+    },
+    {
+      "atMs": 23202.753125,
+      "pssKiB": 126454
+    },
+    {
+      "atMs": 24295.641079,
+      "pssKiB": 126614
+    },
+    {
+      "atMs": 25081.643733,
+      "pssKiB": 126097
+    },
+    {
+      "atMs": 26262.117215000002,
+      "pssKiB": 126445
+    },
+    {
+      "atMs": 27090.689779,
+      "pssKiB": 126696
+    },
+    {
+      "atMs": 28259.719499000003,
+      "pssKiB": 127345
+    },
+    {
+      "atMs": 29074.799744,
+      "pssKiB": 128604
+    },
+    {
+      "atMs": 30090.920409000002,
+      "pssKiB": 128024
+    },
+    {
+      "atMs": 31090.580066000002,
+      "pssKiB": 127980
+    },
+    {
+      "atMs": 32090.676155,
+      "pssKiB": 128015
+    },
+    {
+      "atMs": 33090.59519,
+      "pssKiB": 127999
+    }
+  ],
+  "memory": {
+    "samples": 34,
+    "sampledPeakPssKiB": 131927,
+    "sustainedMedianPssKiB": 126614,
+    "sustainedP95PssKiB": 128604,
+    "interpretation": "Process PSS sampled roughly once per second, including dumpsys overhead. The sampled maximum is a lower bound on the true continuous peak; sustained uses the final half of valid samples."
+  },
+  "presentation": {
+    "available": true,
+    "scope": "app-window",
+    "metric": "SurfaceFlinger actualPresentTime intervals for MainActivity window (UI and TextureView composite)",
+    "frames": 667,
+    "observedFps": 23.024677411227334,
+    "p50Ms": 33.89446,
+    "p95Ms": 65.80384,
+    "slowPercent": 78.07807807807808,
+    "slowThresholdMs": 24.999999,
+    "spanMs": 28925.48669,
+    "expoGlFpsMeasured": false,
+    "gpuExecutionTimeMeasured": false,
+    "interpretation": "App-window presentation FPS includes UI and the composited TextureView. It does not isolate ExpoGL frames or GPU execution; an updating UI may present while GL is paused. Intervals include intentional on-demand idle periods.",
+    "surfaceAccessFailed": false
+  },
+  "errors": 0,
+  "targetIntervalMs": 1000,
+  "actualDurationMs": 34031.214714,
+  "surfaceSelection": "app-window",
+  "matchedSurfaceViews": 0,
+  "matchedAppWindows": 1,
+  "rawSurfaceNamesPublished": false
+}

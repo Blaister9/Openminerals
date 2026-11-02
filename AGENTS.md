@@ -67,6 +67,11 @@ Hay un importador multiplataforma `tools/import_to_github.py` que evita sobrescr
 4. Verificar cambio USD→USDT, compra de 2 g de oro, descuento de USDT, portafolio, venta, oferta, entrega, historial, recarga de app, saldos insuficientes y repetición de solicitud. Registrar evidencia y fallos.
 5. Implementar mejoras visuales **después** de validar la cadena de datos. Scrollytelling/3D no debe bloquear compra y estado de billetera; ofrecer modo con movimiento reducido.
 
+## Evidencia audiovisual: preferencia del propietario, 2 de noviembre de 2026
+
+- No grabar vídeos automáticamente por cada prompt, commit o PR. Una solicitud anterior de un vídeo no autoriza nuevas grabaciones en cada iteración.
+- Grabar únicamente cuando el propietario lo pida expresamente para esa ejecución. El perfilado ordinario usa métricas sin vídeo; conservar la evidencia ya obtenida.
+
 ## Actualizaciones compatibles de Android
 
 Android 0.2.0 usa EAS Update, canal `demo`, entorno `preview` y runtime derivado de `app.json.version`. Los cambios compatibles de JavaScript/estilos/recursos pueden publicarse sin reinstalar mediante `eas update --channel demo --platform android --environment preview`. Cambiar módulos nativos, permisos, SDK o configuración nativa requiere incrementar la versión y el código Android y generar otro APK con la firma existente. No forzar una recarga durante operaciones pendientes; conservar embedded/anti-bricking. Registrar ID real y evidencia de aplicación de cada revisión. El alcance de finalización actual es Android; no invertir trabajo en iOS sin un nuevo encargo.

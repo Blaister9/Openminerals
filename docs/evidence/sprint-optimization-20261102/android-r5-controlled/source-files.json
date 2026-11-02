@@ -1,0 +1,218 @@
+{
+  "profileHarness": [
+    {
+      "file": "mobile/e2e/mine-profile.mjs",
+      "sourceCommit": "df8d985e9074fac603430bffd639b6437f353d33",
+      "sha256": "ab896bd257ff04bdab827cec8d40a31a6e715b930f533192a2109a350462d030",
+      "bytes": 28193,
+      "url": "https://github.com/Blaister9/Openminerals/blob/df8d985e9074fac603430bffd639b6437f353d33/mobile/e2e/mine-profile.mjs"
+    },
+    {
+      "file": "mobile/e2e/ci-safety.mjs",
+      "sourceCommit": "df8d985e9074fac603430bffd639b6437f353d33",
+      "sha256": "873e45e357e0aff59027881d5b1bb1c521d7441771f684fc23c1791f6f79b6d3",
+      "bytes": 6194,
+      "url": "https://github.com/Blaister9/Openminerals/blob/df8d985e9074fac603430bffd639b6437f353d33/mobile/e2e/ci-safety.mjs"
+    },
+    {
+      "file": "mobile/e2e/mine-preview.mjs",
+      "sourceCommit": "df8d985e9074fac603430bffd639b6437f353d33",
+      "sha256": "aff86ff66ca21418b68dd9a847eddce52e63d4c1e623b2e9a9e1f9b019f91ffe",
+      "bytes": 73301,
+      "url": "https://github.com/Blaister9/Openminerals/blob/df8d985e9074fac603430bffd639b6437f353d33/mobile/e2e/mine-preview.mjs"
+    },
+    {
+      "file": "mobile/e2e/release-contract.mjs",
+      "sourceCommit": "df8d985e9074fac603430bffd639b6437f353d33",
+      "sha256": "67a76a509b9cbabf597cd89b795e4d70e240b685b37e62a5d575ffe9107f4130",
+      "bytes": 7843,
+      "url": "https://github.com/Blaister9/Openminerals/blob/df8d985e9074fac603430bffd639b6437f353d33/mobile/e2e/release-contract.mjs"
+    },
+    {
+      "file": "mobile/e2e/ci-process.mjs",
+      "sourceCommit": "df8d985e9074fac603430bffd639b6437f353d33",
+      "sha256": "d21224911e7055d12d9986cd39b00e776496c973d13d80e8ef902db31a0ae2c2",
+      "bytes": 550,
+      "url": "https://github.com/Blaister9/Openminerals/blob/df8d985e9074fac603430bffd639b6437f353d33/mobile/e2e/ci-process.mjs"
+    },
+    {
+      "file": ".github/workflows/android-mine-profile.yml",
+      "sourceCommit": "df8d985e9074fac603430bffd639b6437f353d33",
+      "sha256": "90911b717adac4469e2df3c31d2a8ac0d505d1716e1843a1bd339c6f4ebc26c9",
+      "bytes": 4076,
+      "url": "https://github.com/Blaister9/Openminerals/blob/df8d985e9074fac603430bffd639b6437f353d33/.github/workflows/android-mine-profile.yml"
+    }
+  ],
+  "r4Rendering": [
+    {
+      "file": "mobile/app.config.js",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "0386c51d8cffcf89e3e1b6772059a1104920e2db5869cc4efc2c520e71f222f7",
+      "bytes": 2383,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/app.config.js"
+    },
+    {
+      "file": "mobile/app.json",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "b29e7854508c142abae512fce8349399088daa0553d1ff27dfb52bfa4a563a4d",
+      "bytes": 1205,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/app.json"
+    },
+    {
+      "file": "mobile/assets/geology-light.png",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "7c535d04cb1df9aa7f07d36be3d5538793ca3b39bd6a82c33cd14aabea8023d4",
+      "bytes": 314992,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/assets/geology-light.png"
+    },
+    {
+      "file": "mobile/components/GoldBar3D.tsx",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "40d4b8802a7f3721ebc0c89a07e183165caa606c9e7704d8d496484f08fb6b02",
+      "bytes": 19154,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/components/GoldBar3D.tsx"
+    },
+    {
+      "file": "mobile/lib/geological-scene.ts",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "dad385018f3da9694a90080892618f08353303f65f0407ed36224899f79c67da",
+      "bytes": 17038,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/lib/geological-scene.ts"
+    },
+    {
+      "file": "mobile/lib/geological-specimen.ts",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778",
+      "bytes": 1410,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/lib/geological-specimen.ts"
+    },
+    {
+      "file": "mobile/lib/gold-bar-3d.ts",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c",
+      "bytes": 16917,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/lib/gold-bar-3d.ts"
+    },
+    {
+      "file": "mobile/lib/immersive-story.ts",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "91468daf97f3b9fa70a57e12ba8949ea09cc06996e0ea4f244f44f5b55f81c37",
+      "bytes": 6982,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/lib/immersive-story.ts"
+    },
+    {
+      "file": "mobile/lib/metal-materials.ts",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81",
+      "bytes": 1434,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/lib/metal-materials.ts"
+    },
+    {
+      "file": "mobile/lib/scene-controls.ts",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "a9a383a11470385dd32cb2e0c3f945f2e066a791fc0615af188ba42a8f4ab2c5",
+      "bytes": 415,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/lib/scene-controls.ts"
+    },
+    {
+      "file": "mobile/lib/scene-performance.ts",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "63b54cce759f302d6675c71fb5e5cc5e987e4b54975a64e8e2d9fa540e6a3a97",
+      "bytes": 1107,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/lib/scene-performance.ts"
+    },
+    {
+      "file": "mobile/lib/scene-renderer.ts",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "69a633010d62bd6942bba53c09fff421e867587ba02a031349c584d492c09250",
+      "bytes": 7422,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/lib/scene-renderer.ts"
+    }
+  ],
+  "r5Rendering": [
+    {
+      "file": "mobile/app.config.js",
+      "sourceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+      "sha256": "ffe3f8c601423139edcd289cf33a7157481e29911e2add006aad24a1692447c4",
+      "bytes": 2410,
+      "url": "https://github.com/Blaister9/Openminerals/blob/a43345e9dee49cebd077b7520c79b7fc2b49be03/mobile/app.config.js"
+    },
+    {
+      "file": "mobile/app.json",
+      "sourceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+      "sha256": "b29e7854508c142abae512fce8349399088daa0553d1ff27dfb52bfa4a563a4d",
+      "bytes": 1205,
+      "url": "https://github.com/Blaister9/Openminerals/blob/a43345e9dee49cebd077b7520c79b7fc2b49be03/mobile/app.json"
+    },
+    {
+      "file": "mobile/assets/geology-light.png",
+      "sourceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+      "sha256": "4fe91b779e19e71610f82b1de3b463b9e03cd582e85db64ccfd44d0e94cbd0bd",
+      "bytes": 310167,
+      "url": "https://github.com/Blaister9/Openminerals/blob/a43345e9dee49cebd077b7520c79b7fc2b49be03/mobile/assets/geology-light.png"
+    },
+    {
+      "file": "mobile/components/GoldBar3D.tsx",
+      "sourceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+      "sha256": "ebeedea18f65aca9d16b4676c08ab3b7febfcb18bac29367ff61eb634485005e",
+      "bytes": 19589,
+      "url": "https://github.com/Blaister9/Openminerals/blob/a43345e9dee49cebd077b7520c79b7fc2b49be03/mobile/components/GoldBar3D.tsx"
+    },
+    {
+      "file": "mobile/lib/geological-scene.ts",
+      "sourceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+      "sha256": "732dd21086ab59d88ca81808415af5784ce09c5ad39ac515ba7ecc5018f1c4dd",
+      "bytes": 18440,
+      "url": "https://github.com/Blaister9/Openminerals/blob/a43345e9dee49cebd077b7520c79b7fc2b49be03/mobile/lib/geological-scene.ts"
+    },
+    {
+      "file": "mobile/lib/geological-specimen.ts",
+      "sourceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+      "sha256": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778",
+      "bytes": 1410,
+      "url": "https://github.com/Blaister9/Openminerals/blob/a43345e9dee49cebd077b7520c79b7fc2b49be03/mobile/lib/geological-specimen.ts"
+    },
+    {
+      "file": "mobile/lib/gold-bar-3d.ts",
+      "sourceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+      "sha256": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c",
+      "bytes": 16917,
+      "url": "https://github.com/Blaister9/Openminerals/blob/a43345e9dee49cebd077b7520c79b7fc2b49be03/mobile/lib/gold-bar-3d.ts"
+    },
+    {
+      "file": "mobile/lib/immersive-story.ts",
+      "sourceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+      "sha256": "e9790e369033be89a728f45ac204f787c37943ef5b8added145c804b8ac4ea94",
+      "bytes": 8521,
+      "url": "https://github.com/Blaister9/Openminerals/blob/a43345e9dee49cebd077b7520c79b7fc2b49be03/mobile/lib/immersive-story.ts"
+    },
+    {
+      "file": "mobile/lib/metal-materials.ts",
+      "sourceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+      "sha256": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81",
+      "bytes": 1434,
+      "url": "https://github.com/Blaister9/Openminerals/blob/a43345e9dee49cebd077b7520c79b7fc2b49be03/mobile/lib/metal-materials.ts"
+    },
+    {
+      "file": "mobile/lib/scene-controls.ts",
+      "sourceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+      "sha256": "a9a383a11470385dd32cb2e0c3f945f2e066a791fc0615af188ba42a8f4ab2c5",
+      "bytes": 415,
+      "url": "https://github.com/Blaister9/Openminerals/blob/a43345e9dee49cebd077b7520c79b7fc2b49be03/mobile/lib/scene-controls.ts"
+    },
+    {
+      "file": "mobile/lib/scene-performance.ts",
+      "sourceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+      "sha256": "63b54cce759f302d6675c71fb5e5cc5e987e4b54975a64e8e2d9fa540e6a3a97",
+      "bytes": 1107,
+      "url": "https://github.com/Blaister9/Openminerals/blob/a43345e9dee49cebd077b7520c79b7fc2b49be03/mobile/lib/scene-performance.ts"
+    },
+    {
+      "file": "mobile/lib/scene-renderer.ts",
+      "sourceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+      "sha256": "a2f3d88b390958ca63716fa404c09af41845602edccebec626857c6e6df5c312",
+      "bytes": 8035,
+      "url": "https://github.com/Blaister9/Openminerals/blob/a43345e9dee49cebd077b7520c79b7fc2b49be03/mobile/lib/scene-renderer.ts"
+    }
+  ]
+}

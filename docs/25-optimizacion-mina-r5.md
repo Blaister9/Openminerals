@@ -75,4 +75,36 @@ Ambas trazas r4 iniciadas en 3D terminan en ligero automático; 0.3.0 conserva G
 
 [APK r5 publicada](https://github.com/Blaister9/Openminerals/releases/download/android-mine-preview-0.4.0-r5-20261102/Openminerals-Mina-Preview-0.4.0-r5-android.apk): [EAS `41aae522-abab-44f6-b8c4-e89b99dc1aa8`](https://expo.dev/accounts/chipirips-team/projects/openminerals-demo/builds/41aae522-abab-44f6-b8c4-e89b99dc1aa8) **FINISHED**, fuente `a43345e9dee49cebd077b7520c79b7fc2b49be03`, versión 0.4.0/código 5. Se verificaron firma preview, runtime/canal, ABI para teléfono/emulador, API HTTPS, ausencia de debuggable y protecciones Updates. Bytes: 77.360.408; SHA-256 `7a3608be4a29996bb7d1713706669fd5acab12d73286f3931c1b45226145f4ec`. El digest de GitHub coincide con los bytes descargados e inspeccionados de EAS. [Registro público](evidence/sprint-optimization-20261102/r5-build.json). Se conservó el [registro original r4](evidence/sprint-optimization-20261102/r4-reference-build.json) antes de fijar el candidato nuevo.
 
-EAS estuvo en cola desde las 10:09 hasta las 10:51 de Bogotá y terminó a las 10:58. Se preparó una contingencia de compilación sin firma, pero no se ejecutó ni se recuperó material de firma; el APK publicado proviene de EAS y su firma remota existente. El SHA de fuente se publicó sin activar QA antes de disponer del binario. Ahora los tres workflows ejecutarán comparación r4/r5, visual/vídeo y comercio autenticado sobre exactamente este SHA-256. Evidencia comparativa nativa y aceptación comercial autenticada r5 pendientes de ejecución. No fusionar en `main` ni declarar 60 FPS. La aceptación física continúa pendiente por decisión del propietario.
+EAS estuvo en cola desde las 10:09 hasta las 10:51 de Bogotá y terminó a las 10:58. Se preparó una contingencia de compilación sin firma, pero no se ejecutó ni se recuperó material de firma; el APK publicado proviene de EAS y su firma remota existente. El SHA de fuente se publicó sin activar QA antes de disponer del binario.
+
+### Resultados reales de la APK r5
+
+El [perfil controlado r4/r5](https://github.com/Blaister9/Openminerals/actions/runs/41477328703), arnés `df8d985`, aprobó ocho trazas ABBA sobre el mismo emulador API29/x86_64/SwiftShader. En ligero, las medias de los dos resultados por versión son:
+
+| Métrica, alcance indicado | r4 | r5 |
+| --- | ---: | ---: |
+| p50 HWUI, cola final capturada | 98,30 ms | 66,71 ms |
+| p95 HWUI, cola final capturada | 128,27 ms | 88,75 ms |
+| Presentación de ventana UI + TextureView | 17,96 FPS | 24,07 FPS |
+| Mediana PSS sostenida | 129.421 KiB | 129.889 KiB |
+| Media de los máximos PSS muestreados | 137.741 KiB | 135.276 KiB |
+
+El p95 ligero mejora un 30,8 % y la PSS sostenida cambia +0,36 %, con variación entre las dos pasadas. Son medias de resultados, no percentiles combinados ni intervalos de confianza. Los FPS corresponden al intervalo entre primera/última presentación disponible de la ventana (aproximadamente 29 s), no a FPS de ExpoGL ni a toda la traza. Los intervalos de presentación superiores a 25 ms siguen siendo aproximadamente 77–78 % en r5. **88,75 ms y 24,07 FPS de ventana no son rendimiento óptimo ni acreditan 60 FPS.** El histórico 0.3.0 procede de otro run y no demuestra eliminación de su regresión en este mismo host.
+
+Picos PSS por pasada: r4 133.508/141.974 KiB; r5 138.624/131.927 KiB. El máximo r5 observado es 138.624 KiB, no el máximo continuo. Medianas sostenidas por pasada: r4 126.690/132.152 y r5 133.164/126.614 KiB, tomando la última mitad de muestras de cada traza.
+
+Los p95 de segmentos HWUI ligero son UI 16,45→10,79 ms, cola RenderThread 44,03→30,55 y envío 37,26→25,83; post-Swap permanece aproximadamente 18,6→18,9 ms. Son segmentos de reloj con esperas, no CPU puro/GPU aislada. Se confirmó el shader derivativo en los cuatro procesos r5. **Las dos trazas r5 iniciadas en GL terminan en ligero automático**, igual que r4: no se acepta 3D sostenida. Los PNG finales sí muestran Portafolio/CTA en este caso sin grabación. [Originales, análisis y revisión](evidence/sprint-optimization-20261102/android-r5-controlled/review.md).
+
+La [comparación visual/vídeo](https://github.com/Blaister9/Openminerals/actions/runs/41477328613/job/125386426563) **falló**: el MP4 conserva 6,976 s para una traza de 34,821 s y solo 13,29 % de cobertura PTS. Los seis frames decodificados y la captura posterior permanecen en Origen/Extracción; no acreditan Portafolio ni retroceso. El cierre del grabador fue limpio y no hubo indicadores fatales JS/GL observados; eso no aísla la causa. Las siete capturas de capítulos existen, pero solo 1–3 están en GL y 4–7 usan ligero automático, por lo que no equivalen a las siete GL históricas de r4. [Fallo y originales conservados](evidence/sprint-optimization-20261102/android-r5-comparison/visual-review.json). No se presenta el clip como un recorrido completo.
+
+El [comercio legacy](https://github.com/Blaister9/Openminerals/actions/runs/41477328613/job/125386426683) aprobó **15/15 fases** sobre los mismos bytes: operaciones, reservas, historial, reinicio, comprador/SecureStore y operador en lectura; UID/versión estable conservados. [Evidencia](evidence/sprint-optimization-20261102/android-r5-legacy-commerce/provenance.json).
+
+El [recorrido autenticado aislado](https://github.com/Blaister9/Openminerals/actions/runs/41477329133/job/125386235544) aprobó **26/26 fases**, cero fallos y limpieza correcta. Ejecutó compra/venta, marketplace A→B, certificados/procedencia, entrega completa, producción/verificación/recepción, panel Mina, perfil, reaperturas y recuperación del pendiente offline. Los observadores comprobaron balances, lotes, fees, historial e inventario antes/después de reabrir. Se usó exclusivamente la nueva mina QA; la app estable no se instaló, abrió ni borró en ese job. [Procedencia y originales públicos](evidence/sprint-optimization-20261102/android-r5-authenticated/provenance.json). No acredita teléfono, reinicio del servicio ni pérdida de respuesta después de commit.
+
+Validación de código `df8d985`: [CI aprobada](https://github.com/Blaister9/Openminerals/actions/runs/41477328766), 91 casos API aprobados y once PostgreSQL omitidos en la pasada general; la pasada obligatoria PostgreSQL aprobó 80/80 sin omisiones. Móvil CI 376 aprobados + ocho GL opcionales omitidos; Doctor 21/21. La suite local posterior ejecutó **384/384 con GL**, sin omisiones. Las cifras de cada pasada no se suman como casos distintos porque comparten pruebas.
+
+### Política de grabación y aceptación pendiente
+
+Por instrucción posterior del propietario, **no se graban vídeos por cada prompt, commit o PR**. Los workflows nativos pasan a ejecución manual; el de vídeo exige además `record_video=true`, desactivado por defecto. El perfil ordinario no graba vídeo y sus capturas adicionales quedan desactivadas por defecto. El nuevo experimento de grabación preparado tras el fallo se canceló **antes de ejecutarlo**; su borrador quedó fuera de las rutas activas. Se conserva la evidencia ya obtenida.
+
+Rendimiento ligero y funciones mejoraron/verificaron con los alcances anteriores; **la aceptación de 3D sostenida sigue abierta**. No fusionar en `main` ni declarar 60 FPS. La aceptación física continúa pendiente por decisión del propietario.

@@ -103,7 +103,7 @@ test('R5 offline compensating entries compose with the full real HTTP commercial
 
 test('R5 workflow keeps fixture namespaces, stable workflows and private artifacts separate',async()=>{
   const source=await read('../../.github/workflows/android-mine-preview-commerce.yml'),doc=yaml.parseDocument(source);assert.equal(doc.errors.length,0);
-  const workflow=doc.toJSON(),job=workflow.jobs['authenticated-commerce'];assert.equal(job['runs-on'],'ubuntu-24.04');assert.equal(job.concurrency['cancel-in-progress'],false);assert.match(job.if,/head\.repo\.full_name == github\.repository/);
+  const workflow=doc.toJSON(),job=workflow.jobs['authenticated-commerce'];assert.equal(job['runs-on'],'ubuntu-24.04');assert.equal(job.concurrency['cancel-in-progress'],false);assert.deepEqual(Object.keys(workflow.on),['workflow_dispatch']);assert.match(job.if,/github\.repository == 'Blaister9\/Openminerals'/);assert.match(job.if,/github\.ref == 'refs\/heads\/codex\/android-mine-realism-20261101'/);
   assert.doesNotMatch(source,/pull_request_target|secrets\.OPENMINERALS_QA_|DEMO_ADMIN_TOKEN|DATABASE_URL|EXPO_TOKEN/);
   const upload=job.steps.find(value=>value.uses?.startsWith('actions/upload-artifact@'));assert.equal(upload.with.path,'${{ runner.temp }}/openminerals-mine-r5-commerce/public/');assert.equal(job.steps.find(value=>value.uses?.startsWith('ReactiveCircus/')).with['api-level'],29);
   const harness=await read('../e2e/mine-preview-commerce.mjs');assert.doesNotMatch(harness,/adb\('uninstall'|pm','clear|install','-r/);assert.match(harness,/await rm\(privateRoot/);

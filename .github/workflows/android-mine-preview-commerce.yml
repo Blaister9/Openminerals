@@ -1,7 +1,5 @@
 name: Android mine preview authenticated commerce
 on:
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -10,9 +8,9 @@ jobs:
     # Only the owner's reviewed sprint branch receives these separate R5 fixtures.
     if: >-
       github.event.repository.private == false &&
-      (github.event_name == 'workflow_dispatch' ||
-      (github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'codex/android-mine-realism-20261101'))
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == 'Blaister9/Openminerals' &&
+      github.ref == 'refs/heads/codex/android-mine-realism-20261101'
     runs-on: ubuntu-24.04
     timeout-minutes: 55
     concurrency:

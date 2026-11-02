@@ -2,6 +2,8 @@
 
 **Revisión actual: r5, 2 de noviembre de 2026.** El código espera versión/runtime 0.4.0, código Android **5**, paquete `com.openminerals.demo.minepreview` y canal `mine-realism`. La fuente de la app es `a43345e9dee49cebd077b7520c79b7fc2b49be03`; la construcción y resultados actuales se registran en [el informe de optimización](25-optimizacion-mina-r5.md). Las evidencias r4 y anteriores que siguen abajo son históricas y no se atribuyen a r5. El registro del candidato se actualiza solo al disponer de los bytes de la nueva APK y comprobar su firma; cambiar una expectativa del arnés no acredita una construcción.
 
+**Preferencia posterior del propietario:** ninguna grabación automática por prompt, commit o PR. Los tres workflows nativos quedan manuales. El de vídeo exige además `record_video=true` (por defecto `false`) y solo se ejecuta tras una petición explícita de vídeo para esa ejecución. El perfil de métricas no graba vídeo y las capturas nuevas requieren `capture_stills=true`. Las instrucciones de ejecución automática conservadas más abajo describen runs históricos, no la política vigente. El control adicional de grabación preparado tras r5 se canceló sin ejecutarse.
+
 El workflow nuevo `.github/workflows/android-mine-preview.yml` compara dos APK en un mismo emulador desechable de GitHub: la entrega `0.3.0` y la aplicación independiente `com.openminerals.demo.minepreview`, versión/runtime `0.4.0`, código Android `4` para la revisión R4, canal `mine-realism`. Las revisiones R1/R2/R3 usaron códigos `1`/`2`/`3` y conservan su evidencia por separado. La expectativa de código del harness no acredita que el APK nuevo ya esté compilado o probado. No modifica los workflows, el paquete, los datos o el canal de la entrega estable. Todo el recorrido y sus operaciones son DEMO.
 
 ## Preparación y ejecución
@@ -28,6 +30,7 @@ Cuando el workflow exista en la rama predeterminada también admite ejecución m
 
 ```powershell
 gh workflow run android-mine-preview.yml --ref codex/android-mine-realism-20261101 `
+  -f record_video=true `
   -f apk_url=URL_HTTPS_PUBLICA_COMPROBADA `
   -f apk_sha256=SHA256_REAL_DEL_APK `
   -f apk_certificate_sha256=SHA256_REAL_DEL_CERTIFICADO

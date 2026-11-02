@@ -1,0 +1,32 @@
+{
+  "demoOnly": true,
+  "run": 41477328613,
+  "scope": "Legacy-commerce, account onboarding/SecureStore and public operator read-only navigation.",
+  "passedStages": 15,
+  "failedStages": 0,
+  "nativeLegacyCommerce": {
+    "conversionBuySell": true,
+    "reservationsAndOvercommitProtection": true,
+    "reservationRelease": true,
+    "portfolioAndHistoricalReceipts": true,
+    "restartPreservesLegacy": true,
+    "nativeSameRequestReplayTested": false
+  },
+  "nativeAuthentication": {
+    "buyerCreatedWithoutImport": true,
+    "buyerColdLaunchSecureStore": true,
+    "legacyRestoredAfterBuyerLogout": true,
+    "publicOperatorReadOnlyLogin": true,
+    "publicOperatorMineAndAccountWithoutBuyerWallet": true,
+    "publicOperatorLoggedOut": true
+  },
+  "stableUidAndVersionPreserved": true,
+  "authenticatedCommercialOperationsCovered": false,
+  "sameRequestReplayNativeCovered": false,
+  "physicalPhoneAcceptance": false,
+  "privateMediaOrCredentialsArchived": false,
+  "notes": [
+    "No screenshots/video or private Maestro logs were present in the downloaded public commerce artifact.",
+    "Authenticated purchase/sale, peer marketplace, lot custody/certificates and full delivery lifecycle belong to a different isolated-fixture run."
+  ]
+}

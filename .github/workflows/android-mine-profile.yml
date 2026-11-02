@@ -1,9 +1,11 @@
 name: Android mine controlled profile
 on:
-  pull_request:
-    branches: [main]
   workflow_dispatch:
     inputs:
+      capture_stills:
+        description: Explicitly request anonymous still images
+        type: boolean
+        default: false
       pair:
         description: Fixed signed APK pair
         type: choice
@@ -15,9 +17,9 @@ jobs:
   profile:
     if: >-
       github.event.repository.private == false &&
-      (github.event_name == 'workflow_dispatch' ||
-      (github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'codex/android-mine-realism-20261101'))
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == 'Blaister9/Openminerals' &&
+      github.ref == 'refs/heads/codex/android-mine-realism-20261101'
     runs-on: ubuntu-24.04
     timeout-minutes: 50
     concurrency:
@@ -25,6 +27,7 @@ jobs:
       cancel-in-progress: false
     env:
       MINE_PROFILE_PAIR: ${{ inputs.pair || '' }}
+      MINE_PROFILE_CAPTURE: ${{ inputs.capture_stills && '1' || '0' }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:

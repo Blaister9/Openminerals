@@ -1,0 +1,17 @@
+{
+  "demoOnly": true,
+  "sha256": "7a3608be4a29996bb7d1713706669fd5acab12d73286f3931c1b45226145f4ec",
+  "sourceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+  "sourceBinding": "Independently checked build provenance; verification workflow SHA alone does not prove APK source.",
+  "verificationCommit": "8cc6a6dcd9d20d9cf0b29863db9896218b33b17c",
+  "kind": "after",
+  "package": "com.openminerals.demo.minepreview",
+  "version": "0.4.0",
+  "versionCode": 5,
+  "runtime": "0.4.0",
+  "channel": "mine-realism",
+  "certificate": "86c84db35e91b187f3f818c0cc74ddb91df9a95014cba138ac7e04611957aa09",
+  "embeddedHttpsApi": true,
+  "embeddedBytes": 1664228,
+  "debuggable": false
+}

@@ -1,0 +1,37 @@
+{
+  "demoOnly": true,
+  "pair": "r4-candidate",
+  "workflowCommit": "8cc6a6dcd9d20d9cf0b29863db9896218b33b17c",
+  "apks": [
+    {
+      "package": "com.openminerals.demo.minepreview",
+      "version": "0.4.0",
+      "code": 4,
+      "sha256": "adfbf909f0cf0c924c7b8938a1a773c5c96b84f14f86ae0e8c0bf53b7e1b1bf5",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sourceScope": "Independently pinned build record; APK source must also be linked to its build provenance.",
+      "certificate": "86c84db35e91b187f3f818c0cc74ddb91df9a95014cba138ac7e04611957aa09",
+      "embeddedHttpsApi": true
+    },
+    {
+      "package": "com.openminerals.demo.minepreview",
+      "version": "0.4.0",
+      "code": 5,
+      "sha256": "7a3608be4a29996bb7d1713706669fd5acab12d73286f3931c1b45226145f4ec",
+      "sourceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+      "sourceScope": "Independently pinned build record; APK source must also be linked to its build provenance.",
+      "certificate": "86c84db35e91b187f3f818c0cc74ddb91df9a95014cba138ac7e04611957aa09",
+      "embeddedHttpsApi": true
+    },
+    {
+      "package": "com.openminerals.demo.mobile",
+      "version": "0.3.0",
+      "code": 6,
+      "sha256": "d99e8af9617f56d7862a849ebd057025cb9d6adc164b97496a5532f7b29ad29e",
+      "sourceCommit": "eae7f6ad57f5a667c2bf40775a4cb30f1c0dd8b6",
+      "sourceScope": "Independently pinned build record; APK source must also be linked to its build provenance.",
+      "certificate": "3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c",
+      "embeddedHttpsApi": true
+    }
+  ]
+}

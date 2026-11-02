@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Openminerals native Android" tests="15" failures="0">
+  <testcase classname="Openminerals.android" name="guard-disposable-api29-emulator" time="0.832"></testcase>
+  <testcase classname="Openminerals.android" name="install-presented-stable-separate-package" time="50.738"></testcase>
+  <testcase classname="Openminerals.android" name="install-preview-alongside-preserved-stable" time="37.596"></testcase>
+  <testcase classname="Openminerals.android" name="preview-new-legacy-commerce" time="126.004"></testcase>
+  <testcase classname="Openminerals.android" name="preview-legacy-reservations-release-overcommit" time="152.524"></testcase>
+  <testcase classname="Openminerals.android" name="preview-legacy-portfolio-historical-receipts" time="140.427"></testcase>
+  <testcase classname="Openminerals.android" name="preview-legacy-balance-after-restart" time="34.613"></testcase>
+  <testcase classname="Openminerals.android" name="preview-buyer-register-without-import" time="87.263"></testcase>
+  <testcase classname="Openminerals.android" name="preview-buyer-securestore-after-cold-launch" time="23.633"></testcase>
+  <testcase classname="Openminerals.android" name="preview-buyer-logout-restores-owned-legacy" time="25.090"></testcase>
+  <testcase classname="Openminerals.android" name="preview-public-operator-access-preflight" time="0.727"></testcase>
+  <testcase classname="Openminerals.android" name="preview-public-operator-readonly-login" time="62.529"></testcase>
+  <testcase classname="Openminerals.android" name="preview-public-operator-mine-account-readonly" time="15.782"></testcase>
+  <testcase classname="Openminerals.android" name="preview-public-operator-logout" time="23.128"></testcase>
+  <testcase classname="Openminerals.android" name="stable-package-uid-and-version-preserved" time="0.090"></testcase>
+</testsuite>

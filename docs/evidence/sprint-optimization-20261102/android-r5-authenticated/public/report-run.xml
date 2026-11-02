@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Openminerals native Android" tests="26" failures="0">
+  <testcase classname="Openminerals.android" name="guard-fresh-api29-emulator-stable-package-absent" time="1.043"></testcase>
+  <testcase classname="Openminerals.android" name="require-new-r5-private-fixtures-without-operations" time="2.391"></testcase>
+  <testcase classname="Openminerals.android" name="install-only-preview-and-require-embedded-source" time="93.693"></testcase>
+  <testcase classname="Openminerals.android" name="native-quality-buyer-login" time="87.630"></testcase>
+  <testcase classname="Openminerals.android" name="native-insufficient-balance-blocks-purchase" time="37.699"></testcase>
+  <testcase classname="Openminerals.android" name="native-prepare-one-cent-withdrawal" time="51.097"></testcase>
+  <testcase classname="Openminerals.android" name="native-offline-preserves-pending-without-debit" time="17.433"></testcase>
+  <testcase classname="Openminerals.android" name="native-pending-survives-cold-open-retry-once" time="71.858"></testcase>
+  <testcase classname="Openminerals.android" name="api-verifies-no-duplicate-after-offline-retry" time="0.146"></testcase>
+  <testcase classname="Openminerals.android" name="api-verifies-quality-buyer-permission" time="0.121"></testcase>
+  <testcase classname="Openminerals.android" name="verify-offline-retry-restored-wallets-before-trading" time="0.119"></testcase>
+  <testcase classname="Openminerals.android" name="buyer-a-login-conversion" time="122.766"></testcase>
+  <testcase classname="Openminerals.android" name="buyer-a-buy-and-certificate" time="83.953"></testcase>
+  <testcase classname="Openminerals.android" name="buyer-a-publish-priced-offer" time="100.777"></testcase>
+  <testcase classname="Openminerals.android" name="buyer-b-marketplace-certificate" time="149.498"></testcase>
+  <testcase classname="Openminerals.android" name="buyer-a-sale-and-delivery-request" time="167.856"></testcase>
+  <testcase classname="Openminerals.android" name="operator-quote-private-mine" time="119.090"></testcase>
+  <testcase classname="Openminerals.android" name="buyer-accept-simulated-costs" time="135.663"></testcase>
+  <testcase classname="Openminerals.android" name="operator-delivery-lifecycle" time="214.459"></testcase>
+  <testcase classname="Openminerals.android" name="operator-restock-management" time="103.420"></testcase>
+  <testcase classname="Openminerals.android" name="buyer-history-profile-relaunch" time="183.267"></testcase>
+  <testcase classname="Openminerals.android" name="buyer-custody-fraction-is-not-whole-lot" time="29.031"></testcase>
+  <testcase classname="Openminerals.android" name="api-verifies-native-wallets-lots-fees-and-history" time="0.464"></testcase>
+  <testcase classname="Openminerals.android" name="buyer-cold-launch-preserves-identity-and-apk-source" time="54.388"></testcase>
+  <testcase classname="Openminerals.android" name="api-verifies-data-after-buyer-cold-reopen" time="0.429"></testcase>
+  <testcase classname="Openminerals.android" name="stable-package-remains-absent-after-preview-acceptance" time="0.033"></testcase>
+</testsuite>

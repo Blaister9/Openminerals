@@ -1,0 +1,53 @@
+{
+  "format": "openminerals.native-progress",
+  "version": 1,
+  "mode": "run",
+  "updatedAt": "2026-11-02T16:33:21.658Z",
+  "stage": {
+    "name": "stable-package-remains-absent-after-preview-acceptance",
+    "status": "PASSED",
+    "startedAt": "2026-11-02T16:33:21.019Z",
+    "completedAt": "2026-11-02T16:33:21.052Z"
+  },
+  "command": {
+    "program": "adb",
+    "operation": "shell",
+    "status": "PASSED",
+    "timeoutMs": 20000,
+    "timeoutSignal": "SIGKILL",
+    "startedAt": "2026-11-02T16:33:21.525Z",
+    "exitCode": 0,
+    "signal": null,
+    "reason": "completed",
+    "completedAt": "2026-11-02T16:33:21.658Z"
+  },
+  "lastFailure": null,
+  "completed": [
+    "guard-fresh-api29-emulator-stable-package-absent",
+    "require-new-r5-private-fixtures-without-operations",
+    "install-only-preview-and-require-embedded-source",
+    "native-quality-buyer-login",
+    "native-insufficient-balance-blocks-purchase",
+    "native-prepare-one-cent-withdrawal",
+    "native-offline-preserves-pending-without-debit",
+    "native-pending-survives-cold-open-retry-once",
+    "api-verifies-no-duplicate-after-offline-retry",
+    "api-verifies-quality-buyer-permission",
+    "verify-offline-retry-restored-wallets-before-trading",
+    "buyer-a-login-conversion",
+    "buyer-a-buy-and-certificate",
+    "buyer-a-publish-priced-offer",
+    "buyer-b-marketplace-certificate",
+    "buyer-a-sale-and-delivery-request",
+    "operator-quote-private-mine",
+    "buyer-accept-simulated-costs",
+    "operator-delivery-lifecycle",
+    "operator-restock-management",
+    "buyer-history-profile-relaunch",
+    "buyer-custody-fraction-is-not-whole-lot",
+    "api-verifies-native-wallets-lots-fees-and-history",
+    "buyer-cold-launch-preserves-identity-and-apk-source",
+    "api-verifies-data-after-buyer-cold-reopen",
+    "stable-package-remains-absent-after-preview-acceptance"
+  ]
+}
