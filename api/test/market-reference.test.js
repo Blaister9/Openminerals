@@ -46,18 +46,18 @@ test('controlled retries count every attempt and sanitize private upstream error
 test('cache coalesces concurrent callers, reports stale failures, negative caches and guards unavailable credentials',async()=>{
   let now=time,calls=0,fail=false;
   const metals={id:'test',configured:true,async spot(){calls++;if(fail)throw new Error('private provider error');return normalizeSpot('XAU',spot(),now);}};
-  const service=createMarketService({env:{MARKET_REFERENCE_ENABLED:'true'},now:()=>now,providers:{metals}});
+  const service=createMarketService({env:{MARKET_REFERENCE_ENABLED:'true',MARKET_METALS_DISPLAY_ALLOWED:'true'},now:()=>now,providers:{metals}});
   const results=await Promise.all(Array.from({length:20},()=>service.spot('XAU')));assert.equal(calls,1);assert.ok(results.every(row=>row.status==='current'));
   now+=301_000;fail=true;assert.equal((await service.spot('XAU')).status,'stale');assert.equal(calls,2);
   assert.equal((await service.spot('XAU')).errorCode,'PROVIDER_UNAVAILABLE');assert.equal(calls,2);
-  const unavailable=createMarketService({env:{MARKET_REFERENCE_ENABLED:'true'},providers:{metals},now:()=>now});
+  const unavailable=createMarketService({env:{MARKET_REFERENCE_ENABLED:'true',MARKET_METALS_DISPLAY_ALLOWED:'true'},providers:{metals},now:()=>now});
   assert.equal((await unavailable.spot('XAU')).status,'unavailable');assert.equal((await unavailable.spot('XAU')).status,'unavailable');assert.equal(calls,3);
   assert.equal((await createMarketService({env:{}}).spot('XAU')).status,'disabled');
   assert.equal((await createMarketService({env:{MARKET_REFERENCE_ENABLED:'true'}}).spot('XAU')).status,'not-configured');
 });
 test('one-year history paginates bounded 30-day windows; intraday is explicitly unsupported',async()=>{
   const windows=[];const metals={id:'test',configured:true,async history(_code,a,b){windows.push([a,b]);return [{date:a,value:10}];}};
-  const service=createMarketService({env:{MARKET_REFERENCE_ENABLED:'true'},now:()=>time,providers:{metals}});
+  const service=createMarketService({env:{MARKET_REFERENCE_ENABLED:'true',MARKET_METALS_DISPLAY_ALLOWED:'true'},now:()=>time,providers:{metals}});
   assert.equal((await service.history('XAU','24h')).status,'unsupported');assert.equal(windows.length,0);
   const history=await service.history('XAU','1y');assert.equal(history.points.length,13);assert.equal(windows.length,13);
   assert.ok(windows.every(([a,b])=>Date.parse(b)-Date.parse(a)<=29*86400000));
@@ -82,4 +82,18 @@ test('Metals.Dev adapter maps all four symbols and normalizes the documented res
   for(const [code,name] of Object.entries(names)){const row=await provider.spot(code);assert.equal(row.metal,code);assert.equal(row.provider,'metals.dev');assert.equal(row.reference,3100/TROY_OUNCE_GRAMS);assert.ok(name);}
   assert.equal(calls,4);
   await assert.rejects(metalsDevProvider({http:()=>assert.fail('No key must cause no request')}).spot('XAU'),{code:'METALS_NOT_CONFIGURED'});
+});
+test('permission guards do not spend provider quota or expose previously cached restricted data',async()=>{
+  let calls=0;
+  const service=createMarketService({env:{MARKET_REFERENCE_ENABLED:'true'},providers:{metals:{id:'fixture',configured:true,spot(){calls++;assert.fail('No licensed access');},history(){calls++;assert.fail('No licensed access');}},fiat:{latest:async()=>[]},usdt:{latest:async()=>{calls++;assert.fail('Coinbase permission required');}}}});
+  assert.equal((await service.spot('XAU')).status,'permission-required');
+  assert.equal((await service.history('XAG','7d')).status,'permission-required');
+  const exchange=await service.exchange();assert.equal(exchange.usdt.status,'permission-required');assert.equal(exchange.usdt.data,null);assert.equal(calls,0);
+});
+test('four metal histories reuse a single all-metals window, including concurrent calls',async()=>{
+  let calls=0;
+  const provider=metalsDevProvider({apiKey:'fixture-only',now:()=>time,http:async()=>{calls++;return {status:'success',currency:'USD',unit:'toz',rates:{'2026-10-30':{metals:{gold:3100,silver:31,platinum:1550,palladium:1240}}}};}});
+  const results=await Promise.all(['XAU','XAG','XPT','XPD'].map(code=>provider.history(code,'2026-10-29','2026-10-30')));
+  assert.equal(calls,1);assert.equal(results.length,4);assert.ok(results.every(rows=>rows.length===1));
+  await provider.history('XAU','2026-10-29','2026-10-30');assert.equal(calls,1);
 });

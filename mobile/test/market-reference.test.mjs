@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {once} from 'node:events';
-import {createReferenceReader,historyPlot,parseReferenceEnvelope,isMetalReference,parseExchangeReference,parseCommercialQuote,quoteCanConfirm,displayedStatus} from '../lib/market-reference.ts';
+import {createReferenceReader,historyPlot,parseReferenceEnvelope,isMetalReference,parseExchangeReference,parseCommercialQuote,quoteCanConfirm,displayedStatus,referenceConversion} from '../lib/market-reference.ts';
 import {receiptDetails} from '../lib/receipt-presentation.ts';
 import {createDemoClient} from '../lib/demo-client.ts';
 import {createAccountClient} from '../lib/account-client.ts';
@@ -58,4 +58,15 @@ test('incomplete reference-trade receipt preserves the original durable quote/ke
   const client=createDemoClient({api:'https://reference.example',accountId:crypto.randomUUID(),getToken:()=> 'demo-token',storage,uuid:()=>id,fetchImpl:async()=>Response.json({receipt:{id,action:'buy',status:'COMPLETED',demoOnly:true},state:{}})});
   await assert.rejects(client.submit('reference_trade',{quoteId:'quote-'+crypto.randomUUID()},'Compra DEMO'),/incompleta/);
   assert.equal(client.getPending().requestId,id);
+});
+test('reference calculator crosses dated rates and never substitutes USD/USDT parity',()=>{
+  const now=Date.now(),asOf=new Date(now).toISOString();
+  const exchange={fiat:{status:'current',data:[{base:'USD',quote:'EUR',rate:0.9,asOf,provider:'fixture-fiat'},{base:'USD',quote:'COP',rate:4000,asOf,provider:'fixture-fiat'}]},usdt:{status:'current',data:{base:'USDT',quote:'USD',rate:0.98,asOf,provider:'fixture-usdt'}}};
+  assert.ok(Math.abs(referenceConversion(exchange,'4000','COP','EUR',now).output-0.9)<1e-10);
+  assert.equal(referenceConversion(exchange,'1','USDT','USD',now).output,0.98);
+  assert.equal(referenceConversion(exchange,'1','USD','USDT',now).output,1/0.98);
+  assert.equal(referenceConversion(exchange,'1','USD','USDT',now+120001),null);
+  assert.equal(referenceConversion({...exchange,usdt:{status:'permission-required',data:null}},'1','USD','USDT',now),null);
+  assert.equal(referenceConversion(exchange,'-1','USD','EUR',now),null);
+  assert.equal(referenceConversion({...exchange,fiat:{status:'stale',data:exchange.fiat.data}},'1','EUR','COP',now),null);
 });

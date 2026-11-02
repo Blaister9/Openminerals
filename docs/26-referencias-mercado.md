@@ -1,5 +1,7 @@
 # Referencias de mercado y cotizaciones DEMO · 2 de noviembre de 2026
 
+**Actualización de activación:** el entorno aislado `market-reference` se preparó con API y PostgreSQL propios. La revisión de [términos de Coinbase](https://www.coinbase.com/legal/market_data), de 7 de agosto de 2026, restringe la visualización a terceros y usos derivados sin consentimiento escrito: `MARKET_USDT_USE_ALLOWED` queda apagado por defecto y no se repite aquella sonda sin permiso. La consulta anterior acredita acceso técnico, no derechos de publicación. Metals.Dev requiere clave y confirmación de derechos de visualización móvil (`MARKET_METALS_DISPLAY_ALLOWED`) y almacenamiento. [Estado actual, configuración independiente y límites](27-activacion-mercado.md). Las observaciones siguientes conservan el historial del primer commit y sus pruebas.
+
 Rama independiente `codex/market-references-20261102`, base `main@ed87d2ea233227437ab5f5cc2eb0900674e1231f`. No incorpora ni fusiona PR #11. Este trabajo prepara código y configuración; no activa precios de metales en la app instalada ni modifica el despliegue comercial. No se generaron APK, OTA, vídeos ni capturas. Android; sin blockchain ni operaciones financieras reales.
 
 ## Auditoría de precios existentes

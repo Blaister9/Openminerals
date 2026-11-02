@@ -1,13 +1,13 @@
 export type MetalCode='XAU'|'XAG'|'XPT'|'XPD';
 export type ReferencePeriod='24h'|'7d'|'30d'|'1y';
-export type ReferenceStatus='current'|'delayed'|'stale'|'unavailable'|'not-configured'|'disabled'|'unsupported';
+export type ReferenceStatus='current'|'delayed'|'stale'|'unavailable'|'not-configured'|'disabled'|'unsupported'|'permission-required';
 export type MetalReference={id:string;metal:MetalCode;provider:string;asOf:string;currency:'USD';unit:'g';reference:number;perTroyOunce:number;bid:number|null;ask:number|null;high:number|null;low:number|null;changePercent:number|null;marketState:string;providerDelaySeconds:number;frequencyVerified:false};
 export type ReferenceEnvelope<T>={status:ReferenceStatus;data:T|null;errorCode?:string|null;cacheUntil?:string;retrievedAt?:string};
 export type HistoryReference={provider:string;start:string;end:string;granularity:'daily';points:{date:string;value:number}[]};
 export type FxReference={base:string;quote:string;rate:number;provider:string;asOf:string};
 export type ExchangeReference={fiat:ReferenceEnvelope<FxReference[]>;usdt:ReferenceEnvelope<FxReference>};
 export type CommercialQuote={id:string;action:'buy'|'sell';metal:MetalCode;grams:string;mg:number;priceCentsPerGram:number;feeBps:number;spreadBps:number;currency:'USDT';unit:'g';baseMinor:number;feeMinor:number;totalMinor?:number;outputMinor?:number;issuedAt:string;expiresAt:string;demoOnly:true;reference:{provider:string;asOf:string};exchange:{provider:string;asOf:string}};
-const states:ReferenceStatus[]=['current','delayed','stale','unavailable','not-configured','disabled','unsupported'];
+const states:ReferenceStatus[]=['current','delayed','stale','unavailable','not-configured','disabled','unsupported','permission-required'];
 const finite=(n:unknown)=>typeof n==='number'&&Number.isFinite(n)&&n>0;
 const dated=(value:unknown)=>typeof value==='string'&&Number.isFinite(Date.parse(value));
 export function parseReferenceEnvelope<T>(value:unknown,validate:(data:unknown)=>data is T):ReferenceEnvelope<T>{
@@ -42,7 +42,25 @@ export function parseCommercialQuote(value:unknown):CommercialQuote{
   return row;
 }
 export function quoteCanConfirm(quote:CommercialQuote|null,now:number,disabled=false){return !!quote&&!disabled&&Date.parse(quote.expiresAt)>now;}
-export function referenceStatusLabel(status:ReferenceStatus){return {current:'Referencia fechada · frecuencia sin verificar',delayed:'Datos retrasados',stale:'Última referencia · actualización fallida',unavailable:'Datos no disponibles','not-configured':'Proveedor pendiente de configuración',disabled:'Referencias desactivadas',unsupported:'Periodo no disponible con este proveedor'}[status];}
+export function referenceStatusLabel(status:ReferenceStatus){return {current:'Referencia fechada · frecuencia sin verificar',delayed:'Datos retrasados',stale:'Última referencia · actualización fallida',unavailable:'Datos no disponibles','not-configured':'Proveedor pendiente de configuración',disabled:'Referencias desactivadas',unsupported:'Periodo no disponible con este proveedor','permission-required':'Pendiente de permiso de uso del proveedor'}[status];}
+export function referenceConversion(exchange:ExchangeReference|null,amount:string,from:string,to:string,now=Date.now()){
+  if(!exchange||!/^\d{1,10}(?:\.\d{1,6})?$/.test(amount)||!(Number(amount)>0)||!['USD','EUR','COP','USDT'].includes(from)||!['USD','EUR','COP','USDT'].includes(to)||from===to)return null;
+  const used:{provider:string;asOf:string}[]=[];
+  function usdPerUnit(currency:string):number|null{
+    if(currency==='USD')return 1;
+    if(currency==='USDT'){
+      if(displayedStatus(exchange!.usdt,now,120000)!=='current'||!exchange!.usdt.data)return null;
+      used.push(exchange!.usdt.data);return exchange!.usdt.data.rate;
+    }
+    if(displayedStatus(exchange!.fiat,now,4*86400000)!=='current')return null;
+    const row=exchange!.fiat.data?.find(row=>row.base==='USD'&&row.quote===currency);
+    if(!row||!finite(row.rate))return null;used.push(row);return 1/row.rate;
+  }
+  const source=usdPerUnit(from),target=usdPerUnit(to);
+  if(!source||!target)return null;
+  const rate=source/target,output=Number(amount)*rate;
+  return Number.isFinite(output)&&output>0?{rate,output,from,to,sources:used}:null;
+}
 // No chart segment bridges an absent day. Isolated observations remain visible as dots.
 export function historyPlot(points:{date:string;value:number}[],width:number,height:number){
   if(!points.length)return {dots:[],segments:[]};

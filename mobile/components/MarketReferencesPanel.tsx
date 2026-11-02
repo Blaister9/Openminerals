@@ -1,6 +1,6 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {ActivityIndicator,AppState,Pressable,StyleSheet,Text,TextInput,View} from 'react-native';
-import {createReferenceReader,displayedStatus,historyPlot,isHistoryReference,isMetalReference,parseExchangeReference,parseReferenceEnvelope,quoteCanConfirm,referenceStatusLabel,type CommercialQuote,type ExchangeReference,type HistoryReference,type MetalCode,type MetalReference,type ReferenceEnvelope,type ReferencePeriod} from '../lib/market-reference';
+import {createReferenceReader,displayedStatus,historyPlot,isHistoryReference,isMetalReference,parseExchangeReference,parseReferenceEnvelope,quoteCanConfirm,referenceConversion,referenceStatusLabel,type CommercialQuote,type ExchangeReference,type HistoryReference,type MetalCode,type MetalReference,type ReferenceEnvelope,type ReferencePeriod} from '../lib/market-reference';
 import {normalizeDecimalInput} from '../lib/presentation';
 
 type Props={api:string;metal:MetalCode;accountId?:string;active:boolean;disabled:boolean;refreshKey:string;quoteTrade:(body:{action:'buy'|'sell';metal:MetalCode;grams:string})=>Promise<CommercialQuote>;submit:(action:string,body:Record<string,string>,title:string,detail:string)=>void};
@@ -18,6 +18,7 @@ export function MarketReferencesPanel({api,metal,accountId,active,disabled,refre
   const [period,setPeriod]=useState<ReferencePeriod>('7d'),[revision,setRevision]=useState(0),[loading,setLoading]=useState(false),[error,setError]=useState('');
   const [reference,setReference]=useState<ReferenceEnvelope<MetalReference>|null>(null),[history,setHistory]=useState<ReferenceEnvelope<HistoryReference>|null>(null),[exchange,setExchange]=useState<ExchangeReference|null>(null);
   const [action,setAction]=useState<'buy'|'sell'>('buy'),[grams,setGrams]=useState('0.100'),[quote,setQuote]=useState<CommercialQuote|null>(null),[quoting,setQuoting]=useState(false),[quoteError,setQuoteError]=useState(''),[now,setNow]=useState(Date.now()),[width,setWidth]=useState(280);
+  const [referenceAmount,setReferenceAmount]=useState('1'),[referenceFrom,setReferenceFrom]=useState('USD'),[referenceTo,setReferenceTo]=useState('COP');
   useEffect(()=>{const subscription=AppState.addEventListener('change',state=>setForeground(state==='active'));return ()=>subscription.remove();},[]);
   useEffect(()=>{
     const expected=++request.current;setLoading(false);
@@ -40,13 +41,15 @@ export function MarketReferencesPanel({api,metal,accountId,active,disabled,refre
     catch(cause){if(quoteRequest.current===expected)setQuoteError(message(cause));}finally{if(quoteRequest.current===expected)setQuoting(false);}
   }
   const data=reference?.data,points=history?.data?.points??[],plot=historyPlot(points,Math.max(0,width-12),100),valid=quoteCanConfirm(quote,now,disabled||!foreground||!active);
+  const conversion=referenceConversion(exchange,normalizeDecimalInput(referenceAmount),referenceFrom,referenceTo,now);
   return <View style={styles.panel}>
-    <Text accessibilityRole="header" style={styles.title}>Referencias de mercado · {metal}</Text>
+    <Text accessibilityRole="header" style={styles.title}>Referencia internacional · {metal}</Text>
     <Text style={styles.notice}>Datos externos de referencia. Billetera, compras, custodia y entregas siguen siendo SIMULADAS. El portafolio y las conversiones habituales conservan sus valores DEMO.</Text>
     {loading&&<ActivityIndicator accessibilityLabel="Consultando referencias" color="#D8B676"/>}
     {!!error&&<Text accessibilityRole="alert" style={styles.notice}>{error}</Text>}
     {reference&&<Text style={styles.copy}>{referenceStatusLabel(displayedStatus(reference,now,300000))}</Text>}
     {data&&<>
+      <Text style={styles.referenceLabel}>PRECIO EXTERNO · USD · NO ES PRECIO DE COMPRA OPENMINERALS</Text>
       <Row label="Referencia por gramo" value={usd(data.reference)}/><Row label="Referencia por onza troy" value={usd(data.perTroyOunce,2)}/>
       <Row label="Bid / g" value={usd(data.bid)}/><Row label="Ask / g" value={usd(data.ask)}/>
       <Row label="Máximo / mínimo del proveedor, por g" value={`${usd(data.high)} / ${usd(data.low)}`}/>
@@ -66,16 +69,25 @@ export function MarketReferencesPanel({api,metal,accountId,active,disabled,refre
     {exchange?.fiat&&<Text style={styles.copy}>{referenceStatusLabel(displayedStatus(exchange.fiat,now,4*86400000))} · Frankfurter, referencia diaria agregada.</Text>}
     {exchange?.usdt?.data&&<Row label="1 USDT → USD" value={`${exchange.usdt.data.rate.toLocaleString('es-CO',{maximumFractionDigits:6})} · ${date(exchange.usdt.data.asOf)}`}/>}
     {exchange?.usdt&&<Text style={styles.copy}>{referenceStatusLabel(displayedStatus(exchange.usdt,now,120000))} · Coinbase Exchange, último negocio USDT/USD; puede diferir de 1.</Text>}
+    <Text style={styles.title}>Conversión de referencia</Text>
+    <Text style={styles.copy}>Calculadora informativa con fuentes fechadas. No convierte saldos ni envía operaciones a la billetera.</Text>
+    <TextInput accessibilityLabel="Importe de conversión de referencia" style={styles.input} value={referenceAmount} onChangeText={setReferenceAmount} keyboardType="decimal-pad"/>
+    <Text style={styles.copy}>De</Text><View style={styles.controls}>{['USD','EUR','COP','USDT'].map(currency=><Control key={currency} label={currency} selected={referenceFrom===currency} onPress={()=>setReferenceFrom(currency)}/>)}</View>
+    <Text style={styles.copy}>A</Text><View style={styles.controls}>{['USD','EUR','COP','USDT'].map(currency=><Control key={currency} label={currency} selected={referenceTo===currency} onPress={()=>setReferenceTo(currency)}/>)}</View>
+    {conversion?<><Row label="Estimación con referencias externas" value={`${conversion.output.toLocaleString('es-CO',{maximumFractionDigits:6})} ${conversion.to}`}/><Text style={styles.copy}>{conversion.sources.map(source=>`${source.provider} · ${date(source.asOf)}`).join('\n')}. Tasa cruzada calculada; no es una cotización comercial.</Text></>:<Text style={styles.notice}>No hay referencias vigentes y autorizadas para este par, o el importe no es válido. No se aplica una tasa ficticia como sustituto.</Text>}
     <Control label="Consultar referencias" disabled={loading||!foreground||!active} onPress={()=>setRevision(value=>value+1)}/>
     {accountId&&<>
-      <Text style={styles.title}>Operar DEMO con referencia externa</Text>
+      <Text style={styles.commercialLabel}>PRECIO COMERCIAL OPENMINERALS · SIMULADO</Text>
       <Text style={styles.copy}>Cotización independiente en USDT ficticios, con diferencial, comisión y vencimiento. No cambia las tasas de conversión de billetera.</Text>
       <View style={styles.controls}><Control label="Compra DEMO" selected={action==='buy'} onPress={()=>setAction('buy')}/><Control label="Venta DEMO" selected={action==='sell'} onPress={()=>setAction('sell')}/></View>
       <TextInput accessibilityLabel="Gramos para cotización con referencia externa" style={styles.input} value={grams} onChangeText={setGrams} keyboardType="decimal-pad"/>
       <Control label={quoting?'Solicitando…':'Solicitar nueva cotización DEMO'} disabled={disabled||quoting||!foreground||!active} onPress={()=>void obtainQuote()}/>
       {!!quoteError&&<Text accessibilityRole="alert" style={styles.notice}>{quoteError}</Text>}
       {quote&&<>
-        <Row label="Metal sin comisión" value={usdt(quote.baseMinor)}/><Row label="Comisión DEMO" value={usdt(quote.feeMinor)}/><Row label={action==='buy'?'Total DEMO':'Recibes DEMO'} value={usdt(quote.totalMinor??quote.outputMinor??0)}/>
+        <Row label="Precio comercial SIMULADO por gramo" value={`${usdt(quote.priceCentsPerGram)} / g`}/>
+        <Row label="Diferencial incluido en el precio" value={`${(quote.spreadBps/100).toLocaleString('es-CO')} %`}/>
+        <Row label="Cantidad cotizada" value={`${quote.grams} g`}/>
+        <Row label="Metal sin comisión adicional" value={usdt(quote.baseMinor)}/><Row label={`Comisión adicional DEMO (${quote.feeBps/100} %)`} value={usdt(quote.feeMinor)}/><Row label={action==='buy'?'Total DEMO':'Recibes DEMO'} value={usdt(quote.totalMinor??quote.outputMinor??0)}/>
         <Text style={styles.copy}>{quote.id} · válida hasta {date(quote.expiresAt)}. {quote.reference.provider} + {quote.exchange.provider}.</Text>
         {!valid&&<Text accessibilityRole="alert" style={styles.notice}>Cotización vencida o no confirmable. Solicita una nueva antes de operar.</Text>}
         <Control label="Revisar y confirmar operación DEMO" disabled={!valid} onPress={()=>{if(quoteCanConfirm(quote,Date.now(),disabled||!foreground||!active))submit('reference_trade',{quoteId:quote.id},action==='buy'?'Compra DEMO con referencia':'Venta DEMO con referencia',`${quote.grams} g de ${quote.metal}.\n${action==='buy'?'Total':'Recibes'}: ${usdt(quote.totalMinor??quote.outputMinor??0)}.\nCotización: ${quote.id}.\nVence: ${date(quote.expiresAt)}. El servidor comprobará su vigencia.`);}}/>
@@ -83,4 +95,4 @@ export function MarketReferencesPanel({api,metal,accountId,active,disabled,refre
     </>}
   </View>;
 }
-const styles=StyleSheet.create({panel:{padding:16,backgroundColor:'#101B24',borderRadius:16,marginVertical:16,gap:12},title:{color:'#EBD4A7',fontSize:18,fontWeight:'700'},copy:{color:'#BCC5CC',fontSize:13,flexShrink:1},value:{color:'#F3F3EF',fontSize:13,fontWeight:'600',flexShrink:1},notice:{color:'#E9C990',fontSize:13,lineHeight:19},row:{flexDirection:'row',justifyContent:'space-between',gap:16},controls:{flexDirection:'row',flexWrap:'wrap',gap:8},button:{padding:12,borderWidth:1,borderColor:'#46535F',borderRadius:10},selected:{borderColor:'#D8B676',backgroundColor:'#29313A'},chart:{height:120,marginVertical:8},input:{borderColor:'#46535F',borderWidth:1,borderRadius:10,padding:12,color:'#F3F3EF'}});
+const styles=StyleSheet.create({panel:{padding:16,backgroundColor:'#101B24',borderRadius:16,marginVertical:16,gap:12},title:{color:'#EBD4A7',fontSize:18,fontWeight:'700'},referenceLabel:{color:'#9BD6ED',backgroundColor:'#152D3A',padding:12,fontSize:13,fontWeight:'700'},commercialLabel:{color:'#E9C990',backgroundColor:'#352C1B',padding:12,fontSize:15,fontWeight:'700'},copy:{color:'#BCC5CC',fontSize:13,flexShrink:1},value:{color:'#F3F3EF',fontSize:13,fontWeight:'600',flexShrink:1},notice:{color:'#E9C990',fontSize:13,lineHeight:19},row:{flexDirection:'row',justifyContent:'space-between',gap:16},controls:{flexDirection:'row',flexWrap:'wrap',gap:8},button:{padding:12,borderWidth:1,borderColor:'#46535F',borderRadius:10},selected:{borderColor:'#D8B676',backgroundColor:'#29313A'},chart:{height:120,marginVertical:8},input:{borderColor:'#46535F',borderWidth:1,borderRadius:10,padding:12,color:'#F3F3EF'}});

@@ -7,6 +7,7 @@ const day=86_400_000;
 function setting(value,fallback,min,max){if(value===undefined)return fallback;const n=Number(value);if(!Number.isInteger(n)||n<min||n>max)throw new Error('Invalid market configuration');return n;}
 export function createMarketService({env=process.env,repository=async()=>memoryMarketRepository(),fetchImpl=fetch,now=Date.now,providers}={}){
   const enabled=env.MARKET_REFERENCE_ENABLED==='true',storageAllowed=env.MARKET_METALS_STORAGE_ALLOWED==='true';
+  const metalsDisplayAllowed=env.MARKET_METALS_DISPLAY_ALLOWED==='true',usdtUseAllowed=env.MARKET_USDT_USE_ALLOWED==='true';
   const ttl=setting(env.MARKET_CACHE_SECONDS,300,60,3600)*1000;
   const daily=setting(env.MARKET_METALS_DAILY_LIMIT,20,1,100000),monthly=setting(env.MARKET_METALS_MONTHLY_LIMIT,100,1,1000000);
   const local=memoryMarketRepository(),inFlight=new Map();let repo;
@@ -43,11 +44,13 @@ export function createMarketService({env=process.env,repository=async()=>memoryM
     try{return await pending;}finally{inFlight.delete(key);}
   }
   const unavailable=status=>({status,data:null,demoOnly:true,errorCode:status==='not-configured'?'METALS_NOT_CONFIGURED':null});
-  async function spot(code){metalCode(code);if(!enabled)return unavailable('disabled');if(!metals.configured)return unavailable('not-configured');return cached('spot:'+code,()=>metals.spot(code),{persist:storageAllowed});}
+  const permissionRequired=errorCode=>({status:'permission-required',data:null,demoOnly:true,errorCode});
+  async function spot(code){metalCode(code);if(!enabled)return unavailable('disabled');if(!metals.configured)return unavailable('not-configured');if(!metalsDisplayAllowed)return permissionRequired('METALS_DISPLAY_PERMISSION_REQUIRED');return cached('spot:'+code,()=>metals.spot(code),{persist:storageAllowed});}
   async function history(code,period){
     metalCode(code);const days=periodDays(period);
     if(!enabled)return {...unavailable('disabled'),points:[]};
     if(!metals.configured)return {...unavailable('not-configured'),points:[]};
+    if(!metalsDisplayAllowed)return {...permissionRequired('METALS_DISPLAY_PERMISSION_REQUIRED'),points:[]};
     if(period==='24h')return {status:'unsupported',points:[],data:null,granularity:'daily',reason:'INTRADAY_NOT_PROVIDED',demoOnly:true};
     const end=new Date(now()-day).toISOString().slice(0,10),start=new Date(now()-days*day).toISOString().slice(0,10);
     const result=await cached(`history:${code}:${period}:${end}`,async()=>{
@@ -62,7 +65,7 @@ export function createMarketService({env=process.env,repository=async()=>memoryM
   }
   async function exchange(){
     if(!enabled)return {demoOnly:true,fiat:unavailable('disabled'),usdt:unavailable('disabled')};
-    const results=await Promise.all([cached('fx:fiat',()=>fiat.latest(),{persist:true,cacheMs:3600_000,maxAge:4*day,dated:true}),cached('fx:usdt',()=>usdt.latest(),{maxAge:120_000,cacheMs:60_000})]);
+    const results=await Promise.all([cached('fx:fiat',()=>fiat.latest(),{persist:true,cacheMs:3600_000,maxAge:4*day,dated:true}),usdtUseAllowed?cached('fx:usdt',()=>usdt.latest(),{maxAge:120_000,cacheMs:60_000}):permissionRequired('USDT_USE_PERMISSION_REQUIRED')]);
     return {demoOnly:true,fiat:results[0],usdt:results[1],walletRates:'separate-simulated-rates'};
   }
   return {spot,history,exchange,enabled,storageAllowed,now,quoteConfig:{
