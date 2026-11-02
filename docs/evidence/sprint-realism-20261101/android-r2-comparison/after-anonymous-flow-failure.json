@@ -1,0 +1,126 @@
+{
+  "kind": "after",
+  "flow": "story-video-prepare",
+  "invocation": 3,
+  "stage": "preview-reduced-motion-and-exits",
+  "category": "timeout",
+  "expectedSelectorsFromFlow": [
+    "Cerrar opciones del recorrido",
+    "Elegir una etapa",
+    "Ir a etapa 1: ORIGEN MINERAL"
+  ],
+  "recentStaticCommandLabels": [
+    {
+      "selector": "Etapa 1 de 7: ORIGEN MINERAL",
+      "status": "mentioned"
+    },
+    {
+      "selector": "Etapa 1 de 7: ORIGEN MINERAL",
+      "status": "passed"
+    },
+    {
+      "selector": "Opciones del recorrido",
+      "status": "mentioned"
+    },
+    {
+      "selector": "Cerrar opciones del recorrido",
+      "status": "mentioned"
+    },
+    {
+      "selector": "Opciones del recorrido",
+      "status": "passed"
+    },
+    {
+      "selector": "Cerrar opciones del recorrido",
+      "status": "passed"
+    }
+  ],
+  "rawDiagnosticsPublished": false,
+  "diagnosticSources": {
+    "console": true,
+    "junit": true,
+    "commands": true,
+    "maestroLog": true
+  },
+  "firstFailedCommand": {
+    "index": 14,
+    "type": "assert",
+    "status": "FAILED"
+  },
+  "recentCommands": [
+    {
+      "index": 3,
+      "type": "tap",
+      "status": "COMPLETED",
+      "selector": "^Inicio$"
+    },
+    {
+      "index": 4,
+      "type": "tap",
+      "status": "COMPLETED",
+      "selector": "Opciones del recorrido"
+    },
+    {
+      "index": 5,
+      "type": "run-flow",
+      "status": "SKIPPED",
+      "selector": "Usar modo visual ligero"
+    },
+    {
+      "index": 6,
+      "type": "run-flow",
+      "status": "SKIPPED",
+      "selector": "Reducir movimiento del recorrido"
+    },
+    {
+      "index": 7,
+      "type": "tap",
+      "status": "COMPLETED",
+      "selector": "Cerrar opciones del recorrido"
+    },
+    {
+      "index": 8,
+      "type": "tap",
+      "status": "COMPLETED",
+      "selector": "Opciones del recorrido"
+    },
+    {
+      "index": 9,
+      "type": "tap",
+      "status": "COMPLETED",
+      "selector": "Elegir una etapa"
+    },
+    {
+      "index": 10,
+      "type": "scroll-until-visible",
+      "status": "COMPLETED",
+      "selector": "Ir a etapa 1: ORIGEN MINERAL"
+    },
+    {
+      "index": 11,
+      "type": "tap",
+      "status": "COMPLETED",
+      "selector": "Ir a etapa 1: ORIGEN MINERAL"
+    },
+    {
+      "index": 12,
+      "type": "assert",
+      "status": "COMPLETED",
+      "selector": "Etapa 1 de 7: ORIGEN MINERAL"
+    },
+    {
+      "index": 13,
+      "type": "assert",
+      "status": "COMPLETED",
+      "selector": "Cerrar opciones del recorrido"
+    },
+    {
+      "index": 14,
+      "type": "assert",
+      "status": "FAILED"
+    }
+  ],
+  "skippedDiagnosticFiles": 0,
+  "diagnosticTraversalTruncated": false,
+  "credentialsEntered": false
+}

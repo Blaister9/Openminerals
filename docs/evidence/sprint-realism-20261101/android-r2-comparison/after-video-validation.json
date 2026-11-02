@@ -1,0 +1,49 @@
+{
+  "demoOnly": true,
+  "videoFile": "after-anonymous-scroll.mp4",
+  "videoEvidenceValid": true,
+  "endpointScreenshotWritten": true,
+  "mediaInspectionComplete": true,
+  "coverage": {
+    "temporalCoverageValid": true,
+    "minimumRequiredCoverage": 0.85,
+    "traceDurationSeconds": 34.08876636300003,
+    "containerDurationSeconds": 30.873811,
+    "firstPresentationTimestampSeconds": 0,
+    "lastPresentationTimestampSeconds": 30.629867,
+    "presentationSpanSeconds": 30.629867,
+    "containerCoverageRatio": 0.9056887149049327,
+    "presentationCoverageRatio": 0.8985325744508512,
+    "timestampsMonotonic": true,
+    "encodedFramesWithTimestamps": 183,
+    "tailPresentationTimestamps": [
+      30.275922,
+      30.385911,
+      30.629867
+    ],
+    "finalSamples": [
+      {
+        "frameIndex": 160,
+        "ptsSeconds": 27.851256,
+        "file": "after-video-final-sample-1.png",
+        "sha256": "c6f7bb25a5f2a589032d74e7ad0641789fe2cdc01546958820304b375d6b39c6"
+      },
+      {
+        "frameIndex": 182,
+        "ptsSeconds": 30.629867,
+        "file": "after-video-final-sample-2.png",
+        "sha256": "321559c02e292611ff58f0e0b13ca10599f5b4ab4c9428ce3888cf3b39d3a706"
+      }
+    ],
+    "visualFinalStageVerified": false,
+    "interpretation": "Temporal MP4 coverage only. Final sample images require human review; timestamp coverage and accessibility do not prove rendered stage 7. Encoded frame count is not application FPS."
+  },
+  "inputExecutionFailed": false,
+  "recorderAliveAtTraceEnd": true,
+  "inputTraceComplete": true,
+  "containerReadable": true,
+  "inspectionFailure": false,
+  "traceObservedDurationMs": 34088.76636300003,
+  "physicalDevice": false,
+  "gpuFpsMeasured": false
+}

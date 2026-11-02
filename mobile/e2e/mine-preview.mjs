@@ -20,6 +20,7 @@ export const PRESENTED=Object.freeze({
   certificate:BASELINE.certificate,
 });
 export const PREVIEW=Object.freeze({package:'com.openminerals.demo.minepreview',version:'0.4.0',code:2,runtime:'0.4.0',channel:'mine-realism'});
+export function nativeValidationScope(value){requireSafe(value===undefined||['comparison','regression'].includes(value),'Expected comparison or regression validation scope.');return value??'comparison';}
 export function previewInputs(env,manifest={}){
   requireSafe(manifest&&typeof manifest==='object'&&!Array.isArray(manifest),'Invalid preview build record.');
   const supplied=[env.APK_INPUT_URL,env.APK_INPUT_SHA256,env.APK_INPUT_CERT_SHA256].filter(value=>value!==undefined&&value!=='');
@@ -56,12 +57,19 @@ const PUBLIC_FAILURE_REASONS=new Set([
   'Cold process launch could not be verified; launch evidence retained.','Anonymous video does not cover the measured trace; incomplete evidence retained.',
   'Required host media inspection tools are unavailable.',
   'Candidate chapter reached a light scene without the explicit performance fallback reason.',
+  'Candidate regression requires an actual GL-ready scene.',
 ]);
 export function publicFailureReason(error){return PUBLIC_FAILURE_REASONS.has(error?.message)?error.message:'Unclassified assertion or infrastructure failure; raw diagnostics withheld.';}
 export function anonymousSceneFlags(xml){
   requireSafe(typeof xml==='string','Expected anonymous Android XML.');
   const high=xml.includes('Calidad 3D alta'),balanced=xml.includes('Calidad 3D equilibrada'),light=xml.includes('Vista ligera')||xml.includes('immersive-scene-light');
   return {automaticLightObserved:xml.includes('Vista ligera activada por coste de render.'),qualityTierObserved:Number(high)+Number(balanced)+Number(light)===1?(high?'high':balanced?'balanced':'light'):'unknown'};
+}
+export function anonymousSceneState(xml){
+  requireSafe(typeof xml==='string','Expected anonymous Android XML.');const bounded=xml.slice(0,1_000_000),flags=anonymousSceneFlags(bounded);
+  const knownIds=['immersive-gl-ready','immersive-scene-light','immersive-scene-pending','home-cinematic-scroll','operations-scroll'].filter(id=>bounded.includes(id));
+  const readiness=knownIds.includes('immersive-gl-ready')?'gl-ready':knownIds.includes('immersive-scene-light')?'light':knownIds.includes('immersive-scene-pending')?'pending':'absent';
+  return {...flags,knownIds,readiness,mode:readiness==='gl-ready'?'gl':readiness==='light'?(flags.automaticLightObserved?'automatic-light':'light'):'unknown',manualLightDescriptionObserved:bounded.includes('Materia virtual DEMO en modo ligero.'),reducedMotionDescriptionObserved:bounded.includes('Materia virtual DEMO con movimiento reducido.'),genericSimplifiedTextObserved:bounded.includes('Vista simplificada'),xmlTruncated:xml.length>bounded.length,rawUiPublished:false};
 }
 export async function observeColdLaunch({packageName,adb,readPid,wait:pause=ms=>new Promise(resolve=>setTimeout(resolve,ms))}){
   requireSafe([PRESENTED.package,PREVIEW.package].includes(packageName),'Unexpected cold-launch application.');
@@ -131,6 +139,17 @@ export function adaptiveCandidateStory(source){
   const segments=[];let current=[];
   for(const command of adapted){current.push(command);if(/^safe-story-[1-7]$/.test(command.takeScreenshot??'')){segments.push({chapter:segments.length+1,source:document('Candidate chapter with explicit performance fallback '+(segments.length+1),current)});current=[];}}
   return {initialGlBeforeGesturesRequired:true,segments,tail:document('Candidate reverse and return after seven chapter screenshots',current)};
+}
+export function adaptiveCandidateResume(source){
+  previewFlow(source,PREVIEW.package);const parts=source.replaceAll('\r\n','\n').split('\n---\n'),commands=JSON.parse(parts[1]);
+  requireSafe(Array.isArray(commands)&&!commands.some(command=>command.takeScreenshot),'Expected the tracked resume-check sequence.');
+  const ready=command=>command?.extendedWaitUntil?.visible?.id==='immersive-gl-ready',first=commands.findIndex(ready);
+  requireSafe(first>=0&&!JSON.stringify(commands.slice(0,first)).includes('"swipe"'),'Candidate resume must prove GL before gestures.');
+  const adapted=commands.flatMap((command,index)=>ready(command)&&index!==first?[
+    {extendedWaitUntil:{...command.extendedWaitUntil,visible:{id:'immersive-(gl-ready|scene-light)'}}},
+    {runFlow:{when:{visible:{id:'immersive-scene-light'}},commands:[{assertVisible:{id:'immersive-scene-light',text:'.*Vista ligera activada por coste de render\\..*'}}]}},
+  ]:[command]);
+  return parts[0]+'\n---\n'+JSON.stringify(adapted,null,2)+'\n';
 }
 const document=(name,commands)=>JSON.stringify({appId:PACKAGE,name})+'\n---\n'+JSON.stringify(commands,null,2)+'\n';
 const tap=text=>({tapOn:text}),wait=visible=>({extendedWaitUntil:{visible,timeout:30000}});
@@ -287,7 +306,7 @@ const preservedWalletFlow=()=>document('Verify preview legacy balance after cold
 ]);
 
 async function main(){
-  let serial,progress,stage='configuration',failureReason=null,commerceStarted=false,anonymousReady=false;const results=[],privateValues=new Set();
+  let serial,progress,stage='configuration',failureReason=null,commerceStarted=false,anonymousReady=false,scope='comparison';const results=[],privateValues=new Set();
   const authChecks={buyerCreatedWithoutImport:false,buyerColdLaunchSecureStore:false,legacyRestoredAfterBuyerLogout:false,publicOperatorReadOnlyLogin:false,publicOperatorMineAndAccountWithoutBuyerWallet:false,publicOperatorLoggedOut:false};
   const repo=resolve(dirname(fileURLToPath(import.meta.url)),'..'),root=resolve(process.env.RUNNER_TEMP||'.','openminerals-mine-preview');
   const published=join(root,'public'),privateRoot=join(root,'private');
@@ -357,7 +376,7 @@ async function main(){
   async function embedded(kind){const app=kind==='before'?PRESENTED:PREVIEW;await maestro(kind,'embedded',{source:embeddedFlow(app.version)});}
   async function sampleScene(){
     const remote='/sdcard/openminerals-preview-flags-'+randomUUID()+'.xml';
-    try{adb('shell','uiautomator','dump',remote);const xml=adb('exec-out','cat',remote),flags=anonymousSceneFlags(xml);return {...flags,mode:xml.includes('immersive-gl-ready')?'gl':xml.includes('immersive-scene-light')?(flags.automaticLightObserved?'automatic-light':'light'):'unknown'};}
+    try{adb('shell','uiautomator','dump',remote);return anonymousSceneState(adb('exec-out','cat',remote));}
     finally{adb('shell','rm','-f',remote);}
   }
   async function candidateChapters(){
@@ -385,8 +404,9 @@ async function main(){
     requireSafe(background,'HOME did not background the anonymous application.');
     adb('shell','am','start','-W','-a','android.intent.action.MAIN','-c','android.intent.category.LAUNCHER','-n',activity);
     requireSafe(adb('shell','pidof',app.package)===pid,'The original Android process did not survive resume.');
-    await maestro(kind,'story-resume-check');requireSafe(adb('shell','pidof',app.package)===pid,'The original Android process did not survive resume.');
-    await json(kind+'-resume.json',{demoOnly:true,physicalDevice:false,sameProcess:true,backgroundObserved:true,stagePreserved:true,glReadyAfterResume:true,reversibleGesturesAfterResume:true,noForceStopDuringResume:true});
+    await maestro(kind,'story-resume-check',kind==='after'?{source:adaptiveCandidateResume(await readFile(join(repo,'e2e/native/story-resume-check.yaml'),'utf8'))}:{});requireSafe(adb('shell','pidof',app.package)===pid,'The original Android process did not survive resume.');
+    const finalScene=await sampleScene();
+    await json(kind+'-resume.json',{demoOnly:true,physicalDevice:false,sameProcess:true,backgroundObserved:true,stagePreserved:true,glReadyBeforeHome:true,glReadyAfterResumeBeforeGestures:true,reversibleGesturesAfterResume:true,noForceStopDuringResume:true,finalScene});
     await embedded(kind);
   }
   const copyScreenshots=(kind,requireReduced=false)=>publishAnonymousScreenshots({kind,privateRoot,published,requireReduced});
@@ -459,6 +479,7 @@ async function main(){
     requireSafe(['download','run'].includes(mode),'Expected preview download or run mode.');
     let buildRecord={};
     try{buildRecord=JSON.parse(await readFile(join(repo,'../docs/evidence/sprint-realism-20261101/candidate-build.json'),'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;}
+    scope=nativeValidationScope(buildRecord.validationScope);
     const {url,digest,certificate,baselineUrl}=previewInputs(process.env,buildRecord);
     await mkdir(published,{recursive:true});await mkdir(privateRoot,{recursive:true,mode:0o700});progress=createProgress(published,mode,()=>[...privateValues]);
     if(mode==='download'){
@@ -489,21 +510,25 @@ async function main(){
         requireSafe(!adb('shell','pm','list','packages',PRESENTED.package),'Comparison requires a fresh emulator; stable data will never be cleared.');
         requireSafe(!adb('shell','pm','list','packages',PREVIEW.package),'Comparison requires a fresh preview install.');
       });
-      let stable;const trace=gestureTrace(adb('shell','wm','size'));await json('fixed-input-trace.json',trace);
+      let stable;const trace=scope==='comparison'?gestureTrace(adb('shell','wm','size')):null;if(trace)await json('fixed-input-trace.json',trace);
       await step('install-presented-stable-separate-package',async()=>{adb('install',join(root,'before.apk'));stable=identity(PRESENTED);anonymousReady=true;await coldOpen(PRESENTED);await embedded('before');});
+      if(scope==='comparison'){
       await step('presented-seven-chapters',async()=>{await maestro('before','story');await copyScreenshots('before');});
       await step('presented-light-unrecorded-fixed-trace',()=>measure('before',trace,{record:false,light:true}));
       await step('presented-recorded-fixed-trace',()=>measure('before',trace,{record:true}));
       await step('presented-unrecorded-fixed-trace',()=>measure('before',trace,{record:false}));
-      await step('presented-reduced-motion-and-exits',async()=>{await maestro('before','story-video-prepare');await maestro('before','story-exit');await copyScreenshots('before',true);});
+      await step('presented-reduced-motion-and-exits',async()=>{await maestro('before','open-story-for-options',{source:document('Open narrative options without a 3D prerequisite',[tap('^Inicio$'),wait({id:'home-cinematic-scroll'})])});await maestro('before','story-exit');await copyScreenshots('before',true);});
       await step('presented-live-gl-home-resume',()=>resume('before'));
+      }
       adb('shell','am','force-stop',PRESENTED.package);
       await step('install-preview-alongside-preserved-stable',async()=>{adb('install',join(root,'after.apk'));identity(PREVIEW);assertStablePreserved(stable,identity(PRESENTED));await coldOpen(PREVIEW);await embedded('after');});
+      if(scope==='comparison'){
       await step('preview-seven-chapters',candidateChapters);
       await step('preview-light-unrecorded-fixed-trace',()=>measure('after',trace,{record:false,light:true}));
       await step('preview-recorded-fixed-trace',()=>measure('after',trace,{record:true}));
       await step('preview-unrecorded-fixed-trace',()=>measure('after',trace,{record:false}));
-      await step('preview-reduced-motion-and-exits',async()=>{await maestro('after','story-video-prepare');await maestro('after','story-exit');await copyScreenshots('after',true);});
+      }else await step('preview-regression-first-gl-proof',async()=>{await maestro('after','story-video-prepare');const scene=await sampleScene();await json('regression-first-gl.json',{demoOnly:true,strictGlReadinessRequired:true,...scene});requireSafe(scene.mode==='gl','Candidate regression requires an actual GL-ready scene.');});
+      await step('preview-reduced-motion-and-exits',async()=>{await maestro('after','open-story-for-options',{source:document('Open narrative options without a 3D prerequisite',[tap('^Inicio$'),wait({id:'home-cinematic-scroll'})])});await maestro('after','story-exit');await publishAnonymousScreenshots({kind:'after',privateRoot,published,requireChapters:scope==='comparison',requireReduced:true});});
       await step('preview-live-gl-home-resume',()=>resume('after'));
       // No recording, copying of UI or public raw Maestro output follows this
       // boundary. Mutations use only this fresh app-owned DEMO legacy session.
@@ -525,6 +550,7 @@ async function main(){
     progress?.failCurrent();failureReason=publicFailureReason(error);
     console.error('FAIL isolated mine preview stage: '+stage+'. '+failureReason);process.exitCode=1;
     if(serial&&anonymousReady&&!commerceStarted){
+      try{await json('anonymous-scene-state.json',{demoOnly:true,stage,...await sampleScene()});}catch{}
       try{
         const bytes=command('adb',['-s',serial,'exec-out','screencap','-p'],{binary:true});
         if(bytes.length<10_000_000&&bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])))await writeFile(join(published,'anonymous-failure.png'),bytes);
@@ -536,7 +562,7 @@ async function main(){
     }
   }
   finally{
-    if(results.length){await json('summary-'+mode+'.json',{demoOnly:true,environment:'disposable Android API29 emulator',physicalDevice:false,phonePerformanceAcceptance:false,gpuFpsMeasured:false,completed:results.filter(item=>item.ok).map(item=>item.name),failed:results.filter(item=>!item.ok).map(item=>item.name),failureReason,nativeAuthentication:authChecks,nativeAuthenticatedCommerce:'NOT RUN: authenticated trading, marketplace transfers, certificates and deliveries require isolated fixtures; read-only native account access is reported separately.',privateUiPublished:false});await writeFile(join(published,'report-'+mode+'.xml'),publicJunit(results,[...privateValues]));}
+    if(results.length){await json('summary-'+mode+'.json',{demoOnly:true,validationScope:scope,previousComparison:scope==='regression'?{url:'https://github.com/Blaister9/Openminerals/actions/runs/41377075737',status:'failed after completed comparative profiles; scoped regression does not replace that failed comparison result'}:null,benchmarksIncluded:scope==='comparison',environment:'disposable Android API29 emulator',physicalDevice:false,phonePerformanceAcceptance:false,gpuFpsMeasured:false,completed:results.filter(item=>item.ok).map(item=>item.name),failed:results.filter(item=>!item.ok).map(item=>item.name),failureReason,nativeAuthentication:authChecks,nativeAuthenticatedCommerce:'NOT RUN: authenticated trading, marketplace transfers, certificates and deliveries require isolated fixtures; read-only native account access is reported separately.',privateUiPublished:false});await writeFile(join(published,'report-'+mode+'.xml'),publicJunit(results,[...privateValues]));}
   }
 }
 if(process.argv[1]&&pathToFileURL(resolve(process.argv[1])).href===import.meta.url)await main();

@@ -33,6 +33,10 @@ gh workflow run android-mine-preview.yml --ref codex/android-mine-realism-202611
 
 Los tres parámetros manuales deben proporcionarse juntos. La referencia estable continúa leyendo su URL del registro y comprobando el hash fijado. No ejecutar el harness local contra un AVD existente o teléfono: exige GitHub Actions/Linux, un único emulador, la propiedad QEMU, Android API 29 y ausencia inicial de ambos paquetes.
 
+El registro admite `validationScope`, con dos valores cerrados: `comparison` por defecto y `regression`. El segundo ejecuta un caso nuevo y desechable para completar modos, navegación, reanudación, comercio legacy, autenticación y preservación sin repetir benchmarks o vídeos ya medidos. Instala ambos APK y comprueba fuente embebida/identidad; exige una primera escena GL real del candidato y registra su estado antes de continuar. Su resumen declara `benchmarksIncluded:false` y referencia la comparación [41377075737](https://github.com/Blaister9/Openminerals/actions/runs/41377075737), cuyo resultado general fue fallido tras completar los perfiles comparativos. El caso de regresión no sustituye ese resultado ni atribuye nuevas métricas.
+
+Para activar movimiento reducido se abre Inicio y sus opciones directamente: no se exige volver a preparar 3D antes de ofrecer esa alternativa. La reanudación sigue exigiendo GL antes de HOME y antes del primer gesto al volver; después de los gestos solo admite degradación ligera con el motivo exacto de coste de render. Una escena ligera genérica no satisface esas pruebas GL. Los fallos previos a credenciales incluyen un snapshot acotado de IDs conocidos, estado pendiente/GL/ligero y señales de motivos manuales/automáticos, sin XML completo ni inferir una causa cuando no está demostrada.
+
 ## Protocolo y evidencia
 
 Antes de instalar se comprueban hashes, firmas, identificadores, versiones/códigos, runtime nativo, canal, librerías para teléfono/emulador, HTTPS embebido y protecciones de recuperación de Expo Updates. La aplicación experimental se instala junto a la estable; se compara el UID y la versión de la estable después de instalar y al finalizar. No hay desinstalación ni borrado de datos.

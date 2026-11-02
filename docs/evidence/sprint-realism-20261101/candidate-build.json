@@ -28,5 +28,16 @@
   "baselineApkSha256": "d99e8af9617f56d7862a849ebd057025cb9d6adc164b97496a5532f7b29ad29e",
   "releaseUrl": "https://github.com/Blaister9/Openminerals/releases/tag/android-mine-preview-0.4.0-r2-20261101",
   "physicalPhoneAcceptance": false,
-  "previousRevision": "failed-r1/candidate-build.json"
+  "previousRevision": "failed-r1/candidate-build.json",
+  "validationScope": "regression",
+  "comparisonEvidence": {
+    "run": 41377075737,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41377075737",
+    "overallConclusion": "failure",
+    "completedComparativeProfiles": true,
+    "completedNativeStages": 13,
+    "glChapterCaptures": 7,
+    "performanceAccepted": false,
+    "remainingScope": "Fresh functional regression only; does not replace the failed comparison result."
+  }
 }

@@ -1,0 +1,10 @@
+{
+  "demoOnly": true,
+  "credentialsEntered": false,
+  "rawLogsPublished": false,
+  "reactNativeJsError": false,
+  "javaScriptTypeError": false,
+  "nativeFatalException": false,
+  "glContextFailure": false,
+  "shaderFailure": false
+}

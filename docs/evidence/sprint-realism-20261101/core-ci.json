@@ -2,27 +2,27 @@
   "format": "openminerals-core-ci-evidence-v1",
   "demoOnly": true,
   "run": {
-    "id": 41372554958,
-    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41372554958",
+    "id": 41377075740,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41377075740",
     "event": "pull_request",
-    "headCommit": "539f7465d5d7ed51c33494dc4761819d1b088194",
+    "headCommit": "4099e8155312b26f82556b05aa93e44c9f7fbe1c",
     "status": "completed",
     "conclusion": "success",
-    "completedAtUtc": "2026-11-02T01:28:06Z"
+    "completedAtUtc": "2026-11-02T02:20:26Z"
   },
   "corroboratingPushRun": {
-    "id": 41372551012,
-    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41372551012",
-    "headCommit": "539f7465d5d7ed51c33494dc4761819d1b088194",
+    "id": 41377070713,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41377070713",
+    "headCommit": "4099e8155312b26f82556b05aa93e44c9f7fbe1c",
     "conclusion": "success"
   },
   "jobs": {
     "mobile": {
-      "id": 125045917515,
-      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41372554958/job/125045917515",
+      "id": 125059539751,
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41377075740/job/125059539751",
       "conclusion": "success",
-      "tests": 317,
-      "passed": 311,
+      "tests": 329,
+      "passed": 323,
       "failed": 0,
       "skipped": 6,
       "optionalSkips": "Software-WebGL browser execution was not configured in this source-validation CI; Android native execution and local software-WebGL are separate evidence.",
@@ -33,8 +33,8 @@
       "expoDoctor": "21/21 checks passed"
     },
     "api": {
-      "id": 125045917761,
-      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41372554958/job/125045917761",
+      "id": 125059539455,
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41377075740/job/125059539455",
       "conclusion": "success",
       "memoryPhase": {"tests": 102, "passed": 91, "failed": 0, "skipped": 11},
       "requiredDatabasePhase": {"tests": 80, "passed": 80, "failed": 0, "skipped": 0},
@@ -55,6 +55,6 @@
     "signedDownloadUrlsPublished": false,
     "nativeAndroidExecutionIncluded": false,
     "phonePerformanceAcceptanceIncluded": false,
-    "local317PassWebglRunIsSeparateEvidence": true
+    "localSoftwareWebglRunIsSeparateEvidence": true
   }
 }

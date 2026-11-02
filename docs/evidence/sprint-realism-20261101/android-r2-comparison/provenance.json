@@ -1,0 +1,387 @@
+{
+  "demoOnly": true,
+  "run": 41377075737,
+  "runUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41377075737",
+  "workflowCode": "4099e8155312b26f82556b05aa93e44c9f7fbe1c",
+  "apkSource": "618655495ac2365ce09c665ae03f9d8e7d361228",
+  "overallConclusion": "failure",
+  "passedNativeStages": 13,
+  "failedNativeStage": "preview-reduced-motion-and-exits",
+  "mediaHumanReviewedByAgent": true,
+  "privateUiPublished": false,
+  "physicalDevice": false,
+  "phonePerformanceAccepted": false,
+  "gpuFpsMeasured": false,
+  "profiles": [
+    {
+      "profile": "recorded",
+      "before": {
+        "p50": 150,
+        "p90": 400,
+        "p95": 400,
+        "uiFrames": 222,
+        "jankyUiFrames": 222,
+        "pssBeforeKiB": 118849,
+        "pssAfterKiB": 116939,
+        "activityStartMs": 1264,
+        "quality": "unknown",
+        "automaticLight": false
+      },
+      "after": {
+        "p50": 89,
+        "p90": 133,
+        "p95": 150,
+        "uiFrames": 390,
+        "jankyUiFrames": 376,
+        "pssBeforeKiB": 134523,
+        "pssAfterKiB": 130505,
+        "activityStartMs": 1132,
+        "quality": "light",
+        "automaticLight": true
+      }
+    },
+    {
+      "profile": "unrecorded",
+      "before": {
+        "p50": 150,
+        "p90": 300,
+        "p95": 300,
+        "uiFrames": 288,
+        "jankyUiFrames": 288,
+        "pssBeforeKiB": 114726,
+        "pssAfterKiB": 115335,
+        "activityStartMs": 1070,
+        "quality": "unknown",
+        "automaticLight": false
+      },
+      "after": {
+        "p50": 93,
+        "p90": 200,
+        "p95": 1150,
+        "uiFrames": 17,
+        "jankyUiFrames": 16,
+        "pssBeforeKiB": 135951,
+        "pssAfterKiB": 133635,
+        "activityStartMs": 1026,
+        "quality": "light",
+        "automaticLight": true
+      }
+    },
+    {
+      "profile": "light-unrecorded",
+      "before": {
+        "p50": 44,
+        "p90": 61,
+        "p95": 69,
+        "uiFrames": 824,
+        "jankyUiFrames": 808,
+        "pssBeforeKiB": 119110,
+        "pssAfterKiB": 115706,
+        "activityStartMs": 1188,
+        "quality": "light",
+        "automaticLight": false
+      },
+      "after": {
+        "p50": 48,
+        "p90": 73,
+        "p95": 81,
+        "uiFrames": 715,
+        "jankyUiFrames": 706,
+        "pssBeforeKiB": 132510,
+        "pssAfterKiB": 128292,
+        "activityStartMs": 1069,
+        "quality": "light",
+        "automaticLight": false
+      }
+    }
+  ],
+  "files": [
+    {
+      "file": "acceleration.txt",
+      "bytes": 112,
+      "sha256": "b52571637c73b4132bbabab0a846c86cabfba6ddf7503c317c79971fda6a18fb"
+    },
+    {
+      "file": "after-anonymous-flow-failure.json",
+      "bytes": 2718,
+      "sha256": "b1771545f053d4ea2c163f004bc35308f701eaa3a60d3aeadfcbed5e57eaa9d2"
+    },
+    {
+      "file": "after-anonymous-scroll.mp4",
+      "bytes": 1053905,
+      "sha256": "ffb703dff32c35a38e4a4cfc2e0faaef690e44c27415f9a3b7c5d2c4439d3a88"
+    },
+    {
+      "file": "after-chapter-rendering.json",
+      "bytes": 2509,
+      "sha256": "c04ebd5b48b9b8b766ff174683ec008c791648007b2e1e322e697ac92ac768ad"
+    },
+    {
+      "file": "after-launch-1.json",
+      "bytes": 616,
+      "sha256": "97a0fae87a098fd17c42d05e3e22139f14c0bdd3d8550672ce279fb108b5c4aa"
+    },
+    {
+      "file": "after-launch-2.json",
+      "bytes": 623,
+      "sha256": "ff66eddc88e9bdd2a249d9db973f52b83e1791fa8ade91a077bbf71e3d9e5174"
+    },
+    {
+      "file": "after-launch-3.json",
+      "bytes": 623,
+      "sha256": "56c2e7b4f52ace843bbbba24a60edede8e5e60eed29480db73ba7df04e50a155"
+    },
+    {
+      "file": "after-launch-4.json",
+      "bytes": 623,
+      "sha256": "c015182c05caa5cca69b86fe59a78c7db9315c1550dff034ed02d4ef14f50250"
+    },
+    {
+      "file": "after-performance-light-unrecorded.json",
+      "bytes": 5334,
+      "sha256": "e6e72e67249d736cb648bb3d7291b65c43e8fbad6f01ce5f0dafe8309e4ad7d8"
+    },
+    {
+      "file": "after-performance-recorded.json",
+      "bytes": 6773,
+      "sha256": "8a2fb4666554b6a973a734365f615d7b7e38997598aca96cd6cbce6c0ece20bb"
+    },
+    {
+      "file": "after-performance-unrecorded.json",
+      "bytes": 5337,
+      "sha256": "a9ae1a5669938f05516dbdb2eb10e5eb1502670cacd1381597db599b1b0a52a4"
+    },
+    {
+      "file": "after-safe-initial-gl.png",
+      "bytes": 860575,
+      "sha256": "3b3e5a77a09d84bf092491ffe1ad67f2eb50efa6c09f0715b60f0c0103ac0b29"
+    },
+    {
+      "file": "after-safe-story-1.png",
+      "bytes": 850446,
+      "sha256": "6e9d495e3e4a5e24e67a2050d9cfc2385c3ae1625a7c97487501d4375f947ae2"
+    },
+    {
+      "file": "after-safe-story-2.png",
+      "bytes": 937581,
+      "sha256": "3651505ed42fa8477e7b3a859a587bec32d8b0b8721a4c0dc6545224d03e8f41"
+    },
+    {
+      "file": "after-safe-story-3.png",
+      "bytes": 809925,
+      "sha256": "5af8b3d1be280ff257396bd8756386277171eb9c120086a912eb782481a0e3df"
+    },
+    {
+      "file": "after-safe-story-4.png",
+      "bytes": 345542,
+      "sha256": "43a2a4d2c1b9358d48b982fb79cbeeee98e3d42a23016f6b1b9202dae9fdb752"
+    },
+    {
+      "file": "after-safe-story-5.png",
+      "bytes": 395197,
+      "sha256": "94817dd1562107b8b3bde76890836479eb6f341cce11f46769a171545fdae94f"
+    },
+    {
+      "file": "after-safe-story-6.png",
+      "bytes": 375696,
+      "sha256": "9679b97b8cdf0cd426952cc9e8310b56545aa735623db1cbb3d0e9890699ba27"
+    },
+    {
+      "file": "after-safe-story-7.png",
+      "bytes": 393860,
+      "sha256": "afb804736b4a47e7cab6a96dcbe9be351060f4393821931e5b7624bb095df645"
+    },
+    {
+      "file": "after-screenshots.json",
+      "bytes": 1557,
+      "sha256": "573b1b12fb256418c35af9add8458ff4bd8597f56ca533a6a8366ed45cc5446c"
+    },
+    {
+      "file": "after-trace-end.png",
+      "bytes": 116086,
+      "sha256": "989a84ed2843c471af9ede5f9072c2dca87035ba0e5eac7433c0f781dcce6bc0"
+    },
+    {
+      "file": "after-video-final-sample-1.png",
+      "bytes": 261713,
+      "sha256": "c6f7bb25a5f2a589032d74e7ad0641789fe2cdc01546958820304b375d6b39c6"
+    },
+    {
+      "file": "after-video-final-sample-2.png",
+      "bytes": 265063,
+      "sha256": "321559c02e292611ff58f0e0b13ca10599f5b4ab4c9428ce3888cf3b39d3a706"
+    },
+    {
+      "file": "after-video-validation.json",
+      "bytes": 1715,
+      "sha256": "c983b7aff1ef5bb6b96ed6d73ae600805a0b6c5e94a1b77ad7f94479afc6437c"
+    },
+    {
+      "file": "anonymous-failure-flags.json",
+      "bytes": 234,
+      "sha256": "faba9237bcab77d938f86d47728de11393a7bd96a8d9d88937d752658aed781e"
+    },
+    {
+      "file": "anonymous-failure.png",
+      "bytes": 958909,
+      "sha256": "1170708f0776340befb0068f2dc1483076ee7602731c4d256be8691c20ebe367"
+    },
+    {
+      "file": "apk-verification.json",
+      "bytes": 1205,
+      "sha256": "673b103cb60fe8adf7ea8905cbb75d397e55249b137cae281e4a1f7488f0e47d"
+    },
+    {
+      "file": "before-anonymous-scroll.mp4",
+      "bytes": 1279907,
+      "sha256": "f8f5fb7102ea79ce7c9bcc4fd2e7340e8cab7cae320c18d8fb11183900c4a847"
+    },
+    {
+      "file": "before-launch-1.json",
+      "bytes": 612,
+      "sha256": "2d5c70a274e7c182c35dff9db9a68c10d35568e21c214b008bcab626a74cb1bf"
+    },
+    {
+      "file": "before-launch-2.json",
+      "bytes": 616,
+      "sha256": "4f029cae8f2d0d4341efbbf00bfe1fe68f205685c0789edd9a1ea00db83a64a4"
+    },
+    {
+      "file": "before-launch-3.json",
+      "bytes": 616,
+      "sha256": "766067cd3e9b17c3b95829f18f4feb93541237b4c774e1c8d9c28460460b0357"
+    },
+    {
+      "file": "before-launch-4.json",
+      "bytes": 617,
+      "sha256": "72e0ccc5e7fd320798f1e91586d074ad9ee1f179629ff58b01056408c833cd65"
+    },
+    {
+      "file": "before-performance-light-unrecorded.json",
+      "bytes": 5316,
+      "sha256": "fe17bab4f2cdcbe3cc3e9819cbff2f1b875b8c09c8f56081772937da4ff6a6aa"
+    },
+    {
+      "file": "before-performance-recorded.json",
+      "bytes": 6741,
+      "sha256": "117ac22d4410696ae63cbc625e2775ee6a98d9053e165fde20df69dce5669f44"
+    },
+    {
+      "file": "before-performance-unrecorded.json",
+      "bytes": 5306,
+      "sha256": "8c553683e09f5164e02094714c1394ef1750c673fcf82278c6fb0b2d16ac9d8b"
+    },
+    {
+      "file": "before-resume.json",
+      "bytes": 235,
+      "sha256": "067cbbd69aae2d0b063596c4f3a32010ef82ea5daf01b2a13dd76288ca0bee49"
+    },
+    {
+      "file": "before-safe-reduced-motion.png",
+      "bytes": 91420,
+      "sha256": "7cf222d8e6887370ad49d8b6c033de29cd3962613b40c9b430b92810da5ef50c"
+    },
+    {
+      "file": "before-safe-story-1.png",
+      "bytes": 913169,
+      "sha256": "42b3bb27f04a41e6d120088c81d7619effe763236a589ed0f09b154fb89e76ff"
+    },
+    {
+      "file": "before-safe-story-2.png",
+      "bytes": 1390515,
+      "sha256": "23c7e9978268515380139c7b6bbfc000464b3cab0922fb50b8242f9494fd1cca"
+    },
+    {
+      "file": "before-safe-story-3.png",
+      "bytes": 846256,
+      "sha256": "8d140bd6d72ca6c990a2150f6eed725faeb5e125cb2eaa41ad9a8253e99864dd"
+    },
+    {
+      "file": "before-safe-story-4.png",
+      "bytes": 516087,
+      "sha256": "538a7e53b27ee2c8fdf5ce7bf0bb51ba107f2e32d2f1febea02f8adaf52fab12"
+    },
+    {
+      "file": "before-safe-story-5.png",
+      "bytes": 489263,
+      "sha256": "92848e27a527ca61f9c9c98a2d41cfe2d63b26ac877b66f8d43d0ea6287467c8"
+    },
+    {
+      "file": "before-safe-story-6.png",
+      "bytes": 540862,
+      "sha256": "fb998703b2ed5efed769e3832f91e4e454bf26e7947a88cabc85150b940d7363"
+    },
+    {
+      "file": "before-safe-story-7.png",
+      "bytes": 532435,
+      "sha256": "04fbc71b4426a1b562cbc6adaa19c0eb08475c76a948e7cd8375f3af61205be5"
+    },
+    {
+      "file": "before-screenshots.json",
+      "bytes": 1551,
+      "sha256": "88092e4e369cf366ce7df15bddadcf99256e20b1a243f0a0a21d99857e5d902f"
+    },
+    {
+      "file": "before-trace-end.png",
+      "bytes": 565831,
+      "sha256": "e0ef276b3becb0f8d7a2b4fca912dc6a6544936b79f4412cdc053a496bed268e"
+    },
+    {
+      "file": "before-video-final-sample-1.png",
+      "bytes": 423115,
+      "sha256": "660b0a14bd62aced05b53718bbee1b6ddaaf8d8fb0f616d45428fbaa43c432bb"
+    },
+    {
+      "file": "before-video-final-sample-2.png",
+      "bytes": 406489,
+      "sha256": "b5ded9f2af1e63876016933525bb8aa261f80233570437dbb66f5251806c91e8"
+    },
+    {
+      "file": "before-video-validation.json",
+      "bytes": 1715,
+      "sha256": "e5d7ee80dd0c129fce4e62f238e4d7985dc9c36bb8a474152aee3705f290d9b3"
+    },
+    {
+      "file": "fixed-input-trace.json",
+      "bytes": 4329,
+      "sha256": "d6ffd0bbb49b0c4d8e5cfabc542fdf771d8675a52ad9e1f0be6a5056a6fdc932"
+    },
+    {
+      "file": "host-resources.json",
+      "bytes": 96,
+      "sha256": "be482ed6fe5df0a24a226a6d13718756ac100cc60143dfb0189d5d776144ed97"
+    },
+    {
+      "file": "maestro-version.txt",
+      "bytes": 136,
+      "sha256": "e965ba7b69fd265831428ae69482aeb948488c4933f2ef20e51dc3582d04c22b"
+    },
+    {
+      "file": "media-tools.json",
+      "bytes": 64,
+      "sha256": "cee598d19a3aa9c7b5a29d3eb945df2b734772b5db4c9a44f3864110076cb726"
+    },
+    {
+      "file": "review.json",
+      "bytes": 15842,
+      "sha256": "6a262677416880911e6e59f5871821effed6b92674fc634951263e16885e4b0a"
+    },
+    {
+      "file": "summary-download.json",
+      "bytes": 840,
+      "sha256": "b099bb7a9e848ac16b9580f28412e912d224ea0be086db1c6312b3bec63be16e"
+    },
+    {
+      "file": "summary-run.json",
+      "bytes": 1372,
+      "sha256": "9854d7edbd9b93b535fc124571a2bdbbb4ed35a2aec4fb1aa0a3c4a9e63b0229"
+    }
+  ],
+  "limitations": [
+    "Seven balanced GL chapter captures and complete adaptive video are distinct conditions.",
+    "After recorded/unrecorded modes ended in automatic light; not fixed-quality 3D speed comparison.",
+    "After unrecorded has17UIframes and p951150ms.",
+    "Explicit light p9569→81ms and PSSincreases observed; not accepted performance.",
+    "Final GL-ready preparation timed out before reduced-motion/commerce/auth phases; no root-cause proof."
+  ]
+}

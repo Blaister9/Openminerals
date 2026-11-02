@@ -5,7 +5,7 @@ import {createRequire} from 'node:module';
 import {mkdtemp,mkdir,writeFile,readdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve,sep} from 'node:path';
-import {PRESENTED,PREVIEW,previewInputs,previewFlow,gestureTrace,executeTrace,metadataValue,verifyArtifact,installedIdentity,assertStablePreserved,legacyCommerceFlow,publicFailureReason,anonymousSceneFlags,authorizedAuthFlow,authorizedPublicOperator,publicOperatorPreflight,observeColdLaunch,videoCoverage,publishAnonymousScreenshots,adaptiveCandidateStory} from '../e2e/mine-preview.mjs';
+import {PRESENTED,PREVIEW,previewInputs,previewFlow,gestureTrace,executeTrace,metadataValue,verifyArtifact,installedIdentity,assertStablePreserved,legacyCommerceFlow,publicFailureReason,anonymousSceneFlags,authorizedAuthFlow,authorizedPublicOperator,publicOperatorPreflight,observeColdLaunch,videoCoverage,publishAnonymousScreenshots,adaptiveCandidateStory,nativeValidationScope,anonymousSceneState,adaptiveCandidateResume} from '../e2e/mine-preview.mjs';
 import {API,PACKAGE} from '../e2e/ci-safety.mjs';
 import {embeddedFlow} from '../e2e/release-contract.mjs';
 const yaml=createRequire(import.meta.url)('yaml');
@@ -159,6 +159,27 @@ test('candidate chapter adapter preserves initial GL proof and accepts only expl
   }
   assert.throws(()=>adaptiveCandidateStory(source.replace('safe-story-7','safe-story-8')));
   const parts=source.replaceAll('\r\n','\n').split('\n---\n'),commands=JSON.parse(parts[1]);commands.unshift({swipe:{start:'80%,80%',end:'80%,18%',duration:800}});assert.throws(()=>adaptiveCandidateStory(parts[0]+'\n---\n'+JSON.stringify(commands)));
+});
+
+test('native validation scope defaults to comparison and permits only the committed regression case',()=>{
+  assert.equal(nativeValidationScope(), 'comparison');assert.equal(nativeValidationScope('comparison'),'comparison');assert.equal(nativeValidationScope('regression'),'regression');
+  for(const value of [null,'','all','../regression',0,{}])assert.throws(()=>nativeValidationScope(value));
+});
+
+test('bounded anonymous scene snapshots distinguish explicit cost fallback from unexplained light or pending',()=>{
+  assert.equal(anonymousSceneState('<node resource-id="immersive-gl-ready"/>').mode,'gl');
+  const automatic=anonymousSceneState('<node resource-id="immersive-scene-light" content-desc="Vista ligera activada por coste de render."/>');assert.equal(automatic.mode,'automatic-light');assert.equal(automatic.automaticLightObserved,true);
+  const generic=anonymousSceneState('<node resource-id="immersive-scene-light" content-desc="Vista simplificada private_unit_canary"/>');assert.equal(generic.mode,'light');assert.equal(generic.automaticLightObserved,false);assert.equal(generic.genericSimplifiedTextObserved,true);assert.ok(!JSON.stringify(generic).includes('private_unit_canary'));
+  const pending=anonymousSceneState('<node resource-id="immersive-scene-pending"/>');assert.equal(pending.readiness,'pending');assert.equal(pending.mode,'unknown');assert.equal(pending.rawUiPublished,false);
+  const bounded=anonymousSceneState('x'.repeat(1_000_001)+'immersive-gl-ready');assert.equal(bounded.xmlTruncated,true);assert.equal(bounded.readiness,'absent');
+});
+
+test('candidate resume keeps its first post-HOME GL proof and allows only explicit cost fallback after gestures',async()=>{
+  const source=await read('../e2e/native/story-resume-check.yaml'),adapted=adaptiveCandidateResume(source),commands=yaml.parseAllDocuments(adapted)[1].toJSON();
+  assert.equal(commands[1].extendedWaitUntil.visible.id,'immersive-gl-ready');assert.ok(commands[2].repeat);
+  const alternatives=commands.filter(command=>command.extendedWaitUntil?.visible?.id==='immersive-(gl-ready|scene-light)');assert.equal(alternatives.length,2);
+  for(const command of commands.filter(command=>command.runFlow?.when?.visible?.id==='immersive-scene-light'))assert.deepEqual(command.runFlow.commands,[{assertVisible:{id:'immersive-scene-light',text:'.*Vista ligera activada por coste de render\\..*'}}]);
+  assert.doesNotThrow(()=>previewFlow(adapted,PREVIEW.package));assert.doesNotMatch(adapted,/takeScreenshot|inputText|launchApp|clearState/);
 });
 
 test('authorized native authentication opts out of legacy import and preserves the exact buyer across a cold launch',()=>{

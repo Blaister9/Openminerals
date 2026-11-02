@@ -1,0 +1,20 @@
+{
+  "run": 41376893550,
+  "url": "https://github.com/Blaister9/Openminerals/actions/runs/41376893550",
+  "artifact": 13111333398,
+  "conclusion": "failure",
+  "appRevision": "r2",
+  "workflowHead": "1cc255804f15f0f5f46f95f1e130c45fc86ac88e",
+  "completedStages": 0,
+  "failedStage": "require-host-media-inspection-tools",
+  "failureReason": "Required host media inspection tools are unavailable.",
+  "evidence": "First command ffprobe -version failed with spawn-error within4ms; workflow did not install media tools.",
+  "apkDownloadedOrVerified": false,
+  "androidExecuted": false,
+  "mediaAvailable": false,
+  "metricsAvailable": false,
+  "performanceAcceptance": false,
+  "physicalDevice": false,
+  "sourceChangedByReviewer": false,
+  "workflowRerunByReviewer": false
+}

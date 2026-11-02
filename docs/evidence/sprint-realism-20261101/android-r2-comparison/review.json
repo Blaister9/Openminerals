@@ -1,0 +1,473 @@
+{
+  "run": 41377075737,
+  "url": "https://github.com/Blaister9/Openminerals/actions/runs/41377075737",
+  "artifact": 13112476569,
+  "workflowHead": "4099e8155312b26f82556b05aa93e44c9f7fbe1c",
+  "appRevision": "r2",
+  "candidateSource": "618655495ac2365ce09c665ae03f9d8e7d361228",
+  "conclusion": "failure",
+  "completedNativeStages": 13,
+  "failedStage": "preview-reduced-motion-and-exits",
+  "failure": {
+    "flow": "story-video-prepare",
+    "invocation": 3,
+    "firstFailedCommandIndex": 14,
+    "sourceCommand": "final wait for immersive-gl-ready",
+    "originAndClosedMenuVerified": true,
+    "category": "timeout",
+    "screenshotShows": "origin mine; source GL/fallback cannot be proven from same raster alone",
+    "crashFlags": false,
+    "rootCauseUnproven": true
+  },
+  "conditions": [
+    {
+      "file": "after-performance-light-unrecorded.json",
+      "version": "0.4.0",
+      "profile": "light",
+      "recorded": false,
+      "uiFrames": 715,
+      "jankyUiFrames": 706,
+      "uiP50Ms": 48,
+      "uiP90Ms": 73,
+      "uiP95Ms": 81,
+      "pssBeforeKiB": 132510,
+      "pssAfterKiB": 128292,
+      "startTotalMs": 1069,
+      "startWaitMs": 1070,
+      "verifiedColdLaunch": true,
+      "quality": "light",
+      "mode": "light",
+      "automaticLightObserved": false,
+      "traceDurationMs": 33453.42609900003,
+      "measurementValid": true,
+      "checks": {
+        "traceFinalAccessibility": true,
+        "embeddedAfterTrace": true
+      }
+    },
+    {
+      "file": "after-performance-recorded.json",
+      "version": "0.4.0",
+      "profile": "3d",
+      "recorded": true,
+      "uiFrames": 390,
+      "jankyUiFrames": 376,
+      "uiP50Ms": 89,
+      "uiP90Ms": 133,
+      "uiP95Ms": 150,
+      "pssBeforeKiB": 134523,
+      "pssAfterKiB": 130505,
+      "startTotalMs": 1132,
+      "startWaitMs": 1134,
+      "verifiedColdLaunch": true,
+      "quality": "light",
+      "mode": "automatic-light",
+      "automaticLightObserved": true,
+      "traceDurationMs": 34088.76636300003,
+      "measurementValid": true,
+      "checks": {
+        "traceFinalAccessibility": true,
+        "embeddedAfterTrace": true
+      }
+    },
+    {
+      "file": "after-performance-unrecorded.json",
+      "version": "0.4.0",
+      "profile": "3d",
+      "recorded": false,
+      "uiFrames": 17,
+      "jankyUiFrames": 16,
+      "uiP50Ms": 93,
+      "uiP90Ms": 200,
+      "uiP95Ms": 1150,
+      "pssBeforeKiB": 135951,
+      "pssAfterKiB": 133635,
+      "startTotalMs": 1026,
+      "startWaitMs": 1030,
+      "verifiedColdLaunch": true,
+      "quality": "light",
+      "mode": "automatic-light",
+      "automaticLightObserved": true,
+      "traceDurationMs": 32624.129287000047,
+      "measurementValid": true,
+      "checks": {
+        "traceFinalAccessibility": true,
+        "embeddedAfterTrace": true
+      }
+    },
+    {
+      "file": "before-performance-light-unrecorded.json",
+      "version": "0.3.0",
+      "profile": "light",
+      "recorded": false,
+      "uiFrames": 824,
+      "jankyUiFrames": 808,
+      "uiP50Ms": 44,
+      "uiP90Ms": 61,
+      "uiP95Ms": 69,
+      "pssBeforeKiB": 119110,
+      "pssAfterKiB": 115706,
+      "startTotalMs": 1188,
+      "startWaitMs": 1190,
+      "verifiedColdLaunch": true,
+      "quality": "light",
+      "mode": "light",
+      "automaticLightObserved": false,
+      "traceDurationMs": 33572.27022699997,
+      "measurementValid": true,
+      "checks": {
+        "traceFinalAccessibility": true,
+        "embeddedAfterTrace": true
+      }
+    },
+    {
+      "file": "before-performance-recorded.json",
+      "version": "0.3.0",
+      "profile": "3d",
+      "recorded": true,
+      "uiFrames": 222,
+      "jankyUiFrames": 222,
+      "uiP50Ms": 150,
+      "uiP90Ms": 400,
+      "uiP95Ms": 400,
+      "pssBeforeKiB": 118849,
+      "pssAfterKiB": 116939,
+      "startTotalMs": 1264,
+      "startWaitMs": 1288,
+      "verifiedColdLaunch": true,
+      "quality": "unknown",
+      "mode": "gl",
+      "automaticLightObserved": false,
+      "traceDurationMs": 35646.67114499997,
+      "measurementValid": true,
+      "checks": {
+        "traceFinalAccessibility": true,
+        "embeddedAfterTrace": true
+      }
+    },
+    {
+      "file": "before-performance-unrecorded.json",
+      "version": "0.3.0",
+      "profile": "3d",
+      "recorded": false,
+      "uiFrames": 288,
+      "jankyUiFrames": 288,
+      "uiP50Ms": 150,
+      "uiP90Ms": 300,
+      "uiP95Ms": 300,
+      "pssBeforeKiB": 114726,
+      "pssAfterKiB": 115335,
+      "startTotalMs": 1070,
+      "startWaitMs": 1100,
+      "verifiedColdLaunch": true,
+      "quality": "unknown",
+      "mode": "gl",
+      "automaticLightObserved": false,
+      "traceDurationMs": 35790.631822000025,
+      "measurementValid": true,
+      "checks": {
+        "traceFinalAccessibility": true,
+        "embeddedAfterTrace": true
+      }
+    }
+  ],
+  "videos": [
+    {
+      "kind": "before",
+      "demoOnly": true,
+      "videoFile": "before-anonymous-scroll.mp4",
+      "videoEvidenceValid": true,
+      "endpointScreenshotWritten": true,
+      "mediaInspectionComplete": true,
+      "coverage": {
+        "temporalCoverageValid": true,
+        "minimumRequiredCoverage": 0.85,
+        "traceDurationSeconds": 35.64667114499997,
+        "containerDurationSeconds": 35.5082,
+        "firstPresentationTimestampSeconds": 0,
+        "lastPresentationTimestampSeconds": 34.318078,
+        "presentationSpanSeconds": 34.318078,
+        "containerCoverageRatio": 0.996115453686076,
+        "presentationCoverageRatio": 0.9627288298647677,
+        "timestampsMonotonic": true,
+        "encodedFramesWithTimestamps": 153,
+        "tailPresentationTimestamps": [
+          33.066989,
+          33.127956,
+          34.318078
+        ],
+        "finalSamples": [
+          {
+            "frameIndex": 136,
+            "ptsSeconds": 30.957933,
+            "file": "before-video-final-sample-1.png",
+            "sha256": "660b0a14bd62aced05b53718bbee1b6ddaaf8d8fb0f616d45428fbaa43c432bb"
+          },
+          {
+            "frameIndex": 152,
+            "ptsSeconds": 34.318078,
+            "file": "before-video-final-sample-2.png",
+            "sha256": "b5ded9f2af1e63876016933525bb8aa261f80233570437dbb66f5251806c91e8"
+          }
+        ],
+        "visualFinalStageVerified": false,
+        "interpretation": "Temporal MP4 coverage only. Final sample images require human review; timestamp coverage and accessibility do not prove rendered stage 7. Encoded frame count is not application FPS."
+      },
+      "inputExecutionFailed": false,
+      "recorderAliveAtTraceEnd": true,
+      "inputTraceComplete": true,
+      "containerReadable": true,
+      "inspectionFailure": false,
+      "traceObservedDurationMs": 35646.67114499997,
+      "physicalDevice": false,
+      "gpuFpsMeasured": false,
+      "visualReview": {
+        "sampledFullTimeline": true,
+        "decodedFinalSamplesInspected": true,
+        "endpointInspected": true,
+        "finalSample1Stage": "FRACCIONAMIENTO DIGITAL",
+        "finalSample2Stage": "PORTAFOLIO",
+        "endpointStage": "PORTAFOLIO",
+        "finalStageVisuallyVerified": true,
+        "completeForwardReverseNarrativeObserved": true,
+        "finalRenderedMode": "GL",
+        "fullGlVideo": true,
+        "privateUiObserved": false
+      }
+    },
+    {
+      "kind": "after",
+      "demoOnly": true,
+      "videoFile": "after-anonymous-scroll.mp4",
+      "videoEvidenceValid": true,
+      "endpointScreenshotWritten": true,
+      "mediaInspectionComplete": true,
+      "coverage": {
+        "temporalCoverageValid": true,
+        "minimumRequiredCoverage": 0.85,
+        "traceDurationSeconds": 34.08876636300003,
+        "containerDurationSeconds": 30.873811,
+        "firstPresentationTimestampSeconds": 0,
+        "lastPresentationTimestampSeconds": 30.629867,
+        "presentationSpanSeconds": 30.629867,
+        "containerCoverageRatio": 0.9056887149049327,
+        "presentationCoverageRatio": 0.8985325744508512,
+        "timestampsMonotonic": true,
+        "encodedFramesWithTimestamps": 183,
+        "tailPresentationTimestamps": [
+          30.275922,
+          30.385911,
+          30.629867
+        ],
+        "finalSamples": [
+          {
+            "frameIndex": 160,
+            "ptsSeconds": 27.851256,
+            "file": "after-video-final-sample-1.png",
+            "sha256": "c6f7bb25a5f2a589032d74e7ad0641789fe2cdc01546958820304b375d6b39c6"
+          },
+          {
+            "frameIndex": 182,
+            "ptsSeconds": 30.629867,
+            "file": "after-video-final-sample-2.png",
+            "sha256": "321559c02e292611ff58f0e0b13ca10599f5b4ab4c9428ce3888cf3b39d3a706"
+          }
+        ],
+        "visualFinalStageVerified": false,
+        "interpretation": "Temporal MP4 coverage only. Final sample images require human review; timestamp coverage and accessibility do not prove rendered stage 7. Encoded frame count is not application FPS."
+      },
+      "inputExecutionFailed": false,
+      "recorderAliveAtTraceEnd": true,
+      "inputTraceComplete": true,
+      "containerReadable": true,
+      "inspectionFailure": false,
+      "traceObservedDurationMs": 34088.76636300003,
+      "physicalDevice": false,
+      "gpuFpsMeasured": false,
+      "visualReview": {
+        "sampledFullTimeline": true,
+        "decodedFinalSamplesInspected": true,
+        "endpointInspected": true,
+        "finalSample1Stage": "FRACCIONAMIENTO DIGITAL",
+        "finalSample2Stage": "PORTAFOLIO",
+        "endpointStage": "PORTAFOLIO",
+        "finalStageVisuallyVerified": true,
+        "completeForwardReverseNarrativeObserved": true,
+        "finalRenderedMode": "2D automatic light fallback",
+        "fullGlVideo": false,
+        "privateUiObserved": false
+      }
+    }
+  ],
+  "media": [
+    {
+      "file": "after-anonymous-scroll.mp4",
+      "bytes": 1053905,
+      "sha256": "ffb703dff32c35a38e4a4cfc2e0faaef690e44c27415f9a3b7c5d2c4439d3a88",
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-safe-initial-gl.png",
+      "bytes": 860575,
+      "sha256": "3b3e5a77a09d84bf092491ffe1ad67f2eb50efa6c09f0715b60f0c0103ac0b29",
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-safe-story-1.png",
+      "bytes": 850446,
+      "sha256": "6e9d495e3e4a5e24e67a2050d9cfc2385c3ae1625a7c97487501d4375f947ae2",
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-safe-story-2.png",
+      "bytes": 937581,
+      "sha256": "3651505ed42fa8477e7b3a859a587bec32d8b0b8721a4c0dc6545224d03e8f41",
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-safe-story-3.png",
+      "bytes": 809925,
+      "sha256": "5af8b3d1be280ff257396bd8756386277171eb9c120086a912eb782481a0e3df",
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-safe-story-4.png",
+      "bytes": 345542,
+      "sha256": "43a2a4d2c1b9358d48b982fb79cbeeee98e3d42a23016f6b1b9202dae9fdb752",
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-safe-story-5.png",
+      "bytes": 395197,
+      "sha256": "94817dd1562107b8b3bde76890836479eb6f341cce11f46769a171545fdae94f",
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-safe-story-6.png",
+      "bytes": 375696,
+      "sha256": "9679b97b8cdf0cd426952cc9e8310b56545aa735623db1cbb3d0e9890699ba27",
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-safe-story-7.png",
+      "bytes": 393860,
+      "sha256": "afb804736b4a47e7cab6a96dcbe9be351060f4393821931e5b7624bb095df645",
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-trace-end.png",
+      "bytes": 116086,
+      "sha256": "989a84ed2843c471af9ede5f9072c2dca87035ba0e5eac7433c0f781dcce6bc0",
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-video-final-sample-1.png",
+      "bytes": 261713,
+      "sha256": "c6f7bb25a5f2a589032d74e7ad0641789fe2cdc01546958820304b375d6b39c6",
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-video-final-sample-2.png",
+      "bytes": 265063,
+      "sha256": "321559c02e292611ff58f0e0b13ca10599f5b4ab4c9428ce3888cf3b39d3a706",
+      "visuallyInspected": true
+    },
+    {
+      "file": "anonymous-failure.png",
+      "bytes": 958909,
+      "sha256": "1170708f0776340befb0068f2dc1483076ee7602731c4d256be8691c20ebe367",
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-anonymous-scroll.mp4",
+      "bytes": 1279907,
+      "sha256": "f8f5fb7102ea79ce7c9bcc4fd2e7340e8cab7cae320c18d8fb11183900c4a847",
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-reduced-motion.png",
+      "bytes": 91420,
+      "sha256": "7cf222d8e6887370ad49d8b6c033de29cd3962613b40c9b430b92810da5ef50c",
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-1.png",
+      "bytes": 913169,
+      "sha256": "42b3bb27f04a41e6d120088c81d7619effe763236a589ed0f09b154fb89e76ff",
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-2.png",
+      "bytes": 1390515,
+      "sha256": "23c7e9978268515380139c7b6bbfc000464b3cab0922fb50b8242f9494fd1cca",
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-3.png",
+      "bytes": 846256,
+      "sha256": "8d140bd6d72ca6c990a2150f6eed725faeb5e125cb2eaa41ad9a8253e99864dd",
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-4.png",
+      "bytes": 516087,
+      "sha256": "538a7e53b27ee2c8fdf5ce7bf0bb51ba107f2e32d2f1febea02f8adaf52fab12",
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-5.png",
+      "bytes": 489263,
+      "sha256": "92848e27a527ca61f9c9c98a2d41cfe2d63b26ac877b66f8d43d0ea6287467c8",
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-6.png",
+      "bytes": 540862,
+      "sha256": "fb998703b2ed5efed769e3832f91e4e454bf26e7947a88cabc85150b940d7363",
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-7.png",
+      "bytes": 532435,
+      "sha256": "04fbc71b4426a1b562cbc6adaa19c0eb08475c76a948e7cd8375f3af61205be5",
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-trace-end.png",
+      "bytes": 565831,
+      "sha256": "e0ef276b3becb0f8d7a2b4fca912dc6a6544936b79f4412cdc053a496bed268e",
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-video-final-sample-1.png",
+      "bytes": 423115,
+      "sha256": "660b0a14bd62aced05b53718bbee1b6ddaaf8d8fb0f616d45428fbaa43c432bb",
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-video-final-sample-2.png",
+      "bytes": 406489,
+      "sha256": "b5ded9f2af1e63876016933525bb8aa261f80233570437dbb66f5251806c91e8",
+      "visuallyInspected": true
+    }
+  ],
+  "chapterReview": {
+    "beforeChapters": 7,
+    "beforeReducedMotion": true,
+    "afterInitialGl": true,
+    "afterChapters": 7,
+    "afterChapterModes": "7 GL, balanced, zero automatic light",
+    "afterReducedMotionScreenshotAvailable": false,
+    "afterChapterVisuals": "Genuine depth, mineral veins, irregular rock and transformation are visible. Final bars remain recognizable. Aesthetic acceptance still belongs to owner."
+  },
+  "limitations": [
+    "Candidate recorded and unrecorded benchmarks switched to automatic light fallback; improved recorded UI percentiles do not prove equivalent-quality GPU improvement.",
+    "Unrecorded candidate sample has only17UIframes and P95=1150ms.",
+    "Explicit light P95 regressed69ms to81ms and PSS after increased12586KiB in this one run.",
+    "Candidate reduced-motion/exits stage failed before story-exit. Preview resume, commerce, authentication and final stable UID preservation not reached.",
+    "Single emulator run percondition; no physical phone, GPU FPS, battery/thermal orpeakmemory measured.",
+    "InvalidR1andearlymissing-ffprobeR2runs are separate evidence, never replaced by these results."
+  ],
+  "reviewerChangedSource": false,
+  "reviewerReranWorkflow": false
+}
