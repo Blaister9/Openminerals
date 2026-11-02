@@ -1,0 +1,24 @@
+{
+  "demoOnly": true,
+  "run": 41385054878,
+  "url": "https://github.com/Blaister9/Openminerals/actions/runs/41385054878",
+  "harnessCommit": "a11bb2aef0621db8fe7e6f0c9cf849152c2bbb0c",
+  "apkSource": "0d3fa50791a6e86d8944c2d07026fcc5bc5c6999",
+  "apkRevision": "r3/code3",
+  "overallConclusion": "cancelled",
+  "commerce": {
+    "conclusion": "failure",
+    "completedAtUtc": "2026-11-02T04:09:15Z",
+    "archive": "provenance.json"
+  },
+  "comparison": {
+    "conclusion": "cancelled",
+    "completedAtUtc": "2026-11-02T04:15:20Z",
+    "cancelledByAgent": true,
+    "reason": "Superseded duplicate comparison of the unchanged R3 APK after its complete prior comparison already failed video coverage and the independent commerce job had completed with a diagnosed harness scroll error. R4 source work was underway.",
+    "acceptanceCredited": false
+  },
+  "previousCompleteComparison": 41384249997,
+  "appDataReset": false,
+  "stableApplicationModified": false
+}

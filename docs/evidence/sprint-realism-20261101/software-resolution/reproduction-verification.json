@@ -1,0 +1,52 @@
+{
+  "demoOnly": true,
+  "environment": "desktop Chrome ANGLE SwiftShader",
+  "android": false,
+  "physicalDevice": false,
+  "gpuFpsMeasured": false,
+  "phonePerformanceAcceptance": false,
+  "portableScript": "mobile/scripts/benchmark-geology-resolution.mjs",
+  "portableScriptSha256": "7fb10b1f618e50c6c2c73b3d543044b84edea867e9fe115c100891f17e2488bb",
+  "executionsOfNewScript": 1,
+  "sourceInputDirectory": "artifacts\\r3-software-resolution-benchmark-readback\\sources",
+  "frozenMeasuredSourceCommit": "0d3fa50791a6e86d8944c2d07026fcc5bc5c6999",
+  "repositoryHeadAtVerification": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+  "sourceHashesMatchOriginal": true,
+  "imagesMatchedOriginal": 15,
+  "verificationRunDirectory": "artifacts/geology-resolution-repro-verify-20261102T042136",
+  "verificationCapturedAtUtc": "2026-11-02T04:21:44.163Z",
+  "outputLocationVerifiedRepoRelative": true,
+  "invocationWorkingDirectory": "mobile",
+  "originalTimingsNeverReplaced": true,
+  "distinctTimings": [
+    {
+      "longSide": 640,
+      "originalMedianMs": 11.899999998509884,
+      "verificationMedianMs": 11.799999997019768,
+      "originalP95Ms": 20.700000002980232,
+      "verificationP95Ms": 20.399999998509884
+    },
+    {
+      "longSide": 384,
+      "originalMedianMs": 5,
+      "verificationMedianMs": 4.9000000059604645,
+      "originalP95Ms": 8.5,
+      "verificationP95Ms": 8.699999995529652
+    },
+    {
+      "longSide": 320,
+      "originalMedianMs": 3.5,
+      "verificationMedianMs": 3.4000000059604645,
+      "originalP95Ms": 6.299999997019768,
+      "verificationP95Ms": 6.199999995529652
+    }
+  ],
+  "completionFence": "gl.finish + full-viewport RGBA readPixels with transfer overhead included",
+  "limitations": [
+    "Desktop Chrome/SwiftShader completion plus RGBA readback, not Android/native GPU/compositor timings or FPS.",
+    "Full-viewport readPixels is an observable completion fence and its transfer cost is included. gl.finish-only near-zero pilot timings did not prove raster completion.",
+    "One host and ordered conditions; no randomization or cross-run statistical acceptance.",
+    "Warmup excludes shader compilation. This does not exercise Android lifecycle, gestures or automatic fallback transitions.",
+    "A completion-budget hit is not physical-device acceptance. Compare the native-resolution PNGs when judging quality."
+  ]
+}

@@ -1,0 +1,501 @@
+{
+  "run": 41384249997,
+  "job": 125081455012,
+  "jobName": "before-after (comparison)",
+  "url": "https://github.com/Blaister9/Openminerals/actions/runs/41384249997/job/125081455012",
+  "artifact": 13114953115,
+  "workflowHead": "8b892afe4e3bdb05fcdab1af06c61a2c2f2a95aa",
+  "scope": "comparison",
+  "candidateSource": "0d3fa50791a6e86d8944c2d07026fcc5bc5c6999",
+  "candidateVersionCode": 3,
+  "conclusion": "failure",
+  "completedNativeStages": 11,
+  "failedStage": "preview-recorded-fixed-trace",
+  "failureReason": "Anonymous video does not cover the measured trace; incomplete evidence retained.",
+  "boundedScene": {
+    "demoOnly": true,
+    "stage": "preview-recorded-fixed-trace",
+    "automaticLightObserved": true,
+    "qualityTierObserved": "light",
+    "knownIds": [
+      "immersive-scene-light",
+      "home-cinematic-scroll"
+    ],
+    "readiness": "light",
+    "mode": "automatic-light",
+    "stateReasonCode": null,
+    "internalFailureCode": null,
+    "internalFailureObserved": false,
+    "retryPendingObserved": false,
+    "manualRetryControlObserved": false,
+    "manualLightDescriptionObserved": false,
+    "reducedMotionDescriptionObserved": false,
+    "genericSimplifiedTextObserved": false,
+    "xmlTruncated": false,
+    "rawUiPublished": false
+  },
+  "nativeFailureFlags": {
+    "demoOnly": true,
+    "credentialsEntered": false,
+    "nativeGlFailureCounts": {
+      "context-timeout": 0,
+      "create": 0,
+      "draw": 0,
+      "boundary": 0
+    },
+    "unknownNativeGlDiagnosticLines": 0,
+    "diagnosticLogTruncated": false,
+    "rawLogsPublished": false,
+    "diagnosticInterpretation": "Static warning counts only; a timeout warning may precede a successful bounded retry. Current scene state determines internal failure, not warning history.",
+    "reactNativeJsError": false,
+    "javaScriptTypeError": false,
+    "nativeFatalException": false,
+    "glContextFailure": false,
+    "shaderFailure": false
+  },
+  "conditions": [
+    {
+      "file": "after-performance-light-unrecorded.json",
+      "version": "0.4.0",
+      "profile": "light",
+      "recorded": false,
+      "uiFrames": 537,
+      "jankyUiFrames": 535,
+      "p50Ms": 69,
+      "p90Ms": 97,
+      "p95Ms": 105,
+      "pssBeforeKiB": 136211,
+      "pssAfterKiB": 132979,
+      "startTotalMs": 1374,
+      "verifiedColdLaunch": true,
+      "mode": "light",
+      "quality": "light",
+      "internalFailureObserved": false,
+      "internalFailureCode": null,
+      "automaticLightObserved": false,
+      "measurementValid": true,
+      "checks": {
+        "traceFinalAccessibility": true,
+        "embeddedAfterTrace": true
+      },
+      "traceDurationMs": 34441.735608000075
+    },
+    {
+      "file": "after-performance-recorded.json",
+      "version": "0.4.0",
+      "profile": "3d",
+      "recorded": true,
+      "uiFrames": 10,
+      "jankyUiFrames": 9,
+      "p50Ms": 200,
+      "p90Ms": 1850,
+      "p95Ms": 1850,
+      "pssBeforeKiB": 135443,
+      "pssAfterKiB": 133233,
+      "startTotalMs": 1399,
+      "verifiedColdLaunch": true,
+      "mode": "automatic-light",
+      "quality": "light",
+      "internalFailureObserved": false,
+      "internalFailureCode": null,
+      "automaticLightObserved": true,
+      "measurementValid": false,
+      "checks": {
+        "traceFinalAccessibility": false,
+        "embeddedAfterTrace": false
+      },
+      "traceDurationMs": 34208.251652000006
+    },
+    {
+      "file": "before-performance-light-unrecorded.json",
+      "version": "0.3.0",
+      "profile": "light",
+      "recorded": false,
+      "uiFrames": 662,
+      "jankyUiFrames": 658,
+      "p50Ms": 57,
+      "p90Ms": 77,
+      "p95Ms": 81,
+      "pssBeforeKiB": 117975,
+      "pssAfterKiB": 117281,
+      "startTotalMs": 1734,
+      "verifiedColdLaunch": true,
+      "mode": "light",
+      "quality": "light",
+      "internalFailureObserved": false,
+      "internalFailureCode": null,
+      "automaticLightObserved": false,
+      "measurementValid": true,
+      "checks": {
+        "traceFinalAccessibility": true,
+        "embeddedAfterTrace": true
+      },
+      "traceDurationMs": 34192.95588600001
+    },
+    {
+      "file": "before-performance-recorded.json",
+      "version": "0.3.0",
+      "profile": "3d",
+      "recorded": true,
+      "uiFrames": 180,
+      "jankyUiFrames": 180,
+      "p50Ms": 250,
+      "p90Ms": 600,
+      "p95Ms": 650,
+      "pssBeforeKiB": 125562,
+      "pssAfterKiB": 122222,
+      "startTotalMs": 1385,
+      "verifiedColdLaunch": true,
+      "mode": "gl",
+      "quality": "unknown",
+      "internalFailureObserved": false,
+      "internalFailureCode": null,
+      "automaticLightObserved": false,
+      "measurementValid": true,
+      "checks": {
+        "traceFinalAccessibility": true,
+        "embeddedAfterTrace": true
+      },
+      "traceDurationMs": 39391.344156999956
+    },
+    {
+      "file": "before-performance-unrecorded.json",
+      "version": "0.3.0",
+      "profile": "3d",
+      "recorded": false,
+      "uiFrames": 204,
+      "jankyUiFrames": 204,
+      "p50Ms": 250,
+      "p90Ms": 500,
+      "p95Ms": 500,
+      "pssBeforeKiB": 126834,
+      "pssAfterKiB": 126282,
+      "startTotalMs": 1245,
+      "verifiedColdLaunch": true,
+      "mode": "gl",
+      "quality": "unknown",
+      "internalFailureObserved": false,
+      "internalFailureCode": null,
+      "automaticLightObserved": false,
+      "measurementValid": true,
+      "checks": {
+        "traceFinalAccessibility": true,
+        "embeddedAfterTrace": true
+      },
+      "traceDurationMs": 37070.37067600002
+    }
+  ],
+  "chapterReview": {
+    "beforeSeven": true,
+    "beforeReduced": true,
+    "afterInitialGl": true,
+    "afterSeven": true,
+    "afterChapterReportedMode": "7 GL, balanced; 0 automatic-light or internal failures",
+    "afterReducedScreenshotAvailable": false,
+    "privateUiObserved": false
+  },
+  "videos": [
+    {
+      "kind": "before",
+      "validation": {
+        "demoOnly": true,
+        "videoFile": "before-anonymous-scroll.mp4",
+        "videoEvidenceValid": true,
+        "endpointScreenshotWritten": true,
+        "mediaInspectionComplete": true,
+        "coverage": {
+          "temporalCoverageValid": true,
+          "minimumRequiredCoverage": 0.85,
+          "traceDurationSeconds": 39.391344156999956,
+          "containerDurationSeconds": 38.830089,
+          "firstPresentationTimestampSeconds": 0,
+          "lastPresentationTimestampSeconds": 38.027556,
+          "presentationSpanSeconds": 38.027556,
+          "containerCoverageRatio": 0.9857518150494435,
+          "presentationCoverageRatio": 0.9653784813342652,
+          "timestampsMonotonic": true,
+          "encodedFramesWithTimestamps": 125,
+          "tailPresentationTimestamps": [
+            37.211322,
+            37.225011,
+            38.027556
+          ],
+          "finalSamples": [
+            {
+              "frameIndex": 112,
+              "ptsSeconds": 34.963544,
+              "file": "before-video-final-sample-1.png",
+              "sha256": "7f180e69b9fbf99a2e709797341080c03892402aab007006d0f87b77b54193a0"
+            },
+            {
+              "frameIndex": 124,
+              "ptsSeconds": 38.027556,
+              "file": "before-video-final-sample-2.png",
+              "sha256": "6b6227970ca67edd336e3e264514b0430dc35158afb38c548960327b39da6013"
+            }
+          ],
+          "visualFinalStageVerified": false,
+          "interpretation": "Temporal MP4 coverage only. Final sample images require human review; timestamp coverage and accessibility do not prove rendered stage 7. Encoded frame count is not application FPS."
+        },
+        "inputExecutionFailed": false,
+        "recorderAliveAtTraceEnd": true,
+        "inputTraceComplete": true,
+        "containerReadable": true,
+        "inspectionFailure": false,
+        "traceObservedDurationMs": 39391.344156999956,
+        "physicalDevice": false,
+        "gpuFpsMeasured": false
+      },
+      "visualReview": {
+        "fullTimelineSampled": true,
+        "forwardReverseObserved": true,
+        "decodedFinalSample1": "FRACCIONAMIENTO DIGITAL",
+        "decodedFinalSample2": "PORTAFOLIO",
+        "endpoint": "PORTAFOLIO",
+        "visualFinalStageVerified": true
+      }
+    },
+    {
+      "kind": "after",
+      "validation": {
+        "demoOnly": true,
+        "videoFile": "after-anonymous-scroll-incomplete.mp4",
+        "videoEvidenceValid": false,
+        "endpointScreenshotWritten": true,
+        "mediaInspectionComplete": true,
+        "coverage": {
+          "temporalCoverageValid": false,
+          "minimumRequiredCoverage": 0.85,
+          "traceDurationSeconds": 34.20825165200001,
+          "containerDurationSeconds": 5.758278,
+          "firstPresentationTimestampSeconds": 0,
+          "lastPresentationTimestampSeconds": 3.956467,
+          "presentationSpanSeconds": 3.956467,
+          "containerCoverageRatio": 0.16833008768114982,
+          "presentationCoverageRatio": 0.11565826398405492,
+          "timestampsMonotonic": true,
+          "encodedFramesWithTimestamps": 5,
+          "tailPresentationTimestamps": [
+            1.460622,
+            2.154656,
+            3.956467
+          ],
+          "finalSamples": [
+            {
+              "frameIndex": 4,
+              "ptsSeconds": 3.956467,
+              "file": "after-video-final-sample-1.png",
+              "sha256": "c1db2bb184123c32bc82275afa4515125d0bcbbf5b822404d9ea8534ad25fa5d"
+            }
+          ],
+          "visualFinalStageVerified": false,
+          "interpretation": "Temporal MP4 coverage only. Final sample images require human review; timestamp coverage and accessibility do not prove rendered stage 7. Encoded frame count is not application FPS."
+        },
+        "inputExecutionFailed": false,
+        "recorderAliveAtTraceEnd": true,
+        "inputTraceComplete": true,
+        "containerReadable": true,
+        "inspectionFailure": false,
+        "traceObservedDurationMs": 34208.251652000006,
+        "physicalDevice": false,
+        "gpuFpsMeasured": false
+      },
+      "visualReview": {
+        "allFiveEncodedFramesInspected": true,
+        "forwardReverseObserved": false,
+        "decodedFinalSample1": "ORIGEN MINERAL",
+        "endpoint": "ORIGEN MINERAL",
+        "failureScreenshot": "ORIGEN MINERAL",
+        "visualFinalStageVerified": false,
+        "completeNarrative": false
+      }
+    }
+  ],
+  "media": [
+    {
+      "file": "after-anonymous-scroll-incomplete.mp4",
+      "bytes": 100225,
+      "sha256": "8b857ed6e82fd2c3918332e5d5c54518c80b0eeb2d035bbcaca7a5f2b7963609",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-safe-initial-gl.png",
+      "bytes": 860126,
+      "sha256": "a48ce88c16a51b75e97f8899e3b387b4f1c360b575d0d0758365073fdbf8bb51",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-safe-story-1.png",
+      "bytes": 857025,
+      "sha256": "47126893a2f8535f52800e23343fa8b92b302e1f3f8aec2626a9b446566ed9f8",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-safe-story-2.png",
+      "bytes": 933940,
+      "sha256": "a0a885ede58ca3270668325f0a571387fffcccd56eff00e5ce688301a18bd171",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-safe-story-3.png",
+      "bytes": 808350,
+      "sha256": "02cd02dc9cde756c714be9653550256914de111a730f8fd4279e3dd61eb74f15",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-safe-story-4.png",
+      "bytes": 333539,
+      "sha256": "123de5ae1c70d3e65e77f3ec7bb1f1c1564d010804059d7cd2d6f2adb9e1ea2a",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-safe-story-5.png",
+      "bytes": 397407,
+      "sha256": "87e147ad42f1ee397028093f6e301e76ee4ccb7cef1abbef9118d6fcd4ef0fc9",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-safe-story-6.png",
+      "bytes": 364785,
+      "sha256": "6346516f7970ce2006467a8ab553401d65dd2f517b51d47e5cc0589429eadcfa",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-safe-story-7.png",
+      "bytes": 409649,
+      "sha256": "948e5a576f1b31e2ee4329f46e62bcdc2b3b54d30f0587f50f8e9819bb30f483",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-trace-end.png",
+      "bytes": 951709,
+      "sha256": "fdb56c0c85d3a12c3e2167ee05e7804a6a2ca33abc49f66e26d630b992e52022",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "after-video-final-sample-1.png",
+      "bytes": 511784,
+      "sha256": "c1db2bb184123c32bc82275afa4515125d0bcbbf5b822404d9ea8534ad25fa5d",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "anonymous-failure.png",
+      "bytes": 951709,
+      "sha256": "fdb56c0c85d3a12c3e2167ee05e7804a6a2ca33abc49f66e26d630b992e52022",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-anonymous-scroll.mp4",
+      "bytes": 1197380,
+      "sha256": "4d290b19fb1ddc818f7e4071a1268f4274ab00b67b07a5da6400a18a895b3f34",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-reduced-motion.png",
+      "bytes": 90945,
+      "sha256": "1e9e01e8ee14d842eb1736e18c271cc217f2d1294b601ac37c7a3b14009b4eb2",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-1.png",
+      "bytes": 913679,
+      "sha256": "1a52ad1a2f172a9122e755f816712736901576e261f602de2aa5af634d229fd4",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-2.png",
+      "bytes": 1394535,
+      "sha256": "40dcc9bcf744480351510599687f2b595ecc47254309e8ff346cb2ee90ff7be7",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-3.png",
+      "bytes": 854033,
+      "sha256": "4989387a7c65e9e1c880d8badd5e5d831ffcfcad43ea596318952a67ff6ab147",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-4.png",
+      "bytes": 528304,
+      "sha256": "b5687bfeee22d8aee611be7ee698c4a8365abe25b64f38490cdb6071ddd86fc3",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-5.png",
+      "bytes": 485184,
+      "sha256": "428dad0acc94b1c841deff47e893a3076c40ad0d91d881aabc785d61ed55c3e8",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-6.png",
+      "bytes": 559427,
+      "sha256": "102168e0e938d3f3ad860901cc9b949cbda566ea0c855287e52fe9d95fa5d379",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-7.png",
+      "bytes": 505517,
+      "sha256": "56bd04250f1e256ec4ed17bc4ae75c197f24b895ac2b9ab3e502e4fe61ac4890",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-trace-end.png",
+      "bytes": 566608,
+      "sha256": "d8dc2bf1f37e93725ff4bfa255b812eede6979b7ee640de7882d705260c29500",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-video-final-sample-1.png",
+      "bytes": 414181,
+      "sha256": "7f180e69b9fbf99a2e709797341080c03892402aab007006d0f87b77b54193a0",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-video-final-sample-2.png",
+      "bytes": 391366,
+      "sha256": "6b6227970ca67edd336e3e264514b0430dc35158afb38c548960327b39da6013",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    }
+  ],
+  "localDerivedReviewFiles": [
+    "local-review/before-timeline.png",
+    "local-review/after-incomplete-timeline.png",
+    "local-review/before-chapters.jpg",
+    "local-review/after-chapters.jpg"
+  ],
+  "localDerivedOriginalsUntouched": true,
+  "limitations": [
+    "This comparison job failed; an independent later run cannot replace this failure.",
+    "Candidate recorded trace completed15inputgestures but video temporal coverage failed(16.83%container/11.57%PTS) and endpoint stayedatOrigin. Recorded metric is invalid.",
+    "Current automatic-light state is explicit. All bounded native GL warning counts werezero; no internalfailureobserved or retryPending. Exact cause of missing/frozen frames unproven.",
+    "Candidate unrecorded3D, reduced/exits and resume phases not reached in this job.",
+    "Financial/authentication checks deliberately excluded from comparison job and belong to separate commerce matrix job.",
+    "One sample percondition; UI frame percentiles are not GPU FPS. No physical phone acceptance, thermal/battery orpeakmemory."
+  ],
+  "sourceChangedByReviewer": false,
+  "workflowRerunByReviewer": false
+}

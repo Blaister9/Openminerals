@@ -1,0 +1,52 @@
+{
+  "format": "openminerals-native-commerce-review-v1",
+  "demoOnly": true,
+  "runUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41385054878",
+  "jobUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41385054878/job/125087999390",
+  "headSha": "a11bb2aef0621db8fe7e6f0c9cf849152c2bbb0c",
+  "conclusion": "failure",
+  "scope": "Commerce job only; comparison result is separate.",
+  "validationScope": "commerce",
+  "completedStages": [
+    "guard-disposable-api29-emulator",
+    "install-presented-stable-separate-package",
+    "install-preview-alongside-preserved-stable"
+  ],
+  "failedStages": [
+    "preview-new-legacy-commerce"
+  ],
+  "junit": {
+    "tests": 4,
+    "failures": 1
+  },
+  "firstFailedCommand": {
+    "index": 32,
+    "type": "scroll-until-visible",
+    "status": "FAILED",
+    "selector": "Cantidad de metal en gramos"
+  },
+  "category": "timeout",
+  "observedPartialChecks": [
+    "Conversion receipt and assertion of 450 USDT completed",
+    "Excessive purchase confirmation was observed disabled"
+  ],
+  "nativeLegacyCommerce": {
+    "conversionBuySell": false,
+    "reservationsAndOvercommitProtection": false,
+    "reservationRelease": false,
+    "portfolioAndHistoricalReceipts": false,
+    "restartPreservesLegacy": false,
+    "nativeSameRequestReplayTested": false
+  },
+  "nativeAuthentication": {
+    "buyerCreatedWithoutImport": false,
+    "buyerColdLaunchSecureStore": false,
+    "legacyRestoredAfterBuyerLogout": false,
+    "publicOperatorReadOnlyLogin": false,
+    "publicOperatorMineAndAccountWithoutBuyerWallet": false,
+    "publicOperatorLoggedOut": false
+  },
+  "rawLogsPublished": false,
+  "privateUiPublished": false,
+  "interpretation": "The corrected flow parsed and ran. It timed out searching DOWN for the quantity input after scrolling to the disabled buy button; the field was above that position. Buy/sell/reservations/history/accounts did not complete. Current QA correction changes only the second quantity lookup to UP."
+}

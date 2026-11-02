@@ -1,0 +1,141 @@
+{
+  "demoOnly": true,
+  "environment": "desktop Chrome ANGLE SwiftShader",
+  "android": false,
+  "physicalDevice": false,
+  "gpuFpsMeasured": false,
+  "phonePerformanceAcceptance": false,
+  "sourceCommit": "0d3fa50791a6e86d8944c2d07026fcc5bc5c6999",
+  "sourceHashes": {
+    "gold-bar-3d.ts": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c",
+    "immersive-story.ts": "91468daf97f3b9fa70a57e12ba8949ea09cc06996e0ea4f244f44f5b55f81c37",
+    "geological-scene.ts": "dad385018f3da9694a90080892618f08353303f65f0407ed36224899f79c67da",
+    "geological-specimen.ts": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778",
+    "metal-materials.ts": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81",
+    "scene-renderer.ts": "69a633010d62bd6942bba53c09fff421e867587ba02a031349c584d492c09250"
+  },
+  "aspect": "9:16",
+  "samePoses": true,
+  "poseCount": 18,
+  "warmupDrawsPerResolution": 18,
+  "measuredDrawsPerResolution": 90,
+  "measuredRounds": 5,
+  "compilationExcluded": true,
+  "fullFrameReadbackIncluded": true,
+  "readbackBytesPerDraw": "width*height*4",
+  "oneGlFinishPerMeasuredDraw": true,
+  "viewportSizes": [
+    [
+      360,
+      640
+    ],
+    [
+      216,
+      384
+    ],
+    [
+      180,
+      320
+    ]
+  ],
+  "resolutionOrder": [
+    640,
+    384,
+    320
+  ],
+  "independentContextPerResolution": true,
+  "exactPoses": [
+    {
+      "progress": 0,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.08333333333333333,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.16666666666666666,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.25,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.3333333333333333,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.4166666666666667,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.5,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.5833333333333334,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.6666666666666666,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.75,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.8333333333333334,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.9166666666666666,
+      "metal": "XAU"
+    },
+    {
+      "progress": 1,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.5,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.8333333333333334,
+      "metal": "XAG"
+    },
+    {
+      "progress": 0.8333333333333334,
+      "metal": "XPT"
+    },
+    {
+      "progress": 0.8333333333333334,
+      "metal": "XPD"
+    }
+  ],
+  "completionFence": "One gl.finish followed by full-viewport RGBA readPixels inside every timed draw; includes readback transfer overhead.",
+  "sourceCompilation": "Existing mobile Babel plugins, same module compilation as geological-render browser test; no new dependency.",
+  "portableScript": "mobile/scripts/benchmark-geology-resolution.mjs",
+  "defaultSourceDirectory": "mobile/lib",
+  "frozenSourceDirectory": "docs/evidence/sprint-realism-20261101/software-resolution/sources",
+  "reproductionPowerShell": [
+    "$env:OPENMINERALS_WEBGL_BROWSER='C:/Program Files/Google/Chrome/Application/chrome.exe'",
+    "$env:OPENMINERALS_GEOLOGY_SOURCE_DIR='docs/evidence/sprint-realism-20261101/software-resolution/sources'",
+    "node mobile/scripts/benchmark-geology-resolution.mjs"
+  ],
+  "resultPreservation": "New output directory for each reproduction. Source hashes identify the measured renderer; timing changes are separate runs, never replacements.",
+  "invalidPilotExcluded": "Finish-only0..0.2ms pilot is retained under ignored artifacts and is not valid completion evidence.",
+  "limitations": [
+    "Desktop software completion costs are not Android/physical GPU/compositor timings or FPS.",
+    "Full RGBA readback, when enabled, is included as an observable completion fence and adds transfer overhead.",
+    "Finish-only near-zero measurements do not demonstrate raster completion and must not determine a tier.",
+    "Single host and ordered conditions, no randomization or cross-run statistical acceptance.",
+    "Warmup excludes shader compilation; no native lifecycle, input or fallback transition is exercised.",
+    "Pixel dimensions and screenshots expose the visual-quality tradeoff; a budget hit is not device acceptance."
+  ]
+}

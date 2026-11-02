@@ -58,8 +58,14 @@
     },
     {
       "file": "review.json",
-      "bytes": 2053,
-      "sha256": "9005fd2264e0f4a2235f0b149155be9248ef12142fd8495b94a84629dff597c1"
+      "bytes": 2000,
+      "sha256": "1bb25f7de7f67c4108196cb8dd9a8d90a267a13b101ea347d1291fd869ae3e1a"
     }
-  ]
+  ],
+  "authoredReviewNormalization": {
+    "file": "review.json",
+    "originalLocalReviewSha256": "9005fd2264e0f4a2235f0b149155be9248ef12142fd8495b94a84629dff597c1",
+    "canonicalRepositoryLineEndings": "LF",
+    "originalPublicArtifactBytesUnchanged": true
+  }
 }

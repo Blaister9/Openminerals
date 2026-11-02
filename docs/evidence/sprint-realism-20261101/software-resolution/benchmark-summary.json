@@ -1,0 +1,325 @@
+{
+  "demoOnly": true,
+  "sourceCommit": "0d3fa50791a6e86d8944c2d07026fcc5bc5c6999",
+  "sourceHashes": {
+    "gold-bar-3d.ts": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c",
+    "immersive-story.ts": "91468daf97f3b9fa70a57e12ba8949ea09cc06996e0ea4f244f44f5b55f81c37",
+    "geological-scene.ts": "dad385018f3da9694a90080892618f08353303f65f0407ed36224899f79c67da",
+    "geological-specimen.ts": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778",
+    "metal-materials.ts": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81",
+    "scene-renderer.ts": "69a633010d62bd6942bba53c09fff421e867587ba02a031349c584d492c09250"
+  },
+  "capturedAtUtc": "2026-11-02T04:14:08.770Z",
+  "environment": "desktop Chrome ANGLE SwiftShader",
+  "android": false,
+  "physicalDevice": false,
+  "gpuFpsMeasured": false,
+  "phonePerformanceAcceptance": false,
+  "suitableForResolutionComparison": true,
+  "protocol": {
+    "aspect": "9:16",
+    "samePoses": true,
+    "poseCount": 18,
+    "warmupDrawsPerResolution": 18,
+    "measuredDrawsPerResolution": 90,
+    "measuredRounds": 5,
+    "compilationExcluded": true,
+    "fullFrameReadbackIncluded": true,
+    "readbackBytesPerDraw": "width*height*4",
+    "oneGlFinishPerMeasuredDraw": true,
+    "viewportSizes": [
+      [
+        360,
+        640
+      ],
+      [
+        216,
+        384
+      ],
+      [
+        180,
+        320
+      ]
+    ],
+    "resolutionOrder": [
+      640,
+      384,
+      320
+    ],
+    "independentContextPerResolution": true
+  },
+  "profiles": [
+    {
+      "longSide": 640,
+      "width": 360,
+      "height": 640,
+      "rendererInfo": {
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "vendor": "Google Inc. (Google)",
+        "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+        "shadingLanguage": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)"
+      },
+      "stats": {
+        "all": {
+          "sampleCount": 90,
+          "minMs": 9.600000001490116,
+          "medianMs": 11.899999998509884,
+          "p90Ms": 14.5,
+          "p95Ms": 20.700000002980232,
+          "maxMs": 22.200000002980232,
+          "meanMs": 12.57111111101177,
+          "completionBudget16_67ms": 85,
+          "completionBudget33_33ms": 90
+        },
+        "tunnelAndExtraction": {
+          "sampleCount": 30,
+          "minMs": 11.199999995529652,
+          "medianMs": 12.200000002980232,
+          "p90Ms": 21.80000000447035,
+          "p95Ms": 22.100000001490116,
+          "maxMs": 22.200000002980232,
+          "meanMs": 14.043333333233992,
+          "completionBudget16_67ms": 25,
+          "completionBudget33_33ms": 30
+        },
+        "laterBarAndCustody": {
+          "sampleCount": 60,
+          "minMs": 9.600000001490116,
+          "medianMs": 11.700000002980232,
+          "p90Ms": 13,
+          "p95Ms": 13.199999995529652,
+          "maxMs": 14.5,
+          "meanMs": 11.834999999900658,
+          "completionBudget16_67ms": 60,
+          "completionBudget33_33ms": 60
+        }
+      },
+      "images": [
+        {
+          "poseIndex": 0,
+          "progress": 0,
+          "metal": "XAU",
+          "file": "640/pose-0.png",
+          "bytes": 314992,
+          "sha256": "7c535d04cb1df9aa7f07d36be3d5538793ca3b39bd6a82c33cd14aabea8023d4"
+        },
+        {
+          "poseIndex": 2,
+          "progress": 0.16666666666666666,
+          "metal": "XAU",
+          "file": "640/pose-2.png",
+          "bytes": 329845,
+          "sha256": "a214438afb75d8ecca005862afc1b99a4724637bb60b7c51977797667a3f6bf8"
+        },
+        {
+          "poseIndex": 4,
+          "progress": 0.3333333333333333,
+          "metal": "XAU",
+          "file": "640/pose-4.png",
+          "bytes": 280051,
+          "sha256": "e70d0f4a23c0b481ce016dad1931c96f02869304dfe4897fddba3e0b2a0471aa"
+        },
+        {
+          "poseIndex": 6,
+          "progress": 0.5,
+          "metal": "XAU",
+          "file": "640/pose-6.png",
+          "bytes": 149031,
+          "sha256": "90f088dcb1bb9607dca8bb522a9db679d3149892c9f78d881571e610a8098f64"
+        },
+        {
+          "poseIndex": 8,
+          "progress": 0.6666666666666666,
+          "metal": "XAU",
+          "file": "640/pose-8.png",
+          "bytes": 125903,
+          "sha256": "8024730fed1c876fb88d259f2a1ff41db95818011692c0e3aadf88d500233d21"
+        }
+      ]
+    },
+    {
+      "longSide": 384,
+      "width": 216,
+      "height": 384,
+      "rendererInfo": {
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "vendor": "Google Inc. (Google)",
+        "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+        "shadingLanguage": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)"
+      },
+      "stats": {
+        "all": {
+          "sampleCount": 90,
+          "minMs": 4,
+          "medianMs": 5,
+          "p90Ms": 6.5,
+          "p95Ms": 8.5,
+          "maxMs": 10.099999994039536,
+          "meanMs": 5.302222222006983,
+          "completionBudget16_67ms": 90,
+          "completionBudget33_33ms": 90
+        },
+        "tunnelAndExtraction": {
+          "sampleCount": 30,
+          "minMs": 4.899999998509884,
+          "medianMs": 5.799999997019768,
+          "p90Ms": 9,
+          "p95Ms": 9,
+          "maxMs": 10.099999994039536,
+          "meanMs": 6.306666666517655,
+          "completionBudget16_67ms": 30,
+          "completionBudget33_33ms": 30
+        },
+        "laterBarAndCustody": {
+          "sampleCount": 60,
+          "minMs": 4,
+          "medianMs": 4.700000002980232,
+          "p90Ms": 5.600000001490116,
+          "p95Ms": 5.799999997019768,
+          "maxMs": 6,
+          "meanMs": 4.799999999751647,
+          "completionBudget16_67ms": 60,
+          "completionBudget33_33ms": 60
+        }
+      },
+      "images": [
+        {
+          "poseIndex": 0,
+          "progress": 0,
+          "metal": "XAU",
+          "file": "384/pose-0.png",
+          "bytes": 131470,
+          "sha256": "bfb9314c48abc0d3cb41c869250edff35815dfc538eca4003b80a886c135a0a9"
+        },
+        {
+          "poseIndex": 2,
+          "progress": 0.16666666666666666,
+          "metal": "XAU",
+          "file": "384/pose-2.png",
+          "bytes": 136623,
+          "sha256": "6330aef948abbf64530739ed29a3b62aaa273ab010a7b0d7f9b9a27cfe96ffbb"
+        },
+        {
+          "poseIndex": 4,
+          "progress": 0.3333333333333333,
+          "metal": "XAU",
+          "file": "384/pose-4.png",
+          "bytes": 117149,
+          "sha256": "0c6f115c617681ddeefa747ce10341e6714b76594d94d2f7ddd99ff81ba5e9e8"
+        },
+        {
+          "poseIndex": 6,
+          "progress": 0.5,
+          "metal": "XAU",
+          "file": "384/pose-6.png",
+          "bytes": 62156,
+          "sha256": "0f8c01ea5d074174a57dbdada8c96d3d650e5f93e03d91e6fa04b9a63504bcfc"
+        },
+        {
+          "poseIndex": 8,
+          "progress": 0.6666666666666666,
+          "metal": "XAU",
+          "file": "384/pose-8.png",
+          "bytes": 51633,
+          "sha256": "9c07b811fe1378e7be2aaf02f52d0a4c566ace346f352319fa8031ae0816f0f7"
+        }
+      ]
+    },
+    {
+      "longSide": 320,
+      "width": 180,
+      "height": 320,
+      "rendererInfo": {
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "vendor": "Google Inc. (Google)",
+        "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+        "shadingLanguage": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)"
+      },
+      "stats": {
+        "all": {
+          "sampleCount": 90,
+          "minMs": 2.7999999970197678,
+          "medianMs": 3.5,
+          "p90Ms": 5.199999995529652,
+          "p95Ms": 6.299999997019768,
+          "maxMs": 7.200000002980232,
+          "meanMs": 3.9366666667991215,
+          "completionBudget16_67ms": 90,
+          "completionBudget33_33ms": 90
+        },
+        "tunnelAndExtraction": {
+          "sampleCount": 30,
+          "minMs": 3.7000000029802322,
+          "medianMs": 4.5,
+          "p90Ms": 6.5,
+          "p95Ms": 6.700000002980232,
+          "maxMs": 7.200000002980232,
+          "meanMs": 4.840000000099341,
+          "completionBudget16_67ms": 30,
+          "completionBudget33_33ms": 30
+        },
+        "laterBarAndCustody": {
+          "sampleCount": 60,
+          "minMs": 2.7999999970197678,
+          "medianMs": 3.399999998509884,
+          "p90Ms": 4.200000002980232,
+          "p95Ms": 4.399999998509884,
+          "maxMs": 4.800000004470348,
+          "meanMs": 3.485000000149012,
+          "completionBudget16_67ms": 60,
+          "completionBudget33_33ms": 60
+        }
+      },
+      "images": [
+        {
+          "poseIndex": 0,
+          "progress": 0,
+          "metal": "XAU",
+          "file": "320/pose-0.png",
+          "bytes": 94959,
+          "sha256": "a1e2b1f14403db73273765e18166c88f63d6ea4a348fd649ebf04ab20460f97b"
+        },
+        {
+          "poseIndex": 2,
+          "progress": 0.16666666666666666,
+          "metal": "XAU",
+          "file": "320/pose-2.png",
+          "bytes": 98461,
+          "sha256": "17d8e2b0a7d6f0043630f1c7f2b1f2e721b4ce7c5f9e930003aaa8c375dc5dab"
+        },
+        {
+          "poseIndex": 4,
+          "progress": 0.3333333333333333,
+          "metal": "XAU",
+          "file": "320/pose-4.png",
+          "bytes": 85086,
+          "sha256": "d51a89c4377d4c41b5f82a7e3eeb064270282664641778961a91293a54bde356"
+        },
+        {
+          "poseIndex": 6,
+          "progress": 0.5,
+          "metal": "XAU",
+          "file": "320/pose-6.png",
+          "bytes": 45082,
+          "sha256": "d784fa818788fb3968a4dfe201cb997dec8503857a5bceaf673985d1e525322a"
+        },
+        {
+          "poseIndex": 8,
+          "progress": 0.6666666666666666,
+          "metal": "XAU",
+          "file": "320/pose-8.png",
+          "bytes": 38043,
+          "sha256": "783dd9ea11936c7ae1a4e8b0285f9d5a2b396bf25db73cf770df07e382bae985"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Desktop software completion costs are not Android/physical GPU/compositor timings or FPS.",
+    "Full RGBA readback, when enabled, is included as an observable completion fence and adds transfer overhead.",
+    "Finish-only near-zero measurements do not demonstrate raster completion and must not determine a tier.",
+    "Single host and ordered conditions, no randomization or cross-run statistical acceptance.",
+    "Warmup excludes shader compilation; no native lifecycle, input or fallback transition is exercised.",
+    "Pixel dimensions and screenshots expose the visual-quality tradeoff; a budget hit is not device acceptance."
+  ]
+}

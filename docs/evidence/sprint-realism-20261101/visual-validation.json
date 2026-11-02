@@ -1,16 +1,16 @@
 {
   "demoOnly": true,
   "date": "2026-11-01",
-  "visualSourceCommit": "0d3fa50791a6e86d8944c2d07026fcc5bc5c6999",
+  "visualSourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
   "mobile": {
     "command": "OPENMINERALS_WEBGL_BROWSER=<Chrome> node --experimental-strip-types --test --test-concurrency=2 test/*.test.mjs",
-    "tests": 340,
-    "passed": 340,
+    "tests": 349,
+    "passed": 349,
     "failed": 0,
     "skipped": 0,
     "environment": "Windows Node22.22.3; actual Chrome SwiftShader shader execution",
     "androidPerformance": false,
-    "durationMs": 39493.9248
+    "durationMs": 38601.8114
   },
   "export": {
     "platform": "android",
@@ -25,7 +25,7 @@
     "stableReleaseModified": false
   },
   "physicalPhoneAcceptance": false,
-  "scope": "R3 full local suite340/340 on verification source8b892af, actual Chrome SwiftShader. APK application source0d3fa50 is separately recorded; subsequent harness-only corrections require their own directed checks/native execution.",
+  "scope": "R4 full local349/349 with actual Chrome SwiftShader. Android native performance/phone acceptance remain separate and unaccepted.",
   "lifecycle": {
     "visibleNativeSurfaceBeforeReady": true,
     "opaqueCoverUntilCompletedFrame": true,
@@ -33,13 +33,21 @@
     "automaticContextTimeoutRetries": 1,
     "manualRetry": true,
     "alphaZeroRootCauseProven": false,
-    "nativeSynchronousWaitBounded": false
+    "nativeSynchronousWaitBounded": false,
+    "retainedSurfaceDuringLightReduced": true,
+    "lazyAllocation": true,
+    "noDrawOnPause": true,
+    "resumeRetainsRenderer": true,
+    "hardwareBalancedCadenceOnly": true,
+    "hardwareMaxPhysicalSide": 1024,
+    "explicitSoftwareMaxPhysicalSide": 384,
+    "presentationTeardownRootCauseProven": false
   },
   "qaAfterApkSource": {
-    "tests": 28,
-    "passed": 28,
+    "tests": 32,
+    "passed": 32,
     "failed": 0,
-    "scope": "Native harness/code diagnostics, independent commerce scope and owned legacy domain fixture; does not execute Android."
+    "scope": "Included in the349 total: corrected quantity scroll direction, R4 APK identity and static authentication diagnostics. Not native execution."
   },
-  "verificationCommit": "8b892afe4e3bdb05fcdab1af06c61a2c2f2a95aa"
+  "verificationCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14"
 }

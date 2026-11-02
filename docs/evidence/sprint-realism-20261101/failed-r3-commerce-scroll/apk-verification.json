@@ -1,0 +1,34 @@
+{
+  "demoOnly": true,
+  "verificationCommit": "17e3279e67b42e3f69ab6337112bf1477c462608",
+  "presentedBuildSource": "eae7f6ad57f5a667c2bf40775a4cb30f1c0dd8b6",
+  "candidateBuildSource": "Bind independently to the EAS build record; workflow commit does not prove APK source.",
+  "apks": [
+    {
+      "sha256": "d99e8af9617f56d7862a849ebd057025cb9d6adc164b97496a5532f7b29ad29e",
+      "kind": "before",
+      "package": "com.openminerals.demo.mobile",
+      "version": "0.3.0",
+      "versionCode": 6,
+      "runtime": "0.3.0",
+      "channel": "demo",
+      "certificate": "3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c",
+      "embeddedHttpsApi": true,
+      "embeddedBytes": 1625200,
+      "debuggable": false
+    },
+    {
+      "sha256": "73e1a0b04e73cecbaf3980e576089e747d550b3d5f5570976b27c04162b62ea3",
+      "kind": "after",
+      "package": "com.openminerals.demo.minepreview",
+      "version": "0.4.0",
+      "versionCode": 3,
+      "runtime": "0.4.0",
+      "channel": "mine-realism",
+      "certificate": "86c84db35e91b187f3f818c0cc74ddb91df9a95014cba138ac7e04611957aa09",
+      "embeddedHttpsApi": true,
+      "embeddedBytes": 1660348,
+      "debuggable": false
+    }
+  ]
+}

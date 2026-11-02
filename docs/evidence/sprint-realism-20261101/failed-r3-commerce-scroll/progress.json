@@ -1,0 +1,42 @@
+{
+  "format": "openminerals.native-progress",
+  "version": 1,
+  "mode": "run",
+  "updatedAt": "2026-11-02T04:09:10.917Z",
+  "stage": {
+    "name": "preview-new-legacy-commerce",
+    "status": "FAILED",
+    "startedAt": "2026-11-02T04:07:24.304Z",
+    "completedAt": "2026-11-02T04:09:10.917Z"
+  },
+  "command": {
+    "program": "maestro",
+    "operation": "test",
+    "status": "FAILED",
+    "timeoutMs": 420000,
+    "timeoutSignal": "SIGKILL",
+    "startedAt": "2026-11-02T04:07:24.315Z",
+    "exitCode": 1,
+    "signal": null,
+    "reason": "nonzero-exit",
+    "completedAt": "2026-11-02T04:09:10.877Z"
+  },
+  "lastFailure": {
+    "stage": "preview-new-legacy-commerce",
+    "program": "maestro",
+    "operation": "test",
+    "status": "FAILED",
+    "timeoutMs": 420000,
+    "timeoutSignal": "SIGKILL",
+    "startedAt": "2026-11-02T04:07:24.315Z",
+    "exitCode": 1,
+    "signal": null,
+    "reason": "nonzero-exit",
+    "completedAt": "2026-11-02T04:09:10.877Z"
+  },
+  "completed": [
+    "guard-disposable-api29-emulator",
+    "install-presented-stable-separate-package",
+    "install-preview-alongside-preserved-stable"
+  ]
+}
