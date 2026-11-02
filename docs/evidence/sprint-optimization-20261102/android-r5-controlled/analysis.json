@@ -1,0 +1,911 @@
+{
+  "demoOnly": true,
+  "run": 41477328703,
+  "complete": true,
+  "pair": "r4-r5",
+  "order": "ABBA",
+  "traces": 8,
+  "anonymousPngFiles": 16,
+  "traceVerification": {
+    "specificationSha256": "1a48933715ea7e75cfb38bbd45807fd8350da58c3513d6d7666c4f170c85ac9a",
+    "compiledSha256": "0e30040ccbf227ed1328ee314a4968da933464450aaca3ce8021981db201c8b3",
+    "sameSpecificationAndCoordinatesInAllEightTraces": true,
+    "gesturesPerTrace": 15
+  },
+  "rows": [
+    {
+      "trial": 0,
+      "arm": "A",
+      "version": "r4",
+      "visualMode": "light",
+      "uiP50Ms": 99.827157,
+      "uiP95Ms": 125.785321,
+      "uiCapturedFrames": 120,
+      "uiTailSpanMs": 5781.16975,
+      "uiCapturedSlowPercent": 100,
+      "uiJankyPercent": 100,
+      "uiThroughputFramesPerSecond": 15.039538496875693,
+      "windowFps": 17.4972434258881,
+      "windowP50Ms": 44.21909,
+      "windowP95Ms": 92.56325,
+      "windowSlowPercent": 86.77354709418837,
+      "windowSlowThresholdMs": 24.999999,
+      "windowTimestampSpanMs": 28518.77795,
+      "windowPresentedFrames": 500,
+      "presentationScope": "app-window",
+      "sampledPeakPssKiB": 133508,
+      "sustainedMedianPssKiB": 126690,
+      "sustainedP95PssKiB": 127138,
+      "pssSamples": 34,
+      "activityTotalMs": 1490,
+      "firstUiObservedMs": 5205.576674999997,
+      "firstSceneObservedMs": 5205.5829349999985,
+      "renderThreadCpuTicks": 1663,
+      "javascriptCpuTicks": 102,
+      "glCpuTicks": null,
+      "wallClockSegments": {
+        "uiWork": {
+          "metric": "HWUI wall-clock SyncQueued minus HandleInputStart",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 3.29264,
+          "p95Ms": 16.66104
+        },
+        "renderThreadQueue": {
+          "metric": "HWUI wall-clock SyncStart minus SyncQueued",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 29.53439,
+          "p95Ms": 44.64063
+        },
+        "renderSubmission": {
+          "metric": "HWUI wall-clock SwapBuffers minus IssueDrawCommandsStart",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 25.32199,
+          "p95Ms": 37.63389
+        },
+        "postSwap": {
+          "metric": "HWUI wall-clock FrameCompleted minus SwapBuffers",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 9.68314,
+          "p95Ms": 18.2476
+        }
+      },
+      "shaderMarkers": {
+        "engraving-derivatives": 0,
+        "engraving-finite-difference": 0
+      },
+      "shaderMarkerCollectionAvailable": true,
+      "initialMode": "light",
+      "initialQuality": "light",
+      "finalMode": "light",
+      "finalQuality": "light",
+      "qualityEquivalentAtEndpoints": true,
+      "traceObservedDurationMs": 33245.70099699999
+    },
+    {
+      "trial": 0,
+      "arm": "A",
+      "version": "r4",
+      "visualMode": "3d",
+      "uiP50Ms": 95.080131,
+      "uiP95Ms": 121.087583,
+      "uiCapturedFrames": 120,
+      "uiTailSpanMs": 5650.911756,
+      "uiCapturedSlowPercent": 100,
+      "uiJankyPercent": 99.6124031007752,
+      "uiThroughputFramesPerSecond": 15.410722715238288,
+      "windowFps": 17.868311239386802,
+      "windowP50Ms": 41.70602,
+      "windowP95Ms": 81.65811,
+      "windowSlowPercent": 86.01941747572816,
+      "windowSlowThresholdMs": 24.999999,
+      "windowTimestampSpanMs": 28821.97389,
+      "windowPresentedFrames": 516,
+      "presentationScope": "app-window",
+      "sampledPeakPssKiB": 128500,
+      "sustainedMedianPssKiB": 126574,
+      "sustainedP95PssKiB": 127267,
+      "pssSamples": 34,
+      "activityTotalMs": 1324,
+      "firstUiObservedMs": 4431.119557999977,
+      "firstSceneObservedMs": 4431.124394999992,
+      "renderThreadCpuTicks": 1675,
+      "javascriptCpuTicks": 128,
+      "glCpuTicks": null,
+      "wallClockSegments": {
+        "uiWork": {
+          "metric": "HWUI wall-clock SyncQueued minus HandleInputStart",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 2.73054,
+          "p95Ms": 16.01098
+        },
+        "renderThreadQueue": {
+          "metric": "HWUI wall-clock SyncStart minus SyncQueued",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 29.70698,
+          "p95Ms": 40.75609
+        },
+        "renderSubmission": {
+          "metric": "HWUI wall-clock SwapBuffers minus IssueDrawCommandsStart",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 23.87816,
+          "p95Ms": 33.70605
+        },
+        "postSwap": {
+          "metric": "HWUI wall-clock FrameCompleted minus SwapBuffers",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 11.0248,
+          "p95Ms": 18.79066
+        }
+      },
+      "shaderMarkers": {
+        "engraving-derivatives": 0,
+        "engraving-finite-difference": 0
+      },
+      "shaderMarkerCollectionAvailable": true,
+      "initialMode": "gl",
+      "initialQuality": "balanced",
+      "finalMode": "automatic-light",
+      "finalQuality": "light",
+      "qualityEquivalentAtEndpoints": false,
+      "traceObservedDurationMs": 33483.17983099999
+    },
+    {
+      "trial": 1,
+      "arm": "B",
+      "version": "r5",
+      "visualMode": "light",
+      "uiP50Ms": 70.50361,
+      "uiP95Ms": 89.826627,
+      "uiCapturedFrames": 120,
+      "uiTailSpanMs": 4642.952786,
+      "uiCapturedSlowPercent": 99.16666666666667,
+      "uiJankyPercent": 98.76543209876543,
+      "uiThroughputFramesPerSecond": 21.691922053317416,
+      "windowFps": 25.108504591884362,
+      "windowP50Ms": 32.39791,
+      "windowP95Ms": 60.61408,
+      "windowSlowPercent": 77.47252747252747,
+      "windowSlowThresholdMs": 24.999999,
+      "windowTimestampSpanMs": 28994.16002,
+      "windowPresentedFrames": 729,
+      "presentationScope": "app-window",
+      "sampledPeakPssKiB": 138624,
+      "sustainedMedianPssKiB": 133164,
+      "sustainedP95PssKiB": 137158,
+      "pssSamples": 34,
+      "activityTotalMs": 1071,
+      "firstUiObservedMs": 4387.167888999975,
+      "firstSceneObservedMs": 4387.172194999992,
+      "renderThreadCpuTicks": 1614,
+      "javascriptCpuTicks": 142,
+      "glCpuTicks": null,
+      "wallClockSegments": {
+        "uiWork": {
+          "metric": "HWUI wall-clock SyncQueued minus HandleInputStart",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 3.00431,
+          "p95Ms": 10.45958
+        },
+        "renderThreadQueue": {
+          "metric": "HWUI wall-clock SyncStart minus SyncQueued",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 21.27725,
+          "p95Ms": 29.63635
+        },
+        "renderSubmission": {
+          "metric": "HWUI wall-clock SwapBuffers minus IssueDrawCommandsStart",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 16.73613,
+          "p95Ms": 24.99877
+        },
+        "postSwap": {
+          "metric": "HWUI wall-clock FrameCompleted minus SwapBuffers",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 10.53587,
+          "p95Ms": 17.65964
+        }
+      },
+      "shaderMarkers": {
+        "engraving-derivatives": 1,
+        "engraving-finite-difference": 0
+      },
+      "shaderMarkerCollectionAvailable": true,
+      "initialMode": "light",
+      "initialQuality": "light",
+      "finalMode": "light",
+      "finalQuality": "light",
+      "qualityEquivalentAtEndpoints": true,
+      "traceObservedDurationMs": 33606.98043300002
+    },
+    {
+      "trial": 1,
+      "arm": "B",
+      "version": "r5",
+      "visualMode": "3d",
+      "uiP50Ms": 64.477101,
+      "uiP95Ms": 91.53241,
+      "uiCapturedFrames": 120,
+      "uiTailSpanMs": 4642.288578,
+      "uiCapturedSlowPercent": 98.33333333333333,
+      "uiJankyPercent": 98.90965732087227,
+      "uiThroughputFramesPerSecond": 19.026120482638543,
+      "windowFps": 22.050560849668365,
+      "windowP50Ms": 33.00638,
+      "windowP95Ms": 61.27437,
+      "windowSlowPercent": 77.37909516380655,
+      "windowSlowThresholdMs": 24.999999,
+      "windowTimestampSpanMs": 29069.55539,
+      "windowPresentedFrames": 642,
+      "presentationScope": "app-window",
+      "sampledPeakPssKiB": 132621,
+      "sustainedMedianPssKiB": 128596,
+      "sustainedP95PssKiB": 132621,
+      "pssSamples": 34,
+      "activityTotalMs": 996,
+      "firstUiObservedMs": 4325.601874999993,
+      "firstSceneObservedMs": 4325.605359999987,
+      "renderThreadCpuTicks": 1594,
+      "javascriptCpuTicks": 144,
+      "glCpuTicks": null,
+      "wallClockSegments": {
+        "uiWork": {
+          "metric": "HWUI wall-clock SyncQueued minus HandleInputStart",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 2.9973,
+          "p95Ms": 17.483
+        },
+        "renderThreadQueue": {
+          "metric": "HWUI wall-clock SyncStart minus SyncQueued",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 17.87094,
+          "p95Ms": 29.91106
+        },
+        "renderSubmission": {
+          "metric": "HWUI wall-clock SwapBuffers minus IssueDrawCommandsStart",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 16.29676,
+          "p95Ms": 27.02976
+        },
+        "postSwap": {
+          "metric": "HWUI wall-clock FrameCompleted minus SwapBuffers",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 9.47162,
+          "p95Ms": 17.18173
+        }
+      },
+      "shaderMarkers": {
+        "engraving-derivatives": 1,
+        "engraving-finite-difference": 0
+      },
+      "shaderMarkerCollectionAvailable": true,
+      "initialMode": "gl",
+      "initialQuality": "balanced",
+      "finalMode": "automatic-light",
+      "finalQuality": "light",
+      "qualityEquivalentAtEndpoints": false,
+      "traceObservedDurationMs": 33743.084965000045
+    },
+    {
+      "trial": 2,
+      "arm": "B",
+      "version": "r5",
+      "visualMode": "light",
+      "uiP50Ms": 62.920858,
+      "uiP95Ms": 87.672009,
+      "uiCapturedFrames": 120,
+      "uiTailSpanMs": 4811.652673,
+      "uiCapturedSlowPercent": 100,
+      "uiJankyPercent": 99.2503748125937,
+      "uiThroughputFramesPerSecond": 19.85229551463388,
+      "windowFps": 23.024677411227334,
+      "windowP50Ms": 33.89446,
+      "windowP95Ms": 65.80384,
+      "windowSlowPercent": 78.07807807807808,
+      "windowSlowThresholdMs": 24.999999,
+      "windowTimestampSpanMs": 28925.48669,
+      "windowPresentedFrames": 667,
+      "presentationScope": "app-window",
+      "sampledPeakPssKiB": 131927,
+      "sustainedMedianPssKiB": 126614,
+      "sustainedP95PssKiB": 128604,
+      "pssSamples": 34,
+      "activityTotalMs": 1231,
+      "firstUiObservedMs": 4517.867977000016,
+      "firstSceneObservedMs": 4517.872264000005,
+      "renderThreadCpuTicks": 1627,
+      "javascriptCpuTicks": 144,
+      "glCpuTicks": null,
+      "wallClockSegments": {
+        "uiWork": {
+          "metric": "HWUI wall-clock SyncQueued minus HandleInputStart",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 2.27249,
+          "p95Ms": 11.11941
+        },
+        "renderThreadQueue": {
+          "metric": "HWUI wall-clock SyncStart minus SyncQueued",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 21.0416,
+          "p95Ms": 31.46939
+        },
+        "renderSubmission": {
+          "metric": "HWUI wall-clock SwapBuffers minus IssueDrawCommandsStart",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 14.8561,
+          "p95Ms": 26.66076
+        },
+        "postSwap": {
+          "metric": "HWUI wall-clock FrameCompleted minus SwapBuffers",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 11.94901,
+          "p95Ms": 20.04546
+        }
+      },
+      "shaderMarkers": {
+        "engraving-derivatives": 1,
+        "engraving-finite-difference": 0
+      },
+      "shaderMarkerCollectionAvailable": true,
+      "initialMode": "light",
+      "initialQuality": "light",
+      "finalMode": "light",
+      "finalQuality": "light",
+      "qualityEquivalentAtEndpoints": true,
+      "traceObservedDurationMs": 33598.12972299999
+    },
+    {
+      "trial": 2,
+      "arm": "B",
+      "version": "r5",
+      "visualMode": "3d",
+      "uiP50Ms": 63.852196,
+      "uiP95Ms": 85.674151,
+      "uiCapturedFrames": 120,
+      "uiTailSpanMs": 4813.051936,
+      "uiCapturedSlowPercent": 97.5,
+      "uiJankyPercent": 98.32775919732441,
+      "uiThroughputFramesPerSecond": 17.800712550807063,
+      "windowFps": 20.650309930436016,
+      "windowP50Ms": 33.69371,
+      "windowP95Ms": 69.95993,
+      "windowSlowPercent": 79.5644891122278,
+      "windowSlowThresholdMs": 24.999999,
+      "windowTimestampSpanMs": 28909.97772,
+      "windowPresentedFrames": 598,
+      "presentationScope": "app-window",
+      "sampledPeakPssKiB": 131714,
+      "sustainedMedianPssKiB": 130442,
+      "sustainedP95PssKiB": 131002,
+      "pssSamples": 34,
+      "activityTotalMs": 1243,
+      "firstUiObservedMs": 4843.198442999972,
+      "firstSceneObservedMs": 4843.203931999975,
+      "renderThreadCpuTicks": 1557,
+      "javascriptCpuTicks": 130,
+      "glCpuTicks": null,
+      "wallClockSegments": {
+        "uiWork": {
+          "metric": "HWUI wall-clock SyncQueued minus HandleInputStart",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 4.61382,
+          "p95Ms": 22.46728
+        },
+        "renderThreadQueue": {
+          "metric": "HWUI wall-clock SyncStart minus SyncQueued",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 15.8564,
+          "p95Ms": 32.15512
+        },
+        "renderSubmission": {
+          "metric": "HWUI wall-clock SwapBuffers minus IssueDrawCommandsStart",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 16.25149,
+          "p95Ms": 27.1423
+        },
+        "postSwap": {
+          "metric": "HWUI wall-clock FrameCompleted minus SwapBuffers",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 9.43182,
+          "p95Ms": 19.59972
+        }
+      },
+      "shaderMarkers": {
+        "engraving-derivatives": 1,
+        "engraving-finite-difference": 0
+      },
+      "shaderMarkerCollectionAvailable": true,
+      "initialMode": "gl",
+      "initialQuality": "balanced",
+      "finalMode": "automatic-light",
+      "finalQuality": "light",
+      "qualityEquivalentAtEndpoints": false,
+      "traceObservedDurationMs": 33594.160812000046
+    },
+    {
+      "trial": 3,
+      "arm": "A",
+      "version": "r4",
+      "visualMode": "light",
+      "uiP50Ms": 96.771734,
+      "uiP95Ms": 130.758504,
+      "uiCapturedFrames": 120,
+      "uiTailSpanMs": 5976.781531,
+      "uiCapturedSlowPercent": 100,
+      "uiJankyPercent": 100,
+      "uiThroughputFramesPerSecond": 15.902606826166885,
+      "windowFps": 18.414441893307202,
+      "windowP50Ms": 42.39972,
+      "windowP95Ms": 82.33457,
+      "windowSlowPercent": 88.93058161350844,
+      "windowSlowThresholdMs": 24.999999,
+      "windowTimestampSpanMs": 28944.67305,
+      "windowPresentedFrames": 534,
+      "presentationScope": "app-window",
+      "sampledPeakPssKiB": 141974,
+      "sustainedMedianPssKiB": 132152,
+      "sustainedP95PssKiB": 133249,
+      "pssSamples": 34,
+      "activityTotalMs": 1137,
+      "firstUiObservedMs": 4485.190127999987,
+      "firstSceneObservedMs": 4485.194174999953,
+      "renderThreadCpuTicks": 1727,
+      "javascriptCpuTicks": 120,
+      "glCpuTicks": null,
+      "wallClockSegments": {
+        "uiWork": {
+          "metric": "HWUI wall-clock SyncQueued minus HandleInputStart",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 3.34302,
+          "p95Ms": 16.23985
+        },
+        "renderThreadQueue": {
+          "metric": "HWUI wall-clock SyncStart minus SyncQueued",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 29.83349,
+          "p95Ms": 43.41532
+        },
+        "renderSubmission": {
+          "metric": "HWUI wall-clock SwapBuffers minus IssueDrawCommandsStart",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 26.27152,
+          "p95Ms": 36.89386
+        },
+        "postSwap": {
+          "metric": "HWUI wall-clock FrameCompleted minus SwapBuffers",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 8.73429,
+          "p95Ms": 18.97955
+        }
+      },
+      "shaderMarkers": {
+        "engraving-derivatives": 0,
+        "engraving-finite-difference": 0
+      },
+      "shaderMarkerCollectionAvailable": true,
+      "initialMode": "light",
+      "initialQuality": "light",
+      "finalMode": "light",
+      "finalQuality": "light",
+      "qualityEquivalentAtEndpoints": true,
+      "traceObservedDurationMs": 33579.40027300001
+    },
+    {
+      "trial": 3,
+      "arm": "A",
+      "version": "r4",
+      "visualMode": "3d",
+      "uiP50Ms": 92.514461,
+      "uiP95Ms": 113.358293,
+      "uiCapturedFrames": 120,
+      "uiTailSpanMs": 5466.011933,
+      "uiCapturedSlowPercent": 100,
+      "uiJankyPercent": 99.6124031007752,
+      "uiThroughputFramesPerSecond": 15.324144195298858,
+      "windowFps": 17.736171937327118,
+      "windowP50Ms": 40.07906,
+      "windowP95Ms": 82.99669,
+      "windowSlowPercent": 85.04854368932038,
+      "windowSlowThresholdMs": 24.999999,
+      "windowTimestampSpanMs": 29036.70543,
+      "windowPresentedFrames": 516,
+      "presentationScope": "app-window",
+      "sampledPeakPssKiB": 137086,
+      "sustainedMedianPssKiB": 132179,
+      "sustainedP95PssKiB": 132796,
+      "pssSamples": 34,
+      "activityTotalMs": 928,
+      "firstUiObservedMs": 4011.1586929999758,
+      "firstSceneObservedMs": 4011.162578999996,
+      "renderThreadCpuTicks": 1680,
+      "javascriptCpuTicks": 126,
+      "glCpuTicks": null,
+      "wallClockSegments": {
+        "uiWork": {
+          "metric": "HWUI wall-clock SyncQueued minus HandleInputStart",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 3.30761,
+          "p95Ms": 17.73198
+        },
+        "renderThreadQueue": {
+          "metric": "HWUI wall-clock SyncStart minus SyncQueued",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 29.21063,
+          "p95Ms": 42.01264
+        },
+        "renderSubmission": {
+          "metric": "HWUI wall-clock SwapBuffers minus IssueDrawCommandsStart",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 23.86867,
+          "p95Ms": 31.61855
+        },
+        "postSwap": {
+          "metric": "HWUI wall-clock FrameCompleted minus SwapBuffers",
+          "available": true,
+          "capturedSamples": 120,
+          "missingOrInvalidRows": 0,
+          "p50Ms": 10.99452,
+          "p95Ms": 18.29219
+        }
+      },
+      "shaderMarkers": {
+        "engraving-derivatives": 0,
+        "engraving-finite-difference": 0
+      },
+      "shaderMarkerCollectionAvailable": true,
+      "initialMode": "gl",
+      "initialQuality": "balanced",
+      "finalMode": "automatic-light",
+      "finalQuality": "light",
+      "qualityEquivalentAtEndpoints": false,
+      "traceObservedDurationMs": 33672.35347199999
+    }
+  ],
+  "comparisons": {
+    "light": {
+      "changes": {
+        "uiP50Ms": {
+          "r4MeanOfTwoTrials": 98.29944549999999,
+          "r5MeanOfTwoTrials": 66.712234,
+          "relativeChangePercent": -32.133661934033995
+        },
+        "uiP95Ms": {
+          "r4MeanOfTwoTrials": 128.27191249999998,
+          "r5MeanOfTwoTrials": 88.749318,
+          "relativeChangePercent": -30.811573422201832
+        },
+        "uiThroughputFramesPerSecond": {
+          "r4MeanOfTwoTrials": 15.471072661521289,
+          "r5MeanOfTwoTrials": 20.772108783975646,
+          "relativeChangePercent": 34.264179597829525
+        },
+        "windowFps": {
+          "r4MeanOfTwoTrials": 17.95584265959765,
+          "r5MeanOfTwoTrials": 24.06659100155585,
+          "relativeChangePercent": 34.032088929515744
+        },
+        "windowP95Ms": {
+          "r4MeanOfTwoTrials": 87.44891,
+          "r5MeanOfTwoTrials": 63.20896,
+          "relativeChangePercent": -27.71898471919204
+        },
+        "windowSlowPercent": {
+          "r4MeanOfTwoTrials": 87.8520643538484,
+          "r5MeanOfTwoTrials": 77.77530277530278,
+          "relativeChangePercent": -11.470147745144265
+        },
+        "sampledPeakPssKiB": {
+          "r4MeanOfTwoTrials": 137741,
+          "r5MeanOfTwoTrials": 135275.5,
+          "relativeChangePercent": -1.7899536085842271
+        },
+        "sustainedMedianPssKiB": {
+          "r4MeanOfTwoTrials": 129421,
+          "r5MeanOfTwoTrials": 129889,
+          "relativeChangePercent": 0.3616105577920026
+        },
+        "activityTotalMs": {
+          "r4MeanOfTwoTrials": 1313.5,
+          "r5MeanOfTwoTrials": 1151,
+          "relativeChangePercent": -12.3715264560335
+        },
+        "firstSceneObservedMs": {
+          "r4MeanOfTwoTrials": 4845.388554999976,
+          "r5MeanOfTwoTrials": 4452.5222294999985,
+          "relativeChangePercent": -8.108045846902767
+        },
+        "renderThreadCpuTicks": {
+          "r4MeanOfTwoTrials": 1695,
+          "r5MeanOfTwoTrials": 1620.5,
+          "relativeChangePercent": -4.3952802359881975
+        },
+        "javascriptCpuTicks": {
+          "r4MeanOfTwoTrials": 111,
+          "r5MeanOfTwoTrials": 143,
+          "relativeChangePercent": 28.828828828828822
+        }
+      },
+      "segmentChanges": {
+        "uiWork": {
+          "r4MeanOfTwoP95Ms": 16.450445000000002,
+          "r5MeanOfTwoP95Ms": 10.789495,
+          "relativeChangePercent": -34.41213900292668
+        },
+        "renderThreadQueue": {
+          "r4MeanOfTwoP95Ms": 44.027975,
+          "r5MeanOfTwoP95Ms": 30.55287,
+          "relativeChangePercent": -30.60577962079791
+        },
+        "renderSubmission": {
+          "r4MeanOfTwoP95Ms": 37.263875,
+          "r5MeanOfTwoP95Ms": 25.829765000000002,
+          "relativeChangePercent": -30.684167977699573
+        },
+        "postSwap": {
+          "r4MeanOfTwoP95Ms": 18.613574999999997,
+          "r5MeanOfTwoP95Ms": 18.85255,
+          "relativeChangePercent": 1.2838748064248895
+        }
+      },
+      "bothArmsModeStableAtEndpoints": true,
+      "threeDStartedTracesFinishAsLight": 0
+    },
+    "3d": {
+      "changes": {
+        "uiP50Ms": {
+          "r4MeanOfTwoTrials": 93.79729599999999,
+          "r5MeanOfTwoTrials": 64.1646485,
+          "relativeChangePercent": -31.592219353530183
+        },
+        "uiP95Ms": {
+          "r4MeanOfTwoTrials": 117.222938,
+          "r5MeanOfTwoTrials": 88.6032805,
+          "relativeChangePercent": -24.41472461643983
+        },
+        "uiThroughputFramesPerSecond": {
+          "r4MeanOfTwoTrials": 15.367433455268573,
+          "r5MeanOfTwoTrials": 18.413416516722805,
+          "relativeChangePercent": 19.821026525479745
+        },
+        "windowFps": {
+          "r4MeanOfTwoTrials": 17.80224158835696,
+          "r5MeanOfTwoTrials": 21.35043539005219,
+          "relativeChangePercent": 19.931163073395332
+        },
+        "windowP95Ms": {
+          "r4MeanOfTwoTrials": 82.3274,
+          "r5MeanOfTwoTrials": 65.61715,
+          "relativeChangePercent": -20.297312923765364
+        },
+        "windowSlowPercent": {
+          "r4MeanOfTwoTrials": 85.53398058252426,
+          "r5MeanOfTwoTrials": 78.47179213801718,
+          "relativeChangePercent": -8.256588079276161
+        },
+        "sampledPeakPssKiB": {
+          "r4MeanOfTwoTrials": 132793,
+          "r5MeanOfTwoTrials": 132167.5,
+          "relativeChangePercent": -0.4710338647368473
+        },
+        "sustainedMedianPssKiB": {
+          "r4MeanOfTwoTrials": 129376.5,
+          "r5MeanOfTwoTrials": 129519,
+          "relativeChangePercent": 0.11014365050840969
+        },
+        "activityTotalMs": {
+          "r4MeanOfTwoTrials": 1126,
+          "r5MeanOfTwoTrials": 1119.5,
+          "relativeChangePercent": -0.5772646536412074
+        },
+        "firstSceneObservedMs": {
+          "r4MeanOfTwoTrials": 4221.143486999994,
+          "r5MeanOfTwoTrials": 4584.404645999981,
+          "relativeChangePercent": 8.605752448802928
+        },
+        "renderThreadCpuTicks": {
+          "r4MeanOfTwoTrials": 1677.5,
+          "r5MeanOfTwoTrials": 1575.5,
+          "relativeChangePercent": -6.080476900149034
+        },
+        "javascriptCpuTicks": {
+          "r4MeanOfTwoTrials": 127,
+          "r5MeanOfTwoTrials": 137,
+          "relativeChangePercent": 7.874015748031504
+        }
+      },
+      "segmentChanges": {
+        "uiWork": {
+          "r4MeanOfTwoP95Ms": 16.87148,
+          "r5MeanOfTwoP95Ms": 19.97514,
+          "relativeChangePercent": 18.39589650700473
+        },
+        "renderThreadQueue": {
+          "r4MeanOfTwoP95Ms": 41.384365,
+          "r5MeanOfTwoP95Ms": 31.033089999999998,
+          "relativeChangePercent": -25.01252586574665
+        },
+        "renderSubmission": {
+          "r4MeanOfTwoP95Ms": 32.6623,
+          "r5MeanOfTwoP95Ms": 27.08603,
+          "relativeChangePercent": -17.072496425542603
+        },
+        "postSwap": {
+          "r4MeanOfTwoP95Ms": 18.541425,
+          "r5MeanOfTwoP95Ms": 18.390725000000003,
+          "relativeChangePercent": -0.8127746384109957
+        }
+      },
+      "bothArmsModeStableAtEndpoints": false,
+      "threeDStartedTracesFinishAsLight": 4
+    }
+  },
+  "shaderCapability": {
+    "r5DerivativeMarkers": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "r5FiniteDifferenceMarkers": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "r4MarkerInterpretation": "Uninstrumented r4 returns zero; zero does not identify its actual shader path."
+  },
+  "historicalReference": {
+    "run": 41466137890,
+    "source": "../android-baseline-controlled/analysis.json",
+    "sameHostAsCurrentRun": false,
+    "sameSamplerCapabilities": false,
+    "stable030LightRows": [
+      {
+        "trial": 0,
+        "arm": "A",
+        "visualMode": "light",
+        "package": "com.openminerals.demo.mobile",
+        "versionCode": 6,
+        "uiP50Ms": 102.006921,
+        "uiP95Ms": 127.810343,
+        "uiCapturedFrames": 120,
+        "uiTailSpanMs": 5913.731212,
+        "uiJankyPercent": 99.30675909878683,
+        "uiThroughputFramesPerSecond": 16.748889717131124,
+        "sampledPeakPssKiB": 120249,
+        "sustainedMedianPssKiB": 113770,
+        "sustainedP95PssKiB": 114194,
+        "pssSamples": 35,
+        "activityTotalMs": 1831,
+        "firstUiObservedMs": 7108.779000000002,
+        "firstSceneObservedMs": 7108.786270000004,
+        "renderThreadCpuTicks": 1542,
+        "javascriptCpuTicks": null,
+        "glCpuTicks": null,
+        "initialMode": "light",
+        "initialQuality": "light",
+        "finalMode": "light",
+        "finalQuality": "light",
+        "qualityEquivalentAtEndpoints": true,
+        "traceObservedDurationMs": 34450.04473400001,
+        "presentationAvailable": false
+      },
+      {
+        "trial": 3,
+        "arm": "A",
+        "visualMode": "light",
+        "package": "com.openminerals.demo.mobile",
+        "versionCode": 6,
+        "uiP50Ms": 105.125992,
+        "uiP95Ms": 126.440755,
+        "uiCapturedFrames": 120,
+        "uiTailSpanMs": 6142.552442,
+        "uiJankyPercent": 99.28571428571429,
+        "uiThroughputFramesPerSecond": 16.265124029767332,
+        "sampledPeakPssKiB": 117619,
+        "sustainedMedianPssKiB": 110505,
+        "sustainedP95PssKiB": 111006,
+        "pssSamples": 35,
+        "activityTotalMs": 1240,
+        "firstUiObservedMs": 4747.471922000055,
+        "firstSceneObservedMs": 4747.476399000036,
+        "renderThreadCpuTicks": 1583,
+        "javascriptCpuTicks": null,
+        "glCpuTicks": null,
+        "initialMode": "light",
+        "initialQuality": "light",
+        "finalMode": "light",
+        "finalQuality": "light",
+        "qualityEquivalentAtEndpoints": true,
+        "traceObservedDurationMs": 34429.494603,
+        "presentationAvailable": false
+      }
+    ],
+    "r4LightP95MeanHistorical": 173.8457515,
+    "r4LightP95MeanCurrent": 128.27191249999998,
+    "interpretation": "The older stable/r4 run has a different runner instance, profiler capability set and preceding workloads. r4 itself shifts between runs. Historical 0.3.0 values are context, not a controlled same-run proof that r5 eliminates the 0.3.0 regression."
+  },
+  "metricScope": {
+    "hwui": "FrameCompleted minus IntendedVsync over captured tail 120 rows, not pure UI-thread CPU, GPU execution or all-trace percentiles.",
+    "segments": "Available HWUI wall-clock subsegments; include waits and scheduling. Percentile sums are not a total percentile.",
+    "windowPresentation": "MainActivity app-window UI plus composited TextureView, never isolated GL/GPU FPS. Observed FPS spans first to last valid presentation timestamp, approximately 29 seconds, excluding leading/trailing periods of the approximately 33-second input trace. Slow intervals exceed 1.5 refresh periods, approximately 25 ms.",
+    "memory": "PSS roughly 1 Hz during trace; maximum is sampled, not continuous. Sustained median/p95 use final half of samples.",
+    "cpu": "Recognized Linux per-thread CPU ticks. JS is now mqt_v_js; old baseline lacked recognition. GL remains unavailable, not zero.",
+    "load": "Activity launch and first UIAutomator-observed scene upper bounds differ. Readiness precedes selected-mode preparation and includes polling; not API-data readiness.",
+    "shader": "One static marker per renderer/process proves the selected shader branch was instantiated. Counts are not draw counts or a measured GPU speed."
+  },
+  "performanceAcceptance": {
+    "lightUiImprovedInBothTrials": true,
+    "memoryConclusion": "Observed light-mode mean sustained PSS changes by approximately +0.36%, with per-trial variability; no statistical confidence interval or continuous peak was measured.",
+    "sustainedFull3dAccepted": false,
+    "sixtyFpsAccepted": false,
+    "physicalPhoneAcceptance": false
+  },
+  "limitations": [
+    "Two repetitions per arm/mode, one software-rendered API29 emulator; no statistical confidence interval.",
+    "All four 3D-started traces end in automatic light; fixed-quality sustained 3D comparison remains unproven.",
+    "Captured HWUI tails cover different temporal spans per APK.",
+    "Native shader, UI/light changes and cached rendering are combined in this APK comparison; it does not isolate causal contribution of each change."
+  ]
+}

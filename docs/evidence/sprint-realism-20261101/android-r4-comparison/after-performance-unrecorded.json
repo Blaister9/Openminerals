@@ -1,0 +1,191 @@
+{
+  "demoOnly": true,
+  "environment": "disposable API 29 x86_64 emulator with SwiftShader",
+  "physicalDevice": false,
+  "package": "com.openminerals.demo.minepreview",
+  "version": "0.4.0",
+  "coldStartTotalMs": 1698,
+  "coldStartWaitMs": 1699,
+  "pssBeforeKiB": 137774,
+  "pssAfterKiB": 134404,
+  "uiFrames": 370,
+  "jankyUiFrames": 370,
+  "uiFrameP50Ms": 93,
+  "uiFrameP90Ms": 129,
+  "uiFrameP95Ms": 150,
+  "hwuiProfilingRequested": true,
+  "automaticLightObserved": true,
+  "qualityTierObserved": "light",
+  "knownIds": [
+    "immersive-scene-light",
+    "home-cinematic-scroll"
+  ],
+  "readiness": "light",
+  "mode": "automatic-light",
+  "stateReasonCode": null,
+  "internalFailureCode": null,
+  "internalFailureObserved": false,
+  "retryPendingObserved": false,
+  "manualRetryControlObserved": false,
+  "manualLightDescriptionObserved": false,
+  "reducedMotionDescriptionObserved": false,
+  "genericSimplifiedTextObserved": false,
+  "xmlTruncated": false,
+  "rawUiPublished": false,
+  "coldLaunch": {
+    "valid": true,
+    "oldPid": "10349",
+    "newPid": "12028",
+    "oldProcessExitObserved": true,
+    "newProcessObserved": true,
+    "pidChanged": true,
+    "status": "ok",
+    "reportedLaunchState": "COLD",
+    "intentReused": false,
+    "classification": "verified-cold-process-launch",
+    "appReadyLatencyMeasured": false
+  },
+  "visualMode": "3d",
+  "qualityTierScope": "Observed adaptive tier; GL resolution and GPU FPS are not inferred.",
+  "screenRecording": false,
+  "recordingEvidence": null,
+  "inputTrace": {
+    "protocol": "openminerals-native-gesture-trace-v1",
+    "specificationSha256": "1a48933715ea7e75cfb38bbd45807fd8350da58c3513d6d7666c4f170c85ac9a",
+    "compiledSha256": "0e30040ccbf227ed1328ee314a4968da933464450aaca3ce8021981db201c8b3",
+    "gestureCount": 15,
+    "plannedDurationMs": 30750,
+    "observedDurationMs": 35085.93556000001,
+    "events": [
+      {
+        "index": 0,
+        "segment": "advance",
+        "direction": "UP",
+        "startMs": 0.0029749999521300197,
+        "inputCompletedMs": 2976.580854000058,
+        "completedMs": 3227.6871400000528
+      },
+      {
+        "index": 1,
+        "segment": "advance",
+        "direction": "UP",
+        "startMs": 3227.6923589999788,
+        "inputCompletedMs": 5282.06796200003,
+        "completedMs": 5531.862322999979
+      },
+      {
+        "index": 2,
+        "segment": "advance",
+        "direction": "UP",
+        "startMs": 5531.867052000016,
+        "inputCompletedMs": 7676.625624999986,
+        "completedMs": 7926.891947000055
+      },
+      {
+        "index": 3,
+        "segment": "reverse",
+        "direction": "DOWN",
+        "startMs": 7926.8975980000105,
+        "inputCompletedMs": 10014.22721599997,
+        "completedMs": 10264.581740000052
+      },
+      {
+        "index": 4,
+        "segment": "reverse",
+        "direction": "DOWN",
+        "startMs": 10264.586509000044,
+        "inputCompletedMs": 12256.015786999953,
+        "completedMs": 12505.88574399997
+      },
+      {
+        "index": 5,
+        "segment": "reverse",
+        "direction": "DOWN",
+        "startMs": 12505.890724000055,
+        "inputCompletedMs": 14452.344142999966,
+        "completedMs": 14701.884094999987
+      },
+      {
+        "index": 6,
+        "segment": "reverse",
+        "direction": "DOWN",
+        "startMs": 14701.888564000023,
+        "inputCompletedMs": 16650.04970099998,
+        "completedMs": 16899.92604000005
+      },
+      {
+        "index": 7,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 16899.931440999964,
+        "inputCompletedMs": 18982.620869999984,
+        "completedMs": 19232.946363999974
+      },
+      {
+        "index": 8,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 19232.951192999957,
+        "inputCompletedMs": 21325.65683600004,
+        "completedMs": 21575.91392099997
+      },
+      {
+        "index": 9,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 21575.918980999966,
+        "inputCompletedMs": 23623.658725999994,
+        "completedMs": 23873.91975999996
+      },
+      {
+        "index": 10,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 23873.92484900006,
+        "inputCompletedMs": 25944.216752000037,
+        "completedMs": 26194.24612200004
+      },
+      {
+        "index": 11,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 26194.251722999965,
+        "inputCompletedMs": 28248.453647000017,
+        "completedMs": 28498.937828000053
+      },
+      {
+        "index": 12,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 28498.943979999982,
+        "inputCompletedMs": 30447.656814999995,
+        "completedMs": 30697.879668000038
+      },
+      {
+        "index": 13,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 30697.884425999946,
+        "inputCompletedMs": 32640.142221000046,
+        "completedMs": 32889.89702699997
+      },
+      {
+        "index": 14,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 32889.90203600004,
+        "inputCompletedMs": 34835.63104999997,
+        "completedMs": 35085.896267000004
+      }
+    ]
+  },
+  "measurementValid": true,
+  "checks": {
+    "traceFinalAccessibility": true,
+    "embeddedAfterTrace": true
+  },
+  "uiFrameStatisticsAvailable": true,
+  "phonePerformanceAcceptance": false,
+  "gpuFpsMeasured": false,
+  "interpretation": "gfxinfo reports Android UI frames, not ExpoGL GPU FPS. PSS samples are not peak memory. Input duration includes ADB overhead. Cold start is a process launch of an installed APK. Recorded and unrecorded traces are separate; menus, readiness checks and screenshots are outside the measured workload."
+}

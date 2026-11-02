@@ -1,0 +1,285 @@
+{
+  "format": "openminerals-public-native-r5-archive-v1",
+  "demoOnly": true,
+  "archivedAtUtc": "2026-11-02T16:19:18.956404+00:00",
+  "run": {
+    "id": 41477328613,
+    "conclusion": "failure",
+    "headSha": "df8d985e9074fac603430bffd639b6437f353d33",
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41477328613",
+    "jobId": 125386426563,
+    "jobConclusion": "failure",
+    "jobUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41477328613/job/125386426563",
+    "jobStartedAtUtc": "2026-11-02T16:01:39Z",
+    "jobCompletedAtUtc": "2026-11-02T16:16:13Z",
+    "artifact": {
+      "id": 13160120617,
+      "name": "android-mine-preview-41477328613-comparison",
+      "size_in_bytes": 5775871,
+      "digest": "sha256:da11b7fda9d9f3fccacbb9ca09102cd186fba610cc69aca06d322b891e6d8d8c",
+      "created_at": "2026-11-02T16:15:52Z",
+      "expires_at": "2026-11-09T16:15:51Z"
+    },
+    "artifactArchiveDigestIndependentlyVerified": false
+  },
+  "candidate": {
+    "id": "41aae522-abab-44f6-b8c4-e89b99dc1aa8",
+    "buildUrl": "https://expo.dev/accounts/chipirips-team/projects/openminerals-demo/builds/41aae522-abab-44f6-b8c4-e89b99dc1aa8",
+    "sourceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+    "version": "0.4.0",
+    "versionCode": 5,
+    "sha256": "7a3608be4a29996bb7d1713706669fd5acab12d73286f3931c1b45226145f4ec",
+    "bytes": 77360408,
+    "certificate": "86c84db35e91b187f3f818c0cc74ddb91df9a95014cba138ac7e04611957aa09",
+    "apkUrl": "https://github.com/Blaister9/Openminerals/releases/download/android-mine-preview-0.4.0-r5-20261102/Openminerals-Mina-Preview-0.4.0-r5-android.apk"
+  },
+  "harnessVerificationCommit": "8cc6a6dcd9d20d9cf0b29863db9896218b33b17c",
+  "apkSourceLinkage": "APK SHA matches the independently downloaded and inspected EAS build record; workflow head/verification checkout are not substituted for APK source.",
+  "archivePractice": {
+    "publicArtifactOnly": true,
+    "fullProgressNdjsonExcluded": true,
+    "rawPrivateUiOrLogsCopied": false,
+    "downloadedOriginalBytesPreserved": true,
+    "noVideoRepairOrRemux": true
+  },
+  "files": [
+    {
+      "file": "acceleration.txt",
+      "bytes": 112,
+      "sha256": "b52571637c73b4132bbabab0a846c86cabfba6ddf7503c317c79971fda6a18fb",
+      "source": "GitHub public artifact 13160120617/acceleration.txt",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-anonymous-scroll-incomplete.mp4",
+      "bytes": 95301,
+      "sha256": "1541b54cc5c0eb7f622606ec362725819b3ee68ff6f108610ddea662a0e6d08a",
+      "source": "GitHub public artifact 13160120617/after-anonymous-scroll-incomplete.mp4",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-chapter-rendering.json",
+      "bytes": 6116,
+      "sha256": "a29bf88ecf64296d4f4a561cc33bb6f599b878da5da3d378c680a9918fa49259",
+      "source": "GitHub public artifact 13160120617/after-chapter-rendering.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-launch-1.json",
+      "bytes": 617,
+      "sha256": "15f29cce2381a85283d083655d738ec49eb27f1849f79ddeb5a30e69aeb97984",
+      "source": "GitHub public artifact 13160120617/after-launch-1.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-launch-2.json",
+      "bytes": 621,
+      "sha256": "2798efa7457fb45e6d59a2789e5cf91dc0a3c628b02d1bbbbd1ef4a9d62ec9e0",
+      "source": "GitHub public artifact 13160120617/after-launch-2.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-launch-3.json",
+      "bytes": 622,
+      "sha256": "0718ae8224d27a12a5c165be7f18c3931e1c03da60f2315ec043b0d5e3a112a4",
+      "source": "GitHub public artifact 13160120617/after-launch-3.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-performance-light-unrecorded.json",
+      "bytes": 5756,
+      "sha256": "dc49a53428612350bbfdb60ad7f7003d1e9136a7335973574645eff40d47a719",
+      "source": "GitHub public artifact 13160120617/after-performance-light-unrecorded.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-performance-recorded.json",
+      "bytes": 7419,
+      "sha256": "31402b24f5e2647970ec38ef2f9a423c4eff0ca425c67edae22c389bd0ae9784",
+      "source": "GitHub public artifact 13160120617/after-performance-recorded.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-safe-initial-gl.png",
+      "bytes": 786947,
+      "sha256": "3ea553284877487b8fd7d3c67907f05ec5a771edf82134651386c69b0baf306d",
+      "source": "GitHub public artifact 13160120617/after-safe-initial-gl.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-safe-story-1.png",
+      "bytes": 778777,
+      "sha256": "31fd6583b6cc938dadb30e10322e2ffffb72e4dc149f420ce27ac3d1ba49e681",
+      "source": "GitHub public artifact 13160120617/after-safe-story-1.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-safe-story-2.png",
+      "bytes": 849404,
+      "sha256": "49b5c643ca5af839aafe90ccc969f02607d2bb70834f05789daad38203c7dfc4",
+      "source": "GitHub public artifact 13160120617/after-safe-story-2.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-safe-story-3.png",
+      "bytes": 718222,
+      "sha256": "e3d7971a05a9a8e4186aefecfaf8b8c07e6948a8260c41ccac8496de10fb31c6",
+      "source": "GitHub public artifact 13160120617/after-safe-story-3.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-safe-story-4.png",
+      "bytes": 85596,
+      "sha256": "a374c1127e22d458d6596d44fe2a11d75fb447f777a1a5e39615a9fcaa6db929",
+      "source": "GitHub public artifact 13160120617/after-safe-story-4.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-safe-story-5.png",
+      "bytes": 94928,
+      "sha256": "11dbb5f3e1faa278238dc660bae2e53b3c99561cd4160550d1ee7ab4f9d57ebf",
+      "source": "GitHub public artifact 13160120617/after-safe-story-5.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-safe-story-6.png",
+      "bytes": 94758,
+      "sha256": "7ac707be8b45bc355ce66f04b5173db9ad93cd1b20e45a22058088671aba32d4",
+      "source": "GitHub public artifact 13160120617/after-safe-story-6.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-safe-story-7.png",
+      "bytes": 104730,
+      "sha256": "6d7afed0162f009e7abbcebffb36c6c7652ce3798bde97250430b0b720b197a9",
+      "source": "GitHub public artifact 13160120617/after-safe-story-7.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-screenshots.json",
+      "bytes": 1554,
+      "sha256": "7d46d7ad0112451bc21afd893efff8e405d376ea9d98aed0c5744be9b72ba4ac",
+      "source": "GitHub public artifact 13160120617/after-screenshots.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-trace-end.png",
+      "bytes": 870840,
+      "sha256": "bfd10df3ded2b731859257511a0c7df3290fd7896184dbd1b993ac2a1a768df4",
+      "source": "GitHub public artifact 13160120617/after-trace-end.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-video-final-sample-1.png",
+      "bytes": 461899,
+      "sha256": "13c8a308162a0b379efa650dbca0dc15da8f458cb6c5c8d2d20c0a3adf714afa",
+      "source": "GitHub public artifact 13160120617/after-video-final-sample-1.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "after-video-validation.json",
+      "bytes": 1917,
+      "sha256": "fdb5b77504f4191be3ad01dc3406cf68723e05e4bba2388a57a5d4f04bb9d810",
+      "source": "GitHub public artifact 13160120617/after-video-validation.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "anonymous-failure-flags.json",
+      "bytes": 607,
+      "sha256": "df9f69626fee5c47987e16e3c66d84ba85d5cc030ee3ef9178b23d75149d231a",
+      "source": "GitHub public artifact 13160120617/anonymous-failure-flags.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "anonymous-failure.png",
+      "bytes": 870840,
+      "sha256": "bfd10df3ded2b731859257511a0c7df3290fd7896184dbd1b993ac2a1a768df4",
+      "source": "GitHub public artifact 13160120617/anonymous-failure.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "anonymous-scene-state.json",
+      "bytes": 613,
+      "sha256": "2507d71201f2f5629c1d5f0dbc6df76dc825eb32c8841b802a3e8b32b144827e",
+      "source": "GitHub public artifact 13160120617/anonymous-scene-state.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "apk-verification.json",
+      "bytes": 1205,
+      "sha256": "073de3deb269aba7cc7f97736542a1d614cefd0a3de0c289c7f1d5c295b95a34",
+      "source": "GitHub public artifact 13160120617/apk-verification.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "comparison-order.json",
+      "bytes": 544,
+      "sha256": "263d06292c9dab59bcdb41a8d98cfb6e2768c6dea4618c9fb66d5394e2438987",
+      "source": "GitHub public artifact 13160120617/comparison-order.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "fixed-input-trace.json",
+      "bytes": 4329,
+      "sha256": "d6ffd0bbb49b0c4d8e5cfabc542fdf771d8675a52ad9e1f0be6a5056a6fdc932",
+      "source": "GitHub public artifact 13160120617/fixed-input-trace.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "host-resources.json",
+      "bytes": 96,
+      "sha256": "be482ed6fe5df0a24a226a6d13718756ac100cc60143dfb0189d5d776144ed97",
+      "source": "GitHub public artifact 13160120617/host-resources.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "maestro-version.txt",
+      "bytes": 136,
+      "sha256": "e965ba7b69fd265831428ae69482aeb948488c4933f2ef20e51dc3582d04c22b",
+      "source": "GitHub public artifact 13160120617/maestro-version.txt",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "media-tools.json",
+      "bytes": 64,
+      "sha256": "cee598d19a3aa9c7b5a29d3eb945df2b734772b5db4c9a44f3864110076cb726",
+      "source": "GitHub public artifact 13160120617/media-tools.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "progress.json",
+      "bytes": 862,
+      "sha256": "139e93ec53c08c2b51a838f0a92b45e1e54525865e7adffcbe2bdb666b4755ad",
+      "source": "GitHub public artifact 13160120617/progress.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "report-download.xml",
+      "bytes": 338,
+      "sha256": "c398b07170a72914a5e7399906a36ab700fb7c4036b0810cd79027a28d2d3da3",
+      "source": "GitHub public artifact 13160120617/report-download.xml",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "report-run.xml",
+      "bytes": 900,
+      "sha256": "9f140d864bf2dc7db2b15899486088d4c899b69222b52edb624ef271100b703e",
+      "source": "GitHub public artifact 13160120617/report-run.xml",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "summary-download.json",
+      "bytes": 1333,
+      "sha256": "cd7ac89af818f115bb38bbb081eaa2d38b569526b4bfd17941fc7f5fe9a1d64e",
+      "source": "GitHub public artifact 13160120617/summary-download.json",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "summary-run.json",
+      "bytes": 1585,
+      "sha256": "af79ae934998c0972a4a3a4bfc80383cc86742a66e7e37dee92e2bea34700272",
+      "source": "GitHub public artifact 13160120617/summary-run.json",
+      "originalBytesPreserved": true
+    }
+  ]
+}

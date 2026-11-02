@@ -1,0 +1,64 @@
+{
+  "demoOnly": true,
+  "videoFile": "after-anonymous-scroll.mp4",
+  "videoEvidenceValid": true,
+  "endpointScreenshotWritten": true,
+  "mediaInspectionComplete": true,
+  "coverage": {
+    "temporalCoverageValid": true,
+    "minimumRequiredCoverage": 0.85,
+    "traceDurationSeconds": 37.08129764200002,
+    "containerDurationSeconds": 35.405411,
+    "firstPresentationTimestampSeconds": 0,
+    "lastPresentationTimestampSeconds": 35.370089,
+    "presentationSpanSeconds": 35.370089,
+    "containerCoverageRatio": 0.9548050702491644,
+    "presentationCoverageRatio": 0.9538525145877899,
+    "timestampsMonotonic": true,
+    "encodedFramesWithTimestamps": 158,
+    "tailPresentationTimestamps": [
+      35.296644,
+      35.334767,
+      35.370089
+    ],
+    "finalSamples": [
+      {
+        "frameIndex": 138,
+        "ptsSeconds": 31.844033,
+        "file": "after-video-final-sample-1.png",
+        "sha256": "9709091e799252734bc3ef7d8c64d1e41250f93817db4fafb9592ca3d88fef1c"
+      },
+      {
+        "frameIndex": 157,
+        "ptsSeconds": 35.370089,
+        "file": "after-video-final-sample-2.png",
+        "sha256": "5936cc7943d1e3cd1f6cb63066335ae237ea2eb11c65a71d8f18e60b81b3323b"
+      }
+    ],
+    "visualFinalStageVerified": false,
+    "interpretation": "Temporal MP4 coverage only. Final sample images require human review; timestamp coverage and accessibility do not prove rendered stage 7. Encoded frame count is not application FPS."
+  },
+  "finalization": {
+    "stopSignalSent": true,
+    "remoteExitObserved": true,
+    "hostCloseObserved": true,
+    "unexpectedPidObserved": false,
+    "probeErrors": 0,
+    "signalErrors": 0,
+    "hostCheckErrors": 0,
+    "finalized": true,
+    "latencyMs": 298.7314630000619,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "hostForceTerminationRequested": false,
+    "stopWaitOutsideInputTrace": true
+  },
+  "inputExecutionFailed": false,
+  "recorderAliveAtTraceEnd": true,
+  "inputTraceComplete": true,
+  "containerReadable": true,
+  "inspectionFailure": false,
+  "traceObservedDurationMs": 37081.29764200002,
+  "physicalDevice": false,
+  "gpuFpsMeasured": false
+}

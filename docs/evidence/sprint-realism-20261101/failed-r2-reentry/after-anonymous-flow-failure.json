@@ -1,0 +1,126 @@
+{
+  "kind": "after",
+  "flow": "story-resume-position",
+  "invocation": 1,
+  "stage": "preview-live-gl-home-resume",
+  "category": "timeout",
+  "expectedSelectorsFromFlow": [
+    "Cerrar opciones del recorrido",
+    "Elegir una etapa",
+    "Ir a etapa 4: FORMACIÓN DEL LINGOTE"
+  ],
+  "recentStaticCommandLabels": [
+    {
+      "selector": "Etapa 4 de 7: FORMACIÓN DEL LINGOTE",
+      "status": "mentioned"
+    },
+    {
+      "selector": "Etapa 4 de 7: FORMACIÓN DEL LINGOTE",
+      "status": "passed"
+    },
+    {
+      "selector": "Opciones del recorrido",
+      "status": "mentioned"
+    },
+    {
+      "selector": "Cerrar opciones del recorrido",
+      "status": "mentioned"
+    },
+    {
+      "selector": "Opciones del recorrido",
+      "status": "passed"
+    },
+    {
+      "selector": "Cerrar opciones del recorrido",
+      "status": "passed"
+    }
+  ],
+  "rawDiagnosticsPublished": false,
+  "diagnosticSources": {
+    "console": true,
+    "junit": true,
+    "commands": true,
+    "maestroLog": true
+  },
+  "firstFailedCommand": {
+    "index": 14,
+    "type": "assert",
+    "status": "FAILED"
+  },
+  "recentCommands": [
+    {
+      "index": 3,
+      "type": "tap",
+      "status": "COMPLETED",
+      "selector": "^Inicio$"
+    },
+    {
+      "index": 4,
+      "type": "tap",
+      "status": "COMPLETED",
+      "selector": "Opciones del recorrido"
+    },
+    {
+      "index": 5,
+      "type": "run-flow",
+      "status": "SKIPPED",
+      "selector": "Usar modo visual ligero"
+    },
+    {
+      "index": 6,
+      "type": "run-flow",
+      "status": "SKIPPED",
+      "selector": "Reducir movimiento del recorrido"
+    },
+    {
+      "index": 7,
+      "type": "tap",
+      "status": "COMPLETED",
+      "selector": "Cerrar opciones del recorrido"
+    },
+    {
+      "index": 8,
+      "type": "tap",
+      "status": "COMPLETED",
+      "selector": "Opciones del recorrido"
+    },
+    {
+      "index": 9,
+      "type": "tap",
+      "status": "COMPLETED",
+      "selector": "Elegir una etapa"
+    },
+    {
+      "index": 10,
+      "type": "scroll-until-visible",
+      "status": "COMPLETED",
+      "selector": "Ir a etapa 4: FORMACIÓN DEL LINGOTE"
+    },
+    {
+      "index": 11,
+      "type": "tap",
+      "status": "COMPLETED",
+      "selector": "Ir a etapa 4: FORMACIÓN DEL LINGOTE"
+    },
+    {
+      "index": 12,
+      "type": "assert",
+      "status": "COMPLETED",
+      "selector": "Etapa 4 de 7: FORMACIÓN DEL LINGOTE"
+    },
+    {
+      "index": 13,
+      "type": "assert",
+      "status": "COMPLETED",
+      "selector": "Cerrar opciones del recorrido"
+    },
+    {
+      "index": 14,
+      "type": "assert",
+      "status": "FAILED"
+    }
+  ],
+  "skippedDiagnosticFiles": 0,
+  "diagnosticTraversalTruncated": false,
+  "credentialsEntered": false
+}

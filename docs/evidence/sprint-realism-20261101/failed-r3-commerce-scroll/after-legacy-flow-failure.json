@@ -1,0 +1,128 @@
+{
+  "kind": "after",
+  "flow": "legacy-commerce",
+  "invocation": 1,
+  "stage": "preview-new-legacy-commerce",
+  "category": "timeout",
+  "expectedSelectorsFromFlow": [
+    "Cerrar comprobante",
+    "^Mercado$",
+    "^Confirmar compra simulada$",
+    "Cantidad de metal en gramos"
+  ],
+  "recentStaticCommandLabels": [
+    {
+      "selector": "Cantidad de metal en gramos",
+      "status": "mentioned"
+    },
+    {
+      "selector": "Cantidad de metal en gramos",
+      "status": "mentioned"
+    },
+    {
+      "selector": "Cantidad de metal en gramos",
+      "status": "mentioned"
+    },
+    {
+      "selector": "Cantidad de metal en gramos",
+      "status": "mentioned"
+    },
+    {
+      "selector": "Cantidad de metal en gramos",
+      "status": "failed"
+    },
+    {
+      "selector": "Cantidad de metal en gramos",
+      "status": "failed"
+    }
+  ],
+  "rawDiagnosticsPublished": false,
+  "diagnosticSources": {
+    "console": true,
+    "junit": true,
+    "commands": true,
+    "maestroLog": true
+  },
+  "firstFailedCommand": {
+    "index": 32,
+    "type": "scroll-until-visible",
+    "status": "FAILED",
+    "selector": "Cantidad de metal en gramos"
+  },
+  "recentCommands": [
+    {
+      "index": 21,
+      "type": "scroll-until-visible",
+      "status": "COMPLETED",
+      "selector": "^USDT 450,00$"
+    },
+    {
+      "index": 22,
+      "type": "assert",
+      "status": "COMPLETED",
+      "selector": "^USDT 450,00$"
+    },
+    {
+      "index": 23,
+      "type": "tap",
+      "status": "COMPLETED",
+      "selector": "Cerrar comprobante"
+    },
+    {
+      "index": 24,
+      "type": "tap",
+      "status": "COMPLETED",
+      "selector": "^Mercado$"
+    },
+    {
+      "index": 25,
+      "type": "scroll-until-visible",
+      "status": "COMPLETED",
+      "selector": "Cantidad de metal en gramos"
+    },
+    {
+      "index": 26,
+      "type": "tap",
+      "status": "COMPLETED",
+      "selector": "Cantidad de metal en gramos"
+    },
+    {
+      "index": 27,
+      "type": "erase-text",
+      "status": "COMPLETED"
+    },
+    {
+      "index": 28,
+      "type": "input-text",
+      "status": "COMPLETED"
+    },
+    {
+      "index": 29,
+      "type": "hide-keyboard",
+      "status": "COMPLETED"
+    },
+    {
+      "index": 30,
+      "type": "scroll-until-visible",
+      "status": "COMPLETED",
+      "selector": "^Confirmar compra simulada$"
+    },
+    {
+      "index": 31,
+      "type": "assert",
+      "status": "COMPLETED",
+      "selector": "^Confirmar compra simulada$"
+    },
+    {
+      "index": 32,
+      "type": "scroll-until-visible",
+      "status": "FAILED",
+      "selector": "Cantidad de metal en gramos"
+    }
+  ],
+  "skippedDiagnosticFiles": 0,
+  "diagnosticTraversalTruncated": false,
+  "diagnosticScope": "owned-legacy-static-command-metadata",
+  "credentialsEntered": false,
+  "privateUiPublished": false
+}

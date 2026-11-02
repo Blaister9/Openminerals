@@ -1,0 +1,432 @@
+{
+  "format": "openminerals-public-failure-archive-v1",
+  "demoOnly": true,
+  "archivedAtUtc": "2026-11-02T04:12:10.611Z",
+  "run": {
+    "id": 41384249997,
+    "jobId": 125081455012,
+    "scope": "comparison",
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41384249997/job/125081455012",
+    "workflowBranchHead": "8b892afe4e3bdb05fcdab1af06c61a2c2f2a95aa",
+    "verificationCheckoutCommit": "f9cf290e33dc6c8631c945b3cdc21d37924c71b8",
+    "checkoutScope": "Pull-request merge GITHUB_SHA is distinct from branch head and APK build source.",
+    "artifactId": 13114953115,
+    "artifactName": "android-mine-preview-41384249997-comparison",
+    "artifactUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41384249997/artifacts/13114953115",
+    "artifactBytes": 15248551,
+    "artifactDigestReportedByGitHub": "sha256:c8bf421f359f42154eff7d9658d1504c601eb62d3007805c6dd2c830d0ac967e",
+    "artifactArchiveDigestIndependentlyVerified": false
+  },
+  "app": {
+    "revision": "r3",
+    "sourceCommit": "0d3fa50791a6e86d8944c2d07026fcc5bc5c6999",
+    "versionCode": 3,
+    "apkSha256": "73e1a0b04e73cecbaf3980e576089e747d550b3d5f5570976b27c04162b62ea3",
+    "sourceBinding": "Frozen EAS build metadata plus exact APK digest; workflow checkout is not app source."
+  },
+  "result": {
+    "conclusion": "failure",
+    "passedNativeStages": 11,
+    "failedStage": "preview-recorded-fixed-trace",
+    "failureReason": "Anonymous video does not cover the measured trace; incomplete evidence retained.",
+    "candidateVideoFile": "after-anonymous-scroll-incomplete.mp4",
+    "candidateVideoIsCompleteNewTour": false,
+    "candidateRecordedMeasurementValid": false,
+    "inputGestures": 15,
+    "inputTraceSeconds": 34.20825165200001,
+    "containerSeconds": 5.758278,
+    "lastPtsSeconds": 3.956467,
+    "containerCoverage": 0.16833008768114982,
+    "ptsCoverage": 0.11565826398405492,
+    "encodedFrames": 5,
+    "visualEndpoint": "ORIGEN MINERAL",
+    "automaticLightObserved": true,
+    "internalFailureObserved": false,
+    "nativeGlWarningCounts": {
+      "context-timeout": 0,
+      "create": 0,
+      "draw": 0,
+      "boundary": 0
+    },
+    "exactCauseProved": false,
+    "physicalDevice": false,
+    "gpuFpsMeasured": false,
+    "phonePerformanceAccepted": false
+  },
+  "archivePractice": {
+    "explicitAllowlist": true,
+    "perFileCopiesComparedByteForByte": true,
+    "differentExistingEvidenceNeverOverwritten": true,
+    "localReviewDistinguishedFromOriginalArtifact": true,
+    "localDerivedContactSheetsExcluded": true,
+    "reviewReferencesToLocalDerivedFiles": "Remain in ignored artifacts source directory; not included in this archive.",
+    "rawPrivateUiXmlOrLogsCopied": false,
+    "credentialsEnteredInComparisonJob": false,
+    "imagesAndVideosPreviouslyReviewed": true,
+    "priorFailuresPreservedSeparately": true,
+    "noCommitByArchiver": true
+  },
+  "files": [
+    {
+      "file": "review.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/review.json",
+      "sourceKind": "local review of downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 17095,
+      "sha256": "811594be29f952c58a13f869b0fa015dd925c65bf363ed0f4510165ff30bed82"
+    },
+    {
+      "file": "summary-run.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/summary-run.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 1820,
+      "sha256": "4448daceae1b984128a6a12473cd0683afe3d7e74a5fa5d3e037bce8899bdbf0"
+    },
+    {
+      "file": "report-run.xml",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/report-run.xml",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 1567,
+      "sha256": "8ce7e81205a71467b26fb10d3ae80344019b0270b4fe3d851ea514fec3adac4d"
+    },
+    {
+      "file": "progress.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/progress.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 1431,
+      "sha256": "baa29af2421839095fb5a6612349ee4ce6062f1275b0e59a25baa86f8ca8c7cf"
+    },
+    {
+      "file": "anonymous-scene-state.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/anonymous-scene-state.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 613,
+      "sha256": "2507d71201f2f5629c1d5f0dbc6df76dc825eb32c8841b802a3e8b32b144827e"
+    },
+    {
+      "file": "anonymous-failure-flags.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/anonymous-failure-flags.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 607,
+      "sha256": "df9f69626fee5c47987e16e3c66d84ba85d5cc030ee3ef9178b23d75149d231a"
+    },
+    {
+      "file": "anonymous-failure.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/anonymous-failure.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 951709,
+      "sha256": "fdb56c0c85d3a12c3e2167ee05e7804a6a2ca33abc49f66e26d630b992e52022"
+    },
+    {
+      "file": "apk-verification.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/apk-verification.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 1205,
+      "sha256": "d6176db8d2597bb9944338f0ac6d047213b301de2990e2bb294635b7189c65c3"
+    },
+    {
+      "file": "host-resources.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/host-resources.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 96,
+      "sha256": "be482ed6fe5df0a24a226a6d13718756ac100cc60143dfb0189d5d776144ed97"
+    },
+    {
+      "file": "media-tools.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/media-tools.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 64,
+      "sha256": "cee598d19a3aa9c7b5a29d3eb945df2b734772b5db4c9a44f3864110076cb726"
+    },
+    {
+      "file": "fixed-input-trace.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/fixed-input-trace.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 4329,
+      "sha256": "d6ffd0bbb49b0c4d8e5cfabc542fdf771d8675a52ad9e1f0be6a5056a6fdc932"
+    },
+    {
+      "file": "after-anonymous-scroll-incomplete.mp4",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/after-anonymous-scroll-incomplete.mp4",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 100225,
+      "sha256": "8b857ed6e82fd2c3918332e5d5c54518c80b0eeb2d035bbcaca7a5f2b7963609"
+    },
+    {
+      "file": "after-chapter-rendering.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/after-chapter-rendering.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 6079,
+      "sha256": "41b09a662afc0ef422ca51776cfc0bc745e39590b96ae2dde8b6f5caa8db3f6e"
+    },
+    {
+      "file": "after-performance-light-unrecorded.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/after-performance-light-unrecorded.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 5783,
+      "sha256": "e390e05b01dbce490a4d15cd9c5ae2fdda534b9bfeea1457261f64b93a83260c"
+    },
+    {
+      "file": "after-performance-recorded.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/after-performance-recorded.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 6996,
+      "sha256": "cfed17f216cb87ca3cdf4dfe9355f264f1a594fbf78031ef2030caef51a3f230"
+    },
+    {
+      "file": "after-safe-initial-gl.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/after-safe-initial-gl.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 860126,
+      "sha256": "a48ce88c16a51b75e97f8899e3b387b4f1c360b575d0d0758365073fdbf8bb51"
+    },
+    {
+      "file": "after-safe-story-1.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/after-safe-story-1.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 857025,
+      "sha256": "47126893a2f8535f52800e23343fa8b92b302e1f3f8aec2626a9b446566ed9f8"
+    },
+    {
+      "file": "after-safe-story-2.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/after-safe-story-2.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 933940,
+      "sha256": "a0a885ede58ca3270668325f0a571387fffcccd56eff00e5ce688301a18bd171"
+    },
+    {
+      "file": "after-safe-story-3.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/after-safe-story-3.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 808350,
+      "sha256": "02cd02dc9cde756c714be9653550256914de111a730f8fd4279e3dd61eb74f15"
+    },
+    {
+      "file": "after-safe-story-4.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/after-safe-story-4.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 333539,
+      "sha256": "123de5ae1c70d3e65e77f3ec7bb1f1c1564d010804059d7cd2d6f2adb9e1ea2a"
+    },
+    {
+      "file": "after-safe-story-5.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/after-safe-story-5.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 397407,
+      "sha256": "87e147ad42f1ee397028093f6e301e76ee4ccb7cef1abbef9118d6fcd4ef0fc9"
+    },
+    {
+      "file": "after-safe-story-6.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/after-safe-story-6.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 364785,
+      "sha256": "6346516f7970ce2006467a8ab553401d65dd2f517b51d47e5cc0589429eadcfa"
+    },
+    {
+      "file": "after-safe-story-7.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/after-safe-story-7.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 409649,
+      "sha256": "948e5a576f1b31e2ee4329f46e62bcdc2b3b54d30f0587f50f8e9819bb30f483"
+    },
+    {
+      "file": "after-screenshots.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/after-screenshots.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 1557,
+      "sha256": "575c6c094c8f13f51ad34da8ebb39ac3406da7bdc6e403f3ef226a299ba9f231"
+    },
+    {
+      "file": "after-trace-end.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/after-trace-end.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 951709,
+      "sha256": "fdb56c0c85d3a12c3e2167ee05e7804a6a2ca33abc49f66e26d630b992e52022"
+    },
+    {
+      "file": "after-video-final-sample-1.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/after-video-final-sample-1.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 511784,
+      "sha256": "c1db2bb184123c32bc82275afa4515125d0bcbbf5b822404d9ea8534ad25fa5d"
+    },
+    {
+      "file": "after-video-validation.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/after-video-validation.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 1508,
+      "sha256": "fae06e5d86020623210f597e73f444110e59dd31f41641add4a7a3d285acc398"
+    },
+    {
+      "file": "before-anonymous-scroll.mp4",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-anonymous-scroll.mp4",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 1197380,
+      "sha256": "4d290b19fb1ddc818f7e4071a1268f4274ab00b67b07a5da6400a18a895b3f34"
+    },
+    {
+      "file": "before-performance-light-unrecorded.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-performance-light-unrecorded.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 5771,
+      "sha256": "c1faa6700a13624a6fb0136fae6b2bba26488153b41e8b877e8346d049959e4b"
+    },
+    {
+      "file": "before-performance-recorded.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-performance-recorded.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 7189,
+      "sha256": "cc5ec9c82c6a5c966ed19084fac1bd2d91e2e292d881c3c5d0b5189e51c2d3f2"
+    },
+    {
+      "file": "before-performance-unrecorded.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-performance-unrecorded.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 5768,
+      "sha256": "fdfaadb69b8d56743ab41d6cd00932fbc35489c38ff908b3e065569ab2814323"
+    },
+    {
+      "file": "before-resume.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-resume.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 905,
+      "sha256": "3e5002732d95450b8186d520855f6de6380cc2931e8dd20da37e130615550cde"
+    },
+    {
+      "file": "before-safe-reduced-motion.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-safe-reduced-motion.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 90945,
+      "sha256": "1e9e01e8ee14d842eb1736e18c271cc217f2d1294b601ac37c7a3b14009b4eb2"
+    },
+    {
+      "file": "before-safe-story-1.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-safe-story-1.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 913679,
+      "sha256": "1a52ad1a2f172a9122e755f816712736901576e261f602de2aa5af634d229fd4"
+    },
+    {
+      "file": "before-safe-story-2.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-safe-story-2.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 1394535,
+      "sha256": "40dcc9bcf744480351510599687f2b595ecc47254309e8ff346cb2ee90ff7be7"
+    },
+    {
+      "file": "before-safe-story-3.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-safe-story-3.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 854033,
+      "sha256": "4989387a7c65e9e1c880d8badd5e5d831ffcfcad43ea596318952a67ff6ab147"
+    },
+    {
+      "file": "before-safe-story-4.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-safe-story-4.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 528304,
+      "sha256": "b5687bfeee22d8aee611be7ee698c4a8365abe25b64f38490cdb6071ddd86fc3"
+    },
+    {
+      "file": "before-safe-story-5.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-safe-story-5.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 485184,
+      "sha256": "428dad0acc94b1c841deff47e893a3076c40ad0d91d881aabc785d61ed55c3e8"
+    },
+    {
+      "file": "before-safe-story-6.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-safe-story-6.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 559427,
+      "sha256": "102168e0e938d3f3ad860901cc9b949cbda566ea0c855287e52fe9d95fa5d379"
+    },
+    {
+      "file": "before-safe-story-7.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-safe-story-7.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 505517,
+      "sha256": "56bd04250f1e256ec4ed17bc4ae75c197f24b895ac2b9ab3e502e4fe61ac4890"
+    },
+    {
+      "file": "before-screenshots.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-screenshots.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 1551,
+      "sha256": "1a33d2de37ed639cda8d3b46b86af31e6be87947a095d28afcffce8a633bdb77"
+    },
+    {
+      "file": "before-trace-end.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-trace-end.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 566608,
+      "sha256": "d8dc2bf1f37e93725ff4bfa255b812eede6979b7ee640de7882d705260c29500"
+    },
+    {
+      "file": "before-video-final-sample-1.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-video-final-sample-1.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 414181,
+      "sha256": "7f180e69b9fbf99a2e709797341080c03892402aab007006d0f87b77b54193a0"
+    },
+    {
+      "file": "before-video-final-sample-2.png",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-video-final-sample-2.png",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 391366,
+      "sha256": "6b6227970ca67edd336e3e264514b0430dc35158afb38c548960327b39da6013"
+    },
+    {
+      "file": "before-video-validation.json",
+      "sourceFile": "artifacts/mine-preview-native-41384249997-comparison/before-video-validation.json",
+      "sourceKind": "original downloaded public artifact",
+      "originalBytesPreserved": true,
+      "bytes": 1720,
+      "sha256": "398ed6ea3730aa812a0ff84e867cfb04f5b5e4092d0e8eeb5e20edd631142e2a"
+    }
+  ],
+  "repositoryTextLineEndings": "LF; public artifact bytes independently verified before copy; locally authored review normalization disclosed if applicable."
+}

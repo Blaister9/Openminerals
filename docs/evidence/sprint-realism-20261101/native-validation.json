@@ -1,0 +1,165 @@
+{
+  "format": "openminerals-r4-native-evidence-summary-v1",
+  "demoOnly": true,
+  "recordedAtUtc": "2026-11-02T06:07:39.419Z",
+  "apk": {
+    "sha256": "adfbf909f0cf0c924c7b8938a1a773c5c96b84f14f86ae0e8c0bf53b7e1b1bf5",
+    "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+    "version": "0.4.0",
+    "versionCode": 4,
+    "package": "com.openminerals.demo.minepreview",
+    "certificateSha256": "86c84db35e91b187f3f818c0cc74ddb91df9a95014cba138ac7e04611957aa09"
+  },
+  "comparison": {
+    "run": 41393661195,
+    "job": 125110302767,
+    "harnessCommit": "907ccc9a29d2c560697d36a1c3a00358260ab7ba",
+    "conclusion": "success",
+    "passedNativeStages": 18,
+    "provenance": "android-r4-comparison/provenance.json",
+    "order": "candidate then frozen reference; not counterbalanced",
+    "sevenDiscreteGlChapters": true,
+    "continuousGlVideo": false,
+    "recordedCandidateSwitchesToLightSecondsApprox": [
+      10,
+      11
+    ],
+    "reducedAndSameProcessGlResumePassed": true
+  },
+  "commerce": {
+    "run": 41388807925,
+    "job": 125095475432,
+    "harnessCommit": "fa308d0bc9a183bee092fd910eca4dc911078642",
+    "conclusion": "success",
+    "passedNativeStages": 15,
+    "provenance": "android-r4-commerce/provenance.json",
+    "legacy": {
+      "conversionBuySell": true,
+      "reservationsAndOvercommitProtection": true,
+      "reservationRelease": true,
+      "portfolioAndHistoricalReceipts": true,
+      "restartPreservesLegacy": true,
+      "nativeSameRequestReplayTested": false
+    },
+    "accounts": {
+      "buyerCreatedWithoutImport": true,
+      "buyerColdLaunchSecureStore": true,
+      "legacyRestoredAfterBuyerLogout": true,
+      "publicOperatorReadOnlyLogin": true,
+      "publicOperatorMineAndAccountWithoutBuyerWallet": true,
+      "publicOperatorLoggedOut": true
+    }
+  },
+  "countInterpretation": "18 comparison and 15 commercial scope-stage passes in two jobs on the same APK; not 33 distinct feature cases or phone acceptance.",
+  "profiles": [
+    {
+      "profile": "recorded",
+      "before": {
+        "p50UiMs": 200,
+        "p90UiMs": 650,
+        "p95UiMs": 700,
+        "uiFrames": 178,
+        "jankyUiFrames": 178,
+        "pssBeforeKiB": 120020,
+        "pssAfterKiB": 120945,
+        "activityStartMs": 1408,
+        "finalMode": "gl",
+        "quality": "unknown",
+        "video": {
+          "durationSeconds": 37.984022,
+          "presentationCoverageRatio": 0.9654679134142594,
+          "encodedFrames": 128,
+          "finalizationLatencyMs": 568.5804999999236
+        }
+      },
+      "after": {
+        "p50UiMs": 150,
+        "p90UiMs": 200,
+        "p95UiMs": 200,
+        "uiFrames": 288,
+        "jankyUiFrames": 288,
+        "pssBeforeKiB": 128369,
+        "pssAfterKiB": 134544,
+        "activityStartMs": 1234,
+        "finalMode": "automatic-light",
+        "quality": "light",
+        "video": {
+          "durationSeconds": 35.405411,
+          "presentationCoverageRatio": 0.9538525145877899,
+          "encodedFrames": 158,
+          "finalizationLatencyMs": 298.7314630000619
+        }
+      }
+    },
+    {
+      "profile": "unrecorded",
+      "before": {
+        "p50UiMs": 250,
+        "p90UiMs": 500,
+        "p95UiMs": 500,
+        "uiFrames": 190,
+        "jankyUiFrames": 190,
+        "pssBeforeKiB": 116202,
+        "pssAfterKiB": 112265,
+        "activityStartMs": 1358,
+        "finalMode": "gl",
+        "quality": "unknown"
+      },
+      "after": {
+        "p50UiMs": 93,
+        "p90UiMs": 129,
+        "p95UiMs": 150,
+        "uiFrames": 370,
+        "jankyUiFrames": 370,
+        "pssBeforeKiB": 137774,
+        "pssAfterKiB": 134404,
+        "activityStartMs": 1698,
+        "finalMode": "automatic-light",
+        "quality": "light"
+      }
+    },
+    {
+      "profile": "light-unrecorded",
+      "before": {
+        "p50UiMs": 57,
+        "p90UiMs": 77,
+        "p95UiMs": 85,
+        "uiFrames": 660,
+        "jankyUiFrames": 655,
+        "pssBeforeKiB": 118173,
+        "pssAfterKiB": 115030,
+        "activityStartMs": 1248,
+        "finalMode": "light",
+        "quality": "light"
+      },
+      "after": {
+        "p50UiMs": 93,
+        "p90UiMs": 121,
+        "p95UiMs": 133,
+        "uiFrames": 412,
+        "jankyUiFrames": 412,
+        "pssBeforeKiB": 126808,
+        "pssAfterKiB": 128585,
+        "activityStartMs": 1781,
+        "finalMode": "light",
+        "quality": "light"
+      }
+    }
+  ],
+  "visualReview": {
+    "reviewer": "assistant agents",
+    "originalMediaBytesPreserved": true,
+    "advanceReverseAndFinalPortfolioInspected": true,
+    "ownerAcceptanceClaimed": false
+  },
+  "limitations": {
+    "physicalPhoneTested": false,
+    "performanceAccepted": false,
+    "gpuFpsMeasured": false,
+    "sixtyFpsAccepted": false,
+    "lightP95Regression": true,
+    "higherObservedFinalPss": true,
+    "uiMetricsUnequalAdaptiveQuality": true,
+    "unexecuted": "Authenticated trading, peer marketplace, lot custody/certificates, full delivery lifecycle and native same-key replay need isolated fixtures. API/domain contracts are separately covered."
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "format": "openminerals-core-ci-evidence-v1",
+  "demoOnly": true,
+  "run": {
+    "id": 41377075740,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41377075740",
+    "event": "pull_request",
+    "headCommit": "4099e8155312b26f82556b05aa93e44c9f7fbe1c",
+    "status": "completed",
+    "conclusion": "success",
+    "completedAtUtc": "2026-11-02T02:20:26Z"
+  },
+  "corroboratingPushRun": {
+    "id": 41377070713,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41377070713",
+    "headCommit": "4099e8155312b26f82556b05aa93e44c9f7fbe1c",
+    "conclusion": "success"
+  },
+  "jobs": {
+    "mobile": {
+      "id": 125059539751,
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41377075740/job/125059539751",
+      "conclusion": "success",
+      "tests": 329,
+      "passed": 323,
+      "failed": 0,
+      "skipped": 6,
+      "optionalSkips": "Software-WebGL browser execution was not configured in this source-validation CI; Android native execution and local software-WebGL are separate evidence.",
+      "typecheck": "success",
+      "expoDependencyCheck": "success; dependencies are up to date",
+      "toolchainCheck": "success; three patched entries verified, no additional changes",
+      "highAndCriticalAuditGate": "success; 13 findings: two low, eleven moderate, none high or critical",
+      "expoDoctor": "21/21 checks passed"
+    },
+    "api": {
+      "id": 125059539455,
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41377075740/job/125059539455",
+      "conclusion": "success",
+      "memoryPhase": {"tests": 102, "passed": 91, "failed": 0, "skipped": 11},
+      "requiredDatabasePhase": {"tests": 80, "passed": 80, "failed": 0, "skipped": 0},
+      "distinctMemoryCases": 91,
+      "distinctPostgresCases": 79,
+      "distinctTotalCases": 170,
+      "countInterpretation": "The required-database runner repeats the memory recovery-adversarial case already included in the memory phase. Count 91 memory plus 79 PostgreSQL cases: 170 distinct cases, not 171. The eleven skipped PostgreSQL suite entries in npm test are run by the required-database phase and are not additional executed cases.",
+      "repeatedMemoryCase": "recuperación adversarial: respuesta perdida conserva legado, perfil, mina y replay de compra pendiente",
+      "database": "Disposable GitHub Actions PostgreSQL 18; not Railway or the owner's database.",
+      "highAndCriticalAuditGate": "success; zero vulnerabilities"
+    }
+  },
+  "verification": {
+    "summaryCountersReadFromCompletedJobLogs": true,
+    "duplicateMemoryCaseObservedInBothJobSteps": true,
+    "logBodiesPublished": false,
+    "privateFixturesPublished": false,
+    "signedDownloadUrlsPublished": false,
+    "nativeAndroidExecutionIncluded": false,
+    "phonePerformanceAcceptanceIncluded": false,
+    "localSoftwareWebglRunIsSeparateEvidence": true
+  }
+}

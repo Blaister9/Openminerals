@@ -1,0 +1,52 @@
+{
+  "demoOnly": true,
+  "kind": "after",
+  "chapterCount": 7,
+  "chaptersComplete": true,
+  "reducedMotionPresent": false,
+  "initialGlScreenshotPresent": true,
+  "complete": false,
+  "scope": "7 of seven chapter screenshots only; later phases may be incomplete",
+  "files": [
+    {
+      "file": "after-safe-initial-gl.png",
+      "sha256": "3ea553284877487b8fd7d3c67907f05ec5a771edf82134651386c69b0baf306d",
+      "bytes": 786947
+    },
+    {
+      "file": "after-safe-story-1.png",
+      "sha256": "31fd6583b6cc938dadb30e10322e2ffffb72e4dc149f420ce27ac3d1ba49e681",
+      "bytes": 778777
+    },
+    {
+      "file": "after-safe-story-2.png",
+      "sha256": "49b5c643ca5af839aafe90ccc969f02607d2bb70834f05789daad38203c7dfc4",
+      "bytes": 849404
+    },
+    {
+      "file": "after-safe-story-3.png",
+      "sha256": "e3d7971a05a9a8e4186aefecfaf8b8c07e6948a8260c41ccac8496de10fb31c6",
+      "bytes": 718222
+    },
+    {
+      "file": "after-safe-story-4.png",
+      "sha256": "a374c1127e22d458d6596d44fe2a11d75fb447f777a1a5e39615a9fcaa6db929",
+      "bytes": 85596
+    },
+    {
+      "file": "after-safe-story-5.png",
+      "sha256": "11dbb5f3e1faa278238dc660bae2e53b3c99561cd4160550d1ee7ab4f9d57ebf",
+      "bytes": 94928
+    },
+    {
+      "file": "after-safe-story-6.png",
+      "sha256": "7ac707be8b45bc355ce66f04b5173db9ad93cd1b20e45a22058088671aba32d4",
+      "bytes": 94758
+    },
+    {
+      "file": "after-safe-story-7.png",
+      "sha256": "6d7afed0162f009e7abbcebffb36c6c7652ce3798bde97250430b0b720b197a9",
+      "bytes": 104730
+    }
+  ]
+}

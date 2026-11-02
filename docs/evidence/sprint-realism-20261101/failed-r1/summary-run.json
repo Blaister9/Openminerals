@@ -1,0 +1,32 @@
+{
+  "demoOnly": true,
+  "environment": "disposable Android API29 emulator",
+  "physicalDevice": false,
+  "phonePerformanceAcceptance": false,
+  "gpuFpsMeasured": false,
+  "completed": [
+    "guard-disposable-api29-emulator",
+    "install-presented-stable-separate-package",
+    "presented-seven-chapters",
+    "presented-recorded-fixed-trace",
+    "presented-unrecorded-fixed-trace",
+    "presented-reduced-motion-and-exits",
+    "presented-live-gl-home-resume",
+    "install-preview-alongside-preserved-stable",
+    "preview-seven-chapters"
+  ],
+  "failed": [
+    "preview-recorded-fixed-trace"
+  ],
+  "failureReason": "A required preview command failed or timed out.",
+  "nativeAuthentication": {
+    "buyerCreatedWithoutImport": false,
+    "buyerColdLaunchSecureStore": false,
+    "legacyRestoredAfterBuyerLogout": false,
+    "publicOperatorReadOnlyLogin": false,
+    "publicOperatorMineAndAccountWithoutBuyerWallet": false,
+    "publicOperatorLoggedOut": false
+  },
+  "nativeAuthenticatedCommerce": "NOT RUN: authenticated trading, marketplace transfers, certificates and deliveries require isolated fixtures; read-only native account access is reported separately.",
+  "privateUiPublished": false
+}

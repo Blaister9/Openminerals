@@ -1,0 +1,245 @@
+{
+  "demoOnly": true,
+  "reviewedAtUtc": "2026-11-02T16:21:08.177932+00:00",
+  "reviewer": "Codex assistant; direct inspection with view_image of all seven r4/r5 chapter PNGs, final endpoint PNG and all six decoded r5 video frames.",
+  "physicalDevice": false,
+  "ownerAcceptance": false,
+  "overallVisualAcceptance": false,
+  "chapterScreenshotReview": {
+    "completedChapters": 7,
+    "r4GlChapters": 7,
+    "r5GlChapters": 3,
+    "r5AutomaticLightChapters": 4,
+    "equalQualityFull3DComparison": false,
+    "sameProcedureScope": "Pinned Android API29/x86_64 SwiftShader chapter-seek procedure. Different GitHub runs/hosts; still viewpoints and lighting comparisons are not a paired performance control.",
+    "chapters": [
+      {
+        "chapter": 1,
+        "r5Mode": "gl",
+        "r5Quality": "balanced",
+        "r4Mode": "gl",
+        "r4Quality": "balanced",
+        "r5Screenshot": "after-safe-story-1.png",
+        "r4Screenshot": "docs/evidence/sprint-realism-20261101/android-r4-comparison/after-safe-story-1.png",
+        "observed": "Tunnel relief, ore/specimen and depth remain visible; captions and controls are legible."
+      },
+      {
+        "chapter": 2,
+        "r5Mode": "gl",
+        "r5Quality": "balanced",
+        "r4Mode": "gl",
+        "r4Quality": "balanced",
+        "r5Screenshot": "after-safe-story-2.png",
+        "r4Screenshot": "docs/evidence/sprint-realism-20261101/android-r4-comparison/after-safe-story-2.png",
+        "observed": "Tunnel relief, ore/specimen and depth remain visible; captions and controls are legible."
+      },
+      {
+        "chapter": 3,
+        "r5Mode": "gl",
+        "r5Quality": "balanced",
+        "r4Mode": "gl",
+        "r4Quality": "balanced",
+        "r5Screenshot": "after-safe-story-3.png",
+        "r4Screenshot": "docs/evidence/sprint-realism-20261101/android-r4-comparison/after-safe-story-3.png",
+        "observed": "Tunnel relief, ore/specimen and depth remain visible; captions and controls are legible."
+      },
+      {
+        "chapter": 4,
+        "r5Mode": "automatic-light",
+        "r5Quality": "light",
+        "r4Mode": "gl",
+        "r4Quality": "balanced",
+        "r5Screenshot": "after-safe-story-4.png",
+        "r4Screenshot": "docs/evidence/sprint-realism-20261101/android-r4-comparison/after-safe-story-4.png",
+        "observed": "Automatic light uses a static CSS bar, so these pixels cannot establish retained GL material/reflection quality."
+      },
+      {
+        "chapter": 5,
+        "r5Mode": "automatic-light",
+        "r5Quality": "light",
+        "r4Mode": "gl",
+        "r4Quality": "balanced",
+        "r5Screenshot": "after-safe-story-5.png",
+        "r4Screenshot": "docs/evidence/sprint-realism-20261101/android-r4-comparison/after-safe-story-5.png",
+        "observed": "Automatic light uses a static CSS bar, so these pixels cannot establish retained GL material/reflection quality."
+      },
+      {
+        "chapter": 6,
+        "r5Mode": "automatic-light",
+        "r5Quality": "light",
+        "r4Mode": "gl",
+        "r4Quality": "balanced",
+        "r5Screenshot": "after-safe-story-6.png",
+        "r4Screenshot": "docs/evidence/sprint-realism-20261101/android-r4-comparison/after-safe-story-6.png",
+        "observed": "Automatic light uses a static CSS bar, so these pixels cannot establish retained GL material/reflection quality."
+      },
+      {
+        "chapter": 7,
+        "r5Mode": "automatic-light",
+        "r5Quality": "light",
+        "r4Mode": "gl",
+        "r4Quality": "balanced",
+        "r5Screenshot": "after-safe-story-7.png",
+        "r4Screenshot": "docs/evidence/sprint-realism-20261101/android-r4-comparison/after-safe-story-7.png",
+        "observed": "Automatic light uses a static CSS bar, so these pixels cannot establish retained GL material/reflection quality."
+      }
+    ],
+    "finalStillIssue": "Chapter 7 title overlaps the CSS lightweight bar; title and portfolio CTA remain legible. No GL bar pose/rotation persists in the light stills."
+  },
+  "videoReview": {
+    "file": "after-anonymous-scroll-incomplete.mp4",
+    "originalSha256": "1541b54cc5c0eb7f622606ec362725819b3ee68ff6f108610ddea662a0e6d08a",
+    "independentProbe": "review/independent-ffprobe.json",
+    "containerDurationSeconds": 6.976067,
+    "traceDurationSeconds": 34.820669004000024,
+    "firstPtsSeconds": 0.0,
+    "lastPtsSeconds": 4.629033,
+    "presentationCoverageRatio": 0.132939232140205,
+    "encodedFrameCount": 6,
+    "encodedFramesAreNotApplicationFps": true,
+    "decodedOriginalCompletely": true,
+    "frames": [
+      {
+        "file": "decoded-frame-01.png",
+        "ptsSeconds": 0.0,
+        "observedChapter": 1,
+        "observedText": "Todo empieza con materia.",
+        "sha256": "3434ada21041d14d61e189aee73c8d2a207853ba5990266254ca18951a6fdd14",
+        "derivedFrom": "../after-anonymous-scroll-incomplete.mp4",
+        "processing": "FFmpeg decoded original H.264 frame to PNG; original MP4 unchanged."
+      },
+      {
+        "file": "decoded-frame-02.png",
+        "ptsSeconds": 1.191989,
+        "observedChapter": 1,
+        "observedText": "Todo empieza con materia.",
+        "sha256": "237393ac52e67baf5c4bac452cb3b322139c7038d4a4d12c4485888a1f2f47e9",
+        "derivedFrom": "../after-anonymous-scroll-incomplete.mp4",
+        "processing": "FFmpeg decoded original H.264 frame to PNG; original MP4 unchanged."
+      },
+      {
+        "file": "decoded-frame-03.png",
+        "ptsSeconds": 1.286,
+        "observedChapter": 1,
+        "observedText": "Todo empieza con materia.",
+        "sha256": "cca3f7dcea0d2960827d827a93720c31af189cd66b8bb33e3c4bc8f3ce22e4b2",
+        "derivedFrom": "../after-anonymous-scroll-incomplete.mp4",
+        "processing": "FFmpeg decoded original H.264 frame to PNG; original MP4 unchanged."
+      },
+      {
+        "file": "decoded-frame-04.png",
+        "ptsSeconds": 1.7911,
+        "observedChapter": 1,
+        "observedText": "Todo empieza con materia.",
+        "sha256": "06fb5779b866c64f6dc2727ccb4deac6f850062876d1765c45bb442fbb36987a",
+        "derivedFrom": "../after-anonymous-scroll-incomplete.mp4",
+        "processing": "FFmpeg decoded original H.264 frame to PNG; original MP4 unchanged."
+      },
+      {
+        "file": "decoded-frame-05.png",
+        "ptsSeconds": 2.281989,
+        "observedChapter": 1,
+        "observedText": "Todo empieza con materia.",
+        "sha256": "8e374fc8974e47ccb55c30afbdefb6ef70549ab05365df004cc0c00cf00ea729",
+        "derivedFrom": "../after-anonymous-scroll-incomplete.mp4",
+        "processing": "FFmpeg decoded original H.264 frame to PNG; original MP4 unchanged."
+      },
+      {
+        "file": "decoded-frame-06.png",
+        "ptsSeconds": 4.629033,
+        "observedChapter": 2,
+        "observedText": "De la veta, al proceso.",
+        "sha256": "13c8a308162a0b379efa650dbca0dc15da8f458cb6c5c8d2d20c0a3adf714afa",
+        "derivedFrom": "../after-anonymous-scroll-incomplete.mp4",
+        "processing": "FFmpeg decoded original H.264 frame to PNG; original MP4 unchanged."
+      }
+    ],
+    "finalPortfolioObservedInVideo": false,
+    "reverseJourneyObservedInVideo": false,
+    "finalEndpointScreenshot": "after-trace-end.png",
+    "finalEndpointScreenshotObservedChapter": 2,
+    "finalEndpointScreenshotObservedText": "De la veta, al proceso.",
+    "finalAccessibilityMode": "automatic-light",
+    "recorderFinalization": {
+      "stopSignalSent": true,
+      "remoteExitObserved": true,
+      "hostCloseObserved": true,
+      "unexpectedPidObserved": false,
+      "probeErrors": 0,
+      "signalErrors": 0,
+      "hostCheckErrors": 0,
+      "finalized": true,
+      "latencyMs": 298.79040100006387,
+      "timeoutMs": 30000,
+      "timedOut": false,
+      "hostForceTerminationRequested": false,
+      "stopWaitOutsideInputTrace": true
+    },
+    "interpretation": "All six encoded frames were reviewed. Five remain in Origin; the final frame and the separate post-trace screenshot show Extraction, not Portfolio. Full input completion and accessibility checks do not establish full visual delivery. Original video is incomplete evidence and must not be presented as the tour. No remux or repair was performed.",
+    "cause": "Not isolated. Clean recorder finalization, no fatal static diagnostics and complete input do not isolate app-window presentation, recorder, compositor, GL lifecycle or shader cost."
+  },
+  "recordedMetrics": {
+    "uiFrameHistogramP50Ms": 125,
+    "uiFrameHistogramP95Ms": 2300,
+    "uiFrames": 20,
+    "measurementValid": false,
+    "note": "Incomplete visual workload/video; these Android HWUI histogram values are not accepted as the comparative 3D benchmark or GPU FPS."
+  },
+  "explicitLightTrace": {
+    "uiFrameHistogramP50Ms": 69,
+    "uiFrameHistogramP95Ms": 113,
+    "uiFrames": 509,
+    "pssBeforeKiB": 144899,
+    "pssAfterKiB": 134522,
+    "measurementValid": true,
+    "pairedReferenceCompletedInThisRun": false,
+    "interpretation": "Reference run was not reached. This single preview histogram trace is not a controlled r4/r5 performance or memory comparison."
+  },
+  "unexecutedComparativePhases": [
+    "preview-unrecorded-fixed-trace",
+    "preview-reduced-motion-and-exits",
+    "preview-same-process-GL-resume",
+    "presented-stable-reference-profiles-and-stages"
+  ],
+  "comparisonResult": {
+    "demoOnly": true,
+    "validationScope": "comparison",
+    "previousComparison": null,
+    "benchmarksIncluded": true,
+    "glJourneyAssertionsIncluded": true,
+    "functionalChecksIncluded": false,
+    "environment": "disposable Android API29 emulator",
+    "physicalDevice": false,
+    "phonePerformanceAcceptance": false,
+    "gpuFpsMeasured": false,
+    "completed": [
+      "guard-disposable-api29-emulator",
+      "install-presented-stable-separate-package",
+      "install-preview-alongside-preserved-stable",
+      "preview-seven-chapters",
+      "preview-light-unrecorded-fixed-trace"
+    ],
+    "failed": [
+      "preview-recorded-fixed-trace"
+    ],
+    "failureReason": "Anonymous video does not cover the measured trace; incomplete evidence retained.",
+    "nativeLegacyCommerce": {
+      "conversionBuySell": false,
+      "reservationsAndOvercommitProtection": false,
+      "reservationRelease": false,
+      "portfolioAndHistoricalReceipts": false,
+      "restartPreservesLegacy": false,
+      "nativeSameRequestReplayTested": false
+    },
+    "nativeAuthentication": {
+      "buyerCreatedWithoutImport": false,
+      "buyerColdLaunchSecureStore": false,
+      "legacyRestoredAfterBuyerLogout": false,
+      "publicOperatorReadOnlyLogin": false,
+      "publicOperatorMineAndAccountWithoutBuyerWallet": false,
+      "publicOperatorLoggedOut": false
+    },
+    "nativeAuthenticatedCommerce": "NOT RUN: authenticated trading, peer marketplace, lot custody/certificates and full delivery lifecycle require isolated funded fixtures; legacy offers/quote reservations are not peer settlement or physical custody.",
+    "privateUiPublished": false
+  }
+}

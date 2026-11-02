@@ -1,0 +1,42 @@
+{
+  "format": "openminerals.native-progress",
+  "version": 1,
+  "mode": "run",
+  "updatedAt": "2026-11-02T16:16:10.047Z",
+  "stage": {
+    "name": "stable-package-uid-and-version-preserved",
+    "status": "PASSED",
+    "startedAt": "2026-11-02T16:16:09.957Z",
+    "completedAt": "2026-11-02T16:16:10.047Z"
+  },
+  "command": {
+    "program": "adb",
+    "operation": "shell",
+    "status": "PASSED",
+    "timeoutMs": 30000,
+    "timeoutSignal": "SIGKILL",
+    "startedAt": "2026-11-02T16:16:09.989Z",
+    "exitCode": 0,
+    "signal": null,
+    "reason": "completed",
+    "completedAt": "2026-11-02T16:16:10.044Z"
+  },
+  "lastFailure": null,
+  "completed": [
+    "guard-disposable-api29-emulator",
+    "install-presented-stable-separate-package",
+    "install-preview-alongside-preserved-stable",
+    "preview-new-legacy-commerce",
+    "preview-legacy-reservations-release-overcommit",
+    "preview-legacy-portfolio-historical-receipts",
+    "preview-legacy-balance-after-restart",
+    "preview-buyer-register-without-import",
+    "preview-buyer-securestore-after-cold-launch",
+    "preview-buyer-logout-restores-owned-legacy",
+    "preview-public-operator-access-preflight",
+    "preview-public-operator-readonly-login",
+    "preview-public-operator-mine-account-readonly",
+    "preview-public-operator-logout",
+    "stable-package-uid-and-version-preserved"
+  ]
+}

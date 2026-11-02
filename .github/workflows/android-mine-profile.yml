@@ -1,0 +1,96 @@
+name: Android mine controlled profile
+on:
+  workflow_dispatch:
+    inputs:
+      capture_stills:
+        description: Explicitly request anonymous still images
+        type: boolean
+        default: false
+      pair:
+        description: Fixed signed APK pair
+        type: choice
+        options: [stable-r4, r4-candidate]
+        default: stable-r4
+permissions:
+  contents: read
+jobs:
+  profile:
+    if: >-
+      github.event.repository.private == false &&
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == 'Blaister9/Openminerals' &&
+      github.ref == 'refs/heads/codex/android-mine-realism-20261101'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    concurrency:
+      group: openminerals-controlled-mine-profile
+      cancel-in-progress: false
+    env:
+      MINE_PROFILE_PAIR: ${{ inputs.pair || '' }}
+      MINE_PROFILE_CAPTURE: ${{ inputs.capture_stills && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Test metric parsing and verify all APK bytes and native identity
+        run: |
+          node --test mobile/test/mine-profile.test.mjs
+          node mobile/e2e/mine-profile.mjs download
+      - name: Install pinned Maestro CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          curl --fail --location --proto '=https' --proto-redir '=https' --retry 2 --max-time 180 --max-filesize 400000000 --output maestro.zip https://github.com/mobile-dev-inc/Maestro/releases/download/cli-2.12.0/maestro.zip
+          echo 'a6044a84542f522f434c5dc3d609e60c7446d423f3ed1b2ae513f5c48663ec5e  maestro.zip' | sha256sum --check
+          unzip -q maestro.zip -d maestro-cli
+          mapfile -t maestro_bins < <(find "$RUNNER_TEMP/maestro-cli" -type f -path '*/bin/maestro')
+          test "${#maestro_bins[@]}" -eq 1
+          chmod +x "${maestro_bins[0]}"
+          dirname "${maestro_bins[0]}" >> "$GITHUB_PATH"
+      - name: Require KVM and record host resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs=require('node:fs'),os=require('node:os');
+          const resources={availableCpus:os.availableParallelism(),totalMemoryMiB:Math.floor(os.totalmem()/1048576),guestCpus:4,guestMemoryMiB:4096};
+          fs.writeFileSync(process.env.RUNNER_TEMP+'/openminerals-mine-profile/public/host-resources.json',JSON.stringify(resources,null,2)+'\n');
+          if(resources.availableCpus<4||resources.totalMemoryMiB<8192)process.exit(1);
+          NODE
+          test -c /dev/kvm
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo udevadm settle --timeout=30
+          sudo chmod 0666 /dev/kvm
+      - name: ABBA same-trace light and adaptive-3D profiles
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        timeout-minutes: 40
+        with:
+          api-level: 29
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          cores: 4
+          ram-size: 4096M
+          emulator-boot-timeout: 360
+          disable-linux-hw-accel: false
+          emulator-options: -accel on -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim
+          disable-animations: false
+          script: node mobile/e2e/mine-profile.mjs run
+      - name: Publish only anonymous metric projections
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: android-mine-controlled-profile-${{ github.run_id }}
+          path: ${{ runner.temp }}/openminerals-mine-profile/public/
+          retention-days: 7
+          if-no-files-found: warn

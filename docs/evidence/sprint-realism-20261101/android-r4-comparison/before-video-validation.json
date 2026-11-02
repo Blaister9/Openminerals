@@ -1,0 +1,64 @@
+{
+  "demoOnly": true,
+  "videoFile": "before-anonymous-scroll.mp4",
+  "videoEvidenceValid": true,
+  "endpointScreenshotWritten": true,
+  "mediaInspectionComplete": true,
+  "coverage": {
+    "temporalCoverageValid": true,
+    "minimumRequiredCoverage": 0.85,
+    "traceDurationSeconds": 39.010261735999954,
+    "containerDurationSeconds": 37.984022,
+    "firstPresentationTimestampSeconds": 0,
+    "lastPresentationTimestampSeconds": 37.663156,
+    "presentationSpanSeconds": 37.663156,
+    "containerCoverageRatio": 0.9736930825292848,
+    "presentationCoverageRatio": 0.9654679134142594,
+    "timestampsMonotonic": true,
+    "encodedFramesWithTimestamps": 128,
+    "tailPresentationTimestamps": [
+      37.293133,
+      37.342289,
+      37.663156
+    ],
+    "finalSamples": [
+      {
+        "frameIndex": 111,
+        "ptsSeconds": 34.180233,
+        "file": "before-video-final-sample-1.png",
+        "sha256": "bf5c8b2e2c8b26711fb4b39277cacf451d5c54f88d3edfc6ee2d94f8d12b2acc"
+      },
+      {
+        "frameIndex": 127,
+        "ptsSeconds": 37.663156,
+        "file": "before-video-final-sample-2.png",
+        "sha256": "67ce8615482de4b1c2427b7716dc24b633e8eea956bb7a226948129e72fd5bed"
+      }
+    ],
+    "visualFinalStageVerified": false,
+    "interpretation": "Temporal MP4 coverage only. Final sample images require human review; timestamp coverage and accessibility do not prove rendered stage 7. Encoded frame count is not application FPS."
+  },
+  "finalization": {
+    "stopSignalSent": true,
+    "remoteExitObserved": true,
+    "hostCloseObserved": true,
+    "unexpectedPidObserved": false,
+    "probeErrors": 0,
+    "signalErrors": 0,
+    "hostCheckErrors": 0,
+    "finalized": true,
+    "latencyMs": 568.5804999999236,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "hostForceTerminationRequested": false,
+    "stopWaitOutsideInputTrace": true
+  },
+  "inputExecutionFailed": false,
+  "recorderAliveAtTraceEnd": true,
+  "inputTraceComplete": true,
+  "containerReadable": true,
+  "inspectionFailure": false,
+  "traceObservedDurationMs": 39010.26173599996,
+  "physicalDevice": false,
+  "gpuFpsMeasured": false
+}

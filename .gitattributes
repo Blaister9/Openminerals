@@ -4,3 +4,11 @@
 *.jpg binary
 *.jpeg binary
 *.webp binary
+*.mp4 binary
+# Keep evidence hashes reproducible when checking out on Windows.
+docs/evidence/sprint-realism-20261101/**/*.json text eol=lf
+docs/evidence/sprint-realism-20261101/**/*.ndjson text eol=lf
+docs/evidence/sprint-realism-20261101/**/*.txt text eol=lf
+docs/evidence/sprint-realism-20261101/**/*.xml text eol=lf
+docs/evidence/sprint-realism-20261101/**/*.ts text eol=lf
+mobile/scripts/benchmark-geology-resolution.mjs text eol=lf

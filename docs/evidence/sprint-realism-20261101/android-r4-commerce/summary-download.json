@@ -1,0 +1,35 @@
+{
+  "demoOnly": true,
+  "validationScope": "commerce",
+  "previousComparison": null,
+  "benchmarksIncluded": false,
+  "glJourneyAssertionsIncluded": false,
+  "functionalChecksIncluded": true,
+  "environment": "disposable Android API29 emulator",
+  "physicalDevice": false,
+  "phonePerformanceAcceptance": false,
+  "gpuFpsMeasured": false,
+  "completed": [
+    "verify-both-isolated-apks"
+  ],
+  "failed": [],
+  "failureReason": null,
+  "nativeLegacyCommerce": {
+    "conversionBuySell": false,
+    "reservationsAndOvercommitProtection": false,
+    "reservationRelease": false,
+    "portfolioAndHistoricalReceipts": false,
+    "restartPreservesLegacy": false,
+    "nativeSameRequestReplayTested": false
+  },
+  "nativeAuthentication": {
+    "buyerCreatedWithoutImport": false,
+    "buyerColdLaunchSecureStore": false,
+    "legacyRestoredAfterBuyerLogout": false,
+    "publicOperatorReadOnlyLogin": false,
+    "publicOperatorMineAndAccountWithoutBuyerWallet": false,
+    "publicOperatorLoggedOut": false
+  },
+  "nativeAuthenticatedCommerce": "NOT RUN: authenticated trading, peer marketplace, lot custody/certificates and full delivery lifecycle require isolated funded fixtures; legacy offers/quote reservations are not peer settlement or physical custody.",
+  "privateUiPublished": false
+}

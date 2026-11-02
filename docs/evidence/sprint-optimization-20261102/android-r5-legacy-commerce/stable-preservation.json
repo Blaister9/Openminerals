@@ -1,0 +1,18 @@
+{
+  "demoOnly": true,
+  "sameUid": true,
+  "sameVersion": true,
+  "stable": {
+    "uid": "10146",
+    "version": "0.3.0",
+    "versionCode": 6
+  },
+  "preview": {
+    "uid": "10149",
+    "version": "0.4.0",
+    "versionCode": 5
+  },
+  "noStableUninstall": true,
+  "noStableDataClear": true,
+  "noStableCommerce": true
+}

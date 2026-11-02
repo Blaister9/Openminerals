@@ -1,0 +1,49 @@
+{
+  "demoOnly": true,
+  "validationScope": "commerce",
+  "previousComparison": null,
+  "benchmarksIncluded": false,
+  "glJourneyAssertionsIncluded": false,
+  "functionalChecksIncluded": true,
+  "environment": "disposable Android API29 emulator",
+  "physicalDevice": false,
+  "phonePerformanceAcceptance": false,
+  "gpuFpsMeasured": false,
+  "completed": [
+    "guard-disposable-api29-emulator",
+    "install-presented-stable-separate-package",
+    "install-preview-alongside-preserved-stable",
+    "preview-new-legacy-commerce",
+    "preview-legacy-reservations-release-overcommit",
+    "preview-legacy-portfolio-historical-receipts",
+    "preview-legacy-balance-after-restart",
+    "preview-buyer-register-without-import",
+    "preview-buyer-securestore-after-cold-launch",
+    "preview-buyer-logout-restores-owned-legacy",
+    "preview-public-operator-access-preflight",
+    "preview-public-operator-readonly-login",
+    "preview-public-operator-mine-account-readonly",
+    "preview-public-operator-logout",
+    "stable-package-uid-and-version-preserved"
+  ],
+  "failed": [],
+  "failureReason": null,
+  "nativeLegacyCommerce": {
+    "conversionBuySell": true,
+    "reservationsAndOvercommitProtection": true,
+    "reservationRelease": true,
+    "portfolioAndHistoricalReceipts": true,
+    "restartPreservesLegacy": true,
+    "nativeSameRequestReplayTested": false
+  },
+  "nativeAuthentication": {
+    "buyerCreatedWithoutImport": true,
+    "buyerColdLaunchSecureStore": true,
+    "legacyRestoredAfterBuyerLogout": true,
+    "publicOperatorReadOnlyLogin": true,
+    "publicOperatorMineAndAccountWithoutBuyerWallet": true,
+    "publicOperatorLoggedOut": true
+  },
+  "nativeAuthenticatedCommerce": "NOT RUN: authenticated trading, peer marketplace, lot custody/certificates and full delivery lifecycle require isolated funded fixtures; legacy offers/quote reservations are not peer settlement or physical custody.",
+  "privateUiPublished": false
+}

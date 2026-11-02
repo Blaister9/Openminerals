@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Openminerals native Android" tests="12" failures="1">
+  <testcase classname="Openminerals.android" name="guard-disposable-api29-emulator" time="1.277"></testcase>
+  <testcase classname="Openminerals.android" name="install-presented-stable-separate-package" time="71.050"></testcase>
+  <testcase classname="Openminerals.android" name="presented-seven-chapters" time="156.213"></testcase>
+  <testcase classname="Openminerals.android" name="presented-light-unrecorded-fixed-trace" time="128.651"></testcase>
+  <testcase classname="Openminerals.android" name="presented-recorded-fixed-trace" time="133.197"></testcase>
+  <testcase classname="Openminerals.android" name="presented-unrecorded-fixed-trace" time="129.144"></testcase>
+  <testcase classname="Openminerals.android" name="presented-reduced-motion-and-exits" time="126.555"></testcase>
+  <testcase classname="Openminerals.android" name="presented-live-gl-home-resume" time="94.215"></testcase>
+  <testcase classname="Openminerals.android" name="install-preview-alongside-preserved-stable" time="35.083"></testcase>
+  <testcase classname="Openminerals.android" name="preview-seven-chapters" time="285.724"></testcase>
+  <testcase classname="Openminerals.android" name="preview-light-unrecorded-fixed-trace" time="127.252"></testcase>
+  <testcase classname="Openminerals.android" name="preview-recorded-fixed-trace" time="96.685"><failure message="Native assertion or infrastructure failed. Private diagnostics were not published."/></testcase>
+</testsuite>

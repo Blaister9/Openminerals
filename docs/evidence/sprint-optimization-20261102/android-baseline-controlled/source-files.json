@@ -1,0 +1,90 @@
+{
+  "profileHarness": [
+    {
+      "file": "mobile/e2e/mine-profile.mjs",
+      "sourceCommit": "0c613cf6fcd9ec110b2d39effb189ed3fb9a01c6",
+      "sha256": "9b89191fbca3acc5f242b1652126a35a43e9673617fd334b72cc090b4f6a7a7a",
+      "bytes": 21051,
+      "url": "https://github.com/Blaister9/Openminerals/blob/0c613cf6fcd9ec110b2d39effb189ed3fb9a01c6/mobile/e2e/mine-profile.mjs"
+    },
+    {
+      "file": "mobile/e2e/ci-safety.mjs",
+      "sourceCommit": "0c613cf6fcd9ec110b2d39effb189ed3fb9a01c6",
+      "sha256": "873e45e357e0aff59027881d5b1bb1c521d7441771f684fc23c1791f6f79b6d3",
+      "bytes": 6194,
+      "url": "https://github.com/Blaister9/Openminerals/blob/0c613cf6fcd9ec110b2d39effb189ed3fb9a01c6/mobile/e2e/ci-safety.mjs"
+    },
+    {
+      "file": "mobile/e2e/mine-preview.mjs",
+      "sourceCommit": "0c613cf6fcd9ec110b2d39effb189ed3fb9a01c6",
+      "sha256": "d00524ce7fe9b82106dd260c1034b442bd80e11c97fa96065b155caab4d4693a",
+      "bytes": 73301,
+      "url": "https://github.com/Blaister9/Openminerals/blob/0c613cf6fcd9ec110b2d39effb189ed3fb9a01c6/mobile/e2e/mine-preview.mjs"
+    },
+    {
+      "file": "mobile/e2e/release-contract.mjs",
+      "sourceCommit": "0c613cf6fcd9ec110b2d39effb189ed3fb9a01c6",
+      "sha256": "67a76a509b9cbabf597cd89b795e4d70e240b685b37e62a5d575ffe9107f4130",
+      "bytes": 7843,
+      "url": "https://github.com/Blaister9/Openminerals/blob/0c613cf6fcd9ec110b2d39effb189ed3fb9a01c6/mobile/e2e/release-contract.mjs"
+    },
+    {
+      "file": "mobile/e2e/ci-process.mjs",
+      "sourceCommit": "0c613cf6fcd9ec110b2d39effb189ed3fb9a01c6",
+      "sha256": "d21224911e7055d12d9986cd39b00e776496c973d13d80e8ef902db31a0ae2c2",
+      "bytes": 550,
+      "url": "https://github.com/Blaister9/Openminerals/blob/0c613cf6fcd9ec110b2d39effb189ed3fb9a01c6/mobile/e2e/ci-process.mjs"
+    },
+    {
+      "file": ".github/workflows/android-mine-profile.yml",
+      "sourceCommit": "0c613cf6fcd9ec110b2d39effb189ed3fb9a01c6",
+      "sha256": "adb048c20e031a133b0b44a794625662dd6b5a83a8eeafa19fb183e8829d95d5",
+      "bytes": 4085,
+      "url": "https://github.com/Blaister9/Openminerals/blob/0c613cf6fcd9ec110b2d39effb189ed3fb9a01c6/.github/workflows/android-mine-profile.yml"
+    }
+  ],
+  "r4Renderer": [
+    {
+      "file": "mobile/lib/geological-scene.ts",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "dad385018f3da9694a90080892618f08353303f65f0407ed36224899f79c67da",
+      "bytes": 17038,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/lib/geological-scene.ts"
+    },
+    {
+      "file": "mobile/lib/scene-renderer.ts",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "69a633010d62bd6942bba53c09fff421e867587ba02a031349c584d492c09250",
+      "bytes": 7422,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/lib/scene-renderer.ts"
+    },
+    {
+      "file": "mobile/lib/immersive-story.ts",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "91468daf97f3b9fa70a57e12ba8949ea09cc06996e0ea4f244f44f5b55f81c37",
+      "bytes": 6982,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/lib/immersive-story.ts"
+    },
+    {
+      "file": "mobile/lib/gold-bar-3d.ts",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c",
+      "bytes": 16917,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/lib/gold-bar-3d.ts"
+    },
+    {
+      "file": "mobile/lib/geological-specimen.ts",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778",
+      "bytes": 1410,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/lib/geological-specimen.ts"
+    },
+    {
+      "file": "mobile/lib/metal-materials.ts",
+      "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+      "sha256": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81",
+      "bytes": 1434,
+      "url": "https://github.com/Blaister9/Openminerals/blob/ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14/mobile/lib/metal-materials.ts"
+    }
+  ]
+}

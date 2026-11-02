@@ -1,0 +1,15 @@
+{
+  "kind": "before",
+  "package": "com.openminerals.demo.mobile",
+  "version": "0.3.0",
+  "versionCode": 6,
+  "runtime": "0.3.0",
+  "channel": "demo",
+  "certificate": "3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c",
+  "embeddedHttpsApi": true,
+  "embeddedBytes": 1625200,
+  "debuggable": false,
+  "sha256": "d99e8af9617f56d7862a849ebd057025cb9d6adc164b97496a5532f7b29ad29e",
+  "bytes": 77138208,
+  "certificateProvenance": "Inspected from the APK downloaded from its EAS build artifact. The same fingerprint is pinned separately for CI; remote credential-store retrieval not performed."
+}

@@ -1,0 +1,123 @@
+{
+  "run": 41380976770,
+  "url": "https://github.com/Blaister9/Openminerals/actions/runs/41380976770",
+  "artifact": 13113563102,
+  "scope": "regression",
+  "workflowHead": "ff85b6d083c7bf91cd5b52640333e9f3b1e2feeb",
+  "appRevision": "r2",
+  "candidateSource": "618655495ac2365ce09c665ae03f9d8e7d361228",
+  "conclusion": "failure",
+  "completedNativeStages": 5,
+  "failedStage": "preview-live-gl-home-resume",
+  "failureOccursBeforeHome": true,
+  "sourceFlow": "story-resume-position",
+  "firstFailedCommandIndex": 14,
+  "failedCommand": "final wait for immersive-gl-ready",
+  "chapter4AccessibleAndMenuClosed": true,
+  "currentBoundedScene": {
+    "demoOnly": true,
+    "stage": "preview-live-gl-home-resume",
+    "automaticLightObserved": false,
+    "qualityTierObserved": "light",
+    "knownIds": [
+      "immersive-scene-light",
+      "home-cinematic-scroll"
+    ],
+    "readiness": "light",
+    "mode": "light",
+    "manualLightDescriptionObserved": false,
+    "reducedMotionDescriptionObserved": false,
+    "genericSimplifiedTextObserved": false,
+    "xmlTruncated": false,
+    "rawUiPublished": false
+  },
+  "initialStrictGl": {
+    "demoOnly": true,
+    "strictGlReadinessRequired": true,
+    "automaticLightObserved": false,
+    "qualityTierObserved": "balanced",
+    "knownIds": [
+      "immersive-gl-ready",
+      "home-cinematic-scroll"
+    ],
+    "readiness": "gl-ready",
+    "mode": "gl",
+    "manualLightDescriptionObserved": false,
+    "reducedMotionDescriptionObserved": false,
+    "genericSimplifiedTextObserved": false,
+    "xmlTruncated": false,
+    "rawUiPublished": false
+  },
+  "failureFlags": {
+    "demoOnly": true,
+    "credentialsEntered": false,
+    "rawLogsPublished": false,
+    "reactNativeJsError": false,
+    "javaScriptTypeError": false,
+    "nativeFatalException": false,
+    "glContextFailure": false,
+    "shaderFailure": false
+  },
+  "summary": {
+    "demoOnly": true,
+    "validationScope": "regression",
+    "previousComparison": {
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41377075737",
+      "status": "failed after completed comparative profiles; scoped regression does not replace that failed comparison result"
+    },
+    "benchmarksIncluded": false,
+    "environment": "disposable Android API29 emulator",
+    "physicalDevice": false,
+    "phonePerformanceAcceptance": false,
+    "gpuFpsMeasured": false,
+    "completed": [
+      "guard-disposable-api29-emulator",
+      "install-presented-stable-separate-package",
+      "install-preview-alongside-preserved-stable",
+      "preview-regression-first-gl-proof",
+      "preview-reduced-motion-and-exits"
+    ],
+    "failed": [
+      "preview-live-gl-home-resume"
+    ],
+    "failureReason": "A required preview command failed or timed out.",
+    "nativeAuthentication": {
+      "buyerCreatedWithoutImport": false,
+      "buyerColdLaunchSecureStore": false,
+      "legacyRestoredAfterBuyerLogout": false,
+      "publicOperatorReadOnlyLogin": false,
+      "publicOperatorMineAndAccountWithoutBuyerWallet": false,
+      "publicOperatorLoggedOut": false
+    },
+    "nativeAuthenticatedCommerce": "NOT RUN: authenticated trading, marketplace transfers, certificates and deliveries require isolated fixtures; read-only native account access is reported separately.",
+    "privateUiPublished": false
+  },
+  "media": [
+    {
+      "name": "after-safe-reduced-motion.png",
+      "bytes": 844230,
+      "sha256": "b7bd88108038c739a4cef699d5ebe940e532b3ebf2a2ce0e834156bfdacb1e5d",
+      "visuallyInspected": true
+    },
+    {
+      "name": "anonymous-failure.png",
+      "bytes": 960805,
+      "sha256": "8a69aa3c19c15b52493e6b68864f0003966e1723830760525936fa9b0b76a554",
+      "visuallyInspected": true
+    }
+  ],
+  "visualReview": {
+    "reducedMotionPng": "DEMO origin tunnel fallback with navigation visible; no private UI.",
+    "failurePng": "Origin tunnel persists; accessible chapter4 does not match visible origin title.",
+    "initialPngPublished": false
+  },
+  "limitations": [
+    "No HOME round-trip occurred; resume not tested because initial pre-HOME GLwait failed.",
+    "Commerce, persistence, buyer registration/SecureStore and public operator access not reached; all authflagsfalse.",
+    "No new performance profile or video in scoped regression. Does not replace failed comparative run41377075737.",
+    "Unexplainedlightstate is not observed automatic performance fallback; exact rendererfailure cause unproven.",
+    "No physical phone or GPUFPS acceptance."
+  ],
+  "reviewerChangedSource": false,
+  "reviewerReranWorkflow": false
+}

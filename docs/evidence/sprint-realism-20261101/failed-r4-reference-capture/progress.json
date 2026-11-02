@@ -1,0 +1,43 @@
+{
+  "format": "openminerals.native-progress",
+  "version": 1,
+  "mode": "run",
+  "updatedAt": "2026-11-02T04:41:14.626Z",
+  "stage": {
+    "name": "presented-recorded-fixed-trace",
+    "status": "FAILED",
+    "startedAt": "2026-11-02T04:38:53.104Z",
+    "completedAt": "2026-11-02T04:41:12.978Z"
+  },
+  "command": {
+    "program": "adb",
+    "operation": "logcat",
+    "status": "PASSED",
+    "timeoutMs": 20000,
+    "timeoutSignal": "SIGKILL",
+    "startedAt": "2026-11-02T04:41:14.588Z",
+    "exitCode": 0,
+    "signal": null,
+    "reason": "completed",
+    "completedAt": "2026-11-02T04:41:14.626Z"
+  },
+  "lastFailure": {
+    "stage": "presented-recorded-fixed-trace",
+    "program": "adb",
+    "operation": "exec-out",
+    "status": "FAILED",
+    "timeoutMs": 20000,
+    "timeoutSignal": "SIGKILL",
+    "startedAt": "2026-11-02T04:40:41.578Z",
+    "exitCode": null,
+    "signal": "SIGKILL",
+    "reason": "process-timeout",
+    "completedAt": "2026-11-02T04:41:01.600Z"
+  },
+  "completed": [
+    "guard-disposable-api29-emulator",
+    "install-presented-stable-separate-package",
+    "presented-seven-chapters",
+    "presented-light-unrecorded-fixed-trace"
+  ]
+}

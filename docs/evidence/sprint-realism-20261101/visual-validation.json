@@ -1,0 +1,55 @@
+{
+  "demoOnly": true,
+  "date": "2026-11-02",
+  "visualSourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+  "mobile": {
+    "command": "OPENMINERALS_WEBGL_BROWSER=<Chrome> node --experimental-strip-types --test --test-concurrency=2 test/*.test.mjs",
+    "tests": 353,
+    "passed": 353,
+    "failed": 0,
+    "skipped": 0,
+    "environment": "Windows Node22.22.3; actual Chrome SwiftShader shader execution",
+    "androidPerformance": false,
+    "durationMs": 38753.0154
+  },
+  "export": {
+    "platform": "android",
+    "hermes": true,
+    "httpsApi": "https://openminerals-api-demo.up.railway.app",
+    "success": true,
+    "source": "Initial31e62ae Android Hermes export; actual R2 embedded bundle inspected independently by APK verifier."
+  },
+  "preservation": {
+    "apiTree": "12eb7c4fdf83cefc96e5df70fa5d656e67ff353a",
+    "apiAndAppBusinessDiff": "",
+    "stableReleaseModified": false
+  },
+  "physicalPhoneAcceptance": false,
+  "scope": "R4 final local suite: 353/353 on QA source 8c4361d with actual Chrome SwiftShader. APK application source remains ce9b79b. Android native performance and phone acceptance are separate and unaccepted.",
+  "lifecycle": {
+    "visibleNativeSurfaceBeforeReady": true,
+    "opaqueCoverUntilCompletedFrame": true,
+    "sessionOwnedCleanup": true,
+    "automaticContextTimeoutRetries": 1,
+    "manualRetry": true,
+    "alphaZeroRootCauseProven": false,
+    "nativeSynchronousWaitBounded": false,
+    "retainedSurfaceDuringLightReduced": true,
+    "lazyAllocation": true,
+    "noDrawOnPause": true,
+    "resumeRetainsRenderer": true,
+    "hardwareBalancedCadenceOnly": true,
+    "hardwareMaxPhysicalSide": 1024,
+    "explicitSoftwareMaxPhysicalSide": 384,
+    "presentationTeardownRootCauseProven": false
+  },
+  "qaAfterApkSource": {
+    "tests": 37,
+    "passed": 37,
+    "failed": 0,
+    "scope": "Targeted harness checks after the 353-test software-GL suite: preserve failures and completed evidence with candidate-first comparison. APK and renderer unchanged."
+  },
+  "verificationCommit": "8c4361da66da57a7641296f16b47e9e7ce95f79f",
+  "timezone": "America/Bogota",
+  "recordedAtUtc": "2026-11-02T05:08:13.991Z"
+}

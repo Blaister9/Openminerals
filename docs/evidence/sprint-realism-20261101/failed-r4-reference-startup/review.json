@@ -1,0 +1,196 @@
+{
+  "run": 41391258031,
+  "job": 125102993790,
+  "url": "https://github.com/Blaister9/Openminerals/actions/runs/41391258031/job/125102993790",
+  "artifact": 13117682684,
+  "workflowHead": "8c4361da66da57a7641296f16b47e9e7ce95f79f",
+  "scope": "comparison",
+  "candidateSource": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+  "candidateVersionCode": 4,
+  "candidateInstalled": false,
+  "candidateExecuted": false,
+  "candidateVerdict": "not assessed",
+  "conclusion": "failure",
+  "completedNativeStages": 3,
+  "failedStage": "presented-light-unrecorded-fixed-trace",
+  "failure": {
+    "application": "presented stable0.3.0",
+    "flow": "embedded",
+    "invocation": 2,
+    "program": "maestro",
+    "processTimeoutMs": 420000,
+    "startedAtUtc": "2026-11-02T05:02:39.731Z",
+    "completedAtUtc": "2026-11-02T05:09:39.842Z",
+    "observedDurationMs": 420111,
+    "signal": "SIGKILL",
+    "reason": "process-timeout",
+    "staticSelectorsAvailable": false,
+    "firstFailedCommand": null,
+    "nativeRootCauseProved": false
+  },
+  "boundedScene": {
+    "demoOnly": true,
+    "stage": "presented-light-unrecorded-fixed-trace",
+    "automaticLightObserved": false,
+    "qualityTierObserved": "unknown",
+    "knownIds": [
+      "immersive-gl-ready",
+      "home-cinematic-scroll"
+    ],
+    "readiness": "gl-ready",
+    "mode": "gl",
+    "stateReasonCode": null,
+    "internalFailureCode": null,
+    "internalFailureObserved": false,
+    "retryPendingObserved": false,
+    "manualRetryControlObserved": false,
+    "manualLightDescriptionObserved": false,
+    "reducedMotionDescriptionObserved": false,
+    "genericSimplifiedTextObserved": false,
+    "xmlTruncated": false,
+    "rawUiPublished": false
+  },
+  "failureFlags": {
+    "demoOnly": true,
+    "credentialsEntered": false,
+    "nativeGlFailureCounts": {
+      "context-timeout": 0,
+      "create": 0,
+      "draw": 0,
+      "boundary": 0
+    },
+    "unknownNativeGlDiagnosticLines": 0,
+    "diagnosticLogTruncated": false,
+    "rawLogsPublished": false,
+    "diagnosticInterpretation": "Static warning counts only; a timeout warning may precede a successful bounded retry. Current scene state determines internal failure, not warning history.",
+    "reactNativeJsError": false,
+    "javaScriptTypeError": false,
+    "nativeFatalException": false,
+    "glContextFailure": false,
+    "shaderFailure": false
+  },
+  "flowFailure": {
+    "kind": "before",
+    "flow": "embedded",
+    "invocation": 2,
+    "stage": "presented-light-unrecorded-fixed-trace",
+    "category": "native-command-failed",
+    "expectedSelectorsFromFlow": [],
+    "recentStaticCommandLabels": [],
+    "rawDiagnosticsPublished": false,
+    "diagnosticSources": {
+      "console": true,
+      "junit": false,
+      "commands": false,
+      "maestroLog": true
+    },
+    "firstFailedCommand": null,
+    "recentCommands": [],
+    "skippedDiagnosticFiles": 0,
+    "diagnosticTraversalTruncated": false,
+    "diagnosticScope": "anonymous-static-command-metadata",
+    "credentialsEntered": false,
+    "privateUiPublished": false
+  },
+  "coldLaunch": {
+    "demoOnly": true,
+    "package": "com.openminerals.demo.mobile",
+    "version": "0.3.0",
+    "valid": true,
+    "oldPid": "4773",
+    "newPid": "7522",
+    "oldProcessExitObserved": true,
+    "newProcessObserved": true,
+    "pidChanged": true,
+    "status": "ok",
+    "reportedLaunchState": "COLD",
+    "intentReused": false,
+    "classification": "verified-cold-process-launch",
+    "appReadyLatencyMeasured": false,
+    "coldStartTotalMs": 1081,
+    "coldStartWaitMs": 1084,
+    "pssBeforeKiB": null,
+    "pssAfterKiB": null,
+    "uiFrames": null,
+    "jankyUiFrames": null,
+    "uiFrameP50Ms": null,
+    "uiFrameP90Ms": null,
+    "uiFrameP95Ms": null
+  },
+  "visualReview": {
+    "beforeSevenChapterScreenshotsInspected": true,
+    "localGallery": "local-review/before-chapters.jpg",
+    "failurePng": "Presented stable GL mineral at ORIGEN MINERAL; no private UI or renderer warning visible.",
+    "videoAvailable": false,
+    "metricsAvailable": false
+  },
+  "newRecorderFinalizationExercised": false,
+  "media": [
+    {
+      "file": "anonymous-failure.png",
+      "bytes": 993896,
+      "sha256": "3461dbe1fb6d70272499683354150a7240872eace19941a6f33dbd4c59d63d00",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-1.png",
+      "bytes": 913802,
+      "sha256": "0848937eb6c868f692479e8e30b307bf8a96bf9dd6f11961630145ca81c17b8e",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-2.png",
+      "bytes": 1387624,
+      "sha256": "6293b84d0fd8cd3de3473722a0c78810d8d52e20013e74aa4bcfca0a0bd56a36",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-3.png",
+      "bytes": 845952,
+      "sha256": "a38d64d9d081cb08b0b6d16e51e2ac3632a95ac7ed72d6af102d914caf4cbf46",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-4.png",
+      "bytes": 506804,
+      "sha256": "be9b97045e2bd76760b2ac3c1968decb919c6aff76dca0008925adc753969a5c",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-5.png",
+      "bytes": 490608,
+      "sha256": "0f346c7dbfa8aad396c121dd0fc6c2da482f4c6c09b39972d5322fd183e8dfc0",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-6.png",
+      "bytes": 527655,
+      "sha256": "aaedac4c4dc1eb73afc40f81deb0c5919427a828b51e2da7c8176f1b67d9d5c4",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    },
+    {
+      "file": "before-safe-story-7.png",
+      "bytes": 548245,
+      "sha256": "316d4d36ca69cb7cdfeb3bb91e8f380bea041ee2bb395823501f82d4932ae36a",
+      "originalBytesPreserved": true,
+      "visuallyInspected": true
+    }
+  ],
+  "limitations": [
+    "The timeout happened before light-mode preparation and before input trace. No new frame metrics, video, PID-stop or finalization evidence exists.",
+    "Cold stable process launch independently passed with PID change and1081ms Activity start; this is not app-ready latency.",
+    "Bounded scene is GLready and static crash/GLwarning counts arezero. No static command/selector metadata establishes whether Maestro startup/driver or UI caused the timeout.",
+    "R4 candidate was never installed/executed in this comparison; no candidate graphics verdict.",
+    "Previously passed commercial R4 job is separate evidence and is not replaced or extended by this failed comparison.",
+    "No Android physical phone or GPUFPS acceptance."
+  ],
+  "sourceChangedByReviewer": false,
+  "workflowRerunByReviewer": false
+}

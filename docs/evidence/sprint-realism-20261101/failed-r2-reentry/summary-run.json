@@ -1,0 +1,34 @@
+{
+  "demoOnly": true,
+  "validationScope": "regression",
+  "previousComparison": {
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41377075737",
+    "status": "failed after completed comparative profiles; scoped regression does not replace that failed comparison result"
+  },
+  "benchmarksIncluded": false,
+  "environment": "disposable Android API29 emulator",
+  "physicalDevice": false,
+  "phonePerformanceAcceptance": false,
+  "gpuFpsMeasured": false,
+  "completed": [
+    "guard-disposable-api29-emulator",
+    "install-presented-stable-separate-package",
+    "install-preview-alongside-preserved-stable",
+    "preview-regression-first-gl-proof",
+    "preview-reduced-motion-and-exits"
+  ],
+  "failed": [
+    "preview-live-gl-home-resume"
+  ],
+  "failureReason": "A required preview command failed or timed out.",
+  "nativeAuthentication": {
+    "buyerCreatedWithoutImport": false,
+    "buyerColdLaunchSecureStore": false,
+    "legacyRestoredAfterBuyerLogout": false,
+    "publicOperatorReadOnlyLogin": false,
+    "publicOperatorMineAndAccountWithoutBuyerWallet": false,
+    "publicOperatorLoggedOut": false
+  },
+  "nativeAuthenticatedCommerce": "NOT RUN: authenticated trading, marketplace transfers, certificates and deliveries require isolated fixtures; read-only native account access is reported separately.",
+  "privateUiPublished": false
+}

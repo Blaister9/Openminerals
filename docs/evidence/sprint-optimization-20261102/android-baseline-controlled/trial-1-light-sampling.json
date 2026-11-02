@@ -1,0 +1,160 @@
+{
+  "samples": [
+    {
+      "atMs": 73.659787,
+      "pssKiB": 134797
+    },
+    {
+      "atMs": 1238.296564,
+      "pssKiB": 133021
+    },
+    {
+      "atMs": 2099.8359530000002,
+      "pssKiB": 132640
+    },
+    {
+      "atMs": 3375.733323,
+      "pssKiB": 132276
+    },
+    {
+      "atMs": 4172.642796,
+      "pssKiB": 130244
+    },
+    {
+      "atMs": 5096.72213,
+      "pssKiB": 130117
+    },
+    {
+      "atMs": 6255.506770999999,
+      "pssKiB": 130701
+    },
+    {
+      "atMs": 7111.172664,
+      "pssKiB": 130355
+    },
+    {
+      "atMs": 8343.756199,
+      "pssKiB": 130287
+    },
+    {
+      "atMs": 9354.028223,
+      "pssKiB": 130084
+    },
+    {
+      "atMs": 10352.429771,
+      "pssKiB": 130058
+    },
+    {
+      "atMs": 11305.48685,
+      "pssKiB": 130161
+    },
+    {
+      "atMs": 12092.501616,
+      "pssKiB": 130194
+    },
+    {
+      "atMs": 13381.293862999999,
+      "pssKiB": 130429
+    },
+    {
+      "atMs": 14084.230577,
+      "pssKiB": 130395
+    },
+    {
+      "atMs": 15091.492286,
+      "pssKiB": 130164
+    },
+    {
+      "atMs": 16072.630587,
+      "pssKiB": 130128
+    },
+    {
+      "atMs": 17315.436525,
+      "pssKiB": 130141
+    },
+    {
+      "atMs": 18185.001404000002,
+      "pssKiB": 130121
+    },
+    {
+      "atMs": 19331.036793000003,
+      "pssKiB": 130008
+    },
+    {
+      "atMs": 20323.433779000003,
+      "pssKiB": 130108
+    },
+    {
+      "atMs": 21084.472519000003,
+      "pssKiB": 129010
+    },
+    {
+      "atMs": 22263.462728000002,
+      "pssKiB": 128972
+    },
+    {
+      "atMs": 23209.477626,
+      "pssKiB": 130118
+    },
+    {
+      "atMs": 24412.603596,
+      "pssKiB": 128550
+    },
+    {
+      "atMs": 25193.940611,
+      "pssKiB": 128717
+    },
+    {
+      "atMs": 26343.538242000002,
+      "pssKiB": 128626
+    },
+    {
+      "atMs": 27248.579994,
+      "pssKiB": 128841
+    },
+    {
+      "atMs": 28101.429761000003,
+      "pssKiB": 128788
+    },
+    {
+      "atMs": 29272.223189,
+      "pssKiB": 129104
+    },
+    {
+      "atMs": 30131.571938,
+      "pssKiB": 129039
+    },
+    {
+      "atMs": 31094.307509000002,
+      "pssKiB": 128796
+    },
+    {
+      "atMs": 32111.365867,
+      "pssKiB": 128771
+    },
+    {
+      "atMs": 33111.645961,
+      "pssKiB": 128791
+    },
+    {
+      "atMs": 34111.51613,
+      "pssKiB": 128912
+    }
+  ],
+  "memory": {
+    "samples": 35,
+    "sampledPeakPssKiB": 134797,
+    "sustainedMedianPssKiB": 128912,
+    "sustainedP95PssKiB": 130141,
+    "interpretation": "Process PSS sampled roughly once per second, including dumpsys overhead. The sampled maximum is a lower bound on the true continuous peak; sustained uses the final half of valid samples."
+  },
+  "presentation": {
+    "available": false,
+    "reason": "package-surfaceview-unavailable"
+  },
+  "errors": 0,
+  "targetIntervalMs": 1000,
+  "actualDurationMs": 35039.428142000004,
+  "surfaceSelection": "unavailable",
+  "rawSurfaceNamesPublished": false
+}

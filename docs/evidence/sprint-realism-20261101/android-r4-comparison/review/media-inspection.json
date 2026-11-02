@@ -1,0 +1,34 @@
+{
+  "reviewType": "Assistant sampled timeline + independently parsed ffprobe PTS, not phone acceptance",
+  "sampleProtocol": "One image per second over whole original clip, in chronological 5x4 contact sheets; full-resolution final samples independently reviewed",
+  "clips": [
+    {
+      "kind": "before",
+      "durationSeconds": 37.984022,
+      "stream": {
+        "codec_name": "h264",
+        "width": 1080,
+        "height": 1920
+      },
+      "ptsFrameCount": 128,
+      "firstPtsSeconds": 0,
+      "lastPtsSeconds": 37.663156,
+      "monotonic": true,
+      "sourceSha256": "51dd8ce434735f1a51c6ab1fa1113b539c5472fbbac95d28aa8ee75f47becf24"
+    },
+    {
+      "kind": "after",
+      "durationSeconds": 35.405411,
+      "stream": {
+        "codec_name": "h264",
+        "width": 1080,
+        "height": 1920
+      },
+      "ptsFrameCount": 158,
+      "firstPtsSeconds": 0,
+      "lastPtsSeconds": 35.370089,
+      "monotonic": true,
+      "sourceSha256": "9002e5dab614d4733144b779072db326724992935081bbe2313d10e4fb5e48ae"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "demoOnly": true,
+  "run": 41477328703,
+  "job": 125386234385,
+  "url": "https://github.com/Blaister9/Openminerals/actions/runs/41477328703",
+  "jobUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41477328703/job/125386234385",
+  "status": "completed",
+  "conclusion": "success",
+  "harnessCommit": "df8d985e9074fac603430bffd639b6437f353d33",
+  "r4BinarySource": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+  "r5BinarySource": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+  "event": "pull_request",
+  "runStartedAt": "2026-11-02T16:01:17Z",
+  "runUpdatedAt": "2026-11-02T16:16:33Z",
+  "copiedAtUtc": "2026-11-02T16:22:23.778Z",
+  "artifact": {
+    "id": 13158638239,
+    "name": "android-mine-controlled-profile-41477328703",
+    "digest": "sha256:fb24222f993faf21fb9e6ef376e397941d0380fdd5034e49e252b864051d6665",
+    "sizeBytes": 8182645,
+    "expired": false,
+    "expiresAt": "2026-11-09T16:16:26Z"
+  },
+  "originalJsonPngUnmodified": true,
+  "privateDirectoriesCopied": false,
+  "credentialsEntered": false,
+  "physicalDevice": false
+}

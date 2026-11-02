@@ -1,0 +1,994 @@
+{
+  "demoOnly": true,
+  "environment": "desktop Chrome ANGLE SwiftShader",
+  "android": false,
+  "physicalDevice": false,
+  "displayFpsMeasured": false,
+  "gpuOnlyMeasured": false,
+  "memoryMeasured": false,
+  "sourceCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+  "workspaceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+  "previousCommit": "ed87d2ea233227437ab5f5cc2eb0900674e1231f",
+  "capturedAtUtc": "2026-11-02T15:11:11.719Z",
+  "host": {
+    "platform": "win32",
+    "availableLogicalCpus": 12,
+    "totalMemoryMiB": 65277,
+    "nodeVersion": "v22.22.3"
+  },
+  "protocol": {
+    "width": 216,
+    "height": 384,
+    "poses": [
+      0,
+      0.08,
+      0.12,
+      0.2,
+      0.3,
+      0.35,
+      0.4,
+      0.5,
+      0.67,
+      0.83,
+      1
+    ],
+    "warmupRounds": 2,
+    "measuredRounds": 6,
+    "conditionOrder": "Forward on even rounds, reverse on odd rounds; one independent GL context per condition.",
+    "completionFence": "One gl.finish plus full-viewport RGBA readPixels per measured draw; transfer overhead included.",
+    "compilationExcludedFromFrameSamples": true,
+    "frameMetric": "Wall-clock renderer submission, software completion and full RGBA readback, not GPU-only or display frame time."
+  },
+  "ok": true,
+  "roundOrder": [
+    [
+      "r4-full",
+      "candidate"
+    ],
+    [
+      "candidate",
+      "r4-full"
+    ],
+    [
+      "r4-full",
+      "candidate"
+    ],
+    [
+      "candidate",
+      "r4-full"
+    ],
+    [
+      "r4-full",
+      "candidate"
+    ],
+    [
+      "candidate",
+      "r4-full"
+    ]
+  ],
+  "results": [
+    {
+      "id": "r4-full",
+      "rendererInfo": {
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36"
+      },
+      "createRendererMs": 52.9000000001397,
+      "firstDrawCompletionMs": 35.39999999990687,
+      "firstReadyMs": 88.30000000004657,
+      "uploadBytes": 613128,
+      "work": [
+        {
+          "progress": 0,
+          "drawCalls": 1,
+          "triangles": 5926
+        },
+        {
+          "progress": 0.08,
+          "drawCalls": 1,
+          "triangles": 5926
+        },
+        {
+          "progress": 0.12,
+          "drawCalls": 2,
+          "triangles": 7526
+        },
+        {
+          "progress": 0.2,
+          "drawCalls": 2,
+          "triangles": 7526
+        },
+        {
+          "progress": 0.3,
+          "drawCalls": 3,
+          "triangles": 7528
+        },
+        {
+          "progress": 0.35,
+          "drawCalls": 3,
+          "triangles": 7528
+        },
+        {
+          "progress": 0.4,
+          "drawCalls": 2,
+          "triangles": 1602
+        },
+        {
+          "progress": 0.5,
+          "drawCalls": 2,
+          "triangles": 1602
+        },
+        {
+          "progress": 0.67,
+          "drawCalls": 2,
+          "triangles": 1602
+        },
+        {
+          "progress": 0.83,
+          "drawCalls": 2,
+          "triangles": 1602
+        },
+        {
+          "progress": 1,
+          "drawCalls": 2,
+          "triangles": 1602
+        }
+      ],
+      "samples": [
+        {
+          "round": 0,
+          "progress": 0,
+          "completionMs": 6
+        },
+        {
+          "round": 0,
+          "progress": 0.08,
+          "completionMs": 6.100000000093132
+        },
+        {
+          "round": 0,
+          "progress": 0.12,
+          "completionMs": 5.5
+        },
+        {
+          "round": 0,
+          "progress": 0.2,
+          "completionMs": 7
+        },
+        {
+          "round": 0,
+          "progress": 0.3,
+          "completionMs": 9.300000000046566
+        },
+        {
+          "round": 0,
+          "progress": 0.35,
+          "completionMs": 9.899999999906868
+        },
+        {
+          "round": 0,
+          "progress": 0.4,
+          "completionMs": 4.5
+        },
+        {
+          "round": 0,
+          "progress": 0.5,
+          "completionMs": 4.699999999953434
+        },
+        {
+          "round": 0,
+          "progress": 0.67,
+          "completionMs": 4.199999999953434
+        },
+        {
+          "round": 0,
+          "progress": 0.83,
+          "completionMs": 5.300000000046566
+        },
+        {
+          "round": 0,
+          "progress": 1,
+          "completionMs": 4.5
+        },
+        {
+          "round": 1,
+          "progress": 0,
+          "completionMs": 5
+        },
+        {
+          "round": 1,
+          "progress": 0.08,
+          "completionMs": 5.5
+        },
+        {
+          "round": 1,
+          "progress": 0.12,
+          "completionMs": 6.199999999953434
+        },
+        {
+          "round": 1,
+          "progress": 0.2,
+          "completionMs": 6.5
+        },
+        {
+          "round": 1,
+          "progress": 0.3,
+          "completionMs": 9.100000000093132
+        },
+        {
+          "round": 1,
+          "progress": 0.35,
+          "completionMs": 9.800000000046566
+        },
+        {
+          "round": 1,
+          "progress": 0.4,
+          "completionMs": 4.699999999953434
+        },
+        {
+          "round": 1,
+          "progress": 0.5,
+          "completionMs": 4.5
+        },
+        {
+          "round": 1,
+          "progress": 0.67,
+          "completionMs": 4
+        },
+        {
+          "round": 1,
+          "progress": 0.83,
+          "completionMs": 5
+        },
+        {
+          "round": 1,
+          "progress": 1,
+          "completionMs": 5.399999999906868
+        },
+        {
+          "round": 2,
+          "progress": 0,
+          "completionMs": 5
+        },
+        {
+          "round": 2,
+          "progress": 0.08,
+          "completionMs": 5.600000000093132
+        },
+        {
+          "round": 2,
+          "progress": 0.12,
+          "completionMs": 5.399999999906868
+        },
+        {
+          "round": 2,
+          "progress": 0.2,
+          "completionMs": 6.300000000046566
+        },
+        {
+          "round": 2,
+          "progress": 0.3,
+          "completionMs": 9.099999999860302
+        },
+        {
+          "round": 2,
+          "progress": 0.35,
+          "completionMs": 9.200000000186265
+        },
+        {
+          "round": 2,
+          "progress": 0.4,
+          "completionMs": 4.899999999906868
+        },
+        {
+          "round": 2,
+          "progress": 0.5,
+          "completionMs": 5.600000000093132
+        },
+        {
+          "round": 2,
+          "progress": 0.67,
+          "completionMs": 4.199999999953434
+        },
+        {
+          "round": 2,
+          "progress": 0.83,
+          "completionMs": 5.5
+        },
+        {
+          "round": 2,
+          "progress": 1,
+          "completionMs": 5.399999999906868
+        },
+        {
+          "round": 3,
+          "progress": 0,
+          "completionMs": 5.199999999953434
+        },
+        {
+          "round": 3,
+          "progress": 0.08,
+          "completionMs": 5.399999999906868
+        },
+        {
+          "round": 3,
+          "progress": 0.12,
+          "completionMs": 5.199999999953434
+        },
+        {
+          "round": 3,
+          "progress": 0.2,
+          "completionMs": 7.399999999906868
+        },
+        {
+          "round": 3,
+          "progress": 0.3,
+          "completionMs": 9.100000000093132
+        },
+        {
+          "round": 3,
+          "progress": 0.35,
+          "completionMs": 10.199999999953434
+        },
+        {
+          "round": 3,
+          "progress": 0.4,
+          "completionMs": 4.699999999953434
+        },
+        {
+          "round": 3,
+          "progress": 0.5,
+          "completionMs": 4.300000000046566
+        },
+        {
+          "round": 3,
+          "progress": 0.67,
+          "completionMs": 3.9000000001396984
+        },
+        {
+          "round": 3,
+          "progress": 0.83,
+          "completionMs": 5.2999999998137355
+        },
+        {
+          "round": 3,
+          "progress": 1,
+          "completionMs": 4.300000000046566
+        },
+        {
+          "round": 4,
+          "progress": 0,
+          "completionMs": 5.199999999953434
+        },
+        {
+          "round": 4,
+          "progress": 0.08,
+          "completionMs": 5.600000000093132
+        },
+        {
+          "round": 4,
+          "progress": 0.12,
+          "completionMs": 5.199999999953434
+        },
+        {
+          "round": 4,
+          "progress": 0.2,
+          "completionMs": 7.399999999906868
+        },
+        {
+          "round": 4,
+          "progress": 0.3,
+          "completionMs": 9
+        },
+        {
+          "round": 4,
+          "progress": 0.35,
+          "completionMs": 9.699999999953434
+        },
+        {
+          "round": 4,
+          "progress": 0.4,
+          "completionMs": 5
+        },
+        {
+          "round": 4,
+          "progress": 0.5,
+          "completionMs": 4.5
+        },
+        {
+          "round": 4,
+          "progress": 0.67,
+          "completionMs": 4
+        },
+        {
+          "round": 4,
+          "progress": 0.83,
+          "completionMs": 4.600000000093132
+        },
+        {
+          "round": 4,
+          "progress": 1,
+          "completionMs": 4.600000000093132
+        },
+        {
+          "round": 5,
+          "progress": 0,
+          "completionMs": 5.199999999953434
+        },
+        {
+          "round": 5,
+          "progress": 0.08,
+          "completionMs": 5.199999999953434
+        },
+        {
+          "round": 5,
+          "progress": 0.12,
+          "completionMs": 5.699999999953434
+        },
+        {
+          "round": 5,
+          "progress": 0.2,
+          "completionMs": 7.900000000139698
+        },
+        {
+          "round": 5,
+          "progress": 0.3,
+          "completionMs": 9.099999999860302
+        },
+        {
+          "round": 5,
+          "progress": 0.35,
+          "completionMs": 9.800000000046566
+        },
+        {
+          "round": 5,
+          "progress": 0.4,
+          "completionMs": 5.199999999953434
+        },
+        {
+          "round": 5,
+          "progress": 0.5,
+          "completionMs": 4.300000000046566
+        },
+        {
+          "round": 5,
+          "progress": 0.67,
+          "completionMs": 4
+        },
+        {
+          "round": 5,
+          "progress": 0.83,
+          "completionMs": 4.300000000046566
+        },
+        {
+          "round": 5,
+          "progress": 1,
+          "completionMs": 5.199999999953434
+        }
+      ],
+      "images": [
+        {
+          "progress": 0,
+          "file": "r4-full/progress-0.png",
+          "sha256": "bfb9314c48abc0d3cb41c869250edff35815dfc538eca4003b80a886c135a0a9"
+        },
+        {
+          "progress": 0.2,
+          "file": "r4-full/progress-0.2.png",
+          "sha256": "fdd932990e537c412a168b6b0e9a316a5b144bd8eaef221f1ba1484c9767a2ee"
+        },
+        {
+          "progress": 0.35,
+          "file": "r4-full/progress-0.35.png",
+          "sha256": "e20cc7af85dcf366bf1f94499f029377afa964c8b2041c8fb3f92331207f6fe8"
+        },
+        {
+          "progress": 0.67,
+          "file": "r4-full/progress-0.67.png",
+          "sha256": "f8e37abf1bc731395539e18ab7444e60e794bfe05d88bb4154f4a603b6d94031"
+        }
+      ],
+      "stats": {
+        "all": {
+          "count": 66,
+          "p50Ms": 5.300000000046566,
+          "p95Ms": 9.800000000046566,
+          "meanMs": 5.978787878782234,
+          "maxMs": 10.199999999953434,
+          "completionOver16_67Percent": 0
+        },
+        "mine": {
+          "count": 36,
+          "p50Ms": 6.300000000046566,
+          "p95Ms": 9.899999999906868,
+          "meanMs": 7.055555555549088,
+          "maxMs": 10.199999999953434,
+          "completionOver16_67Percent": 0
+        },
+        "subject": {
+          "count": 30,
+          "p50Ms": 4.600000000093132,
+          "p95Ms": 5.5,
+          "meanMs": 4.68666666666201,
+          "maxMs": 5.600000000093132,
+          "completionOver16_67Percent": 0
+        }
+      },
+      "description": "Unmodified current renderer.",
+      "sourceHashes": {
+        "gold-bar-3d.ts": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c",
+        "immersive-story.ts": "91468daf97f3b9fa70a57e12ba8949ea09cc06996e0ea4f244f44f5b55f81c37",
+        "geological-scene.ts": "dad385018f3da9694a90080892618f08353303f65f0407ed36224899f79c67da",
+        "geological-specimen.ts": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778",
+        "metal-materials.ts": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81",
+        "scene-renderer.ts": "69a633010d62bd6942bba53c09fff421e867587ba02a031349c584d492c09250"
+      }
+    },
+    {
+      "id": "candidate",
+      "rendererInfo": {
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36"
+      },
+      "createRendererMs": 60.700000000186265,
+      "firstDrawCompletionMs": 44.199999999953434,
+      "firstReadyMs": 104.9000000001397,
+      "uploadBytes": 613128,
+      "work": [
+        {
+          "progress": 0,
+          "drawCalls": 1,
+          "triangles": 5926
+        },
+        {
+          "progress": 0.08,
+          "drawCalls": 1,
+          "triangles": 5926
+        },
+        {
+          "progress": 0.12,
+          "drawCalls": 2,
+          "triangles": 7526
+        },
+        {
+          "progress": 0.2,
+          "drawCalls": 2,
+          "triangles": 7526
+        },
+        {
+          "progress": 0.3,
+          "drawCalls": 3,
+          "triangles": 7528
+        },
+        {
+          "progress": 0.35,
+          "drawCalls": 3,
+          "triangles": 7528
+        },
+        {
+          "progress": 0.4,
+          "drawCalls": 2,
+          "triangles": 1602
+        },
+        {
+          "progress": 0.5,
+          "drawCalls": 2,
+          "triangles": 1602
+        },
+        {
+          "progress": 0.67,
+          "drawCalls": 2,
+          "triangles": 1602
+        },
+        {
+          "progress": 0.83,
+          "drawCalls": 2,
+          "triangles": 1602
+        },
+        {
+          "progress": 1,
+          "drawCalls": 2,
+          "triangles": 1602
+        }
+      ],
+      "samples": [
+        {
+          "round": 0,
+          "progress": 0,
+          "completionMs": 4.300000000046566
+        },
+        {
+          "round": 0,
+          "progress": 0.08,
+          "completionMs": 3.800000000046566
+        },
+        {
+          "round": 0,
+          "progress": 0.12,
+          "completionMs": 3.800000000046566
+        },
+        {
+          "round": 0,
+          "progress": 0.2,
+          "completionMs": 4.5
+        },
+        {
+          "round": 0,
+          "progress": 0.3,
+          "completionMs": 7
+        },
+        {
+          "round": 0,
+          "progress": 0.35,
+          "completionMs": 6.699999999953434
+        },
+        {
+          "round": 0,
+          "progress": 0.4,
+          "completionMs": 3.5999999998603016
+        },
+        {
+          "round": 0,
+          "progress": 0.5,
+          "completionMs": 3.9000000001396984
+        },
+        {
+          "round": 0,
+          "progress": 0.67,
+          "completionMs": 3.0999999998603016
+        },
+        {
+          "round": 0,
+          "progress": 0.83,
+          "completionMs": 3.5
+        },
+        {
+          "round": 0,
+          "progress": 1,
+          "completionMs": 3.4000000001396984
+        },
+        {
+          "round": 1,
+          "progress": 0,
+          "completionMs": 5.300000000046566
+        },
+        {
+          "round": 1,
+          "progress": 0.08,
+          "completionMs": 3.7999999998137355
+        },
+        {
+          "round": 1,
+          "progress": 0.12,
+          "completionMs": 4.7000000001862645
+        },
+        {
+          "round": 1,
+          "progress": 0.2,
+          "completionMs": 4.2999999998137355
+        },
+        {
+          "round": 1,
+          "progress": 0.3,
+          "completionMs": 6.5
+        },
+        {
+          "round": 1,
+          "progress": 0.35,
+          "completionMs": 6.400000000139698
+        },
+        {
+          "round": 1,
+          "progress": 0.4,
+          "completionMs": 3.5
+        },
+        {
+          "round": 1,
+          "progress": 0.5,
+          "completionMs": 3.3999999999068677
+        },
+        {
+          "round": 1,
+          "progress": 0.67,
+          "completionMs": 3.4000000001396984
+        },
+        {
+          "round": 1,
+          "progress": 0.83,
+          "completionMs": 3.7999999998137355
+        },
+        {
+          "round": 1,
+          "progress": 1,
+          "completionMs": 3.6000000000931323
+        },
+        {
+          "round": 2,
+          "progress": 0,
+          "completionMs": 3.699999999953434
+        },
+        {
+          "round": 2,
+          "progress": 0.08,
+          "completionMs": 3.800000000046566
+        },
+        {
+          "round": 2,
+          "progress": 0.12,
+          "completionMs": 4.199999999953434
+        },
+        {
+          "round": 2,
+          "progress": 0.2,
+          "completionMs": 4.900000000139698
+        },
+        {
+          "round": 2,
+          "progress": 0.3,
+          "completionMs": 6.399999999906868
+        },
+        {
+          "round": 2,
+          "progress": 0.35,
+          "completionMs": 7.300000000046566
+        },
+        {
+          "round": 2,
+          "progress": 0.4,
+          "completionMs": 3.8999999999068677
+        },
+        {
+          "round": 2,
+          "progress": 0.5,
+          "completionMs": 4.100000000093132
+        },
+        {
+          "round": 2,
+          "progress": 0.67,
+          "completionMs": 3.199999999953434
+        },
+        {
+          "round": 2,
+          "progress": 0.83,
+          "completionMs": 3.5
+        },
+        {
+          "round": 2,
+          "progress": 1,
+          "completionMs": 3.5
+        },
+        {
+          "round": 3,
+          "progress": 0,
+          "completionMs": 3.800000000046566
+        },
+        {
+          "round": 3,
+          "progress": 0.08,
+          "completionMs": 3.699999999953434
+        },
+        {
+          "round": 3,
+          "progress": 0.12,
+          "completionMs": 4.400000000139698
+        },
+        {
+          "round": 3,
+          "progress": 0.2,
+          "completionMs": 5.599999999860302
+        },
+        {
+          "round": 3,
+          "progress": 0.3,
+          "completionMs": 7
+        },
+        {
+          "round": 3,
+          "progress": 0.35,
+          "completionMs": 7.300000000046566
+        },
+        {
+          "round": 3,
+          "progress": 0.4,
+          "completionMs": 4.5
+        },
+        {
+          "round": 3,
+          "progress": 0.5,
+          "completionMs": 3.800000000046566
+        },
+        {
+          "round": 3,
+          "progress": 0.67,
+          "completionMs": 3.5999999998603016
+        },
+        {
+          "round": 3,
+          "progress": 0.83,
+          "completionMs": 3.7000000001862645
+        },
+        {
+          "round": 3,
+          "progress": 1,
+          "completionMs": 3.5
+        },
+        {
+          "round": 4,
+          "progress": 0,
+          "completionMs": 4.899999999906868
+        },
+        {
+          "round": 4,
+          "progress": 0.08,
+          "completionMs": 3.800000000046566
+        },
+        {
+          "round": 4,
+          "progress": 0.12,
+          "completionMs": 4.399999999906868
+        },
+        {
+          "round": 4,
+          "progress": 0.2,
+          "completionMs": 4.900000000139698
+        },
+        {
+          "round": 4,
+          "progress": 0.3,
+          "completionMs": 6.5
+        },
+        {
+          "round": 4,
+          "progress": 0.35,
+          "completionMs": 7.099999999860302
+        },
+        {
+          "round": 4,
+          "progress": 0.4,
+          "completionMs": 3.4000000001396984
+        },
+        {
+          "round": 4,
+          "progress": 0.5,
+          "completionMs": 3.5
+        },
+        {
+          "round": 4,
+          "progress": 0.67,
+          "completionMs": 3
+        },
+        {
+          "round": 4,
+          "progress": 0.83,
+          "completionMs": 3.7999999998137355
+        },
+        {
+          "round": 4,
+          "progress": 1,
+          "completionMs": 3.6000000000931323
+        },
+        {
+          "round": 5,
+          "progress": 0,
+          "completionMs": 4.800000000046566
+        },
+        {
+          "round": 5,
+          "progress": 0.08,
+          "completionMs": 4.199999999953434
+        },
+        {
+          "round": 5,
+          "progress": 0.12,
+          "completionMs": 4.399999999906868
+        },
+        {
+          "round": 5,
+          "progress": 0.2,
+          "completionMs": 5.400000000139698
+        },
+        {
+          "round": 5,
+          "progress": 0.3,
+          "completionMs": 7.399999999906868
+        },
+        {
+          "round": 5,
+          "progress": 0.35,
+          "completionMs": 7.100000000093132
+        },
+        {
+          "round": 5,
+          "progress": 0.4,
+          "completionMs": 3.5
+        },
+        {
+          "round": 5,
+          "progress": 0.5,
+          "completionMs": 3.3999999999068677
+        },
+        {
+          "round": 5,
+          "progress": 0.67,
+          "completionMs": 3.1000000000931323
+        },
+        {
+          "round": 5,
+          "progress": 0.83,
+          "completionMs": 3.8999999999068677
+        },
+        {
+          "round": 5,
+          "progress": 1,
+          "completionMs": 3.6000000000931323
+        }
+      ],
+      "images": [
+        {
+          "progress": 0,
+          "file": "candidate/progress-0.png",
+          "sha256": "890510bc0f38f9ce59246a2cb736329cdf80a03eee25c072e2343963cf9ef52d"
+        },
+        {
+          "progress": 0.2,
+          "file": "candidate/progress-0.2.png",
+          "sha256": "e6da0fe511ba1e9e299d09273a6c9a5003b28e605175f2c7da0245a00a8beeea"
+        },
+        {
+          "progress": 0.35,
+          "file": "candidate/progress-0.35.png",
+          "sha256": "8043844a7db5097e2961a961c4155a7a382926308e4f2c8689fa6d608b38f91f"
+        },
+        {
+          "progress": 0.67,
+          "file": "candidate/progress-0.67.png",
+          "sha256": "c60d5768f2a94ae7a8074ee2ba731f762336faa26f44c7c9f6a81a0bf87675e7"
+        }
+      ],
+      "stats": {
+        "all": {
+          "count": 66,
+          "p50Ms": 3.8999999999068677,
+          "p95Ms": 7.100000000093132,
+          "meanMs": 4.475757575759692,
+          "maxMs": 7.399999999906868,
+          "completionOver16_67Percent": 0
+        },
+        "mine": {
+          "count": 36,
+          "p50Ms": 4.899999999906868,
+          "p95Ms": 7.300000000046566,
+          "meanMs": 5.225000000002587,
+          "maxMs": 7.399999999906868,
+          "completionOver16_67Percent": 0
+        },
+        "subject": {
+          "count": 30,
+          "p50Ms": 3.5,
+          "p95Ms": 4.100000000093132,
+          "meanMs": 3.5766666666682188,
+          "maxMs": 4.5,
+          "completionOver16_67Percent": 0
+        }
+      },
+      "description": "Current workspace renderer and scene.",
+      "sourceHashes": {
+        "gold-bar-3d.ts": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c",
+        "immersive-story.ts": "e9790e369033be89a728f45ac204f787c37943ef5b8added145c804b8ac4ea94",
+        "geological-scene.ts": "732dd21086ab59d88ca81808415af5784ce09c5ad39ac515ba7ecc5018f1c4dd",
+        "geological-specimen.ts": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778",
+        "metal-materials.ts": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81",
+        "scene-renderer.ts": "a2f3d88b390958ca63716fa404c09af41845602edccebec626857c6e6df5c312"
+      }
+    }
+  ],
+  "limitations": [
+    "Software completion includes RGBA readback, not native GPU/display timings.",
+    "Shader/mesh construction and first readiness are single samples; no cold-browser cache control.",
+    "One host/run; alternating measured order reduces but does not eliminate host/cache effects.",
+    "Ablations deliberately degrade appearance to attribute costs; they are not proposed final visual quality.",
+    "No native UI, scroll, TextureView lifecycle, app memory or physical-device acceptance is measured."
+  ]
+}

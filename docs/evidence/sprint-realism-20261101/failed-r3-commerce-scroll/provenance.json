@@ -1,0 +1,81 @@
+{
+  "format": "openminerals-failed-native-commerce-evidence-v1",
+  "demoOnly": true,
+  "runUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41385054878",
+  "jobUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41385054878/job/125087999390",
+  "harnessHeadCommit": "a11bb2aef0621db8fe7e6f0c9cf849152c2bbb0c",
+  "scope": "Commerce job only; comparison result is separate.",
+  "conclusion": "failure",
+  "nativeStages": {
+    "passed": 3,
+    "failed": 1,
+    "failedStage": "preview-new-legacy-commerce",
+    "failedDurationSeconds": 106.613
+  },
+  "firstFailedCommand": {
+    "index": 32,
+    "type": "scroll-until-visible",
+    "status": "FAILED",
+    "selector": "Cantidad de metal en gramos"
+  },
+  "category": "timeout",
+  "observedPartialChecks": [
+    "Conversion receipt and assertion of 450 USDT completed",
+    "Excessive purchase confirmation was observed disabled"
+  ],
+  "rawLogsPublished": false,
+  "privateUiPublished": false,
+  "phoneAcceptance": false,
+  "files": [
+    {
+      "file": "summary-download.json",
+      "bytes": 1289,
+      "sha256": "8cc952f1a501d081f055a9b8d2037f2f16104372a15f341937811a0ff589d1f4"
+    },
+    {
+      "file": "summary-run.json",
+      "bytes": 1476,
+      "sha256": "8feb43a01b21e547d8f27cc82fd90919d1741a4e5b83fd7821a400893e7b2d6e"
+    },
+    {
+      "file": "report-download.xml",
+      "bytes": 225,
+      "sha256": "e28807adfecd60949ff194b213c2cc34492e77802ba15506f18b9fe1ca74a260"
+    },
+    {
+      "file": "report-run.xml",
+      "bytes": 682,
+      "sha256": "a19940f7c90bd2770f45a435eae3823547ab0a9bd69c3511d07d88d975f84585"
+    },
+    {
+      "file": "progress.json",
+      "bytes": 1130,
+      "sha256": "9e1437c6b65b1728d9b05f43af30084908bae595ae059eab5e9a2b21e5397b71"
+    },
+    {
+      "file": "progress.ndjson",
+      "bytes": 33765,
+      "sha256": "9f2306818de843388a5d23b8722f986c07dacd8c091263961611911b7df9ae09"
+    },
+    {
+      "file": "apk-verification.json",
+      "bytes": 1205,
+      "sha256": "7d7e7d93eee97ca6fb171e01021a80ab85769dd303723bf995eeab64f2f8218a"
+    },
+    {
+      "file": "after-legacy-flow-failure.json",
+      "bytes": 2837,
+      "sha256": "c8c03e8dc6bd3df1206c58a35756c35ba22dfb2ccaf7d725c213d3dd187bdb13"
+    },
+    {
+      "file": "review.json",
+      "bytes": 1996,
+      "sha256": "0f83229de26bd0d8063a5e5c0e92140f3497bd95c20d6e5863c153e838e70461",
+      "sourceLocalReviewSha256": "2c7fc0fab6950944839b45d0e4451b9d74980a0896d37e10802e6e187a538c9f",
+      "sourceLocalReviewBytes": 2048,
+      "originalBytesPreserved": false,
+      "normalization": "Locally authored review normalized to LF for reproducible checkout; original public artifact files are unchanged."
+    }
+  ],
+  "repositoryTextLineEndings": "LF; public artifact bytes independently verified before copy; locally authored review normalization disclosed if applicable."
+}

@@ -1,0 +1,58 @@
+{
+  "recordedDate": "2026-11-01",
+  "timezone": "America/Bogota",
+  "repository": "https://github.com/Blaister9/Openminerals",
+  "defaultBranch": "main",
+  "stableIntegrationCommit": "ed87d2ea233227437ab5f5cc2eb0900674e1231f",
+  "stableAppSourceCommit": "eae7f6ad57f5a667c2bf40775a4cb30f1c0dd8b6",
+  "apiTree": "12eb7c4fdf83cefc96e5df70fa5d656e67ff353a",
+  "stableAndroid": {
+    "version": "0.3.0",
+    "versionCode": 6,
+    "package": "com.openminerals.demo.mobile",
+    "runtime": "0.3.0",
+    "channel": "demo",
+    "easBuildId": "ea0349a4-7b55-4808-a332-be290d1a9b9e",
+    "easBuildUrl": "https://expo.dev/accounts/chipirips-team/projects/openminerals-demo/builds/ea0349a4-7b55-4808-a332-be290d1a9b9e",
+    "apkUrl": "https://expo.dev/artifacts/eas/zzjf0770cQWD12A6J-ly7cuCyZfpwrKet8sKRaWJDZQ.apk",
+    "apkBytes": 77138208,
+    "apkSha256": "d99e8af9617f56d7862a849ebd057025cb9d6adc164b97496a5532f7b29ad29e",
+    "certificateSha256": "3ae9a19077ab3f434b5885981d35e3d29966e406e7438b8f0558c155d47e3e1c",
+    "githubReleasePublished": false,
+    "sourceCI": "https://github.com/Blaister9/Openminerals/actions/runs/41218118564",
+    "nativeAcceptance": "https://github.com/Blaister9/Openminerals/actions/runs/41218121238",
+    "nativeAcceptanceJobs": ["clean-commerce", "upgrade-buyer", "upgrade-operator", "accounts-wallets"],
+    "nativeAcceptanceConclusion": "success",
+    "nativeAcceptanceScope": "Android emulator; does not establish acceptance or performance on a physical phone",
+    "nativeRunDownloadableArtifactsAvailableAtAudit": false
+  },
+  "publishedAndroid": {
+    "releaseUrl": "https://github.com/Blaister9/Openminerals/releases/tag/v0.2.0-demo",
+    "sourceCommit": "3ed688c1cb4d28cbcb542e9b55ebc81a445943ca",
+    "version": "0.2.0",
+    "versionCode": 5,
+    "apkUrl": "https://github.com/Blaister9/Openminerals/releases/download/v0.2.0-demo/Openminerals-Demo-0.2.0-android.apk",
+    "apkSha256": "c35719bf44fdc5a1237249be7e80d6d3102e57ee58f0cd0d9b5af3c66f32d83f",
+    "apkBytes": 77079888,
+    "latestGitHubReleaseByDate": "https://github.com/Blaister9/Openminerals/releases/tag/android-demo-rc-20261029-01a18988",
+    "latestGitHubReleaseUsesSameApk": true
+  },
+  "existingGeologyCandidate": {
+    "pullRequest": "https://github.com/Blaister9/Openminerals/pull/8",
+    "headCommit": "80da7c8e73df06c4cc579d3d90db98e57060982b",
+    "draftAtAudit": true,
+    "scope": "Historical candidate and evidence; not integrated into the delivered 0.3.0 application"
+  },
+  "sprintIsolation": {
+    "branch": "codex/android-mine-realism-20261101",
+    "package": "com.openminerals.demo.minepreview",
+    "version": "0.4.0",
+    "versionCode": 1,
+    "runtime": "0.4.0",
+    "channel": "mine-realism",
+    "buildProfile": "mine-realism",
+    "stableAppJsonRetained": true,
+    "financialApiChangesAuthorized": false,
+    "physicalPhoneAcceptance": "pending"
+  }
+}

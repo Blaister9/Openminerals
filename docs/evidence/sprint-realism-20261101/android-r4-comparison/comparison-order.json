@@ -1,0 +1,15 @@
+{
+  "demoOnly": true,
+  "profileOrder": [
+    "after",
+    "before"
+  ],
+  "executionStatus": "Planned order; completed and failed stages are recorded in summary-run.json.",
+  "candidateFirst": true,
+  "stableInstalledFirst": true,
+  "stableOpenedAfterCandidate": true,
+  "sameDisposableEmulator": true,
+  "sameInputTrace": true,
+  "counterbalanced": false,
+  "orderConfound": "Candidate runs first; emulator warm-up, caches and host load may differ for the later stable profiles. No order-independent performance conclusion is established."
+}

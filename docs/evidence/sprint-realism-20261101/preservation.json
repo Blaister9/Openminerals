@@ -1,0 +1,31 @@
+{
+  "demoOnly": true,
+  "checkedAt": "2026-11-02T06:09:32.132Z",
+  "workspace": "C:/Users/santi/Documents/Openminerals",
+  "remote": "https://github.com/Blaister9/Openminerals.git",
+  "branch": "codex/android-mine-realism-20261101",
+  "validatedCodeCommit": "907ccc9a29d2c560697d36a1c3a00358260ab7ba",
+  "apkApplicationSource": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+  "remoteMain": "ed87d2ea233227437ab5f5cc2eb0900674e1231f",
+  "stableMainAtStart": "ed87d2ea233227437ab5f5cc2eb0900674e1231f",
+  "mainPreserved": true,
+  "preservedApkSourceTag": "preserved/android-0.3.0-eae7f6a-20261101",
+  "preservedTagTarget": "eae7f6ad57f5a667c2bf40775a4cb30f1c0dd8b6",
+  "apiTreeBefore": "12eb7c4fdf83cefc96e5df70fa5d656e67ff353a",
+  "apiTreeAfter": "12eb7c4fdf83cefc96e5df70fa5d656e67ff353a",
+  "protectedSourceDifferences": [],
+  "nonGraphicComponentDifferences": [],
+  "graphicComponentDifferences": [
+    "mobile/components/GoldBar3D.tsx",
+    "mobile/components/MetalStory.tsx"
+  ],
+  "stableApkSha256": "d99e8af9617f56d7862a849ebd057025cb9d6adc164b97496a5532f7b29ad29e",
+  "stableAssetsReplaced": false,
+  "stableChannelUpdatePublished": false,
+  "previewPackage": "com.openminerals.demo.minepreview",
+  "previewChannel": "mine-realism",
+  "previewRevision": "r4/code4",
+  "physicalPhoneAcceptance": false,
+  "scope": "Verified GitHub main, the remote preservation tag, and source/configuration preservation. Existing signed APK inspection and native coexistence evidence are separate; no claim of physical phone state or container filesystem hash inspection.",
+  "apkRuntimeSourceUnchangedSinceBuild": true
+}

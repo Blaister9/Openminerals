@@ -1,0 +1,45 @@
+{
+  "demoOnly": true,
+  "date": "2026-11-01",
+  "visualSourceCommit": "0d3fa50791a6e86d8944c2d07026fcc5bc5c6999",
+  "mobile": {
+    "command": "OPENMINERALS_WEBGL_BROWSER=<Chrome> node --experimental-strip-types --test --test-concurrency=2 test/*.test.mjs",
+    "tests": 340,
+    "passed": 340,
+    "failed": 0,
+    "skipped": 0,
+    "environment": "Windows Node22.22.3; actual Chrome SwiftShader shader execution",
+    "androidPerformance": false,
+    "durationMs": 39493.9248
+  },
+  "export": {
+    "platform": "android",
+    "hermes": true,
+    "httpsApi": "https://openminerals-api-demo.up.railway.app",
+    "success": true,
+    "source": "Initial31e62ae Android Hermes export; actual R2 embedded bundle inspected independently by APK verifier."
+  },
+  "preservation": {
+    "apiTree": "12eb7c4fdf83cefc96e5df70fa5d656e67ff353a",
+    "apiAndAppBusinessDiff": "",
+    "stableReleaseModified": false
+  },
+  "physicalPhoneAcceptance": false,
+  "scope": "R3 full local suite340/340 on verification source8b892af, actual Chrome SwiftShader. APK application source0d3fa50 is separately recorded; subsequent harness-only corrections require their own directed checks/native execution.",
+  "lifecycle": {
+    "visibleNativeSurfaceBeforeReady": true,
+    "opaqueCoverUntilCompletedFrame": true,
+    "sessionOwnedCleanup": true,
+    "automaticContextTimeoutRetries": 1,
+    "manualRetry": true,
+    "alphaZeroRootCauseProven": false,
+    "nativeSynchronousWaitBounded": false
+  },
+  "qaAfterApkSource": {
+    "tests": 28,
+    "passed": 28,
+    "failed": 0,
+    "scope": "Native harness/code diagnostics, independent commerce scope and owned legacy domain fixture; does not execute Android."
+  },
+  "verificationCommit": "8b892afe4e3bdb05fcdab1af06c61a2c2f2a95aa"
+}

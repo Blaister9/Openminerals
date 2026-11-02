@@ -1,0 +1,197 @@
+{
+  "demoOnly": true,
+  "run": 41477328703,
+  "reviewer": "Codex subagent native_profiling",
+  "reviewedAtUtc": "2026-11-02T16:22:26.894Z",
+  "all16PngReviewed": true,
+  "initialOriginVisibleIn8Images": true,
+  "finalPortfolioAndCtaVisibleIn8Images": true,
+  "glOriginTunnelReliefDepthVeinsRetainedByInspection": true,
+  "allFinalScenesAreLightByState": true,
+  "observations": [
+    "The four GL origin captures retain tunnel depth, relief, boulders, veins and readable foreground text; small lighting differences do not erase visible geometry.",
+    "The four explicit-light origin captures retain the same illustrative tunnel composition.",
+    "All eight final images show the portfolio title, the large gold illustration and the portfolio CTA. This is endpoint evidence, not a video of sustained GL.",
+    "In both versions the gold illustration crosses behind the first title line at the final stage. Text and CTA remain readable; phone layout acceptance remains pending."
+  ],
+  "screenshots": [
+    {
+      "trial": 0,
+      "arm": "A",
+      "visualMode": "light",
+      "phase": "initial",
+      "file": "trial-0-light-initial.png",
+      "sha256": "165d59f50a8711777dff32f17032fb1a81db8fc0379cc86ff87fab438fc86dca",
+      "bytes": 945229,
+      "anonymous": true,
+      "measuredTraceExcluded": true
+    },
+    {
+      "trial": 0,
+      "arm": "A",
+      "visualMode": "light",
+      "phase": "final",
+      "file": "trial-0-light-final.png",
+      "sha256": "c89dd08950c6db3e7ea0ebf936c4634d08965e3d9d2f3f6da58b3c8e58761ad8",
+      "bytes": 116308,
+      "anonymous": true,
+      "measuredTraceExcluded": true
+    },
+    {
+      "trial": 0,
+      "arm": "A",
+      "visualMode": "3d",
+      "phase": "initial",
+      "file": "trial-0-3d-initial.png",
+      "sha256": "73ed671330249f57780ec18bc1bc37e43095dee3a94a81a65df7b356d9ba553c",
+      "bytes": 897543,
+      "anonymous": true,
+      "measuredTraceExcluded": true
+    },
+    {
+      "trial": 0,
+      "arm": "A",
+      "visualMode": "3d",
+      "phase": "final",
+      "file": "trial-0-3d-final.png",
+      "sha256": "ca2dc034b4c400a5de0b43fd9782cab6d25b5cba96031ed141806ae02dfcdb4c",
+      "bytes": 116575,
+      "anonymous": true,
+      "measuredTraceExcluded": true
+    },
+    {
+      "trial": 1,
+      "arm": "B",
+      "visualMode": "light",
+      "phase": "initial",
+      "file": "trial-1-light-initial.png",
+      "sha256": "e24400df898e0c8e0c407ebfad6e60284caf63f0fdfbe2abd58f1d448c75b851",
+      "bytes": 927141,
+      "anonymous": true,
+      "measuredTraceExcluded": true
+    },
+    {
+      "trial": 1,
+      "arm": "B",
+      "visualMode": "light",
+      "phase": "final",
+      "file": "trial-1-light-final.png",
+      "sha256": "2ac60f79b8cb4ea1338df6409d5901918ae1994f8e5a80f7de50daec708e946b",
+      "bytes": 116473,
+      "anonymous": true,
+      "measuredTraceExcluded": true
+    },
+    {
+      "trial": 1,
+      "arm": "B",
+      "visualMode": "3d",
+      "phase": "initial",
+      "file": "trial-1-3d-initial.png",
+      "sha256": "c32cefade4a4d2ed0ffcb3b0afa391cacf015ee5dba8781944679b6e217726d5",
+      "bytes": 882501,
+      "anonymous": true,
+      "measuredTraceExcluded": true
+    },
+    {
+      "trial": 1,
+      "arm": "B",
+      "visualMode": "3d",
+      "phase": "final",
+      "file": "trial-1-3d-final.png",
+      "sha256": "d8158c1ee1d4d9cfdcbfefb7b1211a6f46ca8bd4f88005710a78bdc3eaba496e",
+      "bytes": 116172,
+      "anonymous": true,
+      "measuredTraceExcluded": true
+    },
+    {
+      "trial": 2,
+      "arm": "B",
+      "visualMode": "light",
+      "phase": "initial",
+      "file": "trial-2-light-initial.png",
+      "sha256": "6d66306301c205e6a53eb9e5f4978a7ab90e927a7dbb7221643ebb72327119d9",
+      "bytes": 926355,
+      "anonymous": true,
+      "measuredTraceExcluded": true
+    },
+    {
+      "trial": 2,
+      "arm": "B",
+      "visualMode": "light",
+      "phase": "final",
+      "file": "trial-2-light-final.png",
+      "sha256": "60802945d1796d786d3eeb7b166611171cab3b3997d6df5354a158ebbff6116c",
+      "bytes": 115183,
+      "anonymous": true,
+      "measuredTraceExcluded": true
+    },
+    {
+      "trial": 2,
+      "arm": "B",
+      "visualMode": "3d",
+      "phase": "initial",
+      "file": "trial-2-3d-initial.png",
+      "sha256": "6e081f2f6778944505b6390d850aa9fbdaf66d2122ab34406d1b4926977b63d1",
+      "bytes": 881781,
+      "anonymous": true,
+      "measuredTraceExcluded": true
+    },
+    {
+      "trial": 2,
+      "arm": "B",
+      "visualMode": "3d",
+      "phase": "final",
+      "file": "trial-2-3d-final.png",
+      "sha256": "ca51b99eaa45d54bb6a9e700ab2703324f3d8ea1e5fce438e05d898c94a59a7f",
+      "bytes": 116091,
+      "anonymous": true,
+      "measuredTraceExcluded": true
+    },
+    {
+      "trial": 3,
+      "arm": "A",
+      "visualMode": "light",
+      "phase": "initial",
+      "file": "trial-3-light-initial.png",
+      "sha256": "940ac212b30f38d2486cf8756a4ec366dac83bfbfec0b554da3771e4b77e7d7c",
+      "bytes": 944572,
+      "anonymous": true,
+      "measuredTraceExcluded": true
+    },
+    {
+      "trial": 3,
+      "arm": "A",
+      "visualMode": "light",
+      "phase": "final",
+      "file": "trial-3-light-final.png",
+      "sha256": "3632dd1341c7e6db14a763eef7e7f47d75487dc799bf0b8a55a9f64d19d3e26b",
+      "bytes": 115268,
+      "anonymous": true,
+      "measuredTraceExcluded": true
+    },
+    {
+      "trial": 3,
+      "arm": "A",
+      "visualMode": "3d",
+      "phase": "initial",
+      "file": "trial-3-3d-initial.png",
+      "sha256": "6ab6cd6f7a122eb84197fe6a624f8a01d0d1d46ff63f4ae3d06a9354c2a05379",
+      "bytes": 897033,
+      "anonymous": true,
+      "measuredTraceExcluded": true
+    },
+    {
+      "trial": 3,
+      "arm": "A",
+      "visualMode": "3d",
+      "phase": "final",
+      "file": "trial-3-3d-final.png",
+      "sha256": "9a08325048f8181e73e85983351e595ee99aebbb66d562c341d3c2ffec3a1554",
+      "bytes": 116269,
+      "anonymous": true,
+      "measuredTraceExcluded": true
+    }
+  ],
+  "physicalPhoneAcceptance": false,
+  "videoReviewed": false
+}

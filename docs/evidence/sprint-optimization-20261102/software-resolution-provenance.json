@@ -1,0 +1,336 @@
+{
+  "format": "openminerals-software-resolution-evidence-v1",
+  "demoOnly": true,
+  "archivedAtUtc": "2026-11-02T15:11:52.706230+00:00",
+  "environment": "desktop Chrome ANGLE SwiftShader",
+  "android": false,
+  "physicalDevice": false,
+  "displayFpsMeasured": false,
+  "gpuOnlyMeasured": false,
+  "memoryMeasured": false,
+  "scope": "Fixed-raster software comparison at the preview software/hardware size limits. Hardware GPU speed and native selection are not inferred.",
+  "selections": [
+    {
+      "directory": "software-combined-216x384",
+      "sourceDirectory": "artifacts/geology-cost-r5-combined-216x384-20261102",
+      "files": [
+        {
+          "file": "candidate/progress-0.2.png",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/candidate/progress-0.2.png",
+          "bytes": 136938,
+          "sha256": "e6da0fe511ba1e9e299d09273a6c9a5003b28e605175f2c7da0245a00a8beeea",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate/progress-0.35.png",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/candidate/progress-0.35.png",
+          "bytes": 105727,
+          "sha256": "8043844a7db5097e2961a961c4155a7a382926308e4f2c8689fa6d608b38f91f",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate/progress-0.67.png",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/candidate/progress-0.67.png",
+          "bytes": 52080,
+          "sha256": "c60d5768f2a94ae7a8074ee2ba731f762336faa26f44c7c9f6a81a0bf87675e7",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate/progress-0.png",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/candidate/progress-0.png",
+          "bytes": 130060,
+          "sha256": "890510bc0f38f9ce59246a2cb736329cdf80a03eee25c072e2343963cf9ef52d",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate-sources/geological-scene.ts",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/candidate-sources/geological-scene.ts",
+          "bytes": 18440,
+          "sha256": "732dd21086ab59d88ca81808415af5784ce09c5ad39ac515ba7ecc5018f1c4dd",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate-sources/geological-specimen.ts",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/candidate-sources/geological-specimen.ts",
+          "bytes": 1410,
+          "sha256": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate-sources/gold-bar-3d.ts",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/candidate-sources/gold-bar-3d.ts",
+          "bytes": 16917,
+          "sha256": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate-sources/immersive-story.ts",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/candidate-sources/immersive-story.ts",
+          "bytes": 8521,
+          "sha256": "e9790e369033be89a728f45ac204f787c37943ef5b8added145c804b8ac4ea94",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate-sources/metal-materials.ts",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/candidate-sources/metal-materials.ts",
+          "bytes": 1434,
+          "sha256": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate-sources/scene-renderer.ts",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/candidate-sources/scene-renderer.ts",
+          "bytes": 8035,
+          "sha256": "a2f3d88b390958ca63716fa404c09af41845602edccebec626857c6e6df5c312",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "r4-full/progress-0.2.png",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/r4-full/progress-0.2.png",
+          "bytes": 137219,
+          "sha256": "fdd932990e537c412a168b6b0e9a316a5b144bd8eaef221f1ba1484c9767a2ee",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "r4-full/progress-0.35.png",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/r4-full/progress-0.35.png",
+          "bytes": 106115,
+          "sha256": "e20cc7af85dcf366bf1f94499f029377afa964c8b2041c8fb3f92331207f6fe8",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "r4-full/progress-0.67.png",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/r4-full/progress-0.67.png",
+          "bytes": 52117,
+          "sha256": "f8e37abf1bc731395539e18ab7444e60e794bfe05d88bb4154f4a603b6d94031",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "r4-full/progress-0.png",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/r4-full/progress-0.png",
+          "bytes": 131470,
+          "sha256": "bfb9314c48abc0d3cb41c869250edff35815dfc538eca4003b80a886c135a0a9",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "report.json",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/report.json",
+          "bytes": 24536,
+          "sha256": "96da2b2216f1a7c501b551beefb33b41c3aca978e6695568f8259eab654d0cb0",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "sources/geological-scene.ts",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/sources/geological-scene.ts",
+          "bytes": 17038,
+          "sha256": "dad385018f3da9694a90080892618f08353303f65f0407ed36224899f79c67da",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "sources/geological-specimen.ts",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/sources/geological-specimen.ts",
+          "bytes": 1410,
+          "sha256": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "sources/gold-bar-3d.ts",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/sources/gold-bar-3d.ts",
+          "bytes": 16917,
+          "sha256": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "sources/immersive-story.ts",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/sources/immersive-story.ts",
+          "bytes": 6982,
+          "sha256": "91468daf97f3b9fa70a57e12ba8949ea09cc06996e0ea4f244f44f5b55f81c37",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "sources/metal-materials.ts",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/sources/metal-materials.ts",
+          "bytes": 1434,
+          "sha256": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "sources/scene-renderer.ts",
+          "source": "artifacts/geology-cost-r5-combined-216x384-20261102/sources/scene-renderer.ts",
+          "bytes": 7422,
+          "sha256": "69a633010d62bd6942bba53c09fff421e867587ba02a031349c584d492c09250",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "protocol.json",
+          "source": "report.json#protocol",
+          "bytes": 651,
+          "sha256": "d397be7ebaaf1953df05d594af4a7e903de2f13ce916e74af50db8deec78e345",
+          "originalBytesPreserved": false,
+          "derivedProjection": true
+        }
+      ]
+    },
+    {
+      "directory": "software-combined-576x1024",
+      "sourceDirectory": "artifacts/geology-cost-r5-combined-576x1024-20261102",
+      "files": [
+        {
+          "file": "candidate/progress-0.2.png",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/candidate/progress-0.2.png",
+          "bytes": 715469,
+          "sha256": "1935c82fce7e631094ca2f1f21527475c36cad47dcc9a7ecb4fc4c0405d38214",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate/progress-0.35.png",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/candidate/progress-0.35.png",
+          "bytes": 552089,
+          "sha256": "3c3c6095743dad86335e05f15324fbcb35ee192818aa4d7fa3b00f1e1856b095",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate/progress-0.67.png",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/candidate/progress-0.67.png",
+          "bytes": 289148,
+          "sha256": "991530254cf3f247eaa8f8dbe3b3436604cf2b05447fd2f506e28df800ca734e",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate/progress-0.png",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/candidate/progress-0.png",
+          "bytes": 662820,
+          "sha256": "6e27bd32e1fe0d865a061bd6ce7002c16b07f83e2e1bbde41ab27d2e16602fe6",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate-sources/geological-scene.ts",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/candidate-sources/geological-scene.ts",
+          "bytes": 18440,
+          "sha256": "732dd21086ab59d88ca81808415af5784ce09c5ad39ac515ba7ecc5018f1c4dd",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate-sources/geological-specimen.ts",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/candidate-sources/geological-specimen.ts",
+          "bytes": 1410,
+          "sha256": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate-sources/gold-bar-3d.ts",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/candidate-sources/gold-bar-3d.ts",
+          "bytes": 16917,
+          "sha256": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate-sources/immersive-story.ts",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/candidate-sources/immersive-story.ts",
+          "bytes": 8521,
+          "sha256": "e9790e369033be89a728f45ac204f787c37943ef5b8added145c804b8ac4ea94",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate-sources/metal-materials.ts",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/candidate-sources/metal-materials.ts",
+          "bytes": 1434,
+          "sha256": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "candidate-sources/scene-renderer.ts",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/candidate-sources/scene-renderer.ts",
+          "bytes": 8035,
+          "sha256": "a2f3d88b390958ca63716fa404c09af41845602edccebec626857c6e6df5c312",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "r4-full/progress-0.2.png",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/r4-full/progress-0.2.png",
+          "bytes": 721736,
+          "sha256": "073a232f6de7035641fd129a2d9299264a2a3e35ccf5a9fa842f4375092bed43",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "r4-full/progress-0.35.png",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/r4-full/progress-0.35.png",
+          "bytes": 554944,
+          "sha256": "81df66f228402396be61868c717435ab8f73c18e9914d892fff93d6b361e59e7",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "r4-full/progress-0.67.png",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/r4-full/progress-0.67.png",
+          "bytes": 289301,
+          "sha256": "829dbad89a58ddcc3e70a86a27d245933c72e9581129e0257dccf6a97c8387fb",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "r4-full/progress-0.png",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/r4-full/progress-0.png",
+          "bytes": 676306,
+          "sha256": "aacc860144b18a3d91f450ff480d73553cb21a03a85d74fc565a4c1bd621de92",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "report.json",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/report.json",
+          "bytes": 24825,
+          "sha256": "e512582a06909f527fe19c98c6c982f15001f7926e319c329e056d9096ccce3a",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "sources/geological-scene.ts",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/sources/geological-scene.ts",
+          "bytes": 17038,
+          "sha256": "dad385018f3da9694a90080892618f08353303f65f0407ed36224899f79c67da",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "sources/geological-specimen.ts",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/sources/geological-specimen.ts",
+          "bytes": 1410,
+          "sha256": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "sources/gold-bar-3d.ts",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/sources/gold-bar-3d.ts",
+          "bytes": 16917,
+          "sha256": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "sources/immersive-story.ts",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/sources/immersive-story.ts",
+          "bytes": 6982,
+          "sha256": "91468daf97f3b9fa70a57e12ba8949ea09cc06996e0ea4f244f44f5b55f81c37",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "sources/metal-materials.ts",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/sources/metal-materials.ts",
+          "bytes": 1434,
+          "sha256": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "sources/scene-renderer.ts",
+          "source": "artifacts/geology-cost-r5-combined-576x1024-20261102/sources/scene-renderer.ts",
+          "bytes": 7422,
+          "sha256": "69a633010d62bd6942bba53c09fff421e867587ba02a031349c584d492c09250",
+          "originalBytesPreserved": true
+        },
+        {
+          "file": "protocol.json",
+          "source": "report.json#protocol",
+          "bytes": 652,
+          "sha256": "ba967e1f7d005e59bcf2a447ad544787520e84e2b154567006033aeb1db34081",
+          "originalBytesPreserved": false,
+          "derivedProjection": true
+        }
+      ]
+    }
+  ]
+}

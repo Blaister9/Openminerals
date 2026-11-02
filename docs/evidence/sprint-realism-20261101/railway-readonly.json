@@ -1,0 +1,105 @@
+{
+  "demoOnly": true,
+  "checkedAt": "2026-11-02T02:34:48.511Z",
+  "operation": "read-only project inventory, DEMO environment status and API configuration; no variables or secret values requested",
+  "project": {
+    "id": "1442be94-b13f-4067-9fee-ea99caf5715a",
+    "name": "openminerals-demo"
+  },
+  "environment": {
+    "id": "1e835541-fd3a-49dd-8ae3-0315d4118940",
+    "name": "demo"
+  },
+  "api": {
+    "service": {
+      "id": "00e2d919-2cd1-4293-befd-d8af58df8069",
+      "name": "openminerals-api",
+      "state": "live"
+    },
+    "source": {
+      "branch": "main",
+      "checkSuites": true,
+      "repo": "Blaister9/Openminerals",
+      "rootDirectory": "/api"
+    },
+    "domains": [
+      {
+        "domain": "openminerals-api-demo.up.railway.app",
+        "id": "84ccac4d-f1b0-4a7c-96e4-b0b5935ed330",
+        "targetPort": 8080
+      }
+    ],
+    "latestDeployment": {
+      "createdAt": "2026-10-31T15:25:46.539Z",
+      "id": "3e03a496-5765-4ac3-a255-3c6f2439413a",
+      "status": "SUCCESS",
+      "url": null
+    }
+  },
+  "services": [
+    {
+      "activeDeployments": [
+        {
+          "createdAt": "2026-10-31T15:25:46.539Z",
+          "id": "3e03a496-5765-4ac3-a255-3c6f2439413a",
+          "status": "SUCCESS",
+          "statusUpdatedAt": "2026-10-31T15:27:03.273Z"
+        }
+      ],
+      "cronJob": null,
+      "hasIssues": false,
+      "hasVolume": false,
+      "isCronJob": false,
+      "issues": {
+        "criticalCount": 0,
+        "warningCount": 0
+      },
+      "recentFailedDeployments": [],
+      "recentFailures": 0,
+      "replicaStatus": {
+        "crashed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "serviceId": "00e2d919-2cd1-4293-befd-d8af58df8069",
+      "serviceName": "openminerals-api",
+      "state": "online",
+      "statusText": "Online"
+    },
+    {
+      "activeDeployments": [
+        {
+          "createdAt": "2026-10-28T14:39:04.809Z",
+          "id": "3f688aed-0426-43d5-bc2b-c691c8d614cb",
+          "status": "SUCCESS",
+          "statusUpdatedAt": "2026-10-28T14:39:10.043Z"
+        }
+      ],
+      "cronJob": null,
+      "hasIssues": false,
+      "hasVolume": true,
+      "isCronJob": false,
+      "issues": {
+        "criticalCount": 0,
+        "warningCount": 0
+      },
+      "recentFailedDeployments": [],
+      "recentFailures": 0,
+      "replicaStatus": {
+        "crashed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "serviceId": "4cedb5b6-dbf2-4a3c-8a97-4c11df009e44",
+      "serviceName": "Postgres",
+      "state": "online",
+      "statusText": "Online"
+    }
+  ],
+  "pendingWork": [],
+  "staged": null,
+  "mutationsPerformed": false,
+  "productionEnvironmentInspected": false,
+  "databaseRestartPerformed": false,
+  "persistenceRestartRetested": false
+}

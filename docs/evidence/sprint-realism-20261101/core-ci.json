@@ -1,0 +1,93 @@
+{
+  "format": "openminerals-core-ci-evidence-v1",
+  "demoOnly": true,
+  "run": {
+    "id": 41393661100,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41393661100",
+    "event": "pull_request",
+    "headCommit": "907ccc9a29d2c560697d36a1c3a00358260ab7ba",
+    "status": "completed",
+    "conclusion": "success",
+    "completedAtUtc": "2026-11-02T05:24:00Z"
+  },
+  "corroboratingPushRun": {
+    "id": 41393657080,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41393657080",
+    "headCommit": "907ccc9a29d2c560697d36a1c3a00358260ab7ba",
+    "conclusion": "success",
+    "completedAtUtc": "2026-11-02T05:23:48Z",
+    "counterAgreement": true
+  },
+  "jobs": {
+    "mobile": {
+      "id": 125110248830,
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41393661100/job/125110248830",
+      "conclusion": "success",
+      "tests": 354,
+      "passed": 348,
+      "failed": 0,
+      "skipped": 6,
+      "optionalSkips": "Software-WebGL browser execution was not configured in this source-validation CI; Android native execution and local software-WebGL are separate evidence.",
+      "typecheck": "success",
+      "expoDependencyCheck": "success; dependencies are up to date",
+      "toolchainCheck": "success; three patched entries verified, no additional changes",
+      "highAndCriticalAuditGate": "success; 13 findings: two low, eleven moderate, none high or critical",
+      "expoDoctor": "21/21 checks passed"
+    },
+    "api": {
+      "id": 125110248603,
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41393661100/job/125110248603",
+      "conclusion": "success",
+      "memoryPhase": {
+        "tests": 102,
+        "passed": 91,
+        "failed": 0,
+        "skipped": 11
+      },
+      "requiredDatabasePhase": {
+        "tests": 80,
+        "passed": 80,
+        "failed": 0,
+        "skipped": 0
+      },
+      "distinctMemoryCases": 91,
+      "distinctPostgresCases": 79,
+      "distinctTotalCases": 170,
+      "countInterpretation": "The required-database runner repeats the memory recovery-adversarial case already included in the memory phase. Count 91 memory plus 79 PostgreSQL cases: 170 distinct cases, not 171. The eleven skipped PostgreSQL suite entries in npm test are run by the required-database phase and are not additional executed cases.",
+      "repeatedMemoryCase": "recuperación adversarial: respuesta perdida conserva legado, perfil, mina y replay de compra pendiente",
+      "database": "Disposable GitHub Actions PostgreSQL 18; not Railway or the owner's database.",
+      "highAndCriticalAuditGate": "success; zero vulnerabilities"
+    }
+  },
+  "verification": {
+    "summaryCountersReadFromCompletedJobLogs": true,
+    "duplicateMemoryCaseObservedInBothJobSteps": true,
+    "logBodiesPublished": false,
+    "privateFixturesPublished": false,
+    "signedDownloadUrlsPublished": false,
+    "nativeAndroidExecutionIncluded": false,
+    "phonePerformanceAcceptanceIncluded": false,
+    "localSoftwareWebglRunIsSeparateEvidence": true,
+    "corroboratingPushCountersReadFromCompletedJobLogs": true
+  },
+  "validationSource": {
+    "revision": "r4",
+    "sprintApplicationCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+    "verificationCommit": "907ccc9a29d2c560697d36a1c3a00358260ab7ba",
+    "note": "Core CI validates this QA-only verification head. R4 Android APK application source remains ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14; native journeys, metrics and physical acceptance are separate evidence."
+  },
+  "previousRevisionContext": {
+    "path": "failed-r3-comparison/core-ci.json",
+    "scope": "Archived R3 validation; not additional distinct cases or R4 native proof."
+  },
+  "previousR4Context": {
+    "path": "android-r4-commerce/core-ci-context.json",
+    "headCommit": "fa308d0bc9a183bee092fd910eca4dc911078642",
+    "scope": "Prior R4 core validation associated with the independent commerce run; not additional distinct cases."
+  },
+  "previousR4ReferenceStartupContext": {
+    "path": "failed-r4-reference-startup/core-ci-context.json",
+    "headCommit": "8c4361da66da57a7641296f16b47e9e7ce95f79f",
+    "scope": "Prior R4 core validation before the candidate-first comparison order; not additional distinct cases or native comparison acceptance."
+  }
+}

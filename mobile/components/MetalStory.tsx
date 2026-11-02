@@ -3,10 +3,12 @@ import {AccessibilityInfo,Animated,Modal,Platform,Pressable,ScrollView,StyleShee
 import {GoldBar3D} from './GoldBar3D';
 import {chapterAt,immersiveChapters,immersiveTravel} from '../lib/immersive-story';
 import {scrollProgress} from '../lib/gold-bar-3d';
+import {metalMaterial,type MetalCode} from '../lib/metal-materials';
 
 type Target='Metales'|'Mercado'|'Billetera';
 type Props={scrollY:Animated.Value;viewportHeight:number;onSkip?:()=>void;onSeek?:(offset:number)=>void;onAction?:(target:Target)=>void};
 export function MetalStory({scrollY,viewportHeight,onSkip,onSeek,onAction}:Props){
+ const [visualMetal,setVisualMetal]=useState<MetalCode>('XAU');
  const {fontScale}=useWindowDimensions();
  const [origin,setOrigin]=useState<number|null>(null),[chapter,setChapter]=useState(0);
  const [systemReduced,setSystemReduced]=useState(true),[manualReduced,setManualReduced]=useState(false),[light,setLight]=useState(false),[limited,setLimited]=useState(false);
@@ -45,7 +47,7 @@ export function MetalStory({scrollY,viewportHeight,onSkip,onSeek,onAction}:Props
   <View style={{height:travel+height}} importantForAccessibility="no"/>
   <Animated.View collapsable={false} testID="immersive-stage" style={[styles.stage,{height,transform:[{translateY:pin}]}]}>
    <View style={StyleSheet.absoluteFill}>
-    <GoldBar3D scrollY={scrollY} initialScrollY={lastY.current} startY={start} endY={end} active={active&&origin!==null} reducedMotion={simplified} height={height} cinematic sceneDescription={limited?'Vista ligera activada por coste de render. Materia virtual DEMO.':light?'Materia virtual DEMO en modo ligero.':reduced?'Materia virtual DEMO con movimiento reducido.':'Materia tridimensional DEMO controlada por desplazamiento.'} onLimited={()=>setLimited(true)}/>
+    <GoldBar3D metal={visualMetal} scrollY={scrollY} initialScrollY={lastY.current} startY={start} endY={end} active={active&&origin!==null} reducedMotion={simplified} height={height} cinematic sceneDescription={metalMaterial(visualMetal).label+' DEMO. '+(limited?'Vista ligera activada por coste de render. Materia virtual DEMO.':light?'Materia virtual DEMO en modo ligero.':reduced?'Materia virtual DEMO con movimiento reducido.':'Materia tridimensional DEMO controlada por desplazamiento.')} onLimited={()=>setLimited(true)}/>
     {!simplified&&<View pointerEvents="none" style={StyleSheet.absoluteFill} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
      <Animated.View style={[styles.vault,{opacity:layers.vaultOpacity,transform:[{scale:layers.vaultScale}]}]}><View style={styles.vaultInner}/><View style={styles.vaultAxis}/></Animated.View>
      <Animated.View style={[styles.fractions,{opacity:layers.fractionOpacity}]}>{Array.from({length:12},(_,i)=><View key={i} style={styles.fraction}/>)}</Animated.View>
@@ -84,6 +86,9 @@ export function MetalStory({scrollY,viewportHeight,onSkip,onSeek,onAction}:Props
       <Pressable accessibilityRole="switch" accessibilityLabel="Usar modo visual ligero" accessibilityState={{checked:light||limited}} onPress={()=>{setLimited(false);setLight(!(light||limited));}} style={styles.option}><Text style={styles.optionTitle}>Modo ligero</Text><Text style={styles.optionValue}>{light||limited?'Sí':'No'}</Text></Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel="Elegir una etapa" accessibilityState={{expanded:chaptersOpen}} onPress={()=>setChaptersOpen(value=>!value)} style={styles.option}><Text style={styles.optionTitle}>Ir a un momento</Text><Text style={styles.optionValue}>{chaptersOpen?'−':'+'}</Text></Pressable>
       {chaptersOpen&&immersiveChapters.map((scene,index)=><Pressable key={scene.label} accessibilityRole="button" accessibilityLabel={'Ir a etapa '+(index+1)+': '+scene.label} accessibilityState={{selected:index===chapter}} onPress={()=>seek(index)} style={styles.chapterOption}><Text style={[styles.chapterLabel,index===chapter&&styles.selected]}>{scene.label}</Text></Pressable>)}
+      <Text style={styles.optionTitle}>Material de la representación</Text>
+      <View style={styles.materials}>{(['XAU','XAG','XPT','XPD'] as const).map(code=><Pressable key={code} accessibilityRole="button" accessibilityLabel={'Representar '+metalMaterial(code).label} accessibilityState={{selected:visualMetal===code}} onPress={()=>setVisualMetal(code)} style={[styles.material,visualMetal===code&&styles.selectedMaterial]}><Text style={styles.materialSymbol}>{metalMaterial(code).symbol}</Text><Text style={styles.materialName}>{metalMaterial(code).label}</Text></Pressable>)}</View>
+      <Text style={styles.optionHint}>Materiales ilustrativos DEMO. Esta elección solo cambia la escena.</Text>
      </ScrollView>
     </View>
    </View>
@@ -91,6 +96,7 @@ export function MetalStory({scrollY,viewportHeight,onSkip,onSeek,onAction}:Props
  </View>;
 }
 const styles=StyleSheet.create({
+ materials:{flexDirection:'row',gap:6,marginVertical:10},material:{flex:1,minHeight:48,borderRadius:10,borderWidth:1,borderColor:'#344148',alignItems:'center',justifyContent:'center'},selectedMaterial:{borderColor:'#D5B97F'},materialSymbol:{color:'#DFDDD3',fontSize:15},materialName:{color:'#A8B2AE',fontSize:9},
  story:{position:'relative',backgroundColor:'#0A0D10'},stage:{position:'absolute',top:0,left:0,right:0,overflow:'hidden',backgroundColor:'#0A0D10'},
  topline:{position:'absolute',top:10,left:22,right:12,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},demo:{fontSize:9,fontWeight:'600',letterSpacing:2.3,color:'#BAAC8E'},topActions:{flexDirection:'row',alignItems:'center',gap:8},topButton:{minHeight:44,paddingHorizontal:10,justifyContent:'center'},operate:{fontSize:12,color:'#DCC8A3'},menuButton:{minHeight:44,minWidth:44,alignItems:'center',justifyContent:'center'},menuGlyph:{color:'#C5C5B9',fontSize:28,lineHeight:32},
  caption:{position:'absolute',left:24,right:24},title:{fontFamily:Platform.OS==='ios'||Platform.OS==='web'?'Georgia':'serif',fontSize:42,lineHeight:47,fontWeight:'400',letterSpacing:-1.5,color:'#F1EEE4'},compactTitle:{fontSize:34,lineHeight:39,letterSpacing:-1.1},

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Openminerals native Android" tests="1" failures="0">
+  <testcase classname="Openminerals.android" name="verify-both-isolated-apks" time="3.908"></testcase>
+</testsuite>

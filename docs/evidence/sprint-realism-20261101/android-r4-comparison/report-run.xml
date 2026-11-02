@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Openminerals native Android" tests="18" failures="0">
+  <testcase classname="Openminerals.android" name="guard-disposable-api29-emulator" time="1.702"></testcase>
+  <testcase classname="Openminerals.android" name="install-presented-stable-separate-package" time="41.438"></testcase>
+  <testcase classname="Openminerals.android" name="install-preview-alongside-preserved-stable" time="41.612"></testcase>
+  <testcase classname="Openminerals.android" name="preview-seven-chapters" time="287.769"></testcase>
+  <testcase classname="Openminerals.android" name="preview-light-unrecorded-fixed-trace" time="129.890"></testcase>
+  <testcase classname="Openminerals.android" name="preview-recorded-fixed-trace" time="132.691"></testcase>
+  <testcase classname="Openminerals.android" name="preview-unrecorded-fixed-trace" time="128.198"></testcase>
+  <testcase classname="Openminerals.android" name="preview-reduced-motion-and-exits" time="132.600"></testcase>
+  <testcase classname="Openminerals.android" name="preview-live-gl-home-resume" time="110.474"></testcase>
+  <testcase classname="Openminerals.android" name="preview-stop-before-presented" time="0.077"></testcase>
+  <testcase classname="Openminerals.android" name="presented-source-and-cold-open" time="23.236"></testcase>
+  <testcase classname="Openminerals.android" name="presented-seven-chapters" time="155.717"></testcase>
+  <testcase classname="Openminerals.android" name="presented-light-unrecorded-fixed-trace" time="129.434"></testcase>
+  <testcase classname="Openminerals.android" name="presented-recorded-fixed-trace" time="133.739"></testcase>
+  <testcase classname="Openminerals.android" name="presented-unrecorded-fixed-trace" time="129.680"></testcase>
+  <testcase classname="Openminerals.android" name="presented-reduced-motion-and-exits" time="130.700"></testcase>
+  <testcase classname="Openminerals.android" name="presented-live-gl-home-resume" time="94.169"></testcase>
+  <testcase classname="Openminerals.android" name="stable-package-uid-and-version-preserved" time="0.107"></testcase>
+</testsuite>

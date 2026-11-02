@@ -1,0 +1,52 @@
+{
+  "demoOnly": true,
+  "kind": "before",
+  "chapterCount": 7,
+  "chaptersComplete": true,
+  "reducedMotionPresent": true,
+  "initialGlScreenshotPresent": false,
+  "complete": true,
+  "scope": "7 of seven chapter screenshots and reduced motion",
+  "files": [
+    {
+      "file": "before-safe-story-1.png",
+      "sha256": "42b3bb27f04a41e6d120088c81d7619effe763236a589ed0f09b154fb89e76ff",
+      "bytes": 913169
+    },
+    {
+      "file": "before-safe-story-2.png",
+      "sha256": "23c7e9978268515380139c7b6bbfc000464b3cab0922fb50b8242f9494fd1cca",
+      "bytes": 1390515
+    },
+    {
+      "file": "before-safe-story-3.png",
+      "sha256": "8d140bd6d72ca6c990a2150f6eed725faeb5e125cb2eaa41ad9a8253e99864dd",
+      "bytes": 846256
+    },
+    {
+      "file": "before-safe-story-4.png",
+      "sha256": "538a7e53b27ee2c8fdf5ce7bf0bb51ba107f2e32d2f1febea02f8adaf52fab12",
+      "bytes": 516087
+    },
+    {
+      "file": "before-safe-story-5.png",
+      "sha256": "92848e27a527ca61f9c9c98a2d41cfe2d63b26ac877b66f8d43d0ea6287467c8",
+      "bytes": 489263
+    },
+    {
+      "file": "before-safe-story-6.png",
+      "sha256": "fb998703b2ed5efed769e3832f91e4e454bf26e7947a88cabc85150b940d7363",
+      "bytes": 540862
+    },
+    {
+      "file": "before-safe-story-7.png",
+      "sha256": "04fbc71b4426a1b562cbc6adaa19c0eb08475c76a948e7cd8375f3af61205be5",
+      "bytes": 532435
+    },
+    {
+      "file": "before-safe-reduced-motion.png",
+      "sha256": "7cf222d8e6887370ad49d8b6c033de29cd3962613b40c9b430b92810da5ef50c",
+      "bytes": 91420
+    }
+  ]
+}

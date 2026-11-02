@@ -1,0 +1,820 @@
+{
+  "demoOnly": true,
+  "sourceCommit": "0d3fa50791a6e86d8944c2d07026fcc5bc5c6999",
+  "sourceHashes": {
+    "gold-bar-3d.ts": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c",
+    "immersive-story.ts": "91468daf97f3b9fa70a57e12ba8949ea09cc06996e0ea4f244f44f5b55f81c37",
+    "geological-scene.ts": "dad385018f3da9694a90080892618f08353303f65f0407ed36224899f79c67da",
+    "geological-specimen.ts": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778",
+    "metal-materials.ts": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81",
+    "scene-renderer.ts": "69a633010d62bd6942bba53c09fff421e867587ba02a031349c584d492c09250"
+  },
+  "capturedAtUtc": "2026-11-02T04:14:08.738Z",
+  "environment": "desktop Chrome ANGLE SwiftShader",
+  "android": false,
+  "physicalDevice": false,
+  "gpuFpsMeasured": false,
+  "phonePerformanceAcceptance": false,
+  "completionFence": "gl.finish + full RGBA readPixels; includes readback transfer cost",
+  "suitableForResolutionComparison": true,
+  "host": {
+    "platform": "win32",
+    "availableLogicalCpus": 12,
+    "totalMemoryMiB": 65277
+  },
+  "longSide": 320,
+  "ok": true,
+  "width": 180,
+  "height": 320,
+  "rendererInfo": {
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "vendor": "Google Inc. (Google)",
+    "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+    "shadingLanguage": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)"
+  },
+  "poses": [
+    {
+      "progress": 0,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.08333333333333333,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.16666666666666666,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.25,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.3333333333333333,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.4166666666666667,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.5,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.5833333333333334,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.6666666666666666,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.75,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.8333333333333334,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.9166666666666666,
+      "metal": "XAU"
+    },
+    {
+      "progress": 1,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.5,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0,
+      "metal": "XAU"
+    },
+    {
+      "progress": 0.8333333333333334,
+      "metal": "XAG"
+    },
+    {
+      "progress": 0.8333333333333334,
+      "metal": "XPT"
+    },
+    {
+      "progress": 0.8333333333333334,
+      "metal": "XPD"
+    }
+  ],
+  "warmupDraws": 18,
+  "measuredRounds": 5,
+  "samples": [
+    {
+      "round": 0,
+      "poseIndex": 0,
+      "progress": 0,
+      "metal": "XAU",
+      "completionMs": 4
+    },
+    {
+      "round": 0,
+      "poseIndex": 1,
+      "progress": 0.08333333333333333,
+      "metal": "XAU",
+      "completionMs": 4.200000002980232
+    },
+    {
+      "round": 0,
+      "poseIndex": 2,
+      "progress": 0.16666666666666666,
+      "metal": "XAU",
+      "completionMs": 4.5
+    },
+    {
+      "round": 0,
+      "poseIndex": 3,
+      "progress": 0.25,
+      "metal": "XAU",
+      "completionMs": 6.100000001490116
+    },
+    {
+      "round": 0,
+      "poseIndex": 4,
+      "progress": 0.3333333333333333,
+      "metal": "XAU",
+      "completionMs": 6.5
+    },
+    {
+      "round": 0,
+      "poseIndex": 5,
+      "progress": 0.4166666666666667,
+      "metal": "XAU",
+      "completionMs": 4.399999998509884
+    },
+    {
+      "round": 0,
+      "poseIndex": 6,
+      "progress": 0.5,
+      "metal": "XAU",
+      "completionMs": 3.1999999955296516
+    },
+    {
+      "round": 0,
+      "poseIndex": 7,
+      "progress": 0.5833333333333334,
+      "metal": "XAU",
+      "completionMs": 3
+    },
+    {
+      "round": 0,
+      "poseIndex": 8,
+      "progress": 0.6666666666666666,
+      "metal": "XAU",
+      "completionMs": 3.100000001490116
+    },
+    {
+      "round": 0,
+      "poseIndex": 9,
+      "progress": 0.75,
+      "metal": "XAU",
+      "completionMs": 3.100000001490116
+    },
+    {
+      "round": 0,
+      "poseIndex": 10,
+      "progress": 0.8333333333333334,
+      "metal": "XAU",
+      "completionMs": 3.399999998509884
+    },
+    {
+      "round": 0,
+      "poseIndex": 11,
+      "progress": 0.9166666666666666,
+      "metal": "XAU",
+      "completionMs": 3.399999998509884
+    },
+    {
+      "round": 0,
+      "poseIndex": 12,
+      "progress": 1,
+      "metal": "XAU",
+      "completionMs": 3.100000001490116
+    },
+    {
+      "round": 0,
+      "poseIndex": 13,
+      "progress": 0.5,
+      "metal": "XAU",
+      "completionMs": 3.5
+    },
+    {
+      "round": 0,
+      "poseIndex": 14,
+      "progress": 0,
+      "metal": "XAU",
+      "completionMs": 3.899999998509884
+    },
+    {
+      "round": 0,
+      "poseIndex": 15,
+      "progress": 0.8333333333333334,
+      "metal": "XAG",
+      "completionMs": 3.5
+    },
+    {
+      "round": 0,
+      "poseIndex": 16,
+      "progress": 0.8333333333333334,
+      "metal": "XPT",
+      "completionMs": 3.3000000044703484
+    },
+    {
+      "round": 0,
+      "poseIndex": 17,
+      "progress": 0.8333333333333334,
+      "metal": "XPD",
+      "completionMs": 3.5
+    },
+    {
+      "round": 1,
+      "poseIndex": 0,
+      "progress": 0,
+      "metal": "XAU",
+      "completionMs": 4.4000000059604645
+    },
+    {
+      "round": 1,
+      "poseIndex": 1,
+      "progress": 0.08333333333333333,
+      "metal": "XAU",
+      "completionMs": 5.0999999940395355
+    },
+    {
+      "round": 1,
+      "poseIndex": 2,
+      "progress": 0.16666666666666666,
+      "metal": "XAU",
+      "completionMs": 4.399999998509884
+    },
+    {
+      "round": 1,
+      "poseIndex": 3,
+      "progress": 0.25,
+      "metal": "XAU",
+      "completionMs": 5.200000002980232
+    },
+    {
+      "round": 1,
+      "poseIndex": 4,
+      "progress": 0.3333333333333333,
+      "metal": "XAU",
+      "completionMs": 6.299999997019768
+    },
+    {
+      "round": 1,
+      "poseIndex": 5,
+      "progress": 0.4166666666666667,
+      "metal": "XAU",
+      "completionMs": 4.399999998509884
+    },
+    {
+      "round": 1,
+      "poseIndex": 6,
+      "progress": 0.5,
+      "metal": "XAU",
+      "completionMs": 3.2999999970197678
+    },
+    {
+      "round": 1,
+      "poseIndex": 7,
+      "progress": 0.5833333333333334,
+      "metal": "XAU",
+      "completionMs": 3.3000000044703484
+    },
+    {
+      "round": 1,
+      "poseIndex": 8,
+      "progress": 0.6666666666666666,
+      "metal": "XAU",
+      "completionMs": 3
+    },
+    {
+      "round": 1,
+      "poseIndex": 9,
+      "progress": 0.75,
+      "metal": "XAU",
+      "completionMs": 3.5
+    },
+    {
+      "round": 1,
+      "poseIndex": 10,
+      "progress": 0.8333333333333334,
+      "metal": "XAU",
+      "completionMs": 3.5
+    },
+    {
+      "round": 1,
+      "poseIndex": 11,
+      "progress": 0.9166666666666666,
+      "metal": "XAU",
+      "completionMs": 3.4000000059604645
+    },
+    {
+      "round": 1,
+      "poseIndex": 12,
+      "progress": 1,
+      "metal": "XAU",
+      "completionMs": 3.5
+    },
+    {
+      "round": 1,
+      "poseIndex": 13,
+      "progress": 0.5,
+      "metal": "XAU",
+      "completionMs": 3.399999998509884
+    },
+    {
+      "round": 1,
+      "poseIndex": 14,
+      "progress": 0,
+      "metal": "XAU",
+      "completionMs": 3.899999998509884
+    },
+    {
+      "round": 1,
+      "poseIndex": 15,
+      "progress": 0.8333333333333334,
+      "metal": "XAG",
+      "completionMs": 3.600000001490116
+    },
+    {
+      "round": 1,
+      "poseIndex": 16,
+      "progress": 0.8333333333333334,
+      "metal": "XPT",
+      "completionMs": 3.4000000059604645
+    },
+    {
+      "round": 1,
+      "poseIndex": 17,
+      "progress": 0.8333333333333334,
+      "metal": "XPD",
+      "completionMs": 3.4000000059604645
+    },
+    {
+      "round": 2,
+      "poseIndex": 0,
+      "progress": 0,
+      "metal": "XAU",
+      "completionMs": 5
+    },
+    {
+      "round": 2,
+      "poseIndex": 1,
+      "progress": 0.08333333333333333,
+      "metal": "XAU",
+      "completionMs": 4.299999997019768
+    },
+    {
+      "round": 2,
+      "poseIndex": 2,
+      "progress": 0.16666666666666666,
+      "metal": "XAU",
+      "completionMs": 4.700000002980232
+    },
+    {
+      "round": 2,
+      "poseIndex": 3,
+      "progress": 0.25,
+      "metal": "XAU",
+      "completionMs": 5.199999995529652
+    },
+    {
+      "round": 2,
+      "poseIndex": 4,
+      "progress": 0.3333333333333333,
+      "metal": "XAU",
+      "completionMs": 7.200000002980232
+    },
+    {
+      "round": 2,
+      "poseIndex": 5,
+      "progress": 0.4166666666666667,
+      "metal": "XAU",
+      "completionMs": 3.399999998509884
+    },
+    {
+      "round": 2,
+      "poseIndex": 6,
+      "progress": 0.5,
+      "metal": "XAU",
+      "completionMs": 3.5
+    },
+    {
+      "round": 2,
+      "poseIndex": 7,
+      "progress": 0.5833333333333334,
+      "metal": "XAU",
+      "completionMs": 3.399999998509884
+    },
+    {
+      "round": 2,
+      "poseIndex": 8,
+      "progress": 0.6666666666666666,
+      "metal": "XAU",
+      "completionMs": 2.7999999970197678
+    },
+    {
+      "round": 2,
+      "poseIndex": 9,
+      "progress": 0.75,
+      "metal": "XAU",
+      "completionMs": 3.100000001490116
+    },
+    {
+      "round": 2,
+      "poseIndex": 10,
+      "progress": 0.8333333333333334,
+      "metal": "XAU",
+      "completionMs": 3.399999998509884
+    },
+    {
+      "round": 2,
+      "poseIndex": 11,
+      "progress": 0.9166666666666666,
+      "metal": "XAU",
+      "completionMs": 3.4000000059604645
+    },
+    {
+      "round": 2,
+      "poseIndex": 12,
+      "progress": 1,
+      "metal": "XAU",
+      "completionMs": 4.199999995529652
+    },
+    {
+      "round": 2,
+      "poseIndex": 13,
+      "progress": 0.5,
+      "metal": "XAU",
+      "completionMs": 3.899999998509884
+    },
+    {
+      "round": 2,
+      "poseIndex": 14,
+      "progress": 0,
+      "metal": "XAU",
+      "completionMs": 4.100000001490116
+    },
+    {
+      "round": 2,
+      "poseIndex": 15,
+      "progress": 0.8333333333333334,
+      "metal": "XAG",
+      "completionMs": 3.3000000044703484
+    },
+    {
+      "round": 2,
+      "poseIndex": 16,
+      "progress": 0.8333333333333334,
+      "metal": "XPT",
+      "completionMs": 3.2999999970197678
+    },
+    {
+      "round": 2,
+      "poseIndex": 17,
+      "progress": 0.8333333333333334,
+      "metal": "XPD",
+      "completionMs": 3.399999998509884
+    },
+    {
+      "round": 3,
+      "poseIndex": 0,
+      "progress": 0,
+      "metal": "XAU",
+      "completionMs": 3.7000000029802322
+    },
+    {
+      "round": 3,
+      "poseIndex": 1,
+      "progress": 0.08333333333333333,
+      "metal": "XAU",
+      "completionMs": 4.100000001490116
+    },
+    {
+      "round": 3,
+      "poseIndex": 2,
+      "progress": 0.16666666666666666,
+      "metal": "XAU",
+      "completionMs": 4.299999997019768
+    },
+    {
+      "round": 3,
+      "poseIndex": 3,
+      "progress": 0.25,
+      "metal": "XAU",
+      "completionMs": 5.299999997019768
+    },
+    {
+      "round": 3,
+      "poseIndex": 4,
+      "progress": 0.3333333333333333,
+      "metal": "XAU",
+      "completionMs": 6.5
+    },
+    {
+      "round": 3,
+      "poseIndex": 5,
+      "progress": 0.4166666666666667,
+      "metal": "XAU",
+      "completionMs": 3.7000000029802322
+    },
+    {
+      "round": 3,
+      "poseIndex": 6,
+      "progress": 0.5,
+      "metal": "XAU",
+      "completionMs": 4.399999998509884
+    },
+    {
+      "round": 3,
+      "poseIndex": 7,
+      "progress": 0.5833333333333334,
+      "metal": "XAU",
+      "completionMs": 3.399999998509884
+    },
+    {
+      "round": 3,
+      "poseIndex": 8,
+      "progress": 0.6666666666666666,
+      "metal": "XAU",
+      "completionMs": 3
+    },
+    {
+      "round": 3,
+      "poseIndex": 9,
+      "progress": 0.75,
+      "metal": "XAU",
+      "completionMs": 3.5
+    },
+    {
+      "round": 3,
+      "poseIndex": 10,
+      "progress": 0.8333333333333334,
+      "metal": "XAU",
+      "completionMs": 4.800000004470348
+    },
+    {
+      "round": 3,
+      "poseIndex": 11,
+      "progress": 0.9166666666666666,
+      "metal": "XAU",
+      "completionMs": 3.399999998509884
+    },
+    {
+      "round": 3,
+      "poseIndex": 12,
+      "progress": 1,
+      "metal": "XAU",
+      "completionMs": 3.1999999955296516
+    },
+    {
+      "round": 3,
+      "poseIndex": 13,
+      "progress": 0.5,
+      "metal": "XAU",
+      "completionMs": 3.2000000029802322
+    },
+    {
+      "round": 3,
+      "poseIndex": 14,
+      "progress": 0,
+      "metal": "XAU",
+      "completionMs": 4.200000002980232
+    },
+    {
+      "round": 3,
+      "poseIndex": 15,
+      "progress": 0.8333333333333334,
+      "metal": "XAG",
+      "completionMs": 3.899999998509884
+    },
+    {
+      "round": 3,
+      "poseIndex": 16,
+      "progress": 0.8333333333333334,
+      "metal": "XPT",
+      "completionMs": 3.399999998509884
+    },
+    {
+      "round": 3,
+      "poseIndex": 17,
+      "progress": 0.8333333333333334,
+      "metal": "XPD",
+      "completionMs": 3.399999998509884
+    },
+    {
+      "round": 4,
+      "poseIndex": 0,
+      "progress": 0,
+      "metal": "XAU",
+      "completionMs": 4
+    },
+    {
+      "round": 4,
+      "poseIndex": 1,
+      "progress": 0.08333333333333333,
+      "metal": "XAU",
+      "completionMs": 4
+    },
+    {
+      "round": 4,
+      "poseIndex": 2,
+      "progress": 0.16666666666666666,
+      "metal": "XAU",
+      "completionMs": 4.5
+    },
+    {
+      "round": 4,
+      "poseIndex": 3,
+      "progress": 0.25,
+      "metal": "XAU",
+      "completionMs": 5
+    },
+    {
+      "round": 4,
+      "poseIndex": 4,
+      "progress": 0.3333333333333333,
+      "metal": "XAU",
+      "completionMs": 6.700000002980232
+    },
+    {
+      "round": 4,
+      "poseIndex": 5,
+      "progress": 0.4166666666666667,
+      "metal": "XAU",
+      "completionMs": 4.5
+    },
+    {
+      "round": 4,
+      "poseIndex": 6,
+      "progress": 0.5,
+      "metal": "XAU",
+      "completionMs": 3.5999999940395355
+    },
+    {
+      "round": 4,
+      "poseIndex": 7,
+      "progress": 0.5833333333333334,
+      "metal": "XAU",
+      "completionMs": 3.2000000029802322
+    },
+    {
+      "round": 4,
+      "poseIndex": 8,
+      "progress": 0.6666666666666666,
+      "metal": "XAU",
+      "completionMs": 2.899999998509884
+    },
+    {
+      "round": 4,
+      "poseIndex": 9,
+      "progress": 0.75,
+      "metal": "XAU",
+      "completionMs": 3.2999999970197678
+    },
+    {
+      "round": 4,
+      "poseIndex": 10,
+      "progress": 0.8333333333333334,
+      "metal": "XAU",
+      "completionMs": 4.200000002980232
+    },
+    {
+      "round": 4,
+      "poseIndex": 11,
+      "progress": 0.9166666666666666,
+      "metal": "XAU",
+      "completionMs": 3.5
+    },
+    {
+      "round": 4,
+      "poseIndex": 12,
+      "progress": 1,
+      "metal": "XAU",
+      "completionMs": 3.600000001490116
+    },
+    {
+      "round": 4,
+      "poseIndex": 13,
+      "progress": 0.5,
+      "metal": "XAU",
+      "completionMs": 3.399999998509884
+    },
+    {
+      "round": 4,
+      "poseIndex": 14,
+      "progress": 0,
+      "metal": "XAU",
+      "completionMs": 3.899999998509884
+    },
+    {
+      "round": 4,
+      "poseIndex": 15,
+      "progress": 0.8333333333333334,
+      "metal": "XAG",
+      "completionMs": 3.399999998509884
+    },
+    {
+      "round": 4,
+      "poseIndex": 16,
+      "progress": 0.8333333333333334,
+      "metal": "XPT",
+      "completionMs": 3.4000000059604645
+    },
+    {
+      "round": 4,
+      "poseIndex": 17,
+      "progress": 0.8333333333333334,
+      "metal": "XPD",
+      "completionMs": 3.5
+    }
+  ],
+  "images": [
+    {
+      "poseIndex": 0,
+      "progress": 0,
+      "metal": "XAU",
+      "file": "320/pose-0.png",
+      "bytes": 94959,
+      "sha256": "a1e2b1f14403db73273765e18166c88f63d6ea4a348fd649ebf04ab20460f97b"
+    },
+    {
+      "poseIndex": 2,
+      "progress": 0.16666666666666666,
+      "metal": "XAU",
+      "file": "320/pose-2.png",
+      "bytes": 98461,
+      "sha256": "17d8e2b0a7d6f0043630f1c7f2b1f2e721b4ce7c5f9e930003aaa8c375dc5dab"
+    },
+    {
+      "poseIndex": 4,
+      "progress": 0.3333333333333333,
+      "metal": "XAU",
+      "file": "320/pose-4.png",
+      "bytes": 85086,
+      "sha256": "d51a89c4377d4c41b5f82a7e3eeb064270282664641778961a91293a54bde356"
+    },
+    {
+      "poseIndex": 6,
+      "progress": 0.5,
+      "metal": "XAU",
+      "file": "320/pose-6.png",
+      "bytes": 45082,
+      "sha256": "d784fa818788fb3968a4dfe201cb997dec8503857a5bceaf673985d1e525322a"
+    },
+    {
+      "poseIndex": 8,
+      "progress": 0.6666666666666666,
+      "metal": "XAU",
+      "file": "320/pose-8.png",
+      "bytes": 38043,
+      "sha256": "783dd9ea11936c7ae1a4e8b0285f9d5a2b396bf25db73cf770df07e382bae985"
+    }
+  ],
+  "stats": {
+    "all": {
+      "sampleCount": 90,
+      "minMs": 2.7999999970197678,
+      "medianMs": 3.5,
+      "p90Ms": 5.199999995529652,
+      "p95Ms": 6.299999997019768,
+      "maxMs": 7.200000002980232,
+      "meanMs": 3.9366666667991215,
+      "completionBudget16_67ms": 90,
+      "completionBudget33_33ms": 90
+    },
+    "tunnelAndExtraction": {
+      "sampleCount": 30,
+      "minMs": 3.7000000029802322,
+      "medianMs": 4.5,
+      "p90Ms": 6.5,
+      "p95Ms": 6.700000002980232,
+      "maxMs": 7.200000002980232,
+      "meanMs": 4.840000000099341,
+      "completionBudget16_67ms": 30,
+      "completionBudget33_33ms": 30
+    },
+    "laterBarAndCustody": {
+      "sampleCount": 60,
+      "minMs": 2.7999999970197678,
+      "medianMs": 3.399999998509884,
+      "p90Ms": 4.200000002980232,
+      "p95Ms": 4.399999998509884,
+      "maxMs": 4.800000004470348,
+      "meanMs": 3.485000000149012,
+      "completionBudget16_67ms": 60,
+      "completionBudget33_33ms": 60
+    }
+  }
+}

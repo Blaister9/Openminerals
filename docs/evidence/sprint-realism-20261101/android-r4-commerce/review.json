@@ -1,0 +1,83 @@
+{
+  "format": "openminerals-native-commerce-review-v1",
+  "demoOnly": true,
+  "runUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41388807925",
+  "jobUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41388807925/job/125095475432",
+  "headSha": "fa308d0bc9a183bee092fd910eca4dc911078642",
+  "conclusion": "success",
+  "validationScope": "commerce",
+  "nativeStages": {
+    "passed": 15,
+    "failed": 0
+  },
+  "completedStages": [
+    "guard-disposable-api29-emulator",
+    "install-presented-stable-separate-package",
+    "install-preview-alongside-preserved-stable",
+    "preview-new-legacy-commerce",
+    "preview-legacy-reservations-release-overcommit",
+    "preview-legacy-portfolio-historical-receipts",
+    "preview-legacy-balance-after-restart",
+    "preview-buyer-register-without-import",
+    "preview-buyer-securestore-after-cold-launch",
+    "preview-buyer-logout-restores-owned-legacy",
+    "preview-public-operator-access-preflight",
+    "preview-public-operator-readonly-login",
+    "preview-public-operator-mine-account-readonly",
+    "preview-public-operator-logout",
+    "stable-package-uid-and-version-preserved"
+  ],
+  "nativeLegacyCommerce": {
+    "conversionBuySell": true,
+    "reservationsAndOvercommitProtection": true,
+    "reservationRelease": true,
+    "portfolioAndHistoricalReceipts": true,
+    "restartPreservesLegacy": true,
+    "nativeSameRequestReplayTested": false
+  },
+  "nativeAuthentication": {
+    "buyerCreatedWithoutImport": true,
+    "buyerColdLaunchSecureStore": true,
+    "legacyRestoredAfterBuyerLogout": true,
+    "publicOperatorReadOnlyLogin": true,
+    "publicOperatorMineAndAccountWithoutBuyerWallet": true,
+    "publicOperatorLoggedOut": true
+  },
+  "stablePreservation": {
+    "demoOnly": true,
+    "sameUid": true,
+    "sameVersion": true,
+    "stable": {
+      "uid": "10146",
+      "version": "0.3.0",
+      "versionCode": 6
+    },
+    "preview": {
+      "uid": "10149",
+      "version": "0.4.0",
+      "versionCode": 4
+    },
+    "noStableUninstall": true,
+    "noStableDataClear": true,
+    "noStableCommerce": true
+  },
+  "apk": {
+    "sha256": "adfbf909f0cf0c924c7b8938a1a773c5c96b84f14f86ae0e8c0bf53b7e1b1bf5",
+    "kind": "after",
+    "package": "com.openminerals.demo.minepreview",
+    "version": "0.4.0",
+    "versionCode": 4,
+    "runtime": "0.4.0",
+    "channel": "mine-realism",
+    "certificate": "86c84db35e91b187f3f818c0cc74ddb91df9a95014cba138ac7e04611957aa09",
+    "embeddedHttpsApi": true,
+    "embeddedBytes": 1661632,
+    "debuggable": false
+  },
+  "privateUiPublished": false,
+  "rawLogsPublished": false,
+  "physicalDevice": false,
+  "benchmarksIncluded": false,
+  "glJourneyAssertionsIncluded": false,
+  "limitations": "NOT RUN: authenticated trading, peer marketplace, lot custody/certificates and full delivery lifecycle require isolated funded fixtures; legacy offers/quote reservations are not peer settlement or physical custody."
+}

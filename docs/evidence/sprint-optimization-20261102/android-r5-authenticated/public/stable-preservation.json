@@ -1,0 +1,9 @@
+{
+  "demoOnly": true,
+  "initiallyAbsent": true,
+  "finallyAbsent": true,
+  "stablePackageInstalled": false,
+  "stablePackageLaunched": false,
+  "stableDataCleared": false,
+  "previewSha256": "7a3608be4a29996bb7d1713706669fd5acab12d73286f3931c1b45226145f4ec"
+}

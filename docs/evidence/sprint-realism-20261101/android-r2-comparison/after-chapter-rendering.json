@@ -1,0 +1,68 @@
+{
+  "demoOnly": true,
+  "initialGlBeforeGesturesRequired": true,
+  "initialGlScreenshot": "after-safe-initial-gl.png",
+  "completedChapters": 7,
+  "glReadinessChapters": 7,
+  "automaticLightChapters": 0,
+  "allSevenChaptersReportedGlReady": true,
+  "visualAcceptance": false,
+  "chapters": [
+    {
+      "chapter": 1,
+      "screenshot": "after-safe-story-1.png",
+      "automaticLightObserved": false,
+      "qualityTierObserved": "balanced",
+      "mode": "gl",
+      "observationScope": "Accessibility state sampled immediately after the chapter screenshot; pixels require separate visual review."
+    },
+    {
+      "chapter": 2,
+      "screenshot": "after-safe-story-2.png",
+      "automaticLightObserved": false,
+      "qualityTierObserved": "balanced",
+      "mode": "gl",
+      "observationScope": "Accessibility state sampled immediately after the chapter screenshot; pixels require separate visual review."
+    },
+    {
+      "chapter": 3,
+      "screenshot": "after-safe-story-3.png",
+      "automaticLightObserved": false,
+      "qualityTierObserved": "balanced",
+      "mode": "gl",
+      "observationScope": "Accessibility state sampled immediately after the chapter screenshot; pixels require separate visual review."
+    },
+    {
+      "chapter": 4,
+      "screenshot": "after-safe-story-4.png",
+      "automaticLightObserved": false,
+      "qualityTierObserved": "balanced",
+      "mode": "gl",
+      "observationScope": "Accessibility state sampled immediately after the chapter screenshot; pixels require separate visual review."
+    },
+    {
+      "chapter": 5,
+      "screenshot": "after-safe-story-5.png",
+      "automaticLightObserved": false,
+      "qualityTierObserved": "balanced",
+      "mode": "gl",
+      "observationScope": "Accessibility state sampled immediately after the chapter screenshot; pixels require separate visual review."
+    },
+    {
+      "chapter": 6,
+      "screenshot": "after-safe-story-6.png",
+      "automaticLightObserved": false,
+      "qualityTierObserved": "balanced",
+      "mode": "gl",
+      "observationScope": "Accessibility state sampled immediately after the chapter screenshot; pixels require separate visual review."
+    },
+    {
+      "chapter": 7,
+      "screenshot": "after-safe-story-7.png",
+      "automaticLightObserved": false,
+      "qualityTierObserved": "balanced",
+      "mode": "gl",
+      "observationScope": "Accessibility state sampled immediately after the chapter screenshot; pixels require separate visual review."
+    }
+  ]
+}

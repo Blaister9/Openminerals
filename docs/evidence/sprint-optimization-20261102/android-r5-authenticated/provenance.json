@@ -1,0 +1,81 @@
+{
+  "demoOnly": true,
+  "revision": "r5",
+  "workflow": {
+    "run": 41477329133,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41477329133",
+    "headCommit": "df8d985e9074fac603430bffd639b6437f353d33",
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "createdAt": "2026-11-02T16:01:17Z",
+    "updatedAt": "2026-11-02T16:33:37Z",
+    "job": 125386235544,
+    "jobUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41477329133/job/125386235544",
+    "jobStartedAt": "2026-11-02T16:01:20Z",
+    "jobCompletedAt": "2026-11-02T16:33:36Z",
+    "jobConclusion": "success"
+  },
+  "apk": {
+    "sha256": "7a3608be4a29996bb7d1713706669fd5acab12d73286f3931c1b45226145f4ec",
+    "sourceCommit": "a43345e9dee49cebd077b7520c79b7fc2b49be03",
+    "package": "com.openminerals.demo.minepreview",
+    "version": "0.4.0",
+    "versionCode": 5,
+    "runtime": "0.4.0",
+    "channel": "mine-realism",
+    "certificate": "86c84db35e91b187f3f818c0cc74ddb91df9a95014cba138ac7e04611957aa09"
+  },
+  "artifact": {
+    "id": 13160173636,
+    "name": "android-mine-r5-commerce-41477329133",
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41477329133/artifacts/13160173636",
+    "bytes": 9365,
+    "createdAt": "2026-11-02T16:33:24Z",
+    "expiresAt": "2026-11-09T16:33:23Z",
+    "remoteDigest": "sha256:45e1dad7ca51aefeee9956ba7c8455f7d098ba4f263fe8026a593b8d30af60bf",
+    "downloadedZipSha256": "45e1dad7ca51aefeee9956ba7c8455f7d098ba4f263fe8026a593b8d30af60bf",
+    "downloadedZipDigestMatches": true,
+    "originalFile": "original-public-artifact.zip",
+    "originalPublicFiles": [
+      "acceleration.txt",
+      "apk-verification.json",
+      "host-resources.json",
+      "maestro-version.txt",
+      "network-quality-checks.json",
+      "progress.json",
+      "progress.ndjson",
+      "report-download.xml",
+      "report-preflight.xml",
+      "report-run.xml",
+      "stable-preservation.json",
+      "summary-download.json",
+      "summary-preflight.json",
+      "summary-run.json"
+    ],
+    "downloadedAt": "2026-11-02T16:36:31.532Z",
+    "scope": "Only the workflow public/ artifact; no job logs, credentials or private Maestro output were downloaded."
+  },
+  "acceptance": {
+    "completedHarnessPhases": 26,
+    "failedHarnessPhases": 0,
+    "cleanupSucceeded": true,
+    "environment": "disposable Android API29 emulator",
+    "physicalDevice": false,
+    "privateUiPublished": false,
+    "nativeOfflinePendingRetryAfterColdOpenTested": true,
+    "nativeReplayAfterServerCommitResponseLossTested": false,
+    "databaseServiceRestartTested": false,
+    "stablePackageInitiallyAbsent": true,
+    "stablePackageFinallyAbsent": true,
+    "realFinancialOperations": false
+  },
+  "limits": [
+    "Android API29 disposable emulator with configured SwiftShader; physical phone acceptance remains pending.",
+    "Twenty-six phases include native UI operations, read-only API reconciliation and emulator guards; they are not twenty-six separate UI-only tests.",
+    "Offline pending recovery is verified before server commit; losing a response after server commit is not covered by this native run.",
+    "No database or Railway service restart occurred.",
+    "This acceptance does not measure graphics performance, real money, physical custody or delivery."
+  ],
+  "hashScope": "sha256sums.txt covers preserved original public bytes, original public ZIP, this provenance and local attributes. Evidence directory disables text conversion."
+}

@@ -1,0 +1,50 @@
+{
+  "format": "openminerals.native-progress",
+  "version": 1,
+  "mode": "run",
+  "updatedAt": "2026-11-02T04:03:50.127Z",
+  "stage": {
+    "name": "preview-recorded-fixed-trace",
+    "status": "FAILED",
+    "startedAt": "2026-11-02T04:02:11.597Z",
+    "completedAt": "2026-11-02T04:03:48.282Z"
+  },
+  "command": {
+    "program": "adb",
+    "operation": "logcat",
+    "status": "PASSED",
+    "timeoutMs": 20000,
+    "timeoutSignal": "SIGKILL",
+    "startedAt": "2026-11-02T04:03:50.089Z",
+    "exitCode": 0,
+    "signal": null,
+    "reason": "completed",
+    "completedAt": "2026-11-02T04:03:50.127Z"
+  },
+  "lastFailure": {
+    "stage": "preview-recorded-fixed-trace",
+    "program": "adb",
+    "operation": "shell",
+    "status": "FAILED",
+    "timeoutMs": 20000,
+    "timeoutSignal": "SIGKILL",
+    "startedAt": "2026-11-02T04:03:45.995Z",
+    "exitCode": 1,
+    "signal": null,
+    "reason": "nonzero-exit",
+    "completedAt": "2026-11-02T04:03:46.014Z"
+  },
+  "completed": [
+    "guard-disposable-api29-emulator",
+    "install-presented-stable-separate-package",
+    "presented-seven-chapters",
+    "presented-light-unrecorded-fixed-trace",
+    "presented-recorded-fixed-trace",
+    "presented-unrecorded-fixed-trace",
+    "presented-reduced-motion-and-exits",
+    "presented-live-gl-home-resume",
+    "install-preview-alongside-preserved-stable",
+    "preview-seven-chapters",
+    "preview-light-unrecorded-fixed-trace"
+  ]
+}

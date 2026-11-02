@@ -1,0 +1,92 @@
+{
+  "format": "openminerals-android-stable-baseline-v1",
+  "demoOnly": true,
+  "capturedAt": "2026-10-31",
+  "copiedAt": "2026-11-02T01:02:41.955Z",
+  "freshSprintExecution": false,
+  "source": {
+    "run": "https://github.com/Blaister9/Openminerals/actions/runs/41216333180",
+    "appCommit": "eae7f6ad57f5a667c2bf40775a4cb30f1c0dd8b6",
+    "harnessCommit": "f3b2d80b3cb4227dbfcb701cbe1502238adfd959",
+    "version": "0.3.0",
+    "versionCode": 6,
+    "package": "com.openminerals.demo.mobile",
+    "runtime": "0.3.0",
+    "embeddedBundleChecked": true,
+    "apkSha256": "d99e8af9617f56d7862a849ebd057025cb9d6adc164b97496a5532f7b29ad29e"
+  },
+  "environment": {
+    "physicalDevice": false,
+    "host": "disposable Ubuntu GitHub runner",
+    "androidApi": 29,
+    "renderer": "SwiftShader",
+    "guestCpus": 4,
+    "guestMemoryMiB": 4096
+  },
+  "originalFiles": {
+    "stable-030-origin.png": "safe-story-1.png",
+    "stable-030-bar.png": "safe-story-4.png",
+    "stable-030-custody.png": "safe-story-5.png",
+    "stable-030-tour.mp4": "safe-immersive-scroll.mp4",
+    "stable-030-ci-performance.json": "immersive-performance.json"
+  },
+  "files": [
+    {
+      "file": "stable-030-bar.png",
+      "bytes": 583323,
+      "sha256": "5431fef67c7aa05955cbef1d9646bdc3624c5fb9599d4edc4c07598a99fa4564",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "stable-030-ci-performance.json",
+      "bytes": 1099,
+      "sha256": "d70d8fcf71caf28711f1d1ffd1f8b42a7162d171415e9fd640ad03b07276dbc3",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "stable-030-custody.png",
+      "bytes": 453916,
+      "sha256": "01a33618c500a9ddd8f08086e47b3b2206174be86ccf9803f71a360eb4d820dd",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "stable-030-origin.png",
+      "bytes": 858269,
+      "sha256": "8cfa41549bd1e14393c3f453ac09c550148f30909515599d1256dbcdb300f998",
+      "originalBytesPreserved": true
+    },
+    {
+      "file": "stable-030-tour.mp4",
+      "bytes": 1072209,
+      "sha256": "d5ddfad4e17c1293d9db803852f6278cf3441c875b3c59e231e3c0d1dd4b5985",
+      "originalBytesPreserved": true
+    }
+  ],
+  "limitations": [
+    "Historical exact stable APK evidence; not a new sprint run.",
+    "UI HWUI percentiles are not GPU FPS.",
+    "Before/after PSS samples are not peak memory.",
+    "Phone performance not accepted.",
+    "Same hardware/toolchain comparison requires new baseline and candidate run under one protocol."
+  ],
+  "videoInspection": {
+    "codec": "h264",
+    "width": 1080,
+    "height": 1920,
+    "durationSeconds": 68.895478,
+    "encodedFrames": 128,
+    "encodingIsVariableFrameRate": true,
+    "encodedFramesAreNotAppFps": true,
+    "anonymousNarrativeOnly": true,
+    "inspectedThreeStillImages": true,
+    "sampledFullTimeline": true,
+    "originalVideoNotEdited": true
+  },
+  "localEmulatorOwnedProcessesStopped": true,
+  "localAvdDataPreserved": true,
+  "freshLocalAttempt": {
+    "successful": false,
+    "reason": "Existing local API36 emulator reached ADB unauthorized; no permission prompt automated; owned emulator stopped without wiping AVD.",
+    "details": "local-emulator-attempt.json"
+  }
+}

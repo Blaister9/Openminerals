@@ -1,0 +1,22 @@
+{
+  "demoOnly": true,
+  "stage": "presented-light-unrecorded-fixed-trace",
+  "automaticLightObserved": false,
+  "qualityTierObserved": "unknown",
+  "knownIds": [
+    "immersive-gl-ready",
+    "home-cinematic-scroll"
+  ],
+  "readiness": "gl-ready",
+  "mode": "gl",
+  "stateReasonCode": null,
+  "internalFailureCode": null,
+  "internalFailureObserved": false,
+  "retryPendingObserved": false,
+  "manualRetryControlObserved": false,
+  "manualLightDescriptionObserved": false,
+  "reducedMotionDescriptionObserved": false,
+  "genericSimplifiedTextObserved": false,
+  "xmlTruncated": false,
+  "rawUiPublished": false
+}

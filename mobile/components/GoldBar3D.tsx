@@ -2,12 +2,16 @@ import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState,type
 import {Animated,AppState,PanResponder,PixelRatio,Platform,Pressable,StyleSheet,Text,View} from 'react-native';
 import {requireOptionalNativeModule} from 'expo-modules-core';
 import type {ExpoWebGLRenderingContext,GLViewProps} from 'expo-gl';
-import {createFrameScheduler,createGoldBarMesh,createStudioFloorMesh,goldBarMatrices,goldBarPose,goldRenderScale,horizontalDrag,scrollProgress,GOLD_FRAGMENT_SHADER,GOLD_VERTEX_SHADER} from '../lib/gold-bar-3d';
-import {immersivePose,immersiveMatrices,IMMERSIVE_VERTEX_SHADER,IMMERSIVE_FRAGMENT_SHADER,renderBudget} from '../lib/immersive-story';
+import {createFrameScheduler,goldRenderScale,horizontalDrag,scrollProgress} from '../lib/gold-bar-3d';
+import {createStoryRenderer} from '../lib/scene-renderer';
+import {isSoftwareSceneContext,sceneCostExceeded,SCENE_COST_HISTORY} from '../lib/scene-performance';
+import {metalMaterial,type MetalCode} from '../lib/metal-materials';
+import {advanceSceneOrbit} from '../lib/scene-controls';
 
-type Props={scrollY:Animated.Value;initialScrollY:number;startY:number;endY:number;active:boolean;reducedMotion:boolean;height?:number;cinematic?:boolean;sceneDescription?:string;onLimited?:()=>void};
-type Renderer={draw:(progress:number,drag:number)=>void;dispose:()=>void};
+type Props={scrollY:Animated.Value;initialScrollY:number;startY:number;endY:number;active:boolean;reducedMotion:boolean;height?:number;cinematic?:boolean;sceneDescription?:string;metal?:MetalCode;onLimited?:()=>void};
+type Renderer={draw:(progress:number,drag:number,metal?:MetalCode,minePeek?:number)=>void;dispose:()=>void};
 type Scheduler=ReturnType<typeof createFrameScheduler>;
+type FailureReason='context-timeout'|'create'|'draw'|'boundary'|'unavailable';
 
 function availableGLView():ComponentType<GLViewProps>|null {
   try{
@@ -17,61 +21,6 @@ function availableGLView():ComponentType<GLViewProps>|null {
   }catch{return null;}
 }
 
-function createRenderer(gl:ExpoWebGLRenderingContext,cinematic=false):Renderer {
-  const buffers:WebGLBuffer[]=[],shaders:WebGLShader[]=[];
-  let program:WebGLProgram|null=null,disposed=false;
-  const dispose=()=>{
-    if(disposed)return;disposed=true;
-    // GLView owns this context; the headless destroy API must not be used.
-    for(const buffer of buffers)try{gl.deleteBuffer(buffer);}catch{}
-    for(const shader of shaders)try{gl.deleteShader(shader);}catch{}
-    if(program)try{gl.deleteProgram(program);}catch{}
-  };
-  try{
-    const compile=(type:number,source:string)=>{
-      const shader=gl.createShader(type);if(!shader)throw new Error('GL shader unavailable.');shaders.push(shader);
-      gl.shaderSource(shader,source);gl.compileShader(shader);
-      if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw new Error('GL shader compilation failed.');
-      return shader;
-    };
-    const vertex=compile(gl.VERTEX_SHADER,cinematic?IMMERSIVE_VERTEX_SHADER:GOLD_VERTEX_SHADER),fragment=compile(gl.FRAGMENT_SHADER,cinematic?IMMERSIVE_FRAGMENT_SHADER:GOLD_FRAGMENT_SHADER);
-    program=gl.createProgram();if(!program)throw new Error('GL program unavailable.');
-    gl.attachShader(program,vertex);gl.attachShader(program,fragment);gl.linkProgram(program);
-    if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error('GL program linking failed.');
-    gl.useProgram(program);
-    const mesh=createGoldBarMesh(),floor=createStudioFloorMesh();
-    const attribute=(name:string,data:Float32Array)=>{
-      const location=gl.getAttribLocation(program!,name);
-      if(location<0)throw new Error('GL attribute unavailable.');
-      const buffer=gl.createBuffer();
-      if(!buffer)throw new Error('GL attribute unavailable.');buffers.push(buffer);
-      gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
-      gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,3,gl.FLOAT,false,0,0);
-    };
-    attribute('a_position',new Float32Array([...mesh.positions,...floor.positions]));attribute('a_normal',new Float32Array([...mesh.normals,...floor.normals]));
-    const uniform=(name:string)=>{const location=gl.getUniformLocation(program!,name);if(location===null)throw new Error('GL uniform unavailable.');return location;};
-    const locations={model:uniform('u_model'),mvp:uniform('u_mvp'),camera:uniform('u_camera'),light:uniform('u_light'),refinement:uniform('u_refinement'),surface:uniform('u_surface'),shadowAngle:uniform('u_shadowAngle')};
-    const storyProgress=cinematic?uniform('u_storyProgress'):null;
-    gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);gl.frontFace(gl.CCW);
-    gl.clearColor(10/255,13/255,16/255,1);gl.clearDepth(1);
-    return {
-      draw(progress,drag){
-        if(disposed)return;
-        const width=gl.drawingBufferWidth,height=gl.drawingBufferHeight;
-        if(width<=0||height<=0)throw new Error('GL viewport unavailable.');
-        const pose=cinematic?immersivePose(progress,drag):goldBarPose(progress,drag),matrices=cinematic?immersiveMatrices(pose,width/height,progress):goldBarMatrices(pose,width/height);
-        gl.viewport(0,0,width,height);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);
-        if(storyProgress!==null)gl.uniform1f(storyProgress,progress);
-        gl.uniform3f(locations.camera,...matrices.camera);gl.uniform3f(locations.light,...pose.light);gl.uniform1f(locations.refinement,pose.refinement);gl.uniform1f(locations.shadowAngle,pose.yaw);
-        gl.uniform1f(locations.surface,1);gl.uniformMatrix4fv(locations.model,false,matrices.floorModel);gl.uniformMatrix4fv(locations.mvp,false,matrices.floorMvp);
-        gl.drawArrays(gl.TRIANGLES,mesh.vertexCount,floor.vertexCount);
-        gl.uniform1f(locations.surface,0);gl.uniformMatrix4fv(locations.model,false,matrices.model);gl.uniformMatrix4fv(locations.mvp,false,matrices.mvp);
-        gl.drawArrays(gl.TRIANGLES,0,mesh.vertexCount);gl.flush();gl.endFrameEXP();
-      },dispose,
-    };
-  }catch(error){dispose();throw error;}
-}
-
 class GLBoundary extends React.Component<{children:ReactNode;onFailure:()=>void},{failed:boolean}> {
   state={failed:false};
   static getDerivedStateFromError(){return {failed:true};}
@@ -79,44 +28,69 @@ class GLBoundary extends React.Component<{children:ReactNode;onFailure:()=>void}
   render(){return this.state.failed?null:this.props.children;}
 }
 
-export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMotion,height=290,cinematic=false,sceneDescription='Materia virtual DEMO',onLimited}:Props){
-  const [width,setWidth]=useState(0);
-  const renderScale=goldRenderScale(width,height,PixelRatio.get());
+export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMotion,height=290,cinematic=false,sceneDescription='Materia virtual DEMO',metal='XAU',onLimited}:Props){
+  const [width,setWidth]=useState(0),[balanced,setBalanced]=useState(false),[software,setSoftware]=useState(false),[allocated,setAllocated]=useState(false);
+  const material=metalMaterial(metal),metalRef=useRef(metal);metalRef.current=metal;
+  // Hardware cadence adaptation does not replace a surface being presented.
+  const renderScale=goldRenderScale(width,height,PixelRatio.get())*(software?.375:1);
   const NativeGLView=useMemo(availableGLView,[]);
   const [foreground,setForeground]=useState(AppState.currentState===null||AppState.currentState==='active');
-  const [failure,setFailure]=useState(false),[ready,setReady]=useState(false),[retry,setRetry]=useState(0);
+  const [failure,setFailure]=useState(false),[failureReason,setFailureReason]=useState<FailureReason|null>(null),[ready,setReady]=useState(false),[retry,setRetry]=useState(0);
   const renderer=useRef<Renderer|null>(null),scheduler=useRef<Scheduler|null>(null),timeout=useRef<ReturnType<typeof setTimeout>|null>(null);
-  const lastScroll=useRef(initialScrollY),drag=useRef(0),dragStart=useRef(0),readyRef=useRef(false);
+  const glContext=useRef<ExpoWebGLRenderingContext|null>(null);
+  const lastScroll=useRef(initialScrollY),drag=useRef(0),minePeek=useRef(0),lastDragDx=useRef(0),readyRef=useRef(false);
   const previousAppState=useRef(AppState.currentState);
   const samples=useRef<number[]>([]),limited=useRef(false),limitCallback=useRef(onLimited);limitCallback.current=onLimited;
   const enabled=active&&foreground&&!reducedMotion&&!failure&&NativeGLView!==null;
-  const session=useMemo(()=>Symbol('gold-bar-context'),[enabled,retry,width,height,renderScale]);
+  const surfacePresent=allocated&&foreground&&!failure&&NativeGLView!==null&&width>0;
+  const session=useMemo(()=>Symbol('gold-bar-context'),[surfacePresent,retry,width,height,renderScale,cinematic]);
+  const resourceSession=useRef<symbol|null>(null),readinessAttempt=useRef<symbol|null>(null),timeoutRetries=useRef(0);
   const currentSession=useRef(session);currentSession.current=session;
-  const latest=useRef({startY,endY,enabled});latest.current={startY,endY,enabled};
-  const stop=useCallback(()=>{
+  const latest=useRef({startY,endY,enabled,surfacePresent,balanced});latest.current={startY,endY,enabled,surfacePresent,balanced};
+  const stop=useCallback((expected?:symbol)=>{
+    if(expected!==undefined&&resourceSession.current!==expected)return;
+    readinessAttempt.current=null;
     if(timeout.current!==null){clearTimeout(timeout.current);timeout.current=null;}
     scheduler.current?.dispose();scheduler.current=null;
-    renderer.current?.dispose();renderer.current=null;readyRef.current=false;
+    renderer.current?.dispose();renderer.current=null;glContext.current=null;readyRef.current=false;resourceSession.current=null;
   },[]);
-  const fail=useCallback((expected:symbol)=>{
+  const fail=useCallback((expected:symbol,reason:FailureReason)=>{
     if(currentSession.current!==expected)return;
-    stop();setReady(false);setFailure(true);
+    currentSession.current=Symbol('failed-context');latest.current.enabled=false;
+    stop(expected);setReady(false);setFailureReason(reason);
+    // Only a fixed enum is logged: no native exception, account or user data.
+    console.warn('[Openminerals 3D] '+reason);
+    if(reason==='context-timeout'&&timeoutRetries.current<1){timeoutRetries.current++;setFailure(false);setRetry(value=>value+1);return;}
+    setFailure(true);
   },[stop]);
+  const armWatchdog=useCallback((expected:symbol)=>{
+    if(timeout.current!==null)clearTimeout(timeout.current);
+    const attempt=Symbol('readiness-attempt');readinessAttempt.current=attempt;
+    timeout.current=setTimeout(()=>{if(readinessAttempt.current===attempt&&latest.current.enabled)fail(expected,'context-timeout');},8000);
+  },[fail]);
 
   useLayoutEffect(()=>{
-    currentSession.current=session;latest.current.enabled=enabled;
+    if(enabled&&width>0)setAllocated(true);
+  },[enabled,width]);
+  useLayoutEffect(()=>{
+    currentSession.current=session;latest.current.surfacePresent=surfacePresent;
+    resourceSession.current=session;
     setReady(false);readyRef.current=false;
-    if(enabled)timeout.current=setTimeout(()=>fail(session),8000);
     return()=>{
       if(currentSession.current===session){currentSession.current=Symbol('disposed-context');latest.current.enabled=false;}
-      stop();
+      stop(session);
     };
-  },[enabled,session,fail,stop]);
+  },[surfacePresent,session,stop]);
   useEffect(()=>{
     const listener=scrollY.addListener(({value})=>{lastScroll.current=value;scheduler.current?.invalidate();});
     return()=>scrollY.removeListener(listener);
   },[scrollY]);
-  useEffect(()=>{scheduler.current?.invalidate();},[startY,endY,height,width,renderScale]);
+  useEffect(()=>{scheduler.current?.invalidate();},[startY,endY,height,width,renderScale,metal]);
+  useLayoutEffect(()=>{
+    if(!renderer.current)return;
+    // A new label is ready only after a frame with its material was submitted.
+    readyRef.current=false;setReady(false);scheduler.current?.invalidate();
+  },[metal]);
   useEffect(()=>{
     const subscription=AppState.addEventListener('change',state=>{
       const resumed=state==='active'&&previousAppState.current!=='active';
@@ -130,40 +104,98 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
     return()=>subscription.remove();
   },[stop]);
 
-  const createContext=(gl:ExpoWebGLRenderingContext,expected:symbol)=>{
-    if(currentSession.current!==expected||!latest.current.enabled)return;
-    stop();
-    try{
-      const next=createRenderer(gl,cinematic);renderer.current=next;
-      scheduler.current=createFrameScheduler({request:callback=>requestAnimationFrame(callback),cancel:cancelAnimationFrame,maxFps:30,now:()=>performance.now(),
+  const startScheduler=useCallback((expected:symbol)=>{
+    if(currentSession.current!==expected||!latest.current.enabled||!renderer.current)return;
+    scheduler.current?.dispose();
+    const next=renderer.current;
+    scheduler.current=createFrameScheduler({request:callback=>requestAnimationFrame(callback),cancel:cancelAnimationFrame,maxFps:latest.current.balanced?30:60,now:()=>performance.now(),
         draw:()=>{
           if(currentSession.current!==expected||!latest.current.enabled)return;
-          const began=performance.now();next.draw(scrollProgress(lastScroll.current,latest.current.startY,latest.current.endY),drag.current);
-          if(cinematic&&!limited.current){samples.current.push(performance.now()-began);if(samples.current.length>120)samples.current.shift();if(renderBudget(samples.current)){limited.current=true;limitCallback.current?.();}}
-          if(!readyRef.current){readyRef.current=true;if(timeout.current!==null){clearTimeout(timeout.current);timeout.current=null;}setReady(true);}
-        },onError:()=>fail(expected)});
-      timeout.current=setTimeout(()=>fail(expected),8000);scheduler.current.invalidate();
-    }catch{fail(expected);}
+          const began=performance.now();next.draw(scrollProgress(lastScroll.current,latest.current.startY,latest.current.endY),drag.current,metalRef.current,minePeek.current);
+          // On native ExpoGL draw returns after its completion barrier, so this
+          // includes queue/GPU wait and submission work, not only JS enqueueing.
+          if(cinematic&&!limited.current){samples.current.push(performance.now()-began);if(samples.current.length>SCENE_COST_HISTORY)samples.current.shift();if(sceneCostExceeded(samples.current,latest.current.balanced)){if(!latest.current.balanced)setBalanced(true);else{limited.current=true;limitCallback.current?.();}}}
+          if(!readyRef.current){readyRef.current=true;readinessAttempt.current=null;if(timeout.current!==null){clearTimeout(timeout.current);timeout.current=null;}setFailureReason(null);setReady(true);}
+        },onError:()=>fail(expected,'draw')});
+    scheduler.current.invalidate();
+  },[cinematic,fail]);
+  const prepareRenderer=useCallback((expected:symbol)=>{
+    if(currentSession.current!==expected||!latest.current.enabled||!latest.current.surfacePresent||!glContext.current)return;
+    try{
+      // Software starts at <=384 physical pixels before its first scene frame.
+      if(cinematic&&!software&&isSoftwareSceneContext(glContext.current)){setSoftware(true);setBalanced(true);return;}
+      if(!renderer.current){samples.current=[];renderer.current=createStoryRenderer(glContext.current,cinematic);}
+      startScheduler(expected);
+    }catch{fail(expected,'create');}
+  },[cinematic,software,startScheduler,fail]);
+  useLayoutEffect(()=>{
+    // Light/reduced/offscreen pauses draw work while the TextureView and its
+    // context remain mounted beneath the opaque cover. No presentation teardown.
+    scheduler.current?.dispose();scheduler.current=null;
+    readinessAttempt.current=null;
+    if(timeout.current!==null){clearTimeout(timeout.current);timeout.current=null;}
+    readyRef.current=false;setReady(false);samples.current=[];
+    if(surfacePresent&&enabled){armWatchdog(session);prepareRenderer(session);}
+  },[enabled,balanced,surfacePresent,session,prepareRenderer,armWatchdog]);
+  const createContext=(gl:ExpoWebGLRenderingContext,expected:symbol)=>{
+    if(currentSession.current!==expected||!latest.current.surfacePresent)return;
+    const previous=glContext.current;
+    // ExpoGL context IDs increase for each native creation. Ignore a delayed
+    // callback from a retired context within the same retained surface session.
+    if(previous&&Number.isFinite(previous.contextId)&&Number.isFinite(gl.contextId)&&gl.contextId<previous.contextId)return;
+    if(previous!==gl&&(!previous||previous.contextId!==gl.contextId||gl.contextId===undefined)){
+      stop();resourceSession.current=expected;glContext.current=gl;
+      readyRef.current=false;setReady(false);
+      if(latest.current.enabled)armWatchdog(expected);
+    }
+    prepareRenderer(expected);
   };
   const responder=useMemo(()=>PanResponder.create({
     onStartShouldSetPanResponder:()=>false,
     onMoveShouldSetPanResponder:(_event,gesture)=>latest.current.enabled&&horizontalDrag(gesture.dx,gesture.dy,gesture.numberActiveTouches),
     onMoveShouldSetPanResponderCapture:(_event,gesture)=>latest.current.enabled&&horizontalDrag(gesture.dx,gesture.dy,gesture.numberActiveTouches),
-    onPanResponderGrant:()=>{dragStart.current=drag.current;},
-    onPanResponderMove:(_event,gesture)=>{if(Number.isFinite(gesture.dx)){drag.current=dragStart.current+gesture.dx*.012;scheduler.current?.invalidate();}},
+    onPanResponderGrant:()=>{lastDragDx.current=0;},
+    onPanResponderMove:(_event,gesture)=>{if(Number.isFinite(gesture.dx)){const orbit=advanceSceneOrbit({yaw:drag.current,peek:minePeek.current},gesture.dx-lastDragDx.current);lastDragDx.current=gesture.dx;drag.current=orbit.yaw;minePeek.current=orbit.peek;scheduler.current?.invalidate();}},
     onPanResponderTerminationRequest:()=>true,
   }),[]);
-  const reset=()=>{drag.current=0;scheduler.current?.invalidate();};
-  const retry3D=()=>{stop();setReady(false);setFailure(false);setRetry(value=>value+1);};
-  const fallback=reducedMotion?'Movimiento reducido':failure||!NativeGLView?'Vista simplificada':!foreground?'Visor pausado':enabled?'Preparando 3D…':'Recorrido del metal';
-  return <View collapsable={false} accessible={cinematic} accessibilityRole={cinematic?'image':undefined} accessibilityLabel={cinematic?sceneDescription:undefined} testID={cinematic?(enabled&&ready?'immersive-gl-ready':reducedMotion||failure||!NativeGLView?'immersive-scene-light':'immersive-scene-pending'):undefined} style={[styles.stage,cinematic&&styles.cinematicStage,{height}]} onLayout={event=>{const nextWidth=event.nativeEvent.layout.width;setWidth(previous=>Math.abs(previous-nextWidth)>.5?nextWidth:previous);}} {...responder.panHandlers}>
-    <View style={styles.fallback} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      {!cinematic&&<><View style={styles.halo}/><View style={styles.floorLine}/></>}<View style={styles.staticShadow}/><View style={[styles.staticBar,cinematic&&styles.cinematicStaticBar]}><View style={styles.staticFace}>{!cinematic&&<><Text style={styles.maker}>⌁</Text><Text style={styles.symbol}>AU</Text><Text style={styles.word}>DEMO</Text></>}</View><View style={styles.staticEdge}/></View>
-    </View>
-    {enabled&&NativeGLView&&width>0&&<GLBoundary key={`${retry}:${width}:${height}:${renderScale}`} onFailure={()=>fail(session)}>
-      <NativeGLView style={{position:'absolute',top:0,left:0,width:width*renderScale,height:height*renderScale,transformOrigin:'top left',transform:[{scale:1/renderScale}],opacity:ready?1:0}} onContextCreate={gl=>createContext(gl,session)} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"/>
+  const reset=()=>{drag.current=0;minePeek.current=0;lastDragDx.current=0;scheduler.current?.invalidate();};
+  const retry3D=()=>{currentSession.current=Symbol('manual-retry');latest.current.enabled=false;stop();timeoutRetries.current=0;setReady(false);setFailureReason(null);setFailure(false);setRetry(value=>value+1);};
+  const internalReason:FailureReason|null=!NativeGLView?'unavailable':failureReason;
+  const diagnostic=failure||!NativeGLView?'Vista ligera por fallo 3D: '+internalReason:reducedMotion?'Vista ligera':ready?balanced?'Calidad 3D equilibrada':'Calidad 3D alta':internalReason==='context-timeout'?'Reintentando 3D: context-timeout':'Preparando 3D';
+  const fallback=reducedMotion?'Movimiento reducido':failure||!NativeGLView?'3D no disponible · '+internalReason:!foreground?'Visor pausado':enabled?'Preparando 3D…':'Recorrido del metal';
+  // Fade the specimen inside a bounded strip instead of a full-screen alpha
+  // layer. Keep its center and contact shadow at the same screen coordinates.
+  const lightStageHeight=Math.max(220,height*.32);
+  // The lightweight mine image stays still. Only narrative fades follow the user's
+  // scroll, including reverse scroll; there is no timer, camera or idle loop.
+  const fallbackFade=useMemo(()=>{
+    const span=Math.max(1,endY-startY);
+    return {
+      mine:scrollY.interpolate({inputRange:[startY+span*.24,startY+span*.4],outputRange:[1,0],extrapolate:'clamp'}),
+      bar:scrollY.interpolate({inputRange:[startY+span*.1,startY+span*.25],outputRange:[0,1],extrapolate:'clamp'}),
+    };
+  },[scrollY,startY,endY]);
+  return <View collapsable={false} accessible={cinematic&&!(failure&&NativeGLView)} accessibilityRole={cinematic?'image':undefined} accessibilityLabel={cinematic?sceneDescription+(internalReason?' Estado 3D: '+internalReason+'.':''):undefined} accessibilityValue={cinematic?{text:diagnostic}:undefined} testID={cinematic?(enabled&&ready?'immersive-gl-ready':reducedMotion||failure||!NativeGLView?'immersive-scene-light':'immersive-scene-pending'):undefined} style={[styles.stage,cinematic&&styles.cinematicStage,{height}]} onLayout={event=>{const nextWidth=event.nativeEvent.layout.width;setWidth(previous=>Math.abs(previous-nextWidth)>.5?nextWidth:previous);}} {...responder.panHandlers}>
+    {surfacePresent&&NativeGLView&&<GLBoundary key={`${retry}:${width}:${height}:${renderScale}:${cinematic}`} onFailure={()=>fail(session,'boundary')}>
+      {/* Creation stays visible. A paused, retained TextureView is excluded
+          from composition beneath the opaque lightweight cover. */}
+      <NativeGLView style={{position:'absolute',top:0,left:0,width:width*renderScale,height:height*renderScale,transformOrigin:'top left',transform:[{scale:1/renderScale}],opacity:enabled?1:0}} onContextCreate={gl=>createContext(gl,session)} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"/>
     </GLBoundary>}
-    {!cinematic&&<><View pointerEvents="none" style={styles.edition}><Text style={styles.simulated}>OBJETO DE ESTUDIO</Text><Text style={styles.editionNumber}>Au / 79</Text></View>
+    {(!enabled||!ready)&&<View pointerEvents="none" style={styles.fallback} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      {cinematic&&<Animated.Image source={require('../assets/geology-light.png')} resizeMode="cover" style={[styles.lightMine,{opacity:fallbackFade.mine}]}/>}
+      {!cinematic&&<><View style={styles.halo}/><View style={styles.floorLine}/></>}
+      <Animated.View pointerEvents="none" style={[styles.lightBarStage,cinematic?{top:(height-lightStageHeight)/2,left:'50%',width:340,height:lightStageHeight,marginLeft:-170}:StyleSheet.absoluteFill,{opacity:cinematic?fallbackFade.bar:1}]}>
+        <View style={[styles.staticShadow,cinematic&&{top:lightStageHeight/2+height*.12}]}/>
+        <View style={[styles.staticBar,metal==='XAU'?styles.goldSurface:styles.whiteSurface,cinematic&&styles.cinematicStaticBar]}>
+          <View style={[styles.staticFace,metal==='XAU'?styles.goldFace:styles.whiteFace]}>
+            <Text style={[styles.maker,metal!=='XAU'&&styles.whiteEngraving]}>⌁</Text><Text style={[styles.symbol,metal!=='XAU'&&styles.whiteEngraving]}>{material.symbol}</Text><Text style={[styles.word,metal!=='XAU'&&styles.whiteEngraving]}>DEMO</Text>
+          </View>
+          <View style={[styles.staticEdge,metal!=='XAU'&&styles.whiteEdge]}/>
+        </View>
+      </Animated.View>
+    </View>}
+    {cinematic&&failure&&NativeGLView&&!reducedMotion&&<View style={styles.cinematicStatus}><Text style={styles.statusText}>{fallback}</Text><Pressable accessibilityRole="button" accessibilityLabel="Reintentar 3D" onPress={retry3D} style={styles.smallButton}><Text style={styles.smallButtonText}>Reintentar 3D</Text></Pressable></View>}
+    {!cinematic&&<><View pointerEvents="none" style={styles.edition}><Text style={styles.simulated}>OBJETO DE ESTUDIO</Text><Text style={styles.editionNumber}>{material.symbol} · DEMO</Text></View>
     <Text pointerEvents="none" style={styles.demo}>METAL SIMULADO</Text></>}
     {!cinematic&&(ready?<View style={styles.helpRow}><Text style={styles.hint}>Arrastra ↔ · Desliza ↓</Text><Pressable accessibilityRole="button" accessibilityLabel="Restablecer orientación del lingote" onPress={reset} style={styles.smallButton}><Text style={styles.smallButtonText}>Restablecer</Text></Pressable></View>:
       <View style={styles.status}><Text style={styles.statusText}>{fallback}</Text>{(failure||!NativeGLView)&&!reducedMotion&&<Pressable accessibilityRole="button" onPress={retry3D} style={styles.smallButton}><Text style={styles.smallButtonText}>Reintentar 3D</Text></Pressable>}</View>)}
@@ -172,10 +204,12 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
 
 const styles=StyleSheet.create({
   cinematicStage:{borderRadius:0},cinematicStaticBar:{width:280,height:150},
-  stage:{overflow:'hidden',backgroundColor:'#0A0D10',borderRadius:12},fallback:{position:'absolute',top:0,right:0,bottom:0,left:0,alignItems:'center',justifyContent:'center'},
+  stage:{overflow:'hidden',backgroundColor:'#0A0D10',borderRadius:12},fallback:{position:'absolute',top:0,right:0,bottom:0,left:0,alignItems:'center',justifyContent:'center',backgroundColor:'#0A0D10'},lightBarStage:{position:'absolute',alignItems:'center',justifyContent:'center'},
+  lightMine:{position:'absolute',top:0,left:0,width:'100%',height:'100%'},
   halo:{position:'absolute',width:250,height:180,borderRadius:120,backgroundColor:'#141C21'},floorLine:{position:'absolute',left:22,right:22,bottom:'24%',height:1,backgroundColor:'#20282C'},staticShadow:{position:'absolute',width:205,height:33,borderRadius:30,backgroundColor:'#070C10',top:'62%',transform:[{rotate:'-8deg'}]},
-  staticBar:{width:190,height:105,borderRadius:15,borderWidth:2,borderTopColor:'#FAE6AA',borderLeftColor:'#CBA355',borderRightColor:'#AE7D30',borderBottomColor:'#715022',backgroundColor:'#C59A48',transform:[{perspective:700},{rotateX:'24deg'},{rotateZ:'-9deg'}],elevation:9,shadowColor:'#000',shadowOffset:{width:0,height:14},shadowOpacity:.4,shadowRadius:15},staticFace:{flex:1,borderRadius:11,borderWidth:1,borderColor:'#94713A',margin:6,alignItems:'center',justifyContent:'center'},staticEdge:{position:'absolute',left:3,right:3,bottom:-5,height:5,borderBottomLeftRadius:12,borderBottomRightRadius:12,backgroundColor:'#7C591F'},maker:{color:'#755018',fontSize:18,lineHeight:18},symbol:{fontSize:36,lineHeight:40,fontWeight:'600',letterSpacing:4,color:'#5D421D',textShadowColor:'#F9D88D',textShadowOffset:{width:0,height:1},textShadowRadius:1},word:{fontSize:8,fontWeight:'700',letterSpacing:4,color:'#765326'},
+  staticBar:{width:190,height:105,borderRadius:15,borderWidth:2,transform:[{perspective:700},{rotateX:'24deg'},{rotateZ:'-9deg'}],elevation:9,shadowColor:'#000',shadowOffset:{width:0,height:14},shadowOpacity:.4,shadowRadius:15},goldSurface:{borderTopColor:'#FAE6AA',borderLeftColor:'#CBA355',borderRightColor:'#AE7D30',borderBottomColor:'#715022',backgroundColor:'#C59A48'},whiteSurface:{borderTopColor:'#EFF1EF',borderLeftColor:'#B9BFBD',borderRightColor:'#848D8B',borderBottomColor:'#505B59',backgroundColor:'#A5ADAA'},staticFace:{flex:1,borderRadius:11,borderWidth:1,margin:6,alignItems:'center',justifyContent:'center'},goldFace:{borderColor:'#94713A'},whiteFace:{borderColor:'#6E7975'},staticEdge:{position:'absolute',left:3,right:3,bottom:-5,height:5,borderBottomLeftRadius:12,borderBottomRightRadius:12,backgroundColor:'#7C591F'},whiteEdge:{backgroundColor:'#606D68'},whiteEngraving:{color:'#3F4C47',textShadowColor:'#EBF0EB'},maker:{color:'#755018',fontSize:18,lineHeight:18},symbol:{fontSize:36,lineHeight:40,fontWeight:'600',letterSpacing:4,color:'#5D421D',textShadowColor:'#F9D88D',textShadowOffset:{width:0,height:1},textShadowRadius:1},word:{fontSize:8,fontWeight:'700',letterSpacing:4,color:'#765326'},
   edition:{position:'absolute',top:17,left:16},simulated:{fontSize:8,fontWeight:'600',letterSpacing:2,color:'#AFA68F'},editionNumber:{fontSize:12,fontWeight:'500',letterSpacing:1,color:'#E3D3AF',marginTop:5},demo:{position:'absolute',right:15,top:18,fontSize:7,fontWeight:'600',letterSpacing:1.25,color:'#ABAC9D'},
   helpRow:{position:'absolute',bottom:7,left:10,right:5,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},hint:{fontSize:10,color:'#B6C2CB'},smallButton:{minHeight:42,paddingHorizontal:10,justifyContent:'center'},smallButtonText:{fontSize:11,color:'#E4C58B',fontWeight:'700'},
   status:{position:'absolute',bottom:0,left:10,right:5,minHeight:46,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},statusText:{fontSize:11,color:'#B6C2CB',flex:1},
+  cinematicStatus:{position:'absolute',top:66,left:16,right:16,minHeight:46,paddingLeft:12,flexDirection:'row',alignItems:'center',backgroundColor:'#0A0D10',borderRadius:8},
 });

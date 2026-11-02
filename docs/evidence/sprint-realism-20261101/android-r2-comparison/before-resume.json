@@ -1,0 +1,10 @@
+{
+  "demoOnly": true,
+  "physicalDevice": false,
+  "sameProcess": true,
+  "backgroundObserved": true,
+  "stagePreserved": true,
+  "glReadyAfterResume": true,
+  "reversibleGesturesAfterResume": true,
+  "noForceStopDuringResume": true
+}

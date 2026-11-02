@@ -1,0 +1,211 @@
+{
+  "run": 41388807925,
+  "job": 125095475244,
+  "jobName": "before-after (comparison)",
+  "url": "https://github.com/Blaister9/Openminerals/actions/runs/41388807925/job/125095475244",
+  "artifact": 13117060707,
+  "workflowHead": "fa308d0bc9a183bee092fd910eca4dc911078642",
+  "scope": "comparison",
+  "candidateSource": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+  "candidateVersionCode": 4,
+  "candidateInstalled": false,
+  "candidateExecuted": false,
+  "conclusion": "failure",
+  "completedNativeStages": 4,
+  "failedStage": "presented-recorded-fixed-trace",
+  "failureReason": "Anonymous video does not cover the measured trace; incomplete evidence retained.",
+  "failureDuringPresentedStableVersion": "0.3.0",
+  "boundedScene": {
+    "demoOnly": true,
+    "stage": "presented-recorded-fixed-trace",
+    "automaticLightObserved": false,
+    "qualityTierObserved": "unknown",
+    "knownIds": [
+      "immersive-gl-ready",
+      "home-cinematic-scroll"
+    ],
+    "readiness": "gl-ready",
+    "mode": "gl",
+    "stateReasonCode": null,
+    "internalFailureCode": null,
+    "internalFailureObserved": false,
+    "retryPendingObserved": false,
+    "manualRetryControlObserved": false,
+    "manualLightDescriptionObserved": false,
+    "reducedMotionDescriptionObserved": false,
+    "genericSimplifiedTextObserved": false,
+    "xmlTruncated": false,
+    "rawUiPublished": false
+  },
+  "failureFlags": {
+    "demoOnly": true,
+    "credentialsEntered": false,
+    "nativeGlFailureCounts": {
+      "context-timeout": 0,
+      "create": 0,
+      "draw": 0,
+      "boundary": 0
+    },
+    "unknownNativeGlDiagnosticLines": 0,
+    "diagnosticLogTruncated": false,
+    "rawLogsPublished": false,
+    "diagnosticInterpretation": "Static warning counts only; a timeout warning may precede a successful bounded retry. Current scene state determines internal failure, not warning history.",
+    "reactNativeJsError": false,
+    "javaScriptTypeError": false,
+    "nativeFatalException": false,
+    "glContextFailure": false,
+    "shaderFailure": false
+  },
+  "conditions": [
+    {
+      "file": "before-performance-light-unrecorded.json",
+      "version": "0.3.0",
+      "mode": "light",
+      "p50Ms": 61,
+      "p90Ms": 77,
+      "p95Ms": 85,
+      "uiFrames": 658,
+      "jankyUiFrames": 652,
+      "pssBeforeKiB": 117733,
+      "pssAfterKiB": 116196,
+      "startTotalMs": 1822,
+      "coldLaunchVerified": true,
+      "measurementValid": true,
+      "checks": {
+        "traceFinalAccessibility": true,
+        "embeddedAfterTrace": true
+      },
+      "traceDurationMs": 34085.07461399998
+    },
+    {
+      "file": "before-performance-recorded.json",
+      "version": "0.3.0",
+      "mode": "gl",
+      "p50Ms": 300,
+      "p90Ms": 600,
+      "p95Ms": 700,
+      "uiFrames": 52,
+      "jankyUiFrames": 52,
+      "pssBeforeKiB": 118894,
+      "pssAfterKiB": 118944,
+      "startTotalMs": 1453,
+      "coldLaunchVerified": true,
+      "measurementValid": false,
+      "checks": {
+        "traceFinalAccessibility": false,
+        "embeddedAfterTrace": false
+      },
+      "traceDurationMs": 39724.32398300001
+    }
+  ],
+  "videoValidation": {
+    "demoOnly": true,
+    "videoFile": "before-anonymous-scroll-incomplete.mp4",
+    "videoEvidenceValid": false,
+    "endpointScreenshotWritten": false,
+    "mediaInspectionComplete": false,
+    "coverage": {
+      "temporalCoverageValid": false,
+      "finalSamples": [],
+      "visualFinalStageVerified": false
+    },
+    "inputExecutionFailed": false,
+    "recorderAliveAtTraceEnd": true,
+    "inputTraceComplete": true,
+    "containerReadable": true,
+    "inspectionFailure": true,
+    "traceObservedDurationMs": 39724.32398300001,
+    "physicalDevice": false,
+    "gpuFpsMeasured": false
+  },
+  "localProbe": {
+    "ffprobeSucceeded": false,
+    "ffmpegSucceeded": false,
+    "error": "moov atom not found",
+    "ptsCoverageComputed": false,
+    "timelineContactGenerated": false,
+    "videoRepairAttempted": false,
+    "originalNeverModified": true
+  },
+  "visualReview": {
+    "beforeSevenChapterPngsInspected": true,
+    "beforeGallery": "local-review/before-chapters.jpg",
+    "failurePng": "GL bar at FORMACION DEL LINGOTE; visual final Portafolio is not demonstrated.",
+    "privateUiObserved": false
+  },
+  "media": [
+    {
+      "file": "anonymous-failure.png",
+      "bytes": 582523,
+      "sha256": "5fc2230ca4169d505436930f3860cfdd3bc38600875865ed52dd2626cb48341d",
+      "originalBytesPreserved": true,
+      "inspection": "visually inspected"
+    },
+    {
+      "file": "before-anonymous-scroll-incomplete.mp4",
+      "bytes": 430429,
+      "sha256": "1d3b216ae43f655ee3a52efb600a71532fa9e8645472afc369ce775b6649fb43",
+      "originalBytesPreserved": true,
+      "inspection": "ffprobe and ffmpeg reject: moov atom not found; no playable timeline"
+    },
+    {
+      "file": "before-safe-story-1.png",
+      "bytes": 912228,
+      "sha256": "555c90244d27c0e733a47f53899fe2d7883b060affffd33e990733dc8aea36a7",
+      "originalBytesPreserved": true,
+      "inspection": "visually inspected"
+    },
+    {
+      "file": "before-safe-story-2.png",
+      "bytes": 1395151,
+      "sha256": "e815315286f124c62d27fc7e8189bb39c2a61f9f8575c0a9ee737d5669bb1170",
+      "originalBytesPreserved": true,
+      "inspection": "visually inspected"
+    },
+    {
+      "file": "before-safe-story-3.png",
+      "bytes": 854855,
+      "sha256": "d1fbe7d81e78bc896dbc877f5ff6d0e566921d7ebb2ca1cb39d2c556243c82db",
+      "originalBytesPreserved": true,
+      "inspection": "visually inspected"
+    },
+    {
+      "file": "before-safe-story-4.png",
+      "bytes": 530829,
+      "sha256": "325367eaa70022c843a1adfbf9501bb6c1c5df6317955fc2cca30e0cf07dda6f",
+      "originalBytesPreserved": true,
+      "inspection": "visually inspected"
+    },
+    {
+      "file": "before-safe-story-5.png",
+      "bytes": 484516,
+      "sha256": "01dcba99f925e6a9b142438e804dfbe2f7d1000c6b3e38ed23b44f211f7e0fc2",
+      "originalBytesPreserved": true,
+      "inspection": "visually inspected"
+    },
+    {
+      "file": "before-safe-story-6.png",
+      "bytes": 563115,
+      "sha256": "823116325fae3cb13a434b6220cb2774eba8ef376ce981a21e7601d3e0ac02b1",
+      "originalBytesPreserved": true,
+      "inspection": "visually inspected"
+    },
+    {
+      "file": "before-safe-story-7.png",
+      "bytes": 503645,
+      "sha256": "c3877cdb6019c6f7d7a724905b7c8ba58387da9601ba258223c105a05e9c6d31",
+      "originalBytesPreserved": true,
+      "inspection": "visually inspected"
+    }
+  ],
+  "limitations": [
+    "Comparison failed on the fixed presented0.3.0 baseline before candidate install/execution; this is not a result for R4.",
+    "Recorded stable metric is invalid. The valid explicit-light baseline alone is not a before/after candidate comparison.",
+    "Screenrecord remained alive at trace end, but file finalization/readability failed. Last bounded endpoint screencap command timed out20seconds. Cause of capture/infrastructure versus rendering behavior is not established.",
+    "Candidate GLchapters/metrics/reduced/resume/stablefinalpreservation not reached.",
+    "Commerce and authentication are deliberately separate matrix jobs; not assessed by this comparison review.",
+    "No physical phone orGPUFPS acceptance."
+  ],
+  "sourceChangedByReviewer": false,
+  "workflowRerunByReviewer": false
+}

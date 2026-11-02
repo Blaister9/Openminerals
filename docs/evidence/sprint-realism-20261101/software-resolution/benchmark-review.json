@@ -1,0 +1,113 @@
+{
+  "demoOnly": true,
+  "sourceCommit": "0d3fa50791a6e86d8944c2d07026fcc5bc5c6999",
+  "rendererBrowserVersion": "156.0.8078.74",
+  "nodeVersion": "v22.22.3",
+  "protocol": {
+    "aspect": "9:16",
+    "samePoses": true,
+    "poseCount": 18,
+    "warmupDrawsPerResolution": 18,
+    "measuredDrawsPerResolution": 90,
+    "measuredRounds": 5,
+    "compilationExcluded": true,
+    "fullFrameReadbackIncluded": true,
+    "readbackBytesPerDraw": "width*height*4",
+    "oneGlFinishPerMeasuredDraw": true,
+    "viewportSizes": [
+      [
+        360,
+        640
+      ],
+      [
+        216,
+        384
+      ],
+      [
+        180,
+        320
+      ]
+    ],
+    "resolutionOrder": [
+      640,
+      384,
+      320
+    ],
+    "independentContextPerResolution": true
+  },
+  "completionFence": "gl.finish followed by full-viewport RGBA readPixels. Timed cost includes the readback copy; no pure GPU timer is claimed.",
+  "sourceFreeze": "git show exact R3 commit, independent of concurrent R4 working-tree edits",
+  "profiles": [
+    {
+      "longSide": 640,
+      "width": 360,
+      "height": 640,
+      "pixels": 230400,
+      "medianMs": 11.899999998509884,
+      "p90Ms": 14.5,
+      "p95Ms": 20.700000002980232,
+      "tunnelAndExtractionP95Ms": 22.100000001490116,
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    },
+    {
+      "longSide": 384,
+      "width": 216,
+      "height": 384,
+      "pixels": 82944,
+      "medianMs": 5,
+      "p90Ms": 6.5,
+      "p95Ms": 8.5,
+      "tunnelAndExtractionP95Ms": 9,
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    },
+    {
+      "longSide": 320,
+      "width": 180,
+      "height": 320,
+      "pixels": 57600,
+      "medianMs": 3.5,
+      "p90Ms": 5.199999995529652,
+      "p95Ms": 6.299999997019768,
+      "tunnelAndExtractionP95Ms": 6.700000002980232,
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    }
+  ],
+  "visualReview": {
+    "contact": "resolution-quality-contact.png",
+    "contactRender": "Original PNGs scaled to360x640 with bilinear interpolation for equal-size internal inspection; native-resolution PNGs remain untouched.",
+    "posesReviewed": [
+      0,
+      4,
+      8
+    ],
+    "size640": "Best mineral cracks, distant veins and engraving detail.",
+    "size384": "Preserves depth, recognizable lamps/veins and rock silhouette, with visible softness and weaker bar engraving.",
+    "size320": "Further silhouette stair-stepping and noticeably weaker fine engraving; lower cost but more quality loss."
+  },
+  "provisionalRecommendation": {
+    "explicitSoftwareLongSide": 384,
+    "scope": "Recognized software renderer only; a candidate tier for Android verification, not acceptance or a physical GPU default.",
+    "pixelReductionVersus640": 0.64,
+    "reason": "Cuts pixel count64% and observed completion+readback median from11.9ms to5.0ms; tunnelP95 from22.1ms to9.0ms, while preserving more detail than320.",
+    "androidVerificationRequired": true,
+    "rendererTransitionStallExplainedByThisBenchmark": false
+  },
+  "invalidPilot": {
+    "path": "../r3-software-resolution-benchmark/finish-only-caveat.json",
+    "usable": false,
+    "reason": "Near-zero finish-only timings failed the observable completion sanity check."
+  },
+  "limitations": [
+    "Desktop software completion costs are not Android/physical GPU/compositor timings or FPS.",
+    "Full RGBA readback, when enabled, is included as an observable completion fence and adds transfer overhead.",
+    "Finish-only near-zero measurements do not demonstrate raster completion and must not determine a tier.",
+    "Single host and ordered conditions, no randomization or cross-run statistical acceptance.",
+    "Warmup excludes shader compilation; no native lifecycle, input or fallback transition is exercised.",
+    "Pixel dimensions and screenshots expose the visual-quality tradeoff; a budget hit is not device acceptance."
+  ],
+  "android": false,
+  "physicalDevice": false,
+  "gpuFpsMeasured": false,
+  "phonePerformanceAcceptance": false,
+  "sourceOrAppEdited": false
+}

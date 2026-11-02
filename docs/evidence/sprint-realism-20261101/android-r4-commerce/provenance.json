@@ -1,0 +1,77 @@
+{
+  "format": "openminerals-native-commerce-pass-evidence-v1",
+  "demoOnly": true,
+  "runUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41388807925",
+  "jobUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41388807925/job/125095475432",
+  "harnessHeadCommit": "fa308d0bc9a183bee092fd910eca4dc911078642",
+  "artifactVerificationCommit": "93e5c3ad5fb9f8917aedeb70bcd53f02f062f96b",
+  "scope": "Commerce job only; no visual benchmark acceptance is attributed to this job.",
+  "conclusion": "success",
+  "nativeStages": {
+    "passed": 15,
+    "failed": 0
+  },
+  "candidate": {
+    "sha256": "adfbf909f0cf0c924c7b8938a1a773c5c96b84f14f86ae0e8c0bf53b7e1b1bf5",
+    "kind": "after",
+    "package": "com.openminerals.demo.minepreview",
+    "version": "0.4.0",
+    "versionCode": 4,
+    "runtime": "0.4.0",
+    "channel": "mine-realism",
+    "certificate": "86c84db35e91b187f3f818c0cc74ddb91df9a95014cba138ac7e04611957aa09",
+    "embeddedHttpsApi": true,
+    "embeddedBytes": 1661632,
+    "debuggable": false
+  },
+  "rawLogsPublished": false,
+  "privateUiPublished": false,
+  "phoneAcceptance": false,
+  "files": [
+    {
+      "file": "summary-download.json",
+      "bytes": 1289,
+      "sha256": "8cc952f1a501d081f055a9b8d2037f2f16104372a15f341937811a0ff589d1f4"
+    },
+    {
+      "file": "summary-run.json",
+      "bytes": 1947,
+      "sha256": "4ad4c2cecd68d34dc44e1da0d1949798eca101e8e6bffe46170a4c7fb99f4391"
+    },
+    {
+      "file": "report-download.xml",
+      "bytes": 225,
+      "sha256": "015382bf5c44884ce032fd5e34b21fd9100f758812d42fc0d858120741bc80e4"
+    },
+    {
+      "file": "report-run.xml",
+      "bytes": 1891,
+      "sha256": "6832a889504c58fcf55ecba2d19a817130a446a1b9c74ce34d63c738417f146e"
+    },
+    {
+      "file": "progress.json",
+      "bytes": 1363,
+      "sha256": "5845c4cc0ca50ae7d786c1a86b3c4a1af55c18e10e63bcf204470e8100d3c1e1"
+    },
+    {
+      "file": "progress.ndjson",
+      "bytes": 59287,
+      "sha256": "a7f6bd33e09b7405736aef3c11fc16efb37607988305c6da1970454f39f6313b"
+    },
+    {
+      "file": "apk-verification.json",
+      "bytes": 1205,
+      "sha256": "5db59b106eac30a53f0c0740fe29f39996731cf7494117e5a17d63de09114c7e"
+    },
+    {
+      "file": "stable-preservation.json",
+      "bytes": 320,
+      "sha256": "31d23e89120be044fea4cfc96c4fcb1d64756f7fea98745b5305e316aa3c4523"
+    },
+    {
+      "file": "review.json",
+      "bytes": 2939,
+      "sha256": "9677ff7dd864d9bd9b6eab762c0ab74a43e9690c407e8c2a3bb7933d85387783"
+    }
+  ]
+}

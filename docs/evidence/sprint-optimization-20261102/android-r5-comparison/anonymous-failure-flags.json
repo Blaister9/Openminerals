@@ -1,0 +1,19 @@
+{
+  "demoOnly": true,
+  "credentialsEntered": false,
+  "nativeGlFailureCounts": {
+    "context-timeout": 0,
+    "create": 0,
+    "draw": 0,
+    "boundary": 0
+  },
+  "unknownNativeGlDiagnosticLines": 0,
+  "diagnosticLogTruncated": false,
+  "rawLogsPublished": false,
+  "diagnosticInterpretation": "Static warning counts only; a timeout warning may precede a successful bounded retry. Current scene state determines internal failure, not warning history.",
+  "reactNativeJsError": false,
+  "javaScriptTypeError": false,
+  "nativeFatalException": false,
+  "glContextFailure": false,
+  "shaderFailure": false
+}

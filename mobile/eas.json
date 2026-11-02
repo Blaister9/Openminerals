@@ -1,6 +1,16 @@
 {
   "cli": { "version": ">= 18.0.0", "appVersionSource": "local" },
   "build": {
+    "mine-realism": {
+      "environment": "preview",
+      "channel": "mine-realism",
+      "distribution": "internal",
+      "env": {
+        "OPENMINERALS_MINE_PREVIEW": "1",
+        "EXPO_PUBLIC_API_URL": "https://openminerals-api-demo.up.railway.app"
+      },
+      "android": { "buildType": "apk" }
+    },
     "development": { "developmentClient": true, "distribution": "internal" },
     "preview": {
       "environment": "preview",
