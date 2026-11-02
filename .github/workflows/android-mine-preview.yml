@@ -18,9 +18,6 @@ on:
         required: true
 permissions:
   contents: read
-concurrency:
-  group: openminerals-isolated-native-mine-preview
-  cancel-in-progress: false
 jobs:
   before-after:
     if: >-
@@ -35,6 +32,9 @@ jobs:
       max-parallel: 2
       matrix:
         validation_scope: [comparison, commerce]
+    concurrency:
+      group: openminerals-isolated-native-mine-preview-${{ matrix.validation_scope }}
+      cancel-in-progress: false
     env:
       APK_INPUT_URL: ${{ inputs.apk_url }}
       APK_INPUT_SHA256: ${{ inputs.apk_sha256 }}

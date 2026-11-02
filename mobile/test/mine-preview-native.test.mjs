@@ -7,7 +7,7 @@ import {tmpdir} from 'node:os';
 import {join,resolve,sep} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {seedState,applyCommand,availableHoldingMg} from '../../api/src/domain.js';
-import {PRESENTED,PREVIEW,previewInputs,previewFlow,gestureTrace,executeTrace,metadataValue,verifyArtifact,installedIdentity,assertStablePreserved,legacyCommerceFlow,publicFailureReason,anonymousSceneFlags,authorizedAuthFlow,authorizedPublicOperator,publicOperatorPreflight,observeColdLaunch,videoCoverage,publishAnonymousScreenshots,adaptiveCandidateStory,nativeValidationScope,effectiveValidationScope,anonymousSceneState,adaptiveCandidateResume,nativeGlDiagnostics,legacyReservationFlow,legacyHistoryFlow,staticFlowDiagnosticAllowed} from '../e2e/mine-preview.mjs';
+import {PRESENTED,PREVIEW,previewInputs,previewFlow,gestureTrace,executeTrace,metadataValue,verifyArtifact,installedIdentity,assertStablePreserved,legacyCommerceFlow,publicFailureReason,anonymousSceneFlags,authorizedAuthFlow,authorizedPublicOperator,publicOperatorPreflight,observeColdLaunch,videoCoverage,publishAnonymousScreenshots,adaptiveCandidateStory,nativeValidationScope,effectiveValidationScope,anonymousSceneState,adaptiveCandidateResume,nativeGlDiagnostics,legacyReservationFlow,legacyHistoryFlow,staticFlowDiagnosticAllowed,authFailureMetadata} from '../e2e/mine-preview.mjs';
 import {API,PACKAGE} from '../e2e/ci-safety.mjs';
 import {embeddedFlow} from '../e2e/release-contract.mjs';
 const yaml=createRequire(import.meta.url)('yaml');
@@ -23,7 +23,7 @@ test('preview QA pins the presented 0.3.0 bytes and separates Android package/ru
   assert.equal(PRESENTED.sha256,'d99e8af9617f56d7862a849ebd057025cb9d6adc164b97496a5532f7b29ad29e');
   assert.equal(PRESENTED.source,'eae7f6ad57f5a667c2bf40775a4cb30f1c0dd8b6');
   assert.equal(PRESENTED.package,PACKAGE);assert.equal(PRESENTED.version,'0.3.0');assert.equal(PRESENTED.code,6);
-  assert.equal(PREVIEW.package,'com.openminerals.demo.minepreview');assert.equal(PREVIEW.version,'0.4.0');assert.equal(PREVIEW.code,3);
+  assert.equal(PREVIEW.package,'com.openminerals.demo.minepreview');assert.equal(PREVIEW.version,'0.4.0');assert.equal(PREVIEW.code,4);
   assert.notEqual(PREVIEW.runtime,PRESENTED.runtime);assert.notEqual(PREVIEW.channel,PRESENTED.channel);
 });
 
@@ -129,6 +129,18 @@ test('generated editable-field commands use explicit erase counts and scalar key
     for(const item of Object.values(value))visit(item);
   };
   for(const source of sources)visit(yaml.parseAllDocuments(source)[1].toJSON());assert.ok(fields>=10);assert.equal(fields,keyboards);
+});
+
+test('returning from the disabled buy button searches upward to edit the quantity field',()=>{
+  const commands=yaml.parseAllDocuments(legacyCommerceFlow())[1].toJSON(),disabled=commands.findIndex(command=>command.assertVisible?.text==='^Confirmar compra simulada$'&&command.assertVisible.enabled===false);
+  assert.ok(disabled>0);assert.deepEqual(commands[disabled+1].scrollUntilVisible,{element:{text:'Cantidad de metal en gramos'},direction:'UP',centerElement:true,timeout:30000});
+  const first=commands.find(command=>command.scrollUntilVisible?.element?.text==='Cantidad de metal en gramos');assert.equal(first.scrollUntilVisible.direction,'DOWN');
+});
+
+test('authentication diagnostics project only closed category and command type/index',()=>{
+  const canary='private_alias_password_bearer_canary',input={category:'timeout',firstFailedCommand:{index:12,type:'input-text',selector:canary},recentCommands:[{selector:canary}],raw:canary};
+  const safe=authFailureMetadata(input);assert.deepEqual(safe,{category:'timeout',firstFailedCommand:{index:12,type:'input-text'},rawDiagnosticsPublished:false,privateUiPublished:false});assert.ok(!JSON.stringify(safe).includes(canary));
+  assert.deepEqual(authFailureMetadata({category:canary,firstFailedCommand:{index:8,type:canary}}).firstFailedCommand,{index:8,type:'other'});assert.equal(authFailureMetadata({firstFailedCommand:{index:canary,type:'tap'}}).firstFailedCommand,null);
 });
 
 test('legacy static parser diagnostics are closed to owned flows and stop before credentials',()=>{
@@ -281,8 +293,9 @@ test('public operator preflight revokes its observer token before native login a
 test('preview workflow limits automatic runs to the trusted sprint PR and isolates stable acceptance contracts',async()=>{
   const workflow=yaml.parse(await read('../../.github/workflows/android-mine-preview.yml'));
   assert.deepEqual(Object.keys(workflow.on),['pull_request','workflow_dispatch']);assert.deepEqual(workflow.on.pull_request.branches,['main']);assert.deepEqual(Object.keys(workflow.on.workflow_dispatch.inputs),['apk_url','apk_sha256','apk_certificate_sha256']);
-  assert.deepEqual(workflow.permissions,{contents:'read'});assert.equal(workflow.concurrency['cancel-in-progress'],false);
+  assert.deepEqual(workflow.permissions,{contents:'read'});assert.equal(workflow.concurrency,undefined);
   const job=workflow.jobs['before-after'],runner=job.steps.find(step=>step.uses?.startsWith('ReactiveCircus/'));
+  assert.equal(job.concurrency.group,'openminerals-isolated-native-mine-preview-${{ matrix.validation_scope }}');assert.equal(job.concurrency['cancel-in-progress'],false);
   assert.deepEqual(job.strategy.matrix.validation_scope,['comparison','commerce']);assert.equal(job.strategy['fail-fast'],false);assert.equal(job.strategy['max-parallel'],2);assert.equal(job.env.MINE_PREVIEW_QA_SCOPE,'${{ matrix.validation_scope }}');
   const mediaIndex=job.steps.findIndex(step=>step.run?.includes('apt-get install -y --no-install-recommends ffmpeg'));
   const verificationIndex=job.steps.findIndex(step=>step.run==='node mobile/e2e/mine-preview.mjs download');

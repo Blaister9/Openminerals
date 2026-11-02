@@ -12,11 +12,13 @@ import {isSoftwareSceneContext,sceneCostExceeded,SCENE_COST_HISTORY} from '../li
 // Android GPU timings, physical FPS nor the React/native lifecycle as a whole.
 const source=await readFile(new URL('../components/GoldBar3D.tsx',import.meta.url),'utf8');
 const ast=ts.createSourceFile('GoldBar3D.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
-const declarations=new Map();let materialEffect,sessionEffect;
+const declarations=new Map();let materialEffect,sessionEffect,drawEffect,allocationEffect;
 function visit(node){
   if(ts.isVariableDeclaration(node)&&ts.isIdentifier(node.name))declarations.set(node.name.text,node.initializer);
   if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useLayoutEffect'&&node.arguments[1]?.getText(ast)==='[metal]')materialEffect=node.arguments[0];
-  if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useLayoutEffect'&&node.arguments[1]?.getText(ast)==='[enabled,session,fail,stop]')sessionEffect=node.arguments[0];
+  if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useLayoutEffect'&&node.arguments[1]?.getText(ast)==='[surfacePresent,session,stop]')sessionEffect=node.arguments[0];
+  if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useLayoutEffect'&&node.arguments[1]?.getText(ast)==='[enabled,balanced,surfacePresent,session,prepareRenderer,armWatchdog]')drawEffect=node.arguments[0];
+  if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useLayoutEffect'&&node.arguments[1]?.getText(ast)==='[enabled,width]')allocationEffect=node.arguments[0];
   ts.forEachChild(node,visit);
 }
 visit(ast);
@@ -25,27 +27,33 @@ assert.ok(materialEffect,'Material readiness must use the actual layout effect.'
 const executable=ts.transpileModule([
   'this.stop='+declarations.get('stop').getText(ast)+';',
   'this.fail='+declarations.get('fail').getText(ast)+';',
+  'this.armWatchdog='+declarations.get('armWatchdog').getText(ast)+';',
+  'this.startScheduler='+declarations.get('startScheduler').getText(ast)+';',
+  'this.prepareRenderer='+declarations.get('prepareRenderer').getText(ast)+';',
   'this.createContext='+declarations.get('createContext').getText(ast)+';',
   'this.renderScale='+declarations.get('renderScale').getText(ast)+';',
   'this.materialEffect='+materialEffect.getText(ast)+';',
   'this.sessionEffect='+sessionEffect.getText(ast)+';',
+  'this.drawEffect='+drawEffect.getText(ast)+';',
+  'this.allocationEffect='+allocationEffect.getText(ast)+';',
   'this.retry3D='+declarations.get('retry3D').getText(ast)+';',
 ].join('\n'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None},fileName:'GoldBar3D-policy.ts'}).outputText;
 
 const ref=current=>({current});
 function fixture(){
   return {
-    clock:0,cost:5,waitCost:0,nextId:0,frames:new Map(),timers:new Map(),events:[],renderers:[],balancedChanges:[],softwareChanges:[],readyChanges:[],failures:[],failureReasons:[],retries:[],warnings:[],limitedCalls:0,
+    clock:0,cost:5,waitCost:0,nextId:0,frames:new Map(),timers:new Map(),events:[],renderers:[],balancedChanges:[],softwareChanges:[],allocations:[],readyChanges:[],failures:[],failureReasons:[],retries:[],warnings:[],limitedCalls:0,
     throwCreate:false,throwDraw:false,
-    refs:{renderer:ref(null),scheduler:ref(null),timeout:ref(null),currentSession:ref(null),latest:ref({startY:100,endY:1100,enabled:true}),
-      lastScroll:ref(350),drag:ref(.3),minePeek:ref(.2),metalRef:ref('XAU'),readyRef:ref(false),samples:ref([]),limited:ref(false),limitCallback:ref(null),resourceSession:ref(null),timeoutRetries:ref(0)},
+    refs:{renderer:ref(null),glContext:ref(null),scheduler:ref(null),timeout:ref(null),currentSession:ref(null),latest:ref({startY:100,endY:1100,enabled:true,surfacePresent:true,balanced:false}),
+      lastScroll:ref(350),drag:ref(.3),minePeek:ref(.2),metalRef:ref('XAU'),readyRef:ref(false),samples:ref([]),limited:ref(false),limitCallback:ref(null),resourceSession:ref(null),readinessAttempt:ref(null),timeoutRetries:ref(0)},
   };
 }
-function mount({balanced=false,software=false,cinematic=true,state=fixture(),gl={}}={}){
+function mount({balanced=false,software=false,cinematic=true,enabled=true,surfacePresent=true,state=fixture(),gl={}}={}){
   const expected=Symbol('test GL session'),schedulerOptions=[];state.refs.currentSession.current=expected;
+  state.refs.latest.current={...state.refs.latest.current,enabled,surfacePresent,balanced};
   state.refs.limitCallback.current=()=>{state.limitedCalls++;state.events.push('limited');};
   const context=vm.createContext({
-    ...state.refs,balanced,software,cinematic,session:expected,enabled:true,width:360,height:640,PixelRatio:{get:()=>3},goldRenderScale,scrollProgress,isSoftwareSceneContext,sceneCostExceeded,SCENE_COST_HISTORY,
+    ...state.refs,balanced,software,cinematic,session:expected,enabled,surfacePresent,width:360,height:640,PixelRatio:{get:()=>3},goldRenderScale,scrollProgress,isSoftwareSceneContext,sceneCostExceeded,SCENE_COST_HISTORY,
     useCallback:callback=>callback,
     performance:{now:()=>state.clock},
     requestAnimationFrame:callback=>{const id=++state.nextId;state.frames.set(id,callback);return id;},
@@ -64,6 +72,7 @@ function mount({balanced=false,software=false,cinematic=true,state=fixture(),gl=
     },
     setBalanced:value=>{state.balancedChanges.push(value);state.events.push('balanced');},
     setSoftware:value=>{state.softwareChanges.push(value);state.events.push('software');},
+    setAllocated:value=>state.allocations.push(value),
     setReady:value=>{state.readyChanges.push(value);state.events.push('ready '+value);},
     setFailure:value=>{state.failures.push(value);state.events.push('failure '+value);},
     setFailureReason:value=>state.failureReasons.push(value),
@@ -74,6 +83,8 @@ function mount({balanced=false,software=false,cinematic=true,state=fixture(),gl=
   return {
     state,context,expected,schedulerOptions,
     create(){context.createContext(gl,expected);},
+    pause(){state.refs.latest.current.enabled=false;context.enabled=false;context.drawEffect();},
+    resume(){state.refs.latest.current.enabled=true;context.enabled=true;context.drawEffect();},
     frame(elapsed=50){
       const entry=state.frames.entries().next().value;assert.ok(entry,'A real scheduler callback must be queued.');
       state.frames.delete(entry[0]);state.clock+=elapsed;entry[1]();
@@ -86,19 +97,19 @@ function mount({balanced=false,software=false,cinematic=true,state=fixture(),gl=
   };
 }
 
-test('cierre real adapta tras12 costes completados y solicita ligero tras24 muestras equilibradas',()=>{
+test('cierre real adapta cadencia tras12 costes sin reemplazar superficie y solicita ligero tras24',()=>{
   const high=mount();high.create();
   try{
     assert.equal(high.schedulerOptions[0].maxFps,60);
     high.render(11,25);assert.equal(high.state.balancedChanges.length,0);assert.equal(high.state.limitedCalls,0);
     high.render(1,25);assert.deepEqual(high.state.balancedChanges,[true]);assert.equal(high.state.limitedCalls,0,'The first tier must not skip directly to light.');
-    const balanced=mount({balanced:true,state:high.state});balanced.create();
-    assert.equal(high.state.renderers[0].disposed,1,'Recreation releases the previous renderer.');
-    assert.equal(balanced.schedulerOptions[0].maxFps,30);assert.equal(balanced.context.renderScale,high.context.renderScale*.75);
+    high.state.refs.latest.current.balanced=true;high.context.balanced=true;high.context.drawEffect();
+    assert.equal(high.state.renderers.length,1);assert.equal(high.state.renderers[0].disposed,0,'Cadence adaptation retains native resources.');
+    assert.equal(high.schedulerOptions.at(-1).maxFps,30);
     assert.equal(high.state.refs.samples.current.length,0,'The balanced tier gets its own sample window.');
-    balanced.render(23,45);assert.equal(high.state.limitedCalls,0);
-    balanced.render(1,45);assert.equal(high.state.limitedCalls,1);assert.equal(high.state.refs.limited.current,true);
-    balanced.render(5,45);assert.equal(high.state.limitedCalls,1,'The light callback is emitted only once.');
+    high.render(23,45);assert.equal(high.state.limitedCalls,0);
+    high.render(1,45);assert.equal(high.state.limitedCalls,1);assert.equal(high.state.refs.limited.current,true);
+    high.render(5,45);assert.equal(high.state.limitedCalls,1,'The light callback is emitted only once.');
   }finally{high.stop();}
   assert.equal(high.state.frames.size,0);assert.equal(high.state.timers.size,0);
 });
@@ -131,33 +142,33 @@ test('picos aislados no degradan y el historial de costes permanece acotado a24 
     try{
       for(let i=0;i<150;i++)view.render(1,i%30===0?160:5);
       assert.equal(view.state.balancedChanges.length,0);assert.equal(view.state.limitedCalls,0);
-      assert.equal(view.state.refs.samples.current.length,24);assert.deepEqual(view.state.readyChanges,[true]);
+      assert.equal(view.state.refs.samples.current.length,24);assert.deepEqual(view.state.readyChanges,[false,true]);
     }finally{view.stop();}
   }
 });
 
-test('software nativo se remonta en equilibrado a640 antes de crear shaders o dibujar',()=>{
+test('software nativo se remonta en equilibrado a384 antes de crear shaders o dibujar',()=>{
   const gl={flushEXP(){},RENDERER:1,getParameter:()=>'Android Emulator OpenGL ES Translator (Google SwiftShader)'};
   const initial=mount({gl});initial.create();
   try{
     assert.deepEqual(initial.state.softwareChanges,[true]);assert.deepEqual(initial.state.balancedChanges,[true]);
-    assert.equal(initial.state.renderers.length,0);assert.equal(initial.state.frames.size,0);assert.equal(initial.state.timers.size,0);
+    assert.equal(initial.state.renderers.length,0);assert.equal(initial.state.frames.size,0);assert.equal(initial.state.timers.size,1);
     const software=mount({balanced:true,software:true,state:initial.state,gl});software.create();
-    assert.equal(software.schedulerOptions[0].maxFps,30);assert.equal(software.context.renderScale,initial.context.renderScale*.625);
-    assert.ok(640*3*software.context.renderScale<=640);software.frame();assert.deepEqual(initial.state.readyChanges,[true]);software.stop();
+    assert.equal(software.schedulerOptions[0].maxFps,30);assert.equal(software.context.renderScale,initial.context.renderScale*.375);
+    assert.ok(640*3*software.context.renderScale<=384);software.frame();assert.equal(initial.state.readyChanges.at(-1),true);software.stop();
   }finally{initial.stop();}
 });
 
 test('ready llega después del frame y el cambio de metal espera el frame con sus uniforms',()=>{
   const view=mount();view.create();
   try{
-    assert.equal(view.state.refs.readyRef.current,false);assert.deepEqual(view.state.readyChanges,[]);assert.equal(view.state.timers.size,1);
-    view.frame();assert.deepEqual(view.state.readyChanges,[true]);assert.equal(view.state.timers.size,0);
+    assert.equal(view.state.refs.readyRef.current,false);assert.deepEqual(view.state.readyChanges,[false]);assert.equal(view.state.timers.size,1);
+    view.frame();assert.deepEqual(view.state.readyChanges,[false,true]);assert.equal(view.state.timers.size,0);
     assert.ok(view.state.events.indexOf('draw complete')<view.state.events.indexOf('ready true'));
     assert.deepEqual(view.state.renderers[0].draws[0],[.25,.3,'XAU',.2]);
     view.state.refs.metalRef.current='XAG';view.context.materialEffect();
-    assert.equal(view.state.refs.readyRef.current,false);assert.deepEqual(view.state.readyChanges,[true,false]);
-    view.frame();assert.deepEqual(view.state.renderers[0].draws.at(-1),[.25,.3,'XAG',.2]);assert.deepEqual(view.state.readyChanges,[true,false,true]);
+    assert.equal(view.state.refs.readyRef.current,false);assert.deepEqual(view.state.readyChanges,[false,true,false]);
+    view.frame();assert.deepEqual(view.state.renderers[0].draws.at(-1),[.25,.3,'XAG',.2]);assert.deepEqual(view.state.readyChanges,[false,true,false,true]);
   }finally{view.stop();}
 });
 
@@ -170,16 +181,16 @@ test('sesión obsoleta no dibuja ni su onError elimina el renderer o el watchdog
     const next=previous.state.renderers[1],watchdog=previous.state.refs.timeout.current;
     oldOptions.draw();oldOptions.onError(Error('late native failure'));oldTimer();previous.context.createContext({},previous.expected);
     assert.equal(previous.state.renderers.length,2);assert.equal(next.disposed,0);assert.equal(next.draws.length,0);
-    assert.deepEqual(previous.state.failures,[]);assert.deepEqual(previous.state.readyChanges,[]);
+    assert.deepEqual(previous.state.failures,[]);assert.ok(previous.state.readyChanges.every(value=>value===false));
     assert.equal(previous.state.refs.timeout.current,watchdog);assert.ok(previous.state.timers.has(watchdog));
-    current.frame();assert.equal(next.draws.length,1);assert.deepEqual(previous.state.readyChanges,[true]);
+    current.frame();assert.equal(next.draws.length,1);assert.equal(previous.state.readyChanges.at(-1),true);
   }finally{current.stop();}
 });
 
 test('error de draw activo usa el onError real, libera scheduler/renderer y nunca anuncia ready',()=>{
   const view=mount();view.state.throwDraw=true;view.create();view.frame();
   assert.equal(view.state.renderers[0].disposed,1);assert.equal(view.state.refs.renderer.current,null);assert.equal(view.state.refs.scheduler.current,null);
-  assert.equal(view.state.frames.size,0);assert.equal(view.state.timers.size,0);assert.deepEqual(view.state.failures,[true]);assert.deepEqual(view.state.readyChanges,[false]);
+  assert.equal(view.state.frames.size,0);assert.equal(view.state.timers.size,0);assert.deepEqual(view.state.failures,[true]);assert.ok(view.state.readyChanges.every(value=>value===false));
   assert.equal(view.state.limitedCalls,0);assert.equal(view.state.refs.readyRef.current,false);
   assert.deepEqual(view.state.failureReasons,['draw']);assert.deepEqual(view.state.warnings,['[Openminerals 3D] draw']);
 });
@@ -187,15 +198,15 @@ test('error de draw activo usa el onError real, libera scheduler/renderer y nunc
 test('error al crear renderer falla de forma controlada antes de programar un frame',()=>{
   const view=mount();view.state.throwCreate=true;view.create();
   assert.equal(view.state.renderers.length,0);assert.equal(view.state.frames.size,0);assert.equal(view.state.timers.size,0);
-  assert.equal(view.state.refs.renderer.current,null);assert.equal(view.state.refs.scheduler.current,null);assert.deepEqual(view.state.failures,[true]);assert.deepEqual(view.state.readyChanges,[false]);
+  assert.equal(view.state.refs.renderer.current,null);assert.equal(view.state.refs.scheduler.current,null);assert.deepEqual(view.state.failures,[true]);assert.ok(view.state.readyChanges.every(value=>value===false));
   assert.deepEqual(view.state.failureReasons,['create']);
 });
 
 test('context timeout retries once, then keeps a reason and permits explicit manual recovery',()=>{
-  const first=mount(),cleanupFirst=first.context.sessionEffect(),oldTimeout=[...first.state.timers.values()][0];
+  const first=mount(),cleanupFirst=first.context.sessionEffect();first.context.drawEffect();const oldTimeout=[...first.state.timers.values()][0];
   oldTimeout();assert.deepEqual(first.state.retries,[1]);assert.equal(first.state.refs.timeoutRetries.current,1);assert.deepEqual(first.state.failures,[false]);
   assert.deepEqual(first.state.failureReasons,['context-timeout']);assert.equal(first.state.frames.size,0);
-  const retry=mount({state:first.state}),cleanupRetry=retry.context.sessionEffect(),secondTimeout=[...first.state.timers.values()][0];
+  const retry=mount({state:first.state}),cleanupRetry=retry.context.sessionEffect();retry.context.drawEffect();const secondTimeout=[...first.state.timers.values()][0];
   cleanupFirst();assert.equal(first.state.timers.size,1,'Old cleanup must not clear the new watchdog.');
   oldTimeout();assert.deepEqual(first.state.retries,[1],'A stale timeout cannot consume another attempt.');
   secondTimeout();assert.deepEqual(first.state.retries,[1]);assert.deepEqual(first.state.failures,[false,true]);assert.equal(first.state.timers.size,0);
@@ -242,4 +253,60 @@ test('accessible values distinguish internal failure reasons from requested ligh
   const context=vm.createContext({failure:false,NativeGLView:true,internalReason:null,reducedMotion:true,ready:false,balanced:false});
   vm.runInContext(ts.transpileModule(code,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText,context);assert.equal(context.diagnostic(),'Vista ligera');
   assert.match(source,/cinematic&&failure&&NativeGLView&&!reducedMotion&&<View/);assert.match(source,/accessibilityLabel="Reintentar 3D"/);
+});
+
+test('light/reduced pauses retain the native context and renderer with zero idle RAF work',()=>{
+  const gl={contextId:10},view=mount({gl});view.context.sessionEffect();view.create();view.frame();
+  const retained=view.state.renderers[0],owner=view.state.refs.resourceSession.current;
+  try{
+    for(let cycle=0;cycle<8;cycle++){
+      const staleDraw=view.schedulerOptions.at(-1).draw,previousDraws=retained.draws.length;
+      view.pause();staleDraw();assert.equal(retained.draws.length,previousDraws);
+      assert.equal(view.state.frames.size,0);assert.equal(view.state.timers.size,0);assert.equal(view.state.refs.scheduler.current,null);
+      assert.equal(view.state.refs.glContext.current,gl);assert.equal(view.state.refs.renderer.current,retained);assert.equal(retained.disposed,0);assert.equal(view.state.refs.resourceSession.current,owner);
+      view.state.refs.lastScroll.current=400+cycle*20;view.state.refs.metalRef.current=cycle%2?'XPT':'XAG';
+      view.resume();assert.equal(view.state.refs.readyRef.current,false);view.frame();
+      assert.equal(retained.draws.at(-1)[0],scrollProgress(400+cycle*20,100,1100));assert.equal(retained.draws.at(-1)[2],cycle%2?'XPT':'XAG');
+      assert.equal(view.state.frames.size,0);assert.equal(view.state.timers.size,0);assert.equal(view.state.renderers.length,1);
+    }
+  }finally{view.stop();}
+  assert.equal(retained.disposed,1);assert.equal(view.state.refs.glContext.current,null);
+});
+
+test('a reduced-only initial session never allocates a GL surface or creates GL resources',()=>{
+  const view=mount({enabled:false,surfacePresent:false});view.context.allocationEffect();view.context.sessionEffect();view.context.drawEffect();view.create();
+  assert.deepEqual(view.state.allocations,[]);assert.equal(view.state.refs.glContext.current,null);assert.equal(view.state.renderers.length,0);assert.equal(view.state.frames.size,0);assert.equal(view.state.timers.size,0);
+  view.context.enabled=true;view.context.allocationEffect();assert.deepEqual(view.state.allocations,[true]);view.stop();
+});
+
+test('canceled readiness callbacks cannot fail a paused or resumed retained context',()=>{
+  const view=mount();view.context.sessionEffect();view.create();const oldTimeout=[...view.state.timers.values()][0],retained=view.state.renderers[0];
+  view.pause();oldTimeout();assert.deepEqual(view.state.failures,[]);assert.deepEqual(view.state.retries,[]);
+  view.resume();const currentWatchdog=view.state.refs.timeout.current;oldTimeout();
+  assert.equal(view.state.refs.timeout.current,currentWatchdog);assert.ok(view.state.timers.has(currentWatchdog));assert.equal(retained.disposed,0);
+  view.frame();oldTimeout();assert.deepEqual(view.state.failures,[]);assert.equal(view.state.readyChanges.at(-1),true);view.stop();
+});
+
+test('context callback received while paused is cached and retired native IDs cannot replace it',()=>{
+  const gl={contextId:20},view=mount({enabled:false,gl});view.context.sessionEffect();view.create();
+  assert.equal(view.state.refs.glContext.current,gl);assert.equal(view.state.renderers.length,0);assert.equal(view.state.frames.size,0);assert.equal(view.state.timers.size,0);
+  view.resume();view.frame();const first=view.state.renderers[0];view.pause();
+  const replacement={contextId:21};view.context.createContext(replacement,view.expected);
+  assert.equal(first.disposed,1);assert.equal(view.state.refs.glContext.current,replacement);assert.equal(view.state.renderers.length,1);
+  view.context.createContext(gl,view.expected);assert.equal(view.state.refs.glContext.current,replacement);
+  view.resume();view.frame();assert.equal(view.state.renderers.length,2);assert.equal(view.state.renderers[1].disposed,0);
+  view.context.createContext(gl,view.expected);assert.equal(view.state.renderers[1].disposed,0);view.stop();
+});
+
+test('surface presence, native key and resource lifetime do not depend on draw-enabled or hardware cadence',()=>{
+  const presence=declarations.get('surfacePresent').getText(ast),scale=declarations.get('renderScale').getText(ast);
+  assert.doesNotMatch(presence,/\benabled\b|\breducedMotion\b|\bactive\b|\bbalanced\b/);assert.match(presence,/\ballocated\b/);
+  assert.doesNotMatch(scale,/\bbalanced\b/);assert.match(scale,/software\?\.375:1/);
+  let resourceDeps,nativeKey;
+  function inspect(node){
+    if(ts.isCallExpression(node)&&node.arguments[0]===sessionEffect)resourceDeps=node.arguments[1].getText(ast);
+    if(ts.isJsxOpeningElement(node)&&node.tagName.getText(ast)==='GLBoundary')nativeKey=node.attributes.properties.find(value=>ts.isJsxAttribute(value)&&value.name.getText(ast)==='key').initializer.expression.getText(ast);
+    ts.forEachChild(node,inspect);
+  }
+  inspect(ast);assert.equal(resourceDeps,'[surfacePresent,session,stop]');assert.doesNotMatch(nativeKey,/enabled|balanced|reducedMotion/);
 });

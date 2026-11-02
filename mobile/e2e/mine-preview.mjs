@@ -19,7 +19,7 @@ export const PRESENTED=Object.freeze({
   sha256:'d99e8af9617f56d7862a849ebd057025cb9d6adc164b97496a5532f7b29ad29e',
   certificate:BASELINE.certificate,
 });
-export const PREVIEW=Object.freeze({package:'com.openminerals.demo.minepreview',version:'0.4.0',code:3,runtime:'0.4.0',channel:'mine-realism'});
+export const PREVIEW=Object.freeze({package:'com.openminerals.demo.minepreview',version:'0.4.0',code:4,runtime:'0.4.0',channel:'mine-realism'});
 export function nativeValidationScope(value){requireSafe(value===undefined||['comparison','regression','commerce'].includes(value),'Expected comparison, regression or commerce validation scope.');return value??'comparison';}
 export function effectiveValidationScope(committed,override){return nativeValidationScope(override===undefined||override===''?committed:override);}
 export function previewInputs(env,manifest={}){
@@ -262,13 +262,13 @@ export function installedIdentity(text,expected){
 export function assertStablePreserved(before,after){requireSafe(JSON.stringify(before)===JSON.stringify(after),'Preview install or execution changed stable UID/version.');return true;}
 
 export function legacyCommerceFlow(){
-  const input=(text,value)=>[scroll(text),{tapOn:{text,point:'95%,50%'}},{eraseText:100},{inputText:value},'hideKeyboard'];
+  const input=(text,value,direction='DOWN')=>[{scrollUntilVisible:{element:{text},direction,centerElement:true,timeout:30000}},{tapOn:{text,point:'95%,50%'}},{eraseText:100},{inputText:value},'hideKeyboard'];
   const receipt=balance=>[tap('^Confirmar demo$'),wait('^Comprobante$'),scroll('^USDT '+balance+'$'),{assertVisible:'^USDT '+balance+'$'},tap('Cerrar comprobante')];
   return document('New anonymous preview session simulated commerce without account credentials',[
     tap('^Billetera$'),{runFlow:{file:'wallet-balance-rail.yaml'}},wait('^USDT 250,00$'),
     ...input('Cantidad de dinero para convertir','200'),scroll('^Convertir en demo$'),tap('^Convertir en demo$'),...receipt('450,00'),
     tap('^Mercado$'),...input('Cantidad de metal en gramos','1000'),scroll('^Confirmar compra simulada$'),{assertVisible:{text:'^Confirmar compra simulada$',enabled:false}},
-    ...input('Cantidad de metal en gramos','2'),scroll('^Confirmar compra simulada$'),tap('^Confirmar compra simulada$'),...receipt('157,10'),
+    ...input('Cantidad de metal en gramos','2','UP'),scroll('^Confirmar compra simulada$'),tap('^Confirmar compra simulada$'),...receipt('157,10'),
     tap('^Metales$'),...input('Gramos para operación','0.5'),scroll('^Simular venta$'),tap('^Simular venta$'),...receipt('228,73'),
   ]);
 }
@@ -297,6 +297,12 @@ export function legacyHistoryFlow(){
   ]);
 }
 const AUTH_PHASES=new Set(['register-buyer','buyer-persisted','buyer-logout','operator-login','operator-readonly','operator-logout']);
+export function authFailureMetadata(diagnostic){
+  const categories=new Set(['android-driver-or-system','flow-definition-error','cli-configuration-error','timeout','selector-not-found','assertion-failed','native-command-failed','command-execution-failed']);
+  const types=new Set(['tap','tap-point','scroll','scroll-until-visible','assert','input-text','erase-text','hide-keyboard','launch-app','stop-app','run-flow','configuration','wait-animation','screenshot','repeat','eval-script','variables','back','other']);
+  const failed=diagnostic?.firstFailedCommand,index=failed?.index;
+  return {category:categories.has(diagnostic?.category)?diagnostic.category:'native-command-failed',firstFailedCommand:Number.isInteger(index)&&index>=1&&index<=10000?{index,type:types.has(failed.type)?failed.type:'other'}:null,rawDiagnosticsPublished:false,privateUiPublished:false};
+}
 export function authorizedAuthFlow(phase){
   requireSafe(AUTH_PHASES.has(phase),'Unexpected authorized preview authentication phase.');
   const input=(text,value)=>[scroll(text),{tapOn:{text,point:'95%,50%'}},{eraseText:100},{inputText:value},'hideKeyboard'];
@@ -398,7 +404,11 @@ async function main(){
     try{
       await writeFile(join(out,'auth.yaml'),authorizedAuthFlow(phase),{mode:0o600});
       await writeFile(join(out,'wallet-balance-rail.yaml'),previewFlow(await readFile(join(repo,'e2e/native/wallet-balance-rail.yaml'),'utf8'),PREVIEW.package),{mode:0o600});
-      command('maestro',['--no-ansi','--device',serial,'test','--format','JUNIT','--output',join(out,'report.xml'),'--debug-output',join(out,'debug'),'--test-output-dir',join(out,'screenshots'),join(out,'auth.yaml')],{timeout:420000,output:join(out,'console.txt'),env:{...process.env,MAESTRO_PREVIEW_ALIAS:identity.alias,MAESTRO_PREVIEW_PASSWORD:password?identity.password:'',MAESTRO_CLI_NO_ANALYTICS:'1'}});
+      try{command('maestro',['--no-ansi','--device',serial,'test','--format','JUNIT','--output',join(out,'raw-report.xml'),'--debug-output',join(out,'debug'),'--test-output-dir',join(out,'screenshots'),join(out,'auth.yaml')],{timeout:420000,output:join(out,'console.txt'),env:{...process.env,MAESTRO_PREVIEW_ALIAS:identity.alias,MAESTRO_PREVIEW_PASSWORD:password?identity.password:'',MAESTRO_CLI_NO_ANALYTICS:'1'}});}
+      catch(error){
+        const diagnostic=authFailureMetadata(await collectFailureDiagnostic(out,[]));
+        await json('auth-'+phase+'-failure.json',diagnostic);console.error('AUTH_FLOW_FAILURE '+JSON.stringify(diagnostic));throw error;
+      }
     }finally{
       // phase is a closed enum and out is always this owned ephemeral directory.
       // Remove private Maestro output, including expanded input text on failures.

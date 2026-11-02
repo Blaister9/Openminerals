@@ -36,7 +36,7 @@ module.exports = ({config = stable} = {}) => {
     platforms: ['android'],
     version: '0.4.0',
     runtimeVersion: '0.4.0',
-    android: {...config.android, package: 'com.openminerals.demo.minepreview', versionCode: 3},
+    android: {...config.android, package: 'com.openminerals.demo.minepreview', versionCode: 4},
     updates: {
       ...config.updates,
       enabled: true,

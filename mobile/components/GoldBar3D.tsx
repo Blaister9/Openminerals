@@ -29,26 +29,30 @@ class GLBoundary extends React.Component<{children:ReactNode;onFailure:()=>void}
 }
 
 export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMotion,height=290,cinematic=false,sceneDescription='Materia virtual DEMO',metal='XAU',onLimited}:Props){
-  const [width,setWidth]=useState(0),[balanced,setBalanced]=useState(false),[software,setSoftware]=useState(false);
+  const [width,setWidth]=useState(0),[balanced,setBalanced]=useState(false),[software,setSoftware]=useState(false),[allocated,setAllocated]=useState(false);
   const material=metalMaterial(metal),metalRef=useRef(metal);metalRef.current=metal;
-  const renderScale=goldRenderScale(width,height,PixelRatio.get())*(software?.625:balanced?.75:1);
+  // Hardware cadence adaptation does not replace a surface being presented.
+  const renderScale=goldRenderScale(width,height,PixelRatio.get())*(software?.375:1);
   const NativeGLView=useMemo(availableGLView,[]);
   const [foreground,setForeground]=useState(AppState.currentState===null||AppState.currentState==='active');
   const [failure,setFailure]=useState(false),[failureReason,setFailureReason]=useState<FailureReason|null>(null),[ready,setReady]=useState(false),[retry,setRetry]=useState(0);
   const renderer=useRef<Renderer|null>(null),scheduler=useRef<Scheduler|null>(null),timeout=useRef<ReturnType<typeof setTimeout>|null>(null);
+  const glContext=useRef<ExpoWebGLRenderingContext|null>(null);
   const lastScroll=useRef(initialScrollY),drag=useRef(0),minePeek=useRef(0),lastDragDx=useRef(0),readyRef=useRef(false);
   const previousAppState=useRef(AppState.currentState);
   const samples=useRef<number[]>([]),limited=useRef(false),limitCallback=useRef(onLimited);limitCallback.current=onLimited;
   const enabled=active&&foreground&&!reducedMotion&&!failure&&NativeGLView!==null;
-  const session=useMemo(()=>Symbol('gold-bar-context'),[enabled,retry,width,height,renderScale]);
-  const resourceSession=useRef<symbol|null>(null),timeoutRetries=useRef(0);
+  const surfacePresent=allocated&&foreground&&!failure&&NativeGLView!==null&&width>0;
+  const session=useMemo(()=>Symbol('gold-bar-context'),[surfacePresent,retry,width,height,renderScale,cinematic]);
+  const resourceSession=useRef<symbol|null>(null),readinessAttempt=useRef<symbol|null>(null),timeoutRetries=useRef(0);
   const currentSession=useRef(session);currentSession.current=session;
-  const latest=useRef({startY,endY,enabled});latest.current={startY,endY,enabled};
+  const latest=useRef({startY,endY,enabled,surfacePresent,balanced});latest.current={startY,endY,enabled,surfacePresent,balanced};
   const stop=useCallback((expected?:symbol)=>{
     if(expected!==undefined&&resourceSession.current!==expected)return;
+    readinessAttempt.current=null;
     if(timeout.current!==null){clearTimeout(timeout.current);timeout.current=null;}
     scheduler.current?.dispose();scheduler.current=null;
-    renderer.current?.dispose();renderer.current=null;readyRef.current=false;resourceSession.current=null;
+    renderer.current?.dispose();renderer.current=null;glContext.current=null;readyRef.current=false;resourceSession.current=null;
   },[]);
   const fail=useCallback((expected:symbol,reason:FailureReason)=>{
     if(currentSession.current!==expected)return;
@@ -59,17 +63,24 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
     if(reason==='context-timeout'&&timeoutRetries.current<1){timeoutRetries.current++;setFailure(false);setRetry(value=>value+1);return;}
     setFailure(true);
   },[stop]);
+  const armWatchdog=useCallback((expected:symbol)=>{
+    if(timeout.current!==null)clearTimeout(timeout.current);
+    const attempt=Symbol('readiness-attempt');readinessAttempt.current=attempt;
+    timeout.current=setTimeout(()=>{if(readinessAttempt.current===attempt&&latest.current.enabled)fail(expected,'context-timeout');},8000);
+  },[fail]);
 
   useLayoutEffect(()=>{
-    currentSession.current=session;latest.current.enabled=enabled;
+    if(enabled&&width>0)setAllocated(true);
+  },[enabled,width]);
+  useLayoutEffect(()=>{
+    currentSession.current=session;latest.current.surfacePresent=surfacePresent;
     resourceSession.current=session;
     setReady(false);readyRef.current=false;
-    if(enabled)timeout.current=setTimeout(()=>fail(session,'context-timeout'),8000);
     return()=>{
       if(currentSession.current===session){currentSession.current=Symbol('disposed-context');latest.current.enabled=false;}
       stop(session);
     };
-  },[enabled,session,fail,stop]);
+  },[surfacePresent,session,stop]);
   useEffect(()=>{
     const listener=scrollY.addListener(({value})=>{lastScroll.current=value;scheduler.current?.invalidate();});
     return()=>scrollY.removeListener(listener);
@@ -93,26 +104,51 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
     return()=>subscription.remove();
   },[stop]);
 
-  const createContext=(gl:ExpoWebGLRenderingContext,expected:symbol)=>{
-    if(currentSession.current!==expected||!latest.current.enabled)return;
-    stop();
-    resourceSession.current=expected;
-    try{
-      // Remount at <=640 physical pixels before submitting the first software
-      // frame. Real/unknown GPU contexts keep the 1024-pixel high tier.
-      if(cinematic&&!software&&isSoftwareSceneContext(gl)){setSoftware(true);setBalanced(true);return;}
-      samples.current=[];const next=createStoryRenderer(gl,cinematic);renderer.current=next;
-      scheduler.current=createFrameScheduler({request:callback=>requestAnimationFrame(callback),cancel:cancelAnimationFrame,maxFps:balanced?30:60,now:()=>performance.now(),
+  const startScheduler=useCallback((expected:symbol)=>{
+    if(currentSession.current!==expected||!latest.current.enabled||!renderer.current)return;
+    scheduler.current?.dispose();
+    const next=renderer.current;
+    scheduler.current=createFrameScheduler({request:callback=>requestAnimationFrame(callback),cancel:cancelAnimationFrame,maxFps:latest.current.balanced?30:60,now:()=>performance.now(),
         draw:()=>{
           if(currentSession.current!==expected||!latest.current.enabled)return;
           const began=performance.now();next.draw(scrollProgress(lastScroll.current,latest.current.startY,latest.current.endY),drag.current,metalRef.current,minePeek.current);
           // On native ExpoGL draw returns after its completion barrier, so this
           // includes queue/GPU wait and submission work, not only JS enqueueing.
-          if(cinematic&&!limited.current){samples.current.push(performance.now()-began);if(samples.current.length>SCENE_COST_HISTORY)samples.current.shift();if(sceneCostExceeded(samples.current,balanced)){if(!balanced)setBalanced(true);else{limited.current=true;limitCallback.current?.();}}}
-          if(!readyRef.current){readyRef.current=true;if(timeout.current!==null){clearTimeout(timeout.current);timeout.current=null;}setFailureReason(null);setReady(true);}
+          if(cinematic&&!limited.current){samples.current.push(performance.now()-began);if(samples.current.length>SCENE_COST_HISTORY)samples.current.shift();if(sceneCostExceeded(samples.current,latest.current.balanced)){if(!latest.current.balanced)setBalanced(true);else{limited.current=true;limitCallback.current?.();}}}
+          if(!readyRef.current){readyRef.current=true;readinessAttempt.current=null;if(timeout.current!==null){clearTimeout(timeout.current);timeout.current=null;}setFailureReason(null);setReady(true);}
         },onError:()=>fail(expected,'draw')});
-      timeout.current=setTimeout(()=>fail(expected,'context-timeout'),8000);scheduler.current.invalidate();
+    scheduler.current.invalidate();
+  },[cinematic,fail]);
+  const prepareRenderer=useCallback((expected:symbol)=>{
+    if(currentSession.current!==expected||!latest.current.enabled||!latest.current.surfacePresent||!glContext.current)return;
+    try{
+      // Software starts at <=384 physical pixels before its first scene frame.
+      if(cinematic&&!software&&isSoftwareSceneContext(glContext.current)){setSoftware(true);setBalanced(true);return;}
+      if(!renderer.current){samples.current=[];renderer.current=createStoryRenderer(glContext.current,cinematic);}
+      startScheduler(expected);
     }catch{fail(expected,'create');}
+  },[cinematic,software,startScheduler,fail]);
+  useLayoutEffect(()=>{
+    // Light/reduced/offscreen pauses draw work while the TextureView and its
+    // context remain mounted beneath the opaque cover. No presentation teardown.
+    scheduler.current?.dispose();scheduler.current=null;
+    readinessAttempt.current=null;
+    if(timeout.current!==null){clearTimeout(timeout.current);timeout.current=null;}
+    readyRef.current=false;setReady(false);samples.current=[];
+    if(surfacePresent&&enabled){armWatchdog(session);prepareRenderer(session);}
+  },[enabled,balanced,surfacePresent,session,prepareRenderer,armWatchdog]);
+  const createContext=(gl:ExpoWebGLRenderingContext,expected:symbol)=>{
+    if(currentSession.current!==expected||!latest.current.surfacePresent)return;
+    const previous=glContext.current;
+    // ExpoGL context IDs increase for each native creation. Ignore a delayed
+    // callback from a retired context within the same retained surface session.
+    if(previous&&Number.isFinite(previous.contextId)&&Number.isFinite(gl.contextId)&&gl.contextId<previous.contextId)return;
+    if(previous!==gl&&(!previous||previous.contextId!==gl.contextId||gl.contextId===undefined)){
+      stop();resourceSession.current=expected;glContext.current=gl;
+      readyRef.current=false;setReady(false);
+      if(latest.current.enabled)armWatchdog(expected);
+    }
+    prepareRenderer(expected);
   };
   const responder=useMemo(()=>PanResponder.create({
     onStartShouldSetPanResponder:()=>false,
@@ -137,7 +173,7 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
     };
   },[scrollY,startY,endY]);
   return <View collapsable={false} accessible={cinematic&&!(failure&&NativeGLView)} accessibilityRole={cinematic?'image':undefined} accessibilityLabel={cinematic?sceneDescription+(internalReason?' Estado 3D: '+internalReason+'.':''):undefined} accessibilityValue={cinematic?{text:diagnostic}:undefined} testID={cinematic?(enabled&&ready?'immersive-gl-ready':reducedMotion||failure||!NativeGLView?'immersive-scene-light':'immersive-scene-pending'):undefined} style={[styles.stage,cinematic&&styles.cinematicStage,{height}]} onLayout={event=>{const nextWidth=event.nativeEvent.layout.width;setWidth(previous=>Math.abs(previous-nextWidth)>.5?nextWidth:previous);}} {...responder.panHandlers}>
-    {enabled&&NativeGLView&&width>0&&<GLBoundary key={`${retry}:${width}:${height}:${renderScale}`} onFailure={()=>fail(session,'boundary')}>
+    {surfacePresent&&NativeGLView&&<GLBoundary key={`${retry}:${width}:${height}:${renderScale}:${cinematic}`} onFailure={()=>fail(session,'boundary')}>
       {/* Keep TextureView drawable while its surface is being created. */}
       <NativeGLView style={{position:'absolute',top:0,left:0,width:width*renderScale,height:height*renderScale,transformOrigin:'top left',transform:[{scale:1/renderScale}],opacity:1}} onContextCreate={gl=>createContext(gl,session)} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"/>
     </GLBoundary>}
