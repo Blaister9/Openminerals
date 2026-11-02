@@ -1,0 +1,10 @@
+{
+  "checkedAtUtc": "2026-11-02T01:28:11.2367760Z",
+  "method": "GET /health only; no deployment, restart, SQL or data mutation",
+  "response": {
+    "ok": true,
+    "mode": "postgres-demo",
+    "demoOnly": true,
+    "apiVersion": "0.2.0"
+  }
+}

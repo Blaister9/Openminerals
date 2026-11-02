@@ -1,0 +1,165 @@
+{
+  "run": 41372555065,
+  "artifact": 13109793849,
+  "url": "https://github.com/Blaister9/Openminerals/actions/runs/41372555065",
+  "conclusion": "failure",
+  "completedStages": 9,
+  "failedStage": "preview-recorded-fixed-trace",
+  "failureCommand": "second Maestro after metrics, embedded source UI check",
+  "failureCommandExit": 1,
+  "maestroTraceFinalPassed": true,
+  "sourceCheckAfterTraceFailed": true,
+  "conditions": [
+    {
+      "file": "after-performance-recorded.json",
+      "version": "0.4.0",
+      "recorded": true,
+      "uiFrames": 29,
+      "jankyUiFrames": 29,
+      "p50": 300,
+      "p90": 800,
+      "p95": 900,
+      "pssBeforeKiB": 133049,
+      "pssAfterKiB": 131559,
+      "startTotalMs": 61,
+      "startWaitMs": 76,
+      "quality": "high",
+      "autoLight": false,
+      "traceDurationMs": 37966.299950000015,
+      "protocolHash": "1a48933715ea7e75cfb38bbd45807fd8350da58c3513d6d7666c4f170c85ac9a",
+      "compiledHash": "0e30040ccbf227ed1328ee314a4968da933464450aaca3ce8021981db201c8b3"
+    },
+    {
+      "file": "before-performance-recorded.json",
+      "version": "0.3.0",
+      "recorded": true,
+      "uiFrames": 175,
+      "jankyUiFrames": 175,
+      "p50": 250,
+      "p90": 650,
+      "p95": 650,
+      "pssBeforeKiB": 123365,
+      "pssAfterKiB": 122891,
+      "startTotalMs": 1839,
+      "startWaitMs": 1842,
+      "quality": "unknown",
+      "autoLight": false,
+      "traceDurationMs": 38732.43646300002,
+      "protocolHash": "1a48933715ea7e75cfb38bbd45807fd8350da58c3513d6d7666c4f170c85ac9a",
+      "compiledHash": "0e30040ccbf227ed1328ee314a4968da933464450aaca3ce8021981db201c8b3"
+    },
+    {
+      "file": "before-performance-unrecorded.json",
+      "version": "0.3.0",
+      "recorded": false,
+      "uiFrames": 190,
+      "jankyUiFrames": 190,
+      "p50": 250,
+      "p90": 500,
+      "p95": 550,
+      "pssBeforeKiB": 121114,
+      "pssAfterKiB": 120186,
+      "startTotalMs": 1533,
+      "startWaitMs": 1540,
+      "quality": "unknown",
+      "autoLight": false,
+      "traceDurationMs": 36477.053260000015,
+      "protocolHash": "1a48933715ea7e75cfb38bbd45807fd8350da58c3513d6d7666c4f170c85ac9a",
+      "compiledHash": "0e30040ccbf227ed1328ee314a4968da933464450aaca3ce8021981db201c8b3"
+    }
+  ],
+  "media": [
+    {
+      "file": "after-anonymous-scroll.mp4",
+      "bytes": 203623,
+      "sha256": "8755bb923251ad80ba03e418adfe7b3ed9d83ea0f0e70bca9eedf14d71c7ef86",
+      "inspected": true
+    },
+    {
+      "file": "anonymous-failure.png",
+      "bytes": 1171907,
+      "sha256": "098c0530b107808a83c0c5b8cbcbb83263b0cdd3286bc8351147e600b35248e2",
+      "inspected": true
+    },
+    {
+      "file": "before-anonymous-scroll.mp4",
+      "bytes": 1025301,
+      "sha256": "75d027136e1e7443bb9ca4b18489de4cf7eabfa3185bbed5b50eec9553bf7bda",
+      "inspected": true
+    },
+    {
+      "file": "before-safe-reduced-motion.png",
+      "bytes": 90752,
+      "sha256": "5ccde74eb5dfb507725fb64be969bb7eb58bd5366823a074c5297bb8d20b75f6",
+      "inspected": true
+    },
+    {
+      "file": "before-safe-story-1.png",
+      "bytes": 913363,
+      "sha256": "a5892900627375e604d8d6abc53322665fa4da8baaaa4aa2de049f12ad702f84",
+      "inspected": true
+    },
+    {
+      "file": "before-safe-story-2.png",
+      "bytes": 1393926,
+      "sha256": "2b4fb266618d491ba6ce8c3b806432c0f5a66b1b9b9761040d788e5871af5ef3",
+      "inspected": true
+    },
+    {
+      "file": "before-safe-story-3.png",
+      "bytes": 849731,
+      "sha256": "02960b5f55e01a151a22a37b71677846a83f1bd3f72e9f6c4b86d2e8d1530817",
+      "inspected": true
+    },
+    {
+      "file": "before-safe-story-4.png",
+      "bytes": 523019,
+      "sha256": "7f851d20602686dbde026d7f6945ff7c5512bca69a518cde23d87296250e981f",
+      "inspected": true
+    },
+    {
+      "file": "before-safe-story-5.png",
+      "bytes": 486195,
+      "sha256": "8b8531efea01b8e4a2ad0eb33b576cbcfd45b8498fff84a037eadc8d2f8e60c6",
+      "inspected": true
+    },
+    {
+      "file": "before-safe-story-6.png",
+      "bytes": 548006,
+      "sha256": "ef07c8dd5656e888855ea0e9b14130ad4e0287632fd44971873a39067fa67445",
+      "inspected": true
+    },
+    {
+      "file": "before-safe-story-7.png",
+      "bytes": 517593,
+      "sha256": "37113a365b740ba46cb4c2cded11fd348fea14fe4c5ae8ee3b5e1ec6960e481e",
+      "inspected": true
+    }
+  ],
+  "videoProbe": {
+    "before": {
+      "durationSeconds": 38.309733,
+      "encodedFrames": 117
+    },
+    "after": {
+      "durationSeconds": 9.299533,
+      "encodedFrames": 20
+    },
+    "encoding": "H2641080x1920VFR"
+  },
+  "visualInspection": {
+    "beforeSevenAndReducedMotionPng": true,
+    "beforeVideoFullTimelineSampled": true,
+    "afterVideoFullTimelineSampled": true,
+    "afterVideoEndsAt": "refining stage3",
+    "afterPublicSevenChapterPngAvailable": false,
+    "anonymousFailurePng": "refining stage3; no menus, credentials or private accounts"
+  },
+  "limitations": [
+    "Candidate15-gesture trace issued37.9663s but encoded video spans9.299533s and stops at refining. Complete rendered workload comparison not established.",
+    "29 UIframes candidate vs175 baseline; candidate unrecorded/modes/resume/commerce/auth not reached.",
+    "Candidate cold-launch61ms is anomalously low and not accepted as validated cold start.",
+    "All crash/shader diagnostic flags false; root cause not established.",
+    "No GPU FPS or physical phone acceptance."
+  ]
+}

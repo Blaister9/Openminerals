@@ -2,7 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
-import {PRESENTED,PREVIEW,previewInputs,previewFlow,gestureTrace,executeTrace,metadataValue,verifyArtifact,installedIdentity,assertStablePreserved,legacyCommerceFlow,publicFailureReason,anonymousSceneFlags,authorizedAuthFlow,authorizedPublicOperator,publicOperatorPreflight} from '../e2e/mine-preview.mjs';
+import {mkdtemp,mkdir,writeFile,readdir,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join,resolve,sep} from 'node:path';
+import {PRESENTED,PREVIEW,previewInputs,previewFlow,gestureTrace,executeTrace,metadataValue,verifyArtifact,installedIdentity,assertStablePreserved,legacyCommerceFlow,publicFailureReason,anonymousSceneFlags,authorizedAuthFlow,authorizedPublicOperator,publicOperatorPreflight,observeColdLaunch,videoCoverage,publishAnonymousScreenshots,adaptiveCandidateStory} from '../e2e/mine-preview.mjs';
 import {API,PACKAGE} from '../e2e/ci-safety.mjs';
 import {embeddedFlow} from '../e2e/release-contract.mjs';
 const yaml=createRequire(import.meta.url)('yaml');
@@ -18,7 +21,7 @@ test('preview QA pins the presented 0.3.0 bytes and separates Android package/ru
   assert.equal(PRESENTED.sha256,'d99e8af9617f56d7862a849ebd057025cb9d6adc164b97496a5532f7b29ad29e');
   assert.equal(PRESENTED.source,'eae7f6ad57f5a667c2bf40775a4cb30f1c0dd8b6');
   assert.equal(PRESENTED.package,PACKAGE);assert.equal(PRESENTED.version,'0.3.0');assert.equal(PRESENTED.code,6);
-  assert.equal(PREVIEW.package,'com.openminerals.demo.minepreview');assert.equal(PREVIEW.version,'0.4.0');assert.equal(PREVIEW.code,1);
+  assert.equal(PREVIEW.package,'com.openminerals.demo.minepreview');assert.equal(PREVIEW.version,'0.4.0');assert.equal(PREVIEW.code,2);
   assert.notEqual(PREVIEW.runtime,PRESENTED.runtime);assert.notEqual(PREVIEW.channel,PRESENTED.channel);
 });
 
@@ -32,7 +35,7 @@ test('preview QA permits public release mirrors but never changes the presented 
 });
 
 test('preview QA changes only the explicit application header in existing anonymous chapter flows',async()=>{
-  for(const name of ['story','story-clean','story-video-prepare','story-exit','story-resume-position','story-resume-check','wallet-balance-rail']){
+  for(const name of ['story','story-clean','story-video-prepare','story-light-prepare','story-exit','story-resume-position','story-resume-check','wallet-balance-rail']){
     const source=(await read('../e2e/native/'+name+'.yaml')).replaceAll('\r\n','\n'),result=previewFlow(source,PREVIEW.package);
     assert.equal(result,source.replace('appId: '+PACKAGE+'\n','appId: '+PREVIEW.package+'\n'));
     const documents=yaml.parseAllDocuments(result);assert.ok(documents.every(document=>document.errors.length===0));assert.equal(documents[0].toJSON().appId,PREVIEW.package);
@@ -104,6 +107,58 @@ test('preview metrics observe the adaptive accessibility tier without inferring 
   for(const [label,tier] of [['Calidad 3D alta','high'],['Calidad 3D equilibrada','balanced'],['Vista ligera','light'],['Preparando 3D','unknown'],['','unknown'],['Calidad 3D alta Calidad 3D equilibrada','unknown']])assert.deepEqual(anonymousSceneFlags('<node content-desc="'+label+'"/>'),{automaticLightObserved:false,qualityTierObserved:tier});
   assert.deepEqual(anonymousSceneFlags('<node text="Vista ligera activada por coste de render."/>'),{automaticLightObserved:true,qualityTierObserved:'light'});
   assert.throws(()=>anonymousSceneFlags(null));
+});
+
+test('cold launch waits for PID exit and proves a new process without rejecting a fast numeric launch',async()=>{
+  const pids=['111','111','','222'],calls=[],pauses=[];
+  const result=await observeColdLaunch({packageName:PREVIEW.package,readPid:()=>pids.shift()??'222',wait:ms=>pauses.push(ms),adb:(...args)=>{calls.push(args);return args.includes('resolve-activity')?PREVIEW.package+'/.MainActivity':'Status: ok\nLaunchState: COLD\nTotalTime: 61\nWaitTime: 80';}});
+  assert.equal(result.evidence.valid,true);assert.equal(result.evidence.oldProcessExitObserved,true);assert.equal(result.evidence.pidChanged,true);assert.equal(result.evidence.oldPid,'111');assert.equal(result.evidence.newPid,'222');assert.deepEqual(pauses,[250]);
+  assert.deepEqual(calls[0],['shell','am','force-stop',PREVIEW.package]);assert.ok(calls.at(-1).includes('start'));
+});
+
+test('cold launch marks warm reused missing and unchanged processes invalid',async()=>{
+  for(const [start,newPid] of [['Status: ok\nLaunchState: WARM','222'],['Status: ok\nLaunchState: HOT','222'],['Status: ok\nWarning: Activity not started, intent has been delivered','222'],['Status: ok','111'],['Status: ok','222 333'],['Status: timeout','222']]){
+    const pids=['111','',newPid];const result=await observeColdLaunch({packageName:PREVIEW.package,readPid:()=>pids.shift()??newPid,wait:()=>{},adb:(...args)=>args.includes('resolve-activity')?PREVIEW.package+'/.MainActivity':start});assert.equal(result.evidence.valid,false);
+  }
+  let started=false;const result=await observeColdLaunch({packageName:PREVIEW.package,readPid:()=> '111',wait:()=>{},adb:(...args)=>{if(args.includes('start'))started=true;return '';}});assert.equal(started,false);assert.equal(result.evidence.oldProcessExitObserved,false);assert.equal(result.evidence.valid,false);
+});
+
+test('video evidence checks container and actual presentation span against measured input duration',()=>{
+  const probe=(duration,timestamps)=>({format:{duration:String(duration)},frames:timestamps.map(value=>({best_effort_timestamp_time:String(value)}))});
+  const good=videoCoverage(probe(38.309733,[0,10,20,30,37.377822]),38732.4);assert.equal(good.temporalCoverageValid,true);assert.ok(good.presentationCoverageRatio>.96);assert.equal(good.visualFinalStageVerified,false);assert.equal(good.finalSamples.at(-1).ptsSeconds,37.377822);
+  const failed=videoCoverage(probe(9.299533,[0,1,5,9.268733]),37966.3);assert.equal(failed.temporalCoverageValid,false);assert.ok(failed.presentationCoverageRatio<.25);
+  assert.equal(videoCoverage(probe(40,[0,1,9]),38000).temporalCoverageValid,false,'Container duration cannot disguise a truncated presentation timeline.');
+  assert.equal(videoCoverage(probe(9,[0,20,38]),38000).temporalCoverageValid,false,'A long timeline cannot disguise a truncated container.');
+  assert.equal(videoCoverage(probe(40,[0,39,20]),38000).temporalCoverageValid,false);assert.equal(videoCoverage({frames:{}},38000).temporalCoverageValid,false);assert.equal(videoCoverage(probe(40,[0,39]),NaN).temporalCoverageValid,false);
+  assert.doesNotMatch(Object.keys(good).join(','),/fps/i);
+});
+
+test('chapter evidence is published before later phases and partial sets never claim completion',async()=>{
+  const directory=await mkdtemp(join(tmpdir(),'openminerals-preview-captures-')),privateRoot=join(directory,'private'),published=join(directory,'public');
+  try{
+    const story=join(privateRoot,'after','story','screenshots'),reduced=join(privateRoot,'after','story-exit','screenshots');await mkdir(story,{recursive:true});await mkdir(published);
+    const png=Buffer.from([137,80,78,71,13,10,26,10,0]);
+    for(let chapter=1;chapter<=3;chapter++)await writeFile(join(story,'safe-story-'+chapter+'.png'),png);
+    await writeFile(join(story,'private-unapproved.png'),png);
+    const partial=await publishAnonymousScreenshots({kind:'after',privateRoot,published,requireChapters:false});assert.equal(partial.chapterCount,3);assert.equal(partial.complete,false);assert.match(partial.scope,/3 of seven/);assert.equal((await readdir(published)).includes('after-private-unapproved.png'),false);
+    for(let chapter=4;chapter<=7;chapter++)await writeFile(join(story,'safe-story-'+chapter+'.png'),png);
+    const chapters=await publishAnonymousScreenshots({kind:'after',privateRoot,published});assert.equal(chapters.chaptersComplete,true);assert.equal(chapters.reducedMotionPresent,false);assert.equal(chapters.complete,false);
+    await assert.rejects(publishAnonymousScreenshots({kind:'after',privateRoot,published,requireReduced:true}),/screenshots missing/);
+    await mkdir(reduced,{recursive:true});await writeFile(join(reduced,'safe-reduced-motion.png'),png);assert.equal((await publishAnonymousScreenshots({kind:'after',privateRoot,published,requireReduced:true})).complete,true);
+  }finally{assert.ok(resolve(directory).startsWith(resolve(tmpdir())+sep+'openminerals-preview-captures-'));await rm(directory,{recursive:true,force:true});}
+});
+
+test('candidate chapter adapter preserves initial GL proof and accepts only explicit performance degradation afterwards',async()=>{
+  const source=await read('../e2e/native/story.yaml'),adapter=adaptiveCandidateStory(source);assert.equal(adapter.segments.length,7);assert.equal(adapter.initialGlBeforeGesturesRequired,true);
+  const first=yaml.parseAllDocuments(adapter.segments[0].source)[1].toJSON(),initial=first.findIndex(command=>command.extendedWaitUntil?.visible?.id==='immersive-gl-ready'),swipe=first.findIndex(command=>command.swipe);
+  assert.ok(initial>=0&&initial<swipe);assert.deepEqual(first[initial+1],{takeScreenshot:'safe-initial-gl'});
+  for(const segment of adapter.segments){
+    assert.doesNotThrow(()=>previewFlow(segment.source,PREVIEW.package));const commands=yaml.parseAllDocuments(segment.source)[1].toJSON();assert.equal(commands.at(-1).takeScreenshot,'safe-story-'+segment.chapter);
+    const alternatives=commands.filter(command=>command.extendedWaitUntil?.visible?.id==='immersive-(gl-ready|scene-light)');assert.ok(alternatives.length>0);
+    for(const command of commands.filter(command=>command.runFlow?.when?.visible?.id==='immersive-scene-light'))assert.deepEqual(command.runFlow.commands,[{assertVisible:{id:'immersive-scene-light',text:'.*Vista ligera activada por coste de render\\..*'}}]);
+  }
+  assert.throws(()=>adaptiveCandidateStory(source.replace('safe-story-7','safe-story-8')));
+  const parts=source.replaceAll('\r\n','\n').split('\n---\n'),commands=JSON.parse(parts[1]);commands.unshift({swipe:{start:'80%,80%',end:'80%,18%',duration:800}});assert.throws(()=>adaptiveCandidateStory(parts[0]+'\n---\n'+JSON.stringify(commands)));
 });
 
 test('authorized native authentication opts out of legacy import and preserves the exact buyer across a cold launch',()=>{
