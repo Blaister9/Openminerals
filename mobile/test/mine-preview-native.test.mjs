@@ -204,6 +204,10 @@ test('preview workflow limits automatic runs to the trusted sprint PR and isolat
   assert.deepEqual(Object.keys(workflow.on),['pull_request','workflow_dispatch']);assert.deepEqual(workflow.on.pull_request.branches,['main']);assert.deepEqual(Object.keys(workflow.on.workflow_dispatch.inputs),['apk_url','apk_sha256','apk_certificate_sha256']);
   assert.deepEqual(workflow.permissions,{contents:'read'});assert.equal(workflow.concurrency['cancel-in-progress'],false);
   const job=workflow.jobs['before-after'],runner=job.steps.find(step=>step.uses?.startsWith('ReactiveCircus/'));
+  const mediaIndex=job.steps.findIndex(step=>step.run?.includes('apt-get install -y --no-install-recommends ffmpeg'));
+  const verificationIndex=job.steps.findIndex(step=>step.run==='node mobile/e2e/mine-preview.mjs download');
+  assert.ok(mediaIndex>=0&&mediaIndex<verificationIndex,'ffprobe/ffmpeg must be installed before host media verification.');
+  assert.match(job.steps[mediaIndex].run,/command -v ffprobe/);assert.match(job.steps[mediaIndex].run,/command -v ffmpeg/);
   assert.match(job.if,/head\.repo\.full_name == github\.repository/);assert.match(job.if,/head\.ref == 'codex\/android-mine-realism-20261101'/);assert.doesNotMatch(Object.keys(workflow.on).join(','),/pull_request_target/);
   assert.equal(job['runs-on'],'ubuntu-24.04');assert.equal(runner.with['api-level'],29);assert.equal(runner.with.arch,'x86_64');assert.equal(runner.with['disable-linux-hw-accel'],false);assert.match(runner.with['emulator-options'],/-accel on/);
   assert.equal(job.env.APK_INPUT_CERT_SHA256,'${{ inputs.apk_certificate_sha256 }}');
