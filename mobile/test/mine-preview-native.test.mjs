@@ -7,7 +7,7 @@ import {tmpdir} from 'node:os';
 import {join,resolve,sep} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {seedState,applyCommand,availableHoldingMg} from '../../api/src/domain.js';
-import {PRESENTED,PREVIEW,previewInputs,previewFlow,gestureTrace,executeTrace,metadataValue,verifyArtifact,installedIdentity,assertStablePreserved,legacyCommerceFlow,publicFailureReason,anonymousSceneFlags,authorizedAuthFlow,authorizedPublicOperator,publicOperatorPreflight,observeColdLaunch,videoCoverage,publishAnonymousScreenshots,adaptiveCandidateStory,nativeValidationScope,effectiveValidationScope,anonymousSceneState,adaptiveCandidateResume,nativeGlDiagnostics,legacyReservationFlow,legacyHistoryFlow,staticFlowDiagnosticAllowed,authFailureMetadata,selectedCiScopes,strictRecorderPid,finalizeOwnedRecorder} from '../e2e/mine-preview.mjs';
+import {PRESENTED,PREVIEW,previewInputs,previewFlow,gestureTrace,executeTrace,metadataValue,verifyArtifact,installedIdentity,assertStablePreserved,legacyCommerceFlow,publicFailureReason,anonymousSceneFlags,authorizedAuthFlow,authorizedPublicOperator,publicOperatorPreflight,observeColdLaunch,videoCoverage,publishAnonymousScreenshots,adaptiveCandidateStory,nativeValidationScope,effectiveValidationScope,anonymousSceneState,adaptiveCandidateResume,nativeGlDiagnostics,legacyReservationFlow,legacyHistoryFlow,staticFlowDiagnosticAllowed,authFailureMetadata,selectedCiScopes,strictRecorderPid,finalizeOwnedRecorder,runCandidateFirstComparison} from '../e2e/mine-preview.mjs';
 import {API,PACKAGE} from '../e2e/ci-safety.mjs';
 import {embeddedFlow} from '../e2e/release-contract.mjs';
 const yaml=createRequire(import.meta.url)('yaml');
@@ -238,6 +238,17 @@ test('recorder finalization waits beyond eight seconds for remote exit and host 
 test('a recorder probe outage or missing host close cannot certify finalization',async()=>{
   let time=0;const outage=await finalizeOwnedRecorder({pid:'42',probe:()=>{throw Error('transport');},signal:()=>{},hostClosed:()=>true,wait:ms=>{time+=ms;},now:()=>time});assert.equal(outage.finalized,false);assert.equal(outage.remoteExitObserved,false);assert.equal(outage.latencyMs,30000);assert.ok(outage.probeErrors>0);
   time=0;const host=await finalizeOwnedRecorder({pid:'42',probe:()=>'',signal:()=>{},hostClosed:()=>false,wait:ms=>{time+=ms;},now:()=>time});assert.equal(host.finalized,false);assert.equal(host.remoteExitObserved,true);assert.equal(host.hostCloseObserved,false);assert.equal(host.timedOut,true);
+});
+
+test('candidate-first comparison preserves partial evidence and propagates either profile failure',async()=>{
+  const order=[];
+  await runCandidateFirstComparison({candidate:async()=>{order.push('candidate');},stopCandidate:async()=>{order.push('stop-candidate');},presented:async()=>{order.push('presented');}});
+  assert.deepEqual(order,['candidate','stop-candidate','presented']);
+  const evidence=[],failure=Error('profile failed');
+  await assert.rejects(runCandidateFirstComparison({candidate:async()=>{evidence.push('candidate-photo');throw failure;},stopCandidate:async()=>{evidence.push('unexpected-stop');},presented:async()=>{evidence.push('unexpected-baseline');}}),error=>error===failure);
+  assert.deepEqual(evidence,['candidate-photo']);
+  await assert.rejects(runCandidateFirstComparison({candidate:async()=>{evidence.push('candidate-complete');},stopCandidate:async()=>{evidence.push('candidate-stopped');},presented:async()=>{evidence.push('baseline-partial');throw failure;}}),error=>error===failure);
+  assert.deepEqual(evidence,['candidate-photo','candidate-complete','candidate-stopped','baseline-partial']);
 });
 
 test('bounded anonymous scene snapshots distinguish explicit cost fallback from unexplained light or pending',()=>{

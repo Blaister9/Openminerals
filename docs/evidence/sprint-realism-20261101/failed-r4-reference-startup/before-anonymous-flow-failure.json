@@ -1,0 +1,23 @@
+{
+  "kind": "before",
+  "flow": "embedded",
+  "invocation": 2,
+  "stage": "presented-light-unrecorded-fixed-trace",
+  "category": "native-command-failed",
+  "expectedSelectorsFromFlow": [],
+  "recentStaticCommandLabels": [],
+  "rawDiagnosticsPublished": false,
+  "diagnosticSources": {
+    "console": true,
+    "junit": false,
+    "commands": false,
+    "maestroLog": true
+  },
+  "firstFailedCommand": null,
+  "recentCommands": [],
+  "skippedDiagnosticFiles": 0,
+  "diagnosticTraversalTruncated": false,
+  "diagnosticScope": "anonymous-static-command-metadata",
+  "credentialsEntered": false,
+  "privateUiPublished": false
+}

@@ -2,29 +2,29 @@
   "format": "openminerals-core-ci-evidence-v1",
   "demoOnly": true,
   "run": {
-    "id": 41388807960,
-    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41388807960",
+    "id": 41391258027,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41391258027",
     "event": "pull_request",
-    "headCommit": "fa308d0bc9a183bee092fd910eca4dc911078642",
+    "headCommit": "8c4361da66da57a7641296f16b47e9e7ce95f79f",
     "status": "completed",
     "conclusion": "success",
-    "completedAtUtc": "2026-11-02T04:31:24Z"
+    "completedAtUtc": "2026-11-02T04:58:20Z"
   },
   "corroboratingPushRun": {
-    "id": 41388802252,
-    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41388802252",
-    "headCommit": "fa308d0bc9a183bee092fd910eca4dc911078642",
+    "id": 41391252145,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41391252145",
+    "headCommit": "8c4361da66da57a7641296f16b47e9e7ce95f79f",
     "conclusion": "success",
-    "completedAtUtc": "2026-11-02T04:31:18Z",
+    "completedAtUtc": "2026-11-02T04:58:36Z",
     "counterAgreement": true
   },
   "jobs": {
     "mobile": {
-      "id": 125095474880,
-      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41388807960/job/125095474880",
+      "id": 125102938498,
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41391258027/job/125102938498",
       "conclusion": "success",
-      "tests": 349,
-      "passed": 343,
+      "tests": 353,
+      "passed": 347,
       "failed": 0,
       "skipped": 6,
       "optionalSkips": "Software-WebGL browser execution was not configured in this source-validation CI; Android native execution and local software-WebGL are separate evidence.",
@@ -35,8 +35,8 @@
       "expoDoctor": "21/21 checks passed"
     },
     "api": {
-      "id": 125095475123,
-      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41388807960/job/125095475123",
+      "id": 125102938337,
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41391258027/job/125102938337",
       "conclusion": "success",
       "memoryPhase": {
         "tests": 102,
@@ -73,11 +73,16 @@
   "validationSource": {
     "revision": "r4",
     "sprintApplicationCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
-    "verificationCommit": "fa308d0bc9a183bee092fd910eca4dc911078642",
-    "note": "Core CI validates this harness verification head. R4 Android APK application source is recorded separately above. Native journeys, metrics and physical acceptance are separate evidence."
+    "verificationCommit": "8c4361da66da57a7641296f16b47e9e7ce95f79f",
+    "note": "Core CI validates this QA-only verification head. R4 Android APK application source remains ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14; native journeys, metrics and physical acceptance are separate evidence."
   },
   "previousRevisionContext": {
     "path": "failed-r3-comparison/core-ci.json",
     "scope": "Archived R3 validation; not additional distinct cases or R4 native proof."
+  },
+  "previousR4Context": {
+    "path": "android-r4-commerce/core-ci-context.json",
+    "headCommit": "fa308d0bc9a183bee092fd910eca4dc911078642",
+    "scope": "Prior R4 core validation associated with the independent commerce run; not additional distinct cases."
   }
 }

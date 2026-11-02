@@ -52,5 +52,18 @@
     "completedNativeStages": 15,
     "provenance": "android-r4-commerce/provenance.json",
     "scope": "Owned legacy commerce and native account access; not authenticated trading or physical custody."
+  },
+  "plannedComparisonOrder": [
+    "after",
+    "before"
+  ],
+  "previousReferenceAttempt": {
+    "run": 41391258031,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41391258031",
+    "harnessHead": "8c4361da66da57a7641296f16b47e9e7ce95f79f",
+    "conclusion": "failure",
+    "candidateAttempted": false,
+    "phase": "Frozen 0.3.0 reference preflight timed out before any new candidate graphics evaluation.",
+    "archive": "failed-r4-reference-startup/provenance.json"
   }
 }

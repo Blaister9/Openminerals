@@ -50,6 +50,11 @@ export async function finalizeOwnedRecorder({pid,probe,signal,hostClosed,wait:pa
   const latencyMs=now()-started,finalized=state.remoteExitObserved&&state.hostCloseObserved&&!state.unexpectedPidObserved;
   return {...state,finalized,latencyMs,timeoutMs,timedOut:!finalized&&latencyMs>=timeoutMs,hostForceTerminationRequested:false,stopWaitOutsideInputTrace:true};
 }
+export async function runCandidateFirstComparison({candidate,stopCandidate,presented}){
+  await candidate();
+  await stopCandidate();
+  await presented();
+}
 export function previewInputs(env,manifest={}){
   requireSafe(manifest&&typeof manifest==='object'&&!Array.isArray(manifest),'Invalid preview build record.');
   const supplied=[env.APK_INPUT_URL,env.APK_INPUT_SHA256,env.APK_INPUT_CERT_SHA256].filter(value=>value!==undefined&&value!=='');
@@ -596,27 +601,39 @@ async function main(){
         requireSafe(!adb('shell','pm','list','packages',PRESENTED.package),'Comparison requires a fresh emulator; stable data will never be cleared.');
         requireSafe(!adb('shell','pm','list','packages',PREVIEW.package),'Comparison requires a fresh preview install.');
       });
-      let stable;const trace=scope==='comparison'?gestureTrace(adb('shell','wm','size')):null;if(trace)await json('fixed-input-trace.json',trace);
-      await step('install-presented-stable-separate-package',async()=>{adb('install',join(root,'before.apk'));stable=identity(PRESENTED);anonymousReady=true;await coldOpen(PRESENTED);await embedded('before');});
-      if(scope==='comparison'){
-      await step('presented-seven-chapters',async()=>{await maestro('before','story');await copyScreenshots('before');});
-      await step('presented-light-unrecorded-fixed-trace',()=>measure('before',trace,{record:false,light:true}));
-      await step('presented-recorded-fixed-trace',()=>measure('before',trace,{record:true}));
-      await step('presented-unrecorded-fixed-trace',()=>measure('before',trace,{record:false}));
-      await step('presented-reduced-motion-and-exits',async()=>{await maestro('before','open-story-for-options',{source:document('Open narrative options without a 3D prerequisite',[tap('^Inicio$'),wait({id:'home-cinematic-scroll'})])});await maestro('before','story-exit');await copyScreenshots('before',true);});
-      await step('presented-live-gl-home-resume',()=>resume('before'));
+      let stable;const trace=scope==='comparison'?gestureTrace(adb('shell','wm','size')):null;if(trace){
+        await json('fixed-input-trace.json',trace);
+        await json('comparison-order.json',{demoOnly:true,profileOrder:['after','before'],executionStatus:'Planned order; completed and failed stages are recorded in summary-run.json.',candidateFirst:true,stableInstalledFirst:true,stableOpenedAfterCandidate:true,sameDisposableEmulator:true,sameInputTrace:true,counterbalanced:false,orderConfound:'Candidate runs first; emulator warm-up, caches and host load may differ for the later stable profiles. No order-independent performance conclusion is established.'});
       }
+      await step('install-presented-stable-separate-package',async()=>{adb('install',join(root,'before.apk'));stable=identity(PRESENTED);anonymousReady=true;if(scope!=='comparison'){await coldOpen(PRESENTED);await embedded('before');}});
       adb('shell','am','force-stop',PRESENTED.package);
       await step('install-preview-alongside-preserved-stable',async()=>{adb('install',join(root,'after.apk'));identity(PREVIEW);assertStablePreserved(stable,identity(PRESENTED));await coldOpen(PREVIEW);await embedded('after');});
-      if(scope==='comparison'){
-      await step('preview-seven-chapters',candidateChapters);
-      await step('preview-light-unrecorded-fixed-trace',()=>measure('after',trace,{record:false,light:true}));
-      await step('preview-recorded-fixed-trace',()=>measure('after',trace,{record:true}));
-      await step('preview-unrecorded-fixed-trace',()=>measure('after',trace,{record:false}));
-      }else if(scope==='regression')await step('preview-regression-first-gl-proof',async()=>{await maestro('after','story-video-prepare');const scene=await sampleScene();await json('regression-first-gl.json',{demoOnly:true,strictGlReadinessRequired:true,...scene});requireSafe(scene.mode==='gl','Candidate regression requires an actual GL-ready scene.');});
-      if(scope!=='commerce'){
-      await step('preview-reduced-motion-and-exits',async()=>{await maestro('after','open-story-for-options',{source:document('Open narrative options without a 3D prerequisite',[tap('^Inicio$'),wait({id:'home-cinematic-scroll'})])});await maestro('after','story-exit');await publishAnonymousScreenshots({kind:'after',privateRoot,published,requireChapters:scope==='comparison',requireReduced:true});});
-      await step('preview-live-gl-home-resume',()=>resume('after'));
+      async function previewModes(){
+        await step('preview-reduced-motion-and-exits',async()=>{await maestro('after','open-story-for-options',{source:document('Open narrative options without a 3D prerequisite',[tap('^Inicio$'),wait({id:'home-cinematic-scroll'})])});await maestro('after','story-exit');await publishAnonymousScreenshots({kind:'after',privateRoot,published,requireChapters:scope==='comparison',requireReduced:true});});
+        await step('preview-live-gl-home-resume',()=>resume('after'));
+      }
+      if(scope==='comparison')await runCandidateFirstComparison({
+        candidate:async()=>{
+          await step('preview-seven-chapters',candidateChapters);
+          await step('preview-light-unrecorded-fixed-trace',()=>measure('after',trace,{record:false,light:true}));
+          await step('preview-recorded-fixed-trace',()=>measure('after',trace,{record:true}));
+          await step('preview-unrecorded-fixed-trace',()=>measure('after',trace,{record:false}));
+          await previewModes();
+        },
+        stopCandidate:()=>step('preview-stop-before-presented',async()=>{adb('shell','am','force-stop',PREVIEW.package);}),
+        presented:async()=>{
+          await step('presented-source-and-cold-open',async()=>{await coldOpen(PRESENTED);await embedded('before');});
+          await step('presented-seven-chapters',async()=>{await maestro('before','story');await copyScreenshots('before');});
+          await step('presented-light-unrecorded-fixed-trace',()=>measure('before',trace,{record:false,light:true}));
+          await step('presented-recorded-fixed-trace',()=>measure('before',trace,{record:true}));
+          await step('presented-unrecorded-fixed-trace',()=>measure('before',trace,{record:false}));
+          await step('presented-reduced-motion-and-exits',async()=>{await maestro('before','open-story-for-options',{source:document('Open narrative options without a 3D prerequisite',[tap('^Inicio$'),wait({id:'home-cinematic-scroll'})])});await maestro('before','story-exit');await copyScreenshots('before',true);});
+          await step('presented-live-gl-home-resume',()=>resume('before'));
+        },
+      });
+      else if(scope==='regression'){
+        await step('preview-regression-first-gl-proof',async()=>{await maestro('after','story-video-prepare');const scene=await sampleScene();await json('regression-first-gl.json',{demoOnly:true,strictGlReadinessRequired:true,...scene});requireSafe(scene.mode==='gl','Candidate regression requires an actual GL-ready scene.');});
+        await previewModes();
       }
       // No recording, copying of UI or public raw Maestro output follows this
       // boundary. Mutations use only this fresh app-owned DEMO legacy session.
