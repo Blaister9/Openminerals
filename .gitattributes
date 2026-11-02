@@ -8,3 +8,4 @@
 # Keep evidence hashes reproducible when checking out on Windows.
 docs/evidence/sprint-realism-20261101/**/*.json text eol=lf
 docs/evidence/sprint-realism-20261101/**/*.txt text eol=lf
+docs/evidence/sprint-realism-20261101/**/*.xml text eol=lf

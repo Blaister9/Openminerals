@@ -7,7 +7,7 @@ import {tmpdir} from 'node:os';
 import {join,resolve,sep} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {seedState,applyCommand,availableHoldingMg} from '../../api/src/domain.js';
-import {PRESENTED,PREVIEW,previewInputs,previewFlow,gestureTrace,executeTrace,metadataValue,verifyArtifact,installedIdentity,assertStablePreserved,legacyCommerceFlow,publicFailureReason,anonymousSceneFlags,authorizedAuthFlow,authorizedPublicOperator,publicOperatorPreflight,observeColdLaunch,videoCoverage,publishAnonymousScreenshots,adaptiveCandidateStory,nativeValidationScope,effectiveValidationScope,anonymousSceneState,adaptiveCandidateResume,nativeGlDiagnostics,legacyReservationFlow,legacyHistoryFlow} from '../e2e/mine-preview.mjs';
+import {PRESENTED,PREVIEW,previewInputs,previewFlow,gestureTrace,executeTrace,metadataValue,verifyArtifact,installedIdentity,assertStablePreserved,legacyCommerceFlow,publicFailureReason,anonymousSceneFlags,authorizedAuthFlow,authorizedPublicOperator,publicOperatorPreflight,observeColdLaunch,videoCoverage,publishAnonymousScreenshots,adaptiveCandidateStory,nativeValidationScope,effectiveValidationScope,anonymousSceneState,adaptiveCandidateResume,nativeGlDiagnostics,legacyReservationFlow,legacyHistoryFlow,staticFlowDiagnosticAllowed} from '../e2e/mine-preview.mjs';
 import {API,PACKAGE} from '../e2e/ci-safety.mjs';
 import {embeddedFlow} from '../e2e/release-contract.mjs';
 const yaml=createRequire(import.meta.url)('yaml');
@@ -116,6 +116,27 @@ test('native legacy reservation and historical-read flows preserve the private b
   assert.match(history,/157,10/);assert.match(history,/228,73/);assert.match(history,/Mostrando/);assert.equal(yaml.parseAllDocuments(history)[1].toJSON().filter(command=>command.tapOn==='(?i)^Ver comprobante: Compra de oro,.*').length,2);
   assert.doesNotMatch(reservations+history,/takeScreenshot|MAESTRO_|clearState|uninstall|Precio por gramo de oferta marketplace|mine\/stock|intake/);assert.doesNotMatch(history,/Confirmar demo|inputText/);
   assert.doesNotThrow(()=>previewFlow(reservations,PREVIEW.package));assert.doesNotThrow(()=>previewFlow(history,PREVIEW.package));
+});
+
+test('generated editable-field commands use explicit erase counts and scalar keyboard commands',()=>{
+  const sources=[legacyCommerceFlow(),legacyReservationFlow(),legacyHistoryFlow(),...['register-buyer','buyer-persisted','buyer-logout','operator-login','operator-readonly','operator-logout'].map(authorizedAuthFlow)];let fields=0,keyboards=0;
+  const visit=value=>{
+    if(value==='hideKeyboard')keyboards++;
+    if(!value||typeof value!=='object')return;
+    if(Object.hasOwn(value,'eraseText')){assert.equal(value.eraseText,100);fields++;}
+    assert.equal(Object.hasOwn(value,'hideKeyboard'),false,'No null-valued hideKeyboard mappings may reach the Maestro parser.');
+    if(value.tapOn?.point)assert.equal(value.tapOn.point,'95%,50%');
+    for(const item of Object.values(value))visit(item);
+  };
+  for(const source of sources)visit(yaml.parseAllDocuments(source)[1].toJSON());assert.ok(fields>=10);assert.equal(fields,keyboards);
+});
+
+test('legacy static parser diagnostics are closed to owned flows and stop before credentials',()=>{
+  const context={anonymousReady:true,commerceStarted:true,credentialsStarted:false};
+  for(const name of ['legacy-commerce','legacy-reservations','legacy-history','legacy-preserved'])assert.equal(staticFlowDiagnosticAllowed(name,context),true);
+  for(const name of ['register-buyer','operator-login','auth-register-buyer','foreign'])assert.equal(staticFlowDiagnosticAllowed(name,context),false);
+  for(const commerceStarted of [false,true])assert.equal(staticFlowDiagnosticAllowed('legacy-commerce',{...context,commerceStarted,credentialsStarted:true}),false);
+  assert.equal(staticFlowDiagnosticAllowed('legacy-commerce',{...context,anonymousReady:false}),false);
 });
 
 test('preview public failures accept only static known reasons and redact unrecognized exception text',()=>{

@@ -1,0 +1,65 @@
+{
+  "format": "openminerals-failed-native-commerce-evidence-v1",
+  "demoOnly": true,
+  "runUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41384249997",
+  "jobUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41384249997/job/125081454743",
+  "jobName": "before-after (commerce)",
+  "harnessHeadCommit": "8b892afe4e3bdb05fcdab1af06c61a2c2f2a95aa",
+  "artifactVerificationCommit": "f9cf290e33dc6c8631c945b3cdc21d37924c71b8",
+  "conclusion": "failure",
+  "scope": "Commerce job only; this failure does not describe the separate comparison job.",
+  "nativeStages": {
+    "passed": 3,
+    "failed": 1,
+    "failedStage": "preview-new-legacy-commerce",
+    "failedDurationSeconds": 2.742
+  },
+  "causeProven": false,
+  "interpretation": "Fast Maestro failure suggests a flow-definition issue. Null-valued eraseText/hideKeyboard mappings differed from the established scalar/count syntax. No exact parser category was included in this attempt artifact. No completed commerce or account phase is credited.",
+  "pinnedParserProofPerformed": false,
+  "rawLogsPublished": false,
+  "privateUiPublished": false,
+  "phoneAcceptance": false,
+  "files": [
+    {
+      "file": "summary-download.json",
+      "bytes": 1289,
+      "sha256": "8cc952f1a501d081f055a9b8d2037f2f16104372a15f341937811a0ff589d1f4"
+    },
+    {
+      "file": "summary-run.json",
+      "bytes": 1476,
+      "sha256": "8feb43a01b21e547d8f27cc82fd90919d1741a4e5b83fd7821a400893e7b2d6e"
+    },
+    {
+      "file": "report-download.xml",
+      "bytes": 225,
+      "sha256": "81ffca49ab1b507a8125c30cf4cc8cfdf6ae3e9d07ed8a7f9ae6e8f14ef2d0a9"
+    },
+    {
+      "file": "report-run.xml",
+      "bytes": 680,
+      "sha256": "992ce684b3d6bc63e8857431b098306c7396f892a9e52f2b3e335b3b8180598e"
+    },
+    {
+      "file": "progress.json",
+      "bytes": 1130,
+      "sha256": "8c8b03819978a13ca3bc555a72b93360c412cb07ea77adb7db1a15dcddb575af"
+    },
+    {
+      "file": "progress.ndjson",
+      "bytes": 33765,
+      "sha256": "d64a5c225814a536eb8a9e8ac97bc930efc286957bb8c83cd1d79da2476d17a4"
+    },
+    {
+      "file": "apk-verification.json",
+      "bytes": 1205,
+      "sha256": "d6176db8d2597bb9944338f0ac6d047213b301de2990e2bb294635b7189c65c3"
+    },
+    {
+      "file": "review.json",
+      "bytes": 2053,
+      "sha256": "9005fd2264e0f4a2235f0b149155be9248ef12142fd8495b94a84629dff597c1"
+    }
+  ]
+}

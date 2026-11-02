@@ -35,6 +35,8 @@ export function previewInputs(env,manifest={}){
   };
 }
 const FLOW_NAMES=new Set(['story','story-clean','story-video-prepare','story-light-prepare','story-exit','story-resume-position','story-resume-check','wallet-balance-rail']);
+const LEGACY_DIAGNOSTIC_FLOWS=new Set(['legacy-commerce','legacy-reservations','legacy-history','legacy-preserved']);
+export function staticFlowDiagnosticAllowed(flow,{anonymousReady,commerceStarted,credentialsStarted}){return !!anonymousReady&&!credentialsStarted&&(!commerceStarted||LEGACY_DIAGNOSTIC_FLOWS.has(flow));}
 const PUBLIC_FAILURE_REASONS=new Set([
   'A required preview command failed or timed out.','Downloaded APK SHA256 differs.','APK changed after download verification.',
   'APK package, version or minimum SDK differs.','APK signing certificate differs from the explicitly pinned identity.',
@@ -260,7 +262,7 @@ export function installedIdentity(text,expected){
 export function assertStablePreserved(before,after){requireSafe(JSON.stringify(before)===JSON.stringify(after),'Preview install or execution changed stable UID/version.');return true;}
 
 export function legacyCommerceFlow(){
-  const input=(text,value)=>[scroll(text),tap(text),{eraseText:null},{inputText:value},{hideKeyboard:null}];
+  const input=(text,value)=>[scroll(text),{tapOn:{text,point:'95%,50%'}},{eraseText:100},{inputText:value},'hideKeyboard'];
   const receipt=balance=>[tap('^Confirmar demo$'),wait('^Comprobante$'),scroll('^USDT '+balance+'$'),{assertVisible:'^USDT '+balance+'$'},tap('Cerrar comprobante')];
   return document('New anonymous preview session simulated commerce without account credentials',[
     tap('^Billetera$'),{runFlow:{file:'wallet-balance-rail.yaml'}},wait('^USDT 250,00$'),
@@ -272,7 +274,7 @@ export function legacyCommerceFlow(){
 }
 export function legacyReservationFlow(){
   const up=text=>({scrollUntilVisible:{element:{text},direction:'UP',centerElement:true,timeout:30000}});
-  const input=value=>[scroll('Gramos para operación'),tap('Gramos para operación'),{eraseText:null},{inputText:value},{hideKeyboard:null}];
+  const input=value=>[scroll('Gramos para operación'),{tapOn:{text:'Gramos para operación',point:'95%,50%'}},{eraseText:100},{inputText:value},'hideKeyboard'];
   const receipt=(reserved,available)=>[tap('^Confirmar demo$'),wait('^Comprobante$'),up('^SIMULACIÓN · SIN FONDOS NI METALES REALES$'),scroll('^Saldo USDT después$'),{assertVisible:'^USDT 228,73$'},scroll('^Oro total después$'),{assertVisible:'^1,500 g$'},scroll('^Oro reservado después$'),{assertVisible:'^'+reserved+' g$'},scroll('^Oro disponible después$'),{assertVisible:'^'+available+' g$'},tap('Cerrar comprobante')];
   return document('Owned legacy reservations and releases without shared-mine writes',[
     tap('^Metales$'),up('^COMPOSICIÓN DEL PORTAFOLIO$'),{assertVisible:'^COMPOSICIÓN DEL PORTAFOLIO$'},scroll('^1,500 g disponibles$'),{assertVisible:'^1,500 g disponibles$'},
@@ -297,7 +299,7 @@ export function legacyHistoryFlow(){
 const AUTH_PHASES=new Set(['register-buyer','buyer-persisted','buyer-logout','operator-login','operator-readonly','operator-logout']);
 export function authorizedAuthFlow(phase){
   requireSafe(AUTH_PHASES.has(phase),'Unexpected authorized preview authentication phase.');
-  const input=(text,value)=>[scroll(text),tap(text),{eraseText:null},{inputText:value},{hideKeyboard:null}];
+  const input=(text,value)=>[scroll(text),{tapOn:{text,point:'95%,50%'}},{eraseText:100},{inputText:value},'hideKeyboard'];
   const open=[tap('^Actividad$'),{tapOn:{text:'^Cuenta$',index:0}},wait('^Cuenta demo$')];
   const fields=[...input('Alias de cuenta demo','${MAESTRO_PREVIEW_ALIAS}'),...input('Clave de cuenta demo','${MAESTRO_PREVIEW_PASSWORD}')];
   const buyer=[tap('^Actividad$'),wait('^Comprador · ${MAESTRO_PREVIEW_ALIAS}$'),{assertNotVisible:'^Operador ·.*|^Sesión sin cuenta$|^Sesión anterior · solo consulta$'},tap('^Billetera$'),{runFlow:{file:'wallet-balance-rail.yaml'}},wait('^USDT 250,00$')];
@@ -344,7 +346,7 @@ const preservedWalletFlow=()=>document('Verify preview legacy balance after cold
 ]);
 
 async function main(){
-  let serial,progress,stage='configuration',failureReason=null,commerceStarted=false,anonymousReady=false,scope='comparison';const results=[],privateValues=new Set();
+  let serial,progress,stage='configuration',failureReason=null,commerceStarted=false,credentialsStarted=false,anonymousReady=false,scope='comparison';const results=[],privateValues=new Set();
   const authChecks={buyerCreatedWithoutImport:false,buyerColdLaunchSecureStore:false,legacyRestoredAfterBuyerLogout:false,publicOperatorReadOnlyLogin:false,publicOperatorMineAndAccountWithoutBuyerWallet:false,publicOperatorLoggedOut:false};
   const commerceChecks={conversionBuySell:false,reservationsAndOvercommitProtection:false,reservationRelease:false,portfolioAndHistoricalReceipts:false,restartPreservesLegacy:false,nativeSameRequestReplayTested:false};
   const repo=resolve(dirname(fileURLToPath(import.meta.url)),'..'),root=resolve(process.env.RUNNER_TEMP||'.','openminerals-mine-preview');
@@ -380,12 +382,12 @@ async function main(){
     requireSafe(source||FLOW_NAMES.has(name),'Unapproved tracked preview flow.');
     try{command('maestro',['--no-ansi','--device',serial,'test','--format','JUNIT','--output',join(out,'raw-report.xml'),'--debug-output',join(out,'debug'),'--test-output-dir',screenshots,join(flows,name+'.yaml')],{timeout:420000,output:join(out,'console.txt')});}
     catch(error){
-      if(anonymousReady&&!commerceStarted){
+      if(staticFlowDiagnosticAllowed(name,{anonymousReady,commerceStarted,credentialsStarted})){
         if(screenshotChapter!==undefined)await publishAnonymousScreenshots({kind,privateRoot,published,requireChapters:false});
         const definition=source??await readFile(join(repo,'e2e/native',name+'.yaml'),'utf8');
-        const diagnostic={kind,flow:name,invocation,stage,...await collectFailureDiagnostic(out,flowSelectors(definition)),credentialsEntered:false};
-        await json(kind+'-anonymous-flow-failure.json',diagnostic);
-        console.error('ANONYMOUS_FLOW_FAILURE '+JSON.stringify({kind,flow:name,invocation,category:diagnostic.category,firstFailedCommand:diagnostic.firstFailedCommand,expectedSelectorsFromFlow:diagnostic.expectedSelectorsFromFlow}));
+        const diagnostic={kind,flow:name,invocation,stage,...await collectFailureDiagnostic(out,flowSelectors(definition)),diagnosticScope:commerceStarted?'owned-legacy-static-command-metadata':'anonymous-static-command-metadata',credentialsEntered:false,privateUiPublished:false};
+        await json(kind+'-'+(commerceStarted?'legacy':'anonymous')+'-flow-failure.json',diagnostic);
+        console.error((commerceStarted?'LEGACY_FLOW_FAILURE ':'ANONYMOUS_FLOW_FAILURE ')+JSON.stringify({kind,flow:name,invocation,category:diagnostic.category,firstFailedCommand:diagnostic.firstFailedCommand,expectedSelectorsFromFlow:diagnostic.expectedSelectorsFromFlow}));
       }
       throw error;
     }
@@ -581,6 +583,7 @@ async function main(){
       await step('preview-legacy-reservations-release-overcommit',async()=>{await maestro('after','legacy-reservations',{source:legacyReservationFlow()});commerceChecks.reservationsAndOvercommitProtection=true;commerceChecks.reservationRelease=true;});
       await step('preview-legacy-portfolio-historical-receipts',async()=>{await maestro('after','legacy-history',{source:legacyHistoryFlow()});commerceChecks.portfolioAndHistoricalReceipts=true;});
       await step('preview-legacy-balance-after-restart',async()=>{await coldOpen(PREVIEW);await embedded('after');await maestro('after','legacy-preserved',{source:preservedWalletFlow()});commerceChecks.restartPreservesLegacy=true;});
+      credentialsStarted=true;
       const buyer={alias:'mineqa_'+randomUUID().replaceAll('-','').slice(0,20),password:randomUUID().replaceAll('-','')+randomUUID().replaceAll('-','')};mask(buyer.alias);mask(buyer.password);
       await step('preview-buyer-register-without-import',async()=>{await maestroAuth('register-buyer',buyer,{password:true});authChecks.buyerCreatedWithoutImport=true;});
       await step('preview-buyer-securestore-after-cold-launch',async()=>{await coldOpen(PREVIEW);await maestroAuth('buyer-persisted',buyer);authChecks.buyerColdLaunchSecureStore=true;});

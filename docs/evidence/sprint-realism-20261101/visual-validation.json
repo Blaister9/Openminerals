@@ -4,13 +4,13 @@
   "visualSourceCommit": "0d3fa50791a6e86d8944c2d07026fcc5bc5c6999",
   "mobile": {
     "command": "OPENMINERALS_WEBGL_BROWSER=<Chrome> node --experimental-strip-types --test --test-concurrency=2 test/*.test.mjs",
-    "tests": 338,
-    "passed": 338,
+    "tests": 340,
+    "passed": 340,
     "failed": 0,
     "skipped": 0,
     "environment": "Windows Node22.22.3; actual Chrome SwiftShader shader execution",
     "androidPerformance": false,
-    "durationMs": 41071.5044
+    "durationMs": 39493.9248
   },
   "export": {
     "platform": "android",
@@ -25,7 +25,7 @@
     "stableReleaseModified": false
   },
   "physicalPhoneAcceptance": false,
-  "scope": "R3 full local suite338/338 after lifecycle/readiness and Android QA diagnostics changes. Actual native APK validation is separate; physical acceptance false.",
+  "scope": "R3 full local suite340/340 on verification source8b892af, actual Chrome SwiftShader. APK application source0d3fa50 is separately recorded; subsequent harness-only corrections require their own directed checks/native execution.",
   "lifecycle": {
     "visibleNativeSurfaceBeforeReady": true,
     "opaqueCoverUntilCompletedFrame": true,
@@ -40,5 +40,6 @@
     "passed": 28,
     "failed": 0,
     "scope": "Native harness/code diagnostics, independent commerce scope and owned legacy domain fixture; does not execute Android."
-  }
+  },
+  "verificationCommit": "8b892afe4e3bdb05fcdab1af06c61a2c2f2a95aa"
 }
