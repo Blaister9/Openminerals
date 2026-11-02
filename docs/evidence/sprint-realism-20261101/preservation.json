@@ -1,10 +1,10 @@
 {
   "demoOnly": true,
-  "checkedAt": "2026-11-02T04:34:48.863Z",
+  "checkedAt": "2026-11-02T06:09:32.132Z",
   "workspace": "C:/Users/santi/Documents/Openminerals",
   "remote": "https://github.com/Blaister9/Openminerals.git",
   "branch": "codex/android-mine-realism-20261101",
-  "validatedCodeCommit": "fa308d0bc9a183bee092fd910eca4dc911078642",
+  "validatedCodeCommit": "907ccc9a29d2c560697d36a1c3a00358260ab7ba",
   "apkApplicationSource": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
   "remoteMain": "ed87d2ea233227437ab5f5cc2eb0900674e1231f",
   "stableMainAtStart": "ed87d2ea233227437ab5f5cc2eb0900674e1231f",
@@ -26,5 +26,6 @@
   "previewChannel": "mine-realism",
   "previewRevision": "r4/code4",
   "physicalPhoneAcceptance": false,
-  "scope": "Verified GitHub main, the remote preservation tag, and source/configuration preservation. Existing signed APK inspection and native coexistence evidence are separate; no claim of physical phone state or container filesystem hash inspection."
+  "scope": "Verified GitHub main, the remote preservation tag, and source/configuration preservation. Existing signed APK inspection and native coexistence evidence are separate; no claim of physical phone state or container filesystem hash inspection.",
+  "apkRuntimeSourceUnchangedSinceBuild": true
 }

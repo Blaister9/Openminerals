@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Openminerals native Android" tests="2" failures="0">
+  <testcase classname="Openminerals.android" name="require-host-media-inspection-tools" time="0.250"></testcase>
+  <testcase classname="Openminerals.android" name="verify-both-isolated-apks" time="2.975"></testcase>
+</testsuite>

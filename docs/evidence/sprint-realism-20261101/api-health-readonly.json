@@ -1,10 +1,14 @@
 {
-  "checkedAtUtc": "2026-11-02T01:28:11.2367760Z",
-  "method": "GET /health only; no deployment, restart, SQL or data mutation",
+  "checkedAtUtc": "2026-11-02T05:31:13.387Z",
+  "url": "https://openminerals-api-demo.up.railway.app/health",
+  "httpStatus": 200,
   "response": {
     "ok": true,
     "mode": "postgres-demo",
     "demoOnly": true,
     "apiVersion": "0.2.0"
-  }
+  },
+  "readOnly": true,
+  "databaseRestarted": false,
+  "scope": "Read-only health check; no restart, SQL, deployment or secret values accessed."
 }

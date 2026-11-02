@@ -1,0 +1,88 @@
+{
+  "format": "openminerals-core-ci-evidence-v1",
+  "demoOnly": true,
+  "run": {
+    "id": 41391258027,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41391258027",
+    "event": "pull_request",
+    "headCommit": "8c4361da66da57a7641296f16b47e9e7ce95f79f",
+    "status": "completed",
+    "conclusion": "success",
+    "completedAtUtc": "2026-11-02T04:58:20Z"
+  },
+  "corroboratingPushRun": {
+    "id": 41391252145,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41391252145",
+    "headCommit": "8c4361da66da57a7641296f16b47e9e7ce95f79f",
+    "conclusion": "success",
+    "completedAtUtc": "2026-11-02T04:58:36Z",
+    "counterAgreement": true
+  },
+  "jobs": {
+    "mobile": {
+      "id": 125102938498,
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41391258027/job/125102938498",
+      "conclusion": "success",
+      "tests": 353,
+      "passed": 347,
+      "failed": 0,
+      "skipped": 6,
+      "optionalSkips": "Software-WebGL browser execution was not configured in this source-validation CI; Android native execution and local software-WebGL are separate evidence.",
+      "typecheck": "success",
+      "expoDependencyCheck": "success; dependencies are up to date",
+      "toolchainCheck": "success; three patched entries verified, no additional changes",
+      "highAndCriticalAuditGate": "success; 13 findings: two low, eleven moderate, none high or critical",
+      "expoDoctor": "21/21 checks passed"
+    },
+    "api": {
+      "id": 125102938337,
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41391258027/job/125102938337",
+      "conclusion": "success",
+      "memoryPhase": {
+        "tests": 102,
+        "passed": 91,
+        "failed": 0,
+        "skipped": 11
+      },
+      "requiredDatabasePhase": {
+        "tests": 80,
+        "passed": 80,
+        "failed": 0,
+        "skipped": 0
+      },
+      "distinctMemoryCases": 91,
+      "distinctPostgresCases": 79,
+      "distinctTotalCases": 170,
+      "countInterpretation": "The required-database runner repeats the memory recovery-adversarial case already included in the memory phase. Count 91 memory plus 79 PostgreSQL cases: 170 distinct cases, not 171. The eleven skipped PostgreSQL suite entries in npm test are run by the required-database phase and are not additional executed cases.",
+      "repeatedMemoryCase": "recuperación adversarial: respuesta perdida conserva legado, perfil, mina y replay de compra pendiente",
+      "database": "Disposable GitHub Actions PostgreSQL 18; not Railway or the owner's database.",
+      "highAndCriticalAuditGate": "success; zero vulnerabilities"
+    }
+  },
+  "verification": {
+    "summaryCountersReadFromCompletedJobLogs": true,
+    "duplicateMemoryCaseObservedInBothJobSteps": true,
+    "logBodiesPublished": false,
+    "privateFixturesPublished": false,
+    "signedDownloadUrlsPublished": false,
+    "nativeAndroidExecutionIncluded": false,
+    "phonePerformanceAcceptanceIncluded": false,
+    "localSoftwareWebglRunIsSeparateEvidence": true,
+    "corroboratingPushCountersReadFromCompletedJobLogs": true
+  },
+  "validationSource": {
+    "revision": "r4",
+    "sprintApplicationCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+    "verificationCommit": "8c4361da66da57a7641296f16b47e9e7ce95f79f",
+    "note": "Core CI validates this QA-only verification head. R4 Android APK application source remains ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14; native journeys, metrics and physical acceptance are separate evidence."
+  },
+  "previousRevisionContext": {
+    "path": "failed-r3-comparison/core-ci.json",
+    "scope": "Archived R3 validation; not additional distinct cases or R4 native proof."
+  },
+  "previousR4Context": {
+    "path": "android-r4-commerce/core-ci-context.json",
+    "headCommit": "fa308d0bc9a183bee092fd910eca4dc911078642",
+    "scope": "Prior R4 core validation associated with the independent commerce run; not additional distinct cases."
+  }
+}

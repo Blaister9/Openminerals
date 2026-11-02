@@ -1,0 +1,15 @@
+{
+  "kind": "after",
+  "package": "com.openminerals.demo.minepreview",
+  "version": "0.4.0",
+  "versionCode": 4,
+  "runtime": "0.4.0",
+  "channel": "mine-realism",
+  "certificate": "86c84db35e91b187f3f818c0cc74ddb91df9a95014cba138ac7e04611957aa09",
+  "embeddedHttpsApi": true,
+  "embeddedBytes": 1661632,
+  "debuggable": false,
+  "sha256": "adfbf909f0cf0c924c7b8938a1a773c5c96b84f14f86ae0e8c0bf53b7e1b1bf5",
+  "bytes": 77361280,
+  "certificateProvenance": "Inspected from the APK downloaded from its EAS build artifact. The same fingerprint is pinned separately for CI; remote credential-store retrieval not performed."
+}

@@ -1,0 +1,52 @@
+{
+  "demoOnly": true,
+  "validationScope": "comparison",
+  "previousComparison": null,
+  "benchmarksIncluded": true,
+  "glJourneyAssertionsIncluded": true,
+  "functionalChecksIncluded": false,
+  "environment": "disposable Android API29 emulator",
+  "physicalDevice": false,
+  "phonePerformanceAcceptance": false,
+  "gpuFpsMeasured": false,
+  "completed": [
+    "guard-disposable-api29-emulator",
+    "install-presented-stable-separate-package",
+    "install-preview-alongside-preserved-stable",
+    "preview-seven-chapters",
+    "preview-light-unrecorded-fixed-trace",
+    "preview-recorded-fixed-trace",
+    "preview-unrecorded-fixed-trace",
+    "preview-reduced-motion-and-exits",
+    "preview-live-gl-home-resume",
+    "preview-stop-before-presented",
+    "presented-source-and-cold-open",
+    "presented-seven-chapters",
+    "presented-light-unrecorded-fixed-trace",
+    "presented-recorded-fixed-trace",
+    "presented-unrecorded-fixed-trace",
+    "presented-reduced-motion-and-exits",
+    "presented-live-gl-home-resume",
+    "stable-package-uid-and-version-preserved"
+  ],
+  "failed": [],
+  "failureReason": null,
+  "nativeLegacyCommerce": {
+    "conversionBuySell": false,
+    "reservationsAndOvercommitProtection": false,
+    "reservationRelease": false,
+    "portfolioAndHistoricalReceipts": false,
+    "restartPreservesLegacy": false,
+    "nativeSameRequestReplayTested": false
+  },
+  "nativeAuthentication": {
+    "buyerCreatedWithoutImport": false,
+    "buyerColdLaunchSecureStore": false,
+    "legacyRestoredAfterBuyerLogout": false,
+    "publicOperatorReadOnlyLogin": false,
+    "publicOperatorMineAndAccountWithoutBuyerWallet": false,
+    "publicOperatorLoggedOut": false
+  },
+  "nativeAuthenticatedCommerce": "NOT RUN: authenticated trading, peer marketplace, lot custody/certificates and full delivery lifecycle require isolated funded fixtures; legacy offers/quote reservations are not peer settlement or physical custody.",
+  "privateUiPublished": false
+}

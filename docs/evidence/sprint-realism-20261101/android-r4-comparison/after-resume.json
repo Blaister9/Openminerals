@@ -1,0 +1,32 @@
+{
+  "demoOnly": true,
+  "physicalDevice": false,
+  "sameProcess": true,
+  "backgroundObserved": true,
+  "stagePreserved": true,
+  "glReadyBeforeHome": true,
+  "glReadyAfterResumeBeforeGestures": true,
+  "reversibleGesturesAfterResume": true,
+  "noForceStopDuringResume": true,
+  "final3dStateAccepted": true,
+  "finalScene": {
+    "automaticLightObserved": false,
+    "qualityTierObserved": "balanced",
+    "knownIds": [
+      "immersive-gl-ready",
+      "home-cinematic-scroll"
+    ],
+    "readiness": "gl-ready",
+    "mode": "gl",
+    "stateReasonCode": null,
+    "internalFailureCode": null,
+    "internalFailureObserved": false,
+    "retryPendingObserved": false,
+    "manualRetryControlObserved": false,
+    "manualLightDescriptionObserved": false,
+    "reducedMotionDescriptionObserved": false,
+    "genericSimplifiedTextObserved": false,
+    "xmlTruncated": false,
+    "rawUiPublished": false
+  }
+}
