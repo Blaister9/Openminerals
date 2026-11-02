@@ -236,7 +236,9 @@ test('native view stays drawable below the opaque preparation cover until first 
   }
   inspect(ast);assert.ok(native&&cover&&styles);
   const nativeStyle=attribute(native,'style').initializer.expression;
-  assert.equal(nativeStyle.properties.find(prop=>prop.name?.getText(ast)==='opacity').initializer.getText(ast),'1');
+  const opacity=nativeStyle.properties.find(prop=>prop.name?.getText(ast)==='opacity').initializer.getText(ast);
+  assert.equal(vm.runInNewContext(opacity,{enabled:true}),1,'Context creation and every enabled frame remain drawable.');
+  assert.equal(vm.runInNewContext(opacity,{enabled:false}),0,'Paused retained surface contributes no composited pixels.');
   assert.ok(native.end<cover.pos,'Native GL must precede its cover in JSX drawing order.');
   assert.match(cover.parent.getText(ast),/^\(!enabled\|\|!ready\)&&/);
   const fallbackStyle=styles.properties.find(prop=>prop.name.getText(ast)==='fallback').initializer;

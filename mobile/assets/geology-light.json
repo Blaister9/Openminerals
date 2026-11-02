@@ -3,8 +3,8 @@
   "kind": "precomputed-fictitious-mine-light-fallback",
   "width": 360,
   "height": 640,
-  "bytes": 314992,
-  "sha256": "7c535d04cb1df9aa7f07d36be3d5538793ca3b39bd6a82c33cd14aabea8023d4",
+  "bytes": 310167,
+  "sha256": "4fe91b779e19e71610f82b1de3b463b9e03cd582e85db64ccfd44d0e94cbd0bd",
   "renderer": "same application renderer; desktop Chrome/SwiftShader",
   "pose": {
     "progress": 0,
@@ -12,10 +12,10 @@
     "metal": "XAU"
   },
   "sourceHashesLF": {
-    "lib/scene-renderer.ts": "69a633010d62bd6942bba53c09fff421e867587ba02a031349c584d492c09250",
-    "lib/geological-scene.ts": "dad385018f3da9694a90080892618f08353303f65f0407ed36224899f79c67da",
+    "lib/scene-renderer.ts": "a2f3d88b390958ca63716fa404c09af41845602edccebec626857c6e6df5c312",
+    "lib/geological-scene.ts": "732dd21086ab59d88ca81808415af5784ce09c5ad39ac515ba7ecc5018f1c4dd",
     "lib/gold-bar-3d.ts": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c",
-    "lib/immersive-story.ts": "91468daf97f3b9fa70a57e12ba8949ea09cc06996e0ea4f244f44f5b55f81c37",
+    "lib/immersive-story.ts": "e9790e369033be89a728f45ac204f787c37943ef5b8added145c804b8ac4ea94",
     "lib/geological-specimen.ts": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778",
     "lib/metal-materials.ts": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81"
   },

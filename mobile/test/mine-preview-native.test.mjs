@@ -23,7 +23,7 @@ test('preview QA pins the presented 0.3.0 bytes and separates Android package/ru
   assert.equal(PRESENTED.sha256,'d99e8af9617f56d7862a849ebd057025cb9d6adc164b97496a5532f7b29ad29e');
   assert.equal(PRESENTED.source,'eae7f6ad57f5a667c2bf40775a4cb30f1c0dd8b6');
   assert.equal(PRESENTED.package,PACKAGE);assert.equal(PRESENTED.version,'0.3.0');assert.equal(PRESENTED.code,6);
-  assert.equal(PREVIEW.package,'com.openminerals.demo.minepreview');assert.equal(PREVIEW.version,'0.4.0');assert.equal(PREVIEW.code,4);
+  assert.equal(PREVIEW.package,'com.openminerals.demo.minepreview');assert.equal(PREVIEW.version,'0.4.0');assert.equal(PREVIEW.code,5);
   assert.notEqual(PREVIEW.runtime,PRESENTED.runtime);assert.notEqual(PREVIEW.channel,PRESENTED.channel);
 });
 

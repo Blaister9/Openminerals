@@ -158,45 +158,9 @@ export function mineSceneCamera(progress:number,aspect:number,drag=0):{vp:Float3
 
 export function mineSceneVisibility(progress:number):number{return 1-smooth(.24,.4,clamp(finite(progress),0,1));}
 
-export const MINE_VERTEX_SHADER=`
-precision highp float;
-attribute vec3 a_position;
-attribute vec3 a_normal;
-attribute float a_material;
-uniform mat4 u_vp;
-uniform float u_progress;
-varying vec3 v_minePosition;
-varying vec3 v_mineNormal;
-varying float v_mineMaterial;
-varying vec2 v_mineDust;
-void main(){
-  vec3 position=a_position;
-  v_mineDust=vec2(0.0);
-  if(a_material>5.9){
-    float corner=floor(fract(a_material)*8.0+.5);
-    v_mineDust=vec2(corner==1.0||corner==2.0?1.0:-1.0,corner>=2.0?1.0:-1.0);
-    vec3 seed=floor(a_position*4.0+.5)*.25;
-    position.xy+=vec2(sin(u_progress*11.0+seed.z*.37+seed.y),sin(u_progress*8.0+seed.x*.71))*vec2(.055,.045);
-  }
-  v_minePosition=position;v_mineNormal=a_normal;v_mineMaterial=a_material;
-  gl_Position=u_vp*vec4(position,1.0);
-}`;
-
-export const MINE_FRAGMENT_SHADER=`
-#ifdef GL_FRAGMENT_PRECISION_HIGH
-precision highp float;
-#else
-precision mediump float;
-#endif
-uniform float u_progress;
-uniform float u_opacity;
-uniform vec3 u_camera;
-varying vec3 v_minePosition;
-varying vec3 v_mineNormal;
-varying float v_mineMaterial;
-varying vec2 v_mineDust;
-float grain(vec3 p){p=fract(p*.1031);p+=dot(p,p.yzx+33.33);return fract((p.x+p.y)*p.z);}
-vec3 displayMine(vec3 color){color=max(color,vec3(0.0))*2.2;return pow(color/(1.0+color),vec3(1.0/2.2));}
+// Shared finite BRDF and static DEMO light transport. Rough dielectric surfaces
+// interpolate broad lighting; narrow veins/quartz keep fragment BRDF evaluation.
+const MINE_LIGHTING_GLSL=`
 vec3 mineLamp(int index){
   ${lampPositions.map((position,index)=>`${index<3?`if(index==${index})`:''}return vec3(${position.map(value=>value.toFixed(6)).join(',')});`).join('\n  ')}
 }
@@ -226,6 +190,70 @@ vec3 mineBRDF(vec3 base,vec3 f0,float metallic,float roughness,vec3 n,vec3 view,
   vec3 fresnel=f0+(1.0-f0)*pow(1.0-vh,5.0);
   return (1.0-fresnel)*(1.0-metallic)*base/3.141593+distribution*visibility*fresnel;
 }
+`;
+
+export const MINE_VERTEX_SHADER=`
+precision highp float;
+attribute vec3 a_position;
+attribute vec3 a_normal;
+attribute float a_material;
+uniform mat4 u_vp;
+uniform float u_progress;
+uniform vec3 u_camera;
+varying vec3 v_minePosition;
+varying vec3 v_mineNormal;
+varying float v_mineMaterial;
+varying vec2 v_mineDust;
+varying vec3 v_mineRoughDiffuse;
+varying vec3 v_mineRoughSpecular;
+${MINE_LIGHTING_GLSL}
+void main(){
+  vec3 position=a_position;
+  v_mineDust=vec2(0.0);
+  if(a_material>5.9){
+    float corner=floor(fract(a_material)*8.0+.5);
+    v_mineDust=vec2(corner==1.0||corner==2.0?1.0:-1.0,corner>=2.0?1.0:-1.0);
+    vec3 seed=floor(a_position*4.0+.5)*.25;
+    position.xy+=vec2(sin(u_progress*11.0+seed.z*.37+seed.y),sin(u_progress*8.0+seed.x*.71))*vec2(.055,.045);
+  }
+  v_mineRoughDiffuse=vec3(0.0);v_mineRoughSpecular=vec3(0.0);
+  if(a_material<4.5){
+    vec3 n=normalize(a_normal),view=normalize(u_camera-position);
+    float kind=floor(a_material+.001);
+    float roughness=kind>.5&&kind<1.5?.88:kind>1.5&&kind<2.5?.9:.92;
+    for(int i=0;i<4;i++){
+      vec3 lamp=mineLamp(i),delta=lamp-position;
+      float distance2=dot(delta,delta);vec3 light=delta*inversesqrt(max(distance2,.001));
+      float nl=max(dot(n,light),0.0);
+      if(nl>.001){
+        vec3 irradiance=vec3(1.0,.72,.42)*(20.0/(1.5+distance2))*nl*mineShadow(position+n*.025,lamp);
+        v_mineRoughDiffuse+=irradiance;
+        v_mineRoughSpecular+=irradiance*mineBRDF(vec3(0.0),vec3(.04),0.0,roughness,n,view,light);
+      }
+    }
+  }
+  v_minePosition=position;v_mineNormal=a_normal;v_mineMaterial=a_material;
+  gl_Position=u_vp*vec4(position,1.0);
+}`;
+
+export const MINE_FRAGMENT_SHADER=`
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+uniform float u_progress;
+uniform float u_opacity;
+uniform vec3 u_camera;
+varying vec3 v_minePosition;
+varying vec3 v_mineNormal;
+varying float v_mineMaterial;
+varying vec2 v_mineDust;
+varying vec3 v_mineRoughDiffuse;
+varying vec3 v_mineRoughSpecular;
+float grain(vec3 p){p=fract(p*.1031);p+=dot(p,p.yzx+33.33);return fract((p.x+p.y)*p.z);}
+vec3 displayMine(vec3 color){color=max(color,vec3(0.0))*2.2;return pow(color/(1.0+color),vec3(1.0/2.2));}
+${MINE_LIGHTING_GLSL}
 void main(){
   if(u_opacity<.001)discard;
   float kind=floor(v_mineMaterial+.001),alpha=1.0;
@@ -264,7 +292,11 @@ void main(){
   vec3 view=normalize(u_camera-p);
   vec3 color=base*vec3(.12,.14,.165)*(.8+.2*max(n.y,0.0))*ao;
   color+=base*vec3(.018,.01,.003)*max(-n.y,0.0)*ao;
-  for(int i=0;i<4;i++){
+  // Rock/floor rough lobes vary slowly over the existing displaced mesh.
+  // Keep fragment PBR for every vein, quartz facet and metal lamp housing.
+  if(roughness>=.85&&metallic<.001){
+    color+=(v_mineRoughDiffuse*base*(.96/3.141593)+v_mineRoughSpecular)*ao;
+  }else for(int i=0;i<4;i++){
     vec3 lamp=mineLamp(i);
     vec3 delta=lamp-p;float distance2=dot(delta,delta);
     vec3 light=delta*inversesqrt(max(distance2,.001));

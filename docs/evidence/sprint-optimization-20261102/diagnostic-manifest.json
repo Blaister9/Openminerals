@@ -1,0 +1,616 @@
+{
+  "demoOnly": true,
+  "scope": "Desktop SwiftShader causal ablations, Android:false, no credentials",
+  "files": [
+    {
+      "file": "diagnostic/coarse-subject/progress-0.2.png",
+      "bytes": 327711,
+      "sha256": "bc47d4c533681c783f4b71467faec3362efa8beac13a257c6dc9fd1a89103f1a"
+    },
+    {
+      "file": "diagnostic/coarse-subject/progress-0.35.png",
+      "bytes": 240583,
+      "sha256": "9a3dcf5b7af6a4146fb6ce8a9eefdc97b953bfe75cbae39180d10cb962f38934"
+    },
+    {
+      "file": "diagnostic/coarse-subject/progress-0.67.png",
+      "bytes": 126294,
+      "sha256": "55fa338cbd11c8969d8b6a251850a78ec7f41d4bec058cd5b8412209e07e9bf0"
+    },
+    {
+      "file": "diagnostic/coarse-subject/progress-0.png",
+      "bytes": 314992,
+      "sha256": "7c535d04cb1df9aa7f07d36be3d5538793ca3b39bd6a82c33cd14aabea8023d4"
+    },
+    {
+      "file": "diagnostic/coarse-tunnel/progress-0.2.png",
+      "bytes": 326313,
+      "sha256": "5583589c09b726dff79711fc48455b3a8ede32d6afe39c2b34d4b5bc730d53ba"
+    },
+    {
+      "file": "diagnostic/coarse-tunnel/progress-0.35.png",
+      "bytes": 252649,
+      "sha256": "fb72ef487aafec1d3a09b1bf79f58a7804d7d8cfd9d5b078c00193c01edef3c8"
+    },
+    {
+      "file": "diagnostic/coarse-tunnel/progress-0.67.png",
+      "bytes": 126387,
+      "sha256": "e9645b8f28747d11abe96764674ff04e380f6e51260f5be37b40c75c6831b42f"
+    },
+    {
+      "file": "diagnostic/coarse-tunnel/progress-0.png",
+      "bytes": 312607,
+      "sha256": "0d66516d0ccfdaa5fec3ceafa1e43fdba4dbccc58d1360a609f665037ae3230f"
+    },
+    {
+      "file": "diagnostic/flat-surface/progress-0.2.png",
+      "bytes": 210259,
+      "sha256": "13dce2e58e3783a587a90d5aebbbf13272f606f814848116fb51a745914f642b"
+    },
+    {
+      "file": "diagnostic/flat-surface/progress-0.35.png",
+      "bytes": 174488,
+      "sha256": "3e0210eea0fb77689f7092bbecae334e3a99a4b33907915145ff95a869c3f216"
+    },
+    {
+      "file": "diagnostic/flat-surface/progress-0.67.png",
+      "bytes": 126387,
+      "sha256": "e9645b8f28747d11abe96764674ff04e380f6e51260f5be37b40c75c6831b42f"
+    },
+    {
+      "file": "diagnostic/flat-surface/progress-0.png",
+      "bytes": 153904,
+      "sha256": "d748814a666f871fcb56f9b7ef05ff7dc93e710a48eeada61ea2959243ae3742"
+    },
+    {
+      "file": "diagnostic/no-direct-light/progress-0.2.png",
+      "bytes": 301863,
+      "sha256": "92876a5fdd29a52174320b44cca469b28c0a4ea01ec3abb2a95805bf34f57ebf"
+    },
+    {
+      "file": "diagnostic/no-direct-light/progress-0.35.png",
+      "bytes": 231653,
+      "sha256": "315bb64c17485a0548373fdeef05ef8d264b6e52e58b9d73bcead39d191cc623"
+    },
+    {
+      "file": "diagnostic/no-direct-light/progress-0.67.png",
+      "bytes": 126387,
+      "sha256": "e9645b8f28747d11abe96764674ff04e380f6e51260f5be37b40c75c6831b42f"
+    },
+    {
+      "file": "diagnostic/no-direct-light/progress-0.png",
+      "bytes": 268483,
+      "sha256": "dcd93bd32e6724f49395e1891796a622e77e0696ac0ecc61d6a0c5c005055029"
+    },
+    {
+      "file": "diagnostic/no-dust/progress-0.2.png",
+      "bytes": 332374,
+      "sha256": "010d9e0a8727db2bb8b067292a34c9504daa6ffd943c2bdf0179f574fc3f602a"
+    },
+    {
+      "file": "diagnostic/no-dust/progress-0.35.png",
+      "bytes": 253104,
+      "sha256": "9a594f31ebf07287166b7513311fec01dc5f046dd344e455550a088bed17c5ea"
+    },
+    {
+      "file": "diagnostic/no-dust/progress-0.67.png",
+      "bytes": 126387,
+      "sha256": "e9645b8f28747d11abe96764674ff04e380f6e51260f5be37b40c75c6831b42f"
+    },
+    {
+      "file": "diagnostic/no-dust/progress-0.png",
+      "bytes": 314849,
+      "sha256": "4a4d4ab3bc6d08c5fbabfd0b063c09324f6dea79562ffbee0ff3a38e80210468"
+    },
+    {
+      "file": "diagnostic/no-shadows/progress-0.2.png",
+      "bytes": 332477,
+      "sha256": "33e6b66241ecd13f42c069bf0f16bd139e1dc939acc5ff86dfd5acb7b45a334c"
+    },
+    {
+      "file": "diagnostic/no-shadows/progress-0.35.png",
+      "bytes": 253205,
+      "sha256": "c85fb5f745012ff9fad296d6c30ccc072f2927d636d8027fabaeadf6089f9c78"
+    },
+    {
+      "file": "diagnostic/no-shadows/progress-0.67.png",
+      "bytes": 126387,
+      "sha256": "e9645b8f28747d11abe96764674ff04e380f6e51260f5be37b40c75c6831b42f"
+    },
+    {
+      "file": "diagnostic/no-shadows/progress-0.png",
+      "bytes": 314976,
+      "sha256": "3286b2f59874b41081f98d70c26381251784a7bfac1184c3b44f0f23ace9e09e"
+    },
+    {
+      "file": "diagnostic/one-light/progress-0.2.png",
+      "bytes": 304313,
+      "sha256": "2dcf0f805737f802ee3bbb53ff484e48aa7edc1cad138429144976a0708174f7"
+    },
+    {
+      "file": "diagnostic/one-light/progress-0.35.png",
+      "bytes": 231652,
+      "sha256": "9e0fe7845c42fb5640c6611b182c1e10804285f613476ac09dd9f2791d82f61b"
+    },
+    {
+      "file": "diagnostic/one-light/progress-0.67.png",
+      "bytes": 126387,
+      "sha256": "e9645b8f28747d11abe96764674ff04e380f6e51260f5be37b40c75c6831b42f"
+    },
+    {
+      "file": "diagnostic/one-light/progress-0.png",
+      "bytes": 286930,
+      "sha256": "e99e56098b08569eb30bf60d27c54168ee760962af4b9d0264a99b1cb50880f7"
+    },
+    {
+      "file": "diagnostic/previous-sources/gold-bar-3d.ts",
+      "bytes": 14296,
+      "sha256": "330982e7f7625ffa608b3f13389a11e001fd154d548602e4c5aebc124fc0d6d8"
+    },
+    {
+      "file": "diagnostic/previous-sources/immersive-story.ts",
+      "bytes": 5457,
+      "sha256": "0c8f3d14a4a1fc7046b352b07e0946857e06429d3a689889af31ae056c9f3d32"
+    },
+    {
+      "file": "diagnostic/previous-sources/scene-renderer.ts",
+      "bytes": 4359,
+      "sha256": "cd0f26c104caae35c92ee8d58fa444a163b7798fda19171eb6f0859dcc09192a"
+    },
+    {
+      "file": "diagnostic/r4-full/progress-0.2.png",
+      "bytes": 332497,
+      "sha256": "273a1065a3ee2038c1f19519a75a109f3cdd13a017b47a6fbb14c4500fc277af"
+    },
+    {
+      "file": "diagnostic/r4-full/progress-0.35.png",
+      "bytes": 253169,
+      "sha256": "f85ff6a57491b8a4b60a8554dd1b117cff9a410bc6b4fc261ce8a1b82765a61c"
+    },
+    {
+      "file": "diagnostic/r4-full/progress-0.67.png",
+      "bytes": 126387,
+      "sha256": "e9645b8f28747d11abe96764674ff04e380f6e51260f5be37b40c75c6831b42f"
+    },
+    {
+      "file": "diagnostic/r4-full/progress-0.png",
+      "bytes": 314992,
+      "sha256": "7c535d04cb1df9aa7f07d36be3d5538793ca3b39bd6a82c33cd14aabea8023d4"
+    },
+    {
+      "file": "diagnostic/report.json",
+      "bytes": 105272,
+      "sha256": "1a17f4fa12a1acde601d9107fc3a6e33084f9b1644e42b35e6bdb4689bbc3f58"
+    },
+    {
+      "file": "diagnostic/sources/geological-scene.ts",
+      "bytes": 17038,
+      "sha256": "dad385018f3da9694a90080892618f08353303f65f0407ed36224899f79c67da"
+    },
+    {
+      "file": "diagnostic/sources/geological-specimen.ts",
+      "bytes": 1410,
+      "sha256": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778"
+    },
+    {
+      "file": "diagnostic/sources/gold-bar-3d.ts",
+      "bytes": 16917,
+      "sha256": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c"
+    },
+    {
+      "file": "diagnostic/sources/immersive-story.ts",
+      "bytes": 6982,
+      "sha256": "91468daf97f3b9fa70a57e12ba8949ea09cc06996e0ea4f244f44f5b55f81c37"
+    },
+    {
+      "file": "diagnostic/sources/metal-materials.ts",
+      "bytes": 1434,
+      "sha256": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81"
+    },
+    {
+      "file": "diagnostic/sources/scene-renderer.ts",
+      "bytes": 7422,
+      "sha256": "69a633010d62bd6942bba53c09fff421e867587ba02a031349c584d492c09250"
+    },
+    {
+      "file": "diagnostic/stable-030/progress-0.2.png",
+      "bytes": 295928,
+      "sha256": "bd424bcdc569a8cb73d7935247df0e4694a35abfc20c747b02a18a370a197cf8"
+    },
+    {
+      "file": "diagnostic/stable-030/progress-0.35.png",
+      "bytes": 206874,
+      "sha256": "aeffb999c79fccf9a5bd4e88390cf144d8ee1955d53c7672063d2c5b3cd42c71"
+    },
+    {
+      "file": "diagnostic/stable-030/progress-0.67.png",
+      "bytes": 129600,
+      "sha256": "4b77f438efb9a5a7c7563623b2a75a3b6660d39f4464a4c0fd076298874833f3"
+    },
+    {
+      "file": "diagnostic/stable-030/progress-0.png",
+      "bytes": 209049,
+      "sha256": "f1cf7c21a1396848fa30d7952a0d29c94208221b98622a73cfb6b3ed5a3e2d88"
+    },
+    {
+      "file": "diagnostic-repeat/coarse-subject/progress-0.2.png",
+      "bytes": 327711,
+      "sha256": "bc47d4c533681c783f4b71467faec3362efa8beac13a257c6dc9fd1a89103f1a"
+    },
+    {
+      "file": "diagnostic-repeat/coarse-subject/progress-0.35.png",
+      "bytes": 240583,
+      "sha256": "9a3dcf5b7af6a4146fb6ce8a9eefdc97b953bfe75cbae39180d10cb962f38934"
+    },
+    {
+      "file": "diagnostic-repeat/coarse-subject/progress-0.67.png",
+      "bytes": 126294,
+      "sha256": "55fa338cbd11c8969d8b6a251850a78ec7f41d4bec058cd5b8412209e07e9bf0"
+    },
+    {
+      "file": "diagnostic-repeat/coarse-subject/progress-0.png",
+      "bytes": 314992,
+      "sha256": "7c535d04cb1df9aa7f07d36be3d5538793ca3b39bd6a82c33cd14aabea8023d4"
+    },
+    {
+      "file": "diagnostic-repeat/coarse-tunnel/progress-0.2.png",
+      "bytes": 326313,
+      "sha256": "5583589c09b726dff79711fc48455b3a8ede32d6afe39c2b34d4b5bc730d53ba"
+    },
+    {
+      "file": "diagnostic-repeat/coarse-tunnel/progress-0.35.png",
+      "bytes": 252649,
+      "sha256": "fb72ef487aafec1d3a09b1bf79f58a7804d7d8cfd9d5b078c00193c01edef3c8"
+    },
+    {
+      "file": "diagnostic-repeat/coarse-tunnel/progress-0.67.png",
+      "bytes": 126387,
+      "sha256": "e9645b8f28747d11abe96764674ff04e380f6e51260f5be37b40c75c6831b42f"
+    },
+    {
+      "file": "diagnostic-repeat/coarse-tunnel/progress-0.png",
+      "bytes": 312607,
+      "sha256": "0d66516d0ccfdaa5fec3ceafa1e43fdba4dbccc58d1360a609f665037ae3230f"
+    },
+    {
+      "file": "diagnostic-repeat/flat-surface/progress-0.2.png",
+      "bytes": 210259,
+      "sha256": "13dce2e58e3783a587a90d5aebbbf13272f606f814848116fb51a745914f642b"
+    },
+    {
+      "file": "diagnostic-repeat/flat-surface/progress-0.35.png",
+      "bytes": 174488,
+      "sha256": "3e0210eea0fb77689f7092bbecae334e3a99a4b33907915145ff95a869c3f216"
+    },
+    {
+      "file": "diagnostic-repeat/flat-surface/progress-0.67.png",
+      "bytes": 126387,
+      "sha256": "e9645b8f28747d11abe96764674ff04e380f6e51260f5be37b40c75c6831b42f"
+    },
+    {
+      "file": "diagnostic-repeat/flat-surface/progress-0.png",
+      "bytes": 153904,
+      "sha256": "d748814a666f871fcb56f9b7ef05ff7dc93e710a48eeada61ea2959243ae3742"
+    },
+    {
+      "file": "diagnostic-repeat/no-direct-light/progress-0.2.png",
+      "bytes": 301863,
+      "sha256": "92876a5fdd29a52174320b44cca469b28c0a4ea01ec3abb2a95805bf34f57ebf"
+    },
+    {
+      "file": "diagnostic-repeat/no-direct-light/progress-0.35.png",
+      "bytes": 231653,
+      "sha256": "315bb64c17485a0548373fdeef05ef8d264b6e52e58b9d73bcead39d191cc623"
+    },
+    {
+      "file": "diagnostic-repeat/no-direct-light/progress-0.67.png",
+      "bytes": 126387,
+      "sha256": "e9645b8f28747d11abe96764674ff04e380f6e51260f5be37b40c75c6831b42f"
+    },
+    {
+      "file": "diagnostic-repeat/no-direct-light/progress-0.png",
+      "bytes": 268483,
+      "sha256": "dcd93bd32e6724f49395e1891796a622e77e0696ac0ecc61d6a0c5c005055029"
+    },
+    {
+      "file": "diagnostic-repeat/no-dust/progress-0.2.png",
+      "bytes": 332374,
+      "sha256": "010d9e0a8727db2bb8b067292a34c9504daa6ffd943c2bdf0179f574fc3f602a"
+    },
+    {
+      "file": "diagnostic-repeat/no-dust/progress-0.35.png",
+      "bytes": 253104,
+      "sha256": "9a594f31ebf07287166b7513311fec01dc5f046dd344e455550a088bed17c5ea"
+    },
+    {
+      "file": "diagnostic-repeat/no-dust/progress-0.67.png",
+      "bytes": 126387,
+      "sha256": "e9645b8f28747d11abe96764674ff04e380f6e51260f5be37b40c75c6831b42f"
+    },
+    {
+      "file": "diagnostic-repeat/no-dust/progress-0.png",
+      "bytes": 314849,
+      "sha256": "4a4d4ab3bc6d08c5fbabfd0b063c09324f6dea79562ffbee0ff3a38e80210468"
+    },
+    {
+      "file": "diagnostic-repeat/no-shadows/progress-0.2.png",
+      "bytes": 332477,
+      "sha256": "33e6b66241ecd13f42c069bf0f16bd139e1dc939acc5ff86dfd5acb7b45a334c"
+    },
+    {
+      "file": "diagnostic-repeat/no-shadows/progress-0.35.png",
+      "bytes": 253205,
+      "sha256": "c85fb5f745012ff9fad296d6c30ccc072f2927d636d8027fabaeadf6089f9c78"
+    },
+    {
+      "file": "diagnostic-repeat/no-shadows/progress-0.67.png",
+      "bytes": 126387,
+      "sha256": "e9645b8f28747d11abe96764674ff04e380f6e51260f5be37b40c75c6831b42f"
+    },
+    {
+      "file": "diagnostic-repeat/no-shadows/progress-0.png",
+      "bytes": 314976,
+      "sha256": "3286b2f59874b41081f98d70c26381251784a7bfac1184c3b44f0f23ace9e09e"
+    },
+    {
+      "file": "diagnostic-repeat/one-light/progress-0.2.png",
+      "bytes": 304313,
+      "sha256": "2dcf0f805737f802ee3bbb53ff484e48aa7edc1cad138429144976a0708174f7"
+    },
+    {
+      "file": "diagnostic-repeat/one-light/progress-0.35.png",
+      "bytes": 231652,
+      "sha256": "9e0fe7845c42fb5640c6611b182c1e10804285f613476ac09dd9f2791d82f61b"
+    },
+    {
+      "file": "diagnostic-repeat/one-light/progress-0.67.png",
+      "bytes": 126387,
+      "sha256": "e9645b8f28747d11abe96764674ff04e380f6e51260f5be37b40c75c6831b42f"
+    },
+    {
+      "file": "diagnostic-repeat/one-light/progress-0.png",
+      "bytes": 286930,
+      "sha256": "e99e56098b08569eb30bf60d27c54168ee760962af4b9d0264a99b1cb50880f7"
+    },
+    {
+      "file": "diagnostic-repeat/previous-sources/gold-bar-3d.ts",
+      "bytes": 14296,
+      "sha256": "330982e7f7625ffa608b3f13389a11e001fd154d548602e4c5aebc124fc0d6d8"
+    },
+    {
+      "file": "diagnostic-repeat/previous-sources/immersive-story.ts",
+      "bytes": 5457,
+      "sha256": "0c8f3d14a4a1fc7046b352b07e0946857e06429d3a689889af31ae056c9f3d32"
+    },
+    {
+      "file": "diagnostic-repeat/previous-sources/scene-renderer.ts",
+      "bytes": 4359,
+      "sha256": "cd0f26c104caae35c92ee8d58fa444a163b7798fda19171eb6f0859dcc09192a"
+    },
+    {
+      "file": "diagnostic-repeat/r4-full/progress-0.2.png",
+      "bytes": 332497,
+      "sha256": "273a1065a3ee2038c1f19519a75a109f3cdd13a017b47a6fbb14c4500fc277af"
+    },
+    {
+      "file": "diagnostic-repeat/r4-full/progress-0.35.png",
+      "bytes": 253169,
+      "sha256": "f85ff6a57491b8a4b60a8554dd1b117cff9a410bc6b4fc261ce8a1b82765a61c"
+    },
+    {
+      "file": "diagnostic-repeat/r4-full/progress-0.67.png",
+      "bytes": 126387,
+      "sha256": "e9645b8f28747d11abe96764674ff04e380f6e51260f5be37b40c75c6831b42f"
+    },
+    {
+      "file": "diagnostic-repeat/r4-full/progress-0.png",
+      "bytes": 314992,
+      "sha256": "7c535d04cb1df9aa7f07d36be3d5538793ca3b39bd6a82c33cd14aabea8023d4"
+    },
+    {
+      "file": "diagnostic-repeat/report.json",
+      "bytes": 104860,
+      "sha256": "360211a10ad671555188ac12f257e0e0e6c51426e60e237f56d33c94a12028c8"
+    },
+    {
+      "file": "diagnostic-repeat/sources/geological-scene.ts",
+      "bytes": 17038,
+      "sha256": "dad385018f3da9694a90080892618f08353303f65f0407ed36224899f79c67da"
+    },
+    {
+      "file": "diagnostic-repeat/sources/geological-specimen.ts",
+      "bytes": 1410,
+      "sha256": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778"
+    },
+    {
+      "file": "diagnostic-repeat/sources/gold-bar-3d.ts",
+      "bytes": 16917,
+      "sha256": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c"
+    },
+    {
+      "file": "diagnostic-repeat/sources/immersive-story.ts",
+      "bytes": 6982,
+      "sha256": "91468daf97f3b9fa70a57e12ba8949ea09cc06996e0ea4f244f44f5b55f81c37"
+    },
+    {
+      "file": "diagnostic-repeat/sources/metal-materials.ts",
+      "bytes": 1434,
+      "sha256": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81"
+    },
+    {
+      "file": "diagnostic-repeat/sources/scene-renderer.ts",
+      "bytes": 7422,
+      "sha256": "69a633010d62bd6942bba53c09fff421e867587ba02a031349c584d492c09250"
+    },
+    {
+      "file": "diagnostic-repeat/stable-030/progress-0.2.png",
+      "bytes": 295928,
+      "sha256": "bd424bcdc569a8cb73d7935247df0e4694a35abfc20c747b02a18a370a197cf8"
+    },
+    {
+      "file": "diagnostic-repeat/stable-030/progress-0.35.png",
+      "bytes": 206874,
+      "sha256": "aeffb999c79fccf9a5bd4e88390cf144d8ee1955d53c7672063d2c5b3cd42c71"
+    },
+    {
+      "file": "diagnostic-repeat/stable-030/progress-0.67.png",
+      "bytes": 129600,
+      "sha256": "4b77f438efb9a5a7c7563623b2a75a3b6660d39f4464a4c0fd076298874833f3"
+    },
+    {
+      "file": "diagnostic-repeat/stable-030/progress-0.png",
+      "bytes": 209049,
+      "sha256": "f1cf7c21a1396848fa30d7952a0d29c94208221b98622a73cfb6b3ed5a3e2d88"
+    },
+    {
+      "file": "diagnostic-engraving/no-engraving/progress-0.2.png",
+      "bytes": 332497,
+      "sha256": "273a1065a3ee2038c1f19519a75a109f3cdd13a017b47a6fbb14c4500fc277af"
+    },
+    {
+      "file": "diagnostic-engraving/no-engraving/progress-0.35.png",
+      "bytes": 253169,
+      "sha256": "f85ff6a57491b8a4b60a8554dd1b117cff9a410bc6b4fc261ce8a1b82765a61c"
+    },
+    {
+      "file": "diagnostic-engraving/no-engraving/progress-0.67.png",
+      "bytes": 119698,
+      "sha256": "7773972e889c4d7eae382e0b8e234dc60938c05c79ab805e62caa70279a58126"
+    },
+    {
+      "file": "diagnostic-engraving/no-engraving/progress-0.png",
+      "bytes": 314992,
+      "sha256": "7c535d04cb1df9aa7f07d36be3d5538793ca3b39bd6a82c33cd14aabea8023d4"
+    },
+    {
+      "file": "diagnostic-engraving/no-engraving-gradient/progress-0.2.png",
+      "bytes": 332497,
+      "sha256": "273a1065a3ee2038c1f19519a75a109f3cdd13a017b47a6fbb14c4500fc277af"
+    },
+    {
+      "file": "diagnostic-engraving/no-engraving-gradient/progress-0.35.png",
+      "bytes": 253169,
+      "sha256": "f85ff6a57491b8a4b60a8554dd1b117cff9a410bc6b4fc261ce8a1b82765a61c"
+    },
+    {
+      "file": "diagnostic-engraving/no-engraving-gradient/progress-0.67.png",
+      "bytes": 124659,
+      "sha256": "1336f76834abde600fd30a82a9c2bf02a4bd59e3f406dd920865b76c25f5d906"
+    },
+    {
+      "file": "diagnostic-engraving/no-engraving-gradient/progress-0.png",
+      "bytes": 314992,
+      "sha256": "7c535d04cb1df9aa7f07d36be3d5538793ca3b39bd6a82c33cd14aabea8023d4"
+    },
+    {
+      "file": "diagnostic-engraving/previous-sources/gold-bar-3d.ts",
+      "bytes": 14296,
+      "sha256": "330982e7f7625ffa608b3f13389a11e001fd154d548602e4c5aebc124fc0d6d8"
+    },
+    {
+      "file": "diagnostic-engraving/previous-sources/immersive-story.ts",
+      "bytes": 5457,
+      "sha256": "0c8f3d14a4a1fc7046b352b07e0946857e06429d3a689889af31ae056c9f3d32"
+    },
+    {
+      "file": "diagnostic-engraving/previous-sources/scene-renderer.ts",
+      "bytes": 4359,
+      "sha256": "cd0f26c104caae35c92ee8d58fa444a163b7798fda19171eb6f0859dcc09192a"
+    },
+    {
+      "file": "diagnostic-engraving/r4-full/progress-0.2.png",
+      "bytes": 332497,
+      "sha256": "273a1065a3ee2038c1f19519a75a109f3cdd13a017b47a6fbb14c4500fc277af"
+    },
+    {
+      "file": "diagnostic-engraving/r4-full/progress-0.35.png",
+      "bytes": 253169,
+      "sha256": "f85ff6a57491b8a4b60a8554dd1b117cff9a410bc6b4fc261ce8a1b82765a61c"
+    },
+    {
+      "file": "diagnostic-engraving/r4-full/progress-0.67.png",
+      "bytes": 126387,
+      "sha256": "e9645b8f28747d11abe96764674ff04e380f6e51260f5be37b40c75c6831b42f"
+    },
+    {
+      "file": "diagnostic-engraving/r4-full/progress-0.png",
+      "bytes": 314992,
+      "sha256": "7c535d04cb1df9aa7f07d36be3d5538793ca3b39bd6a82c33cd14aabea8023d4"
+    },
+    {
+      "file": "diagnostic-engraving/report.json",
+      "bytes": 59151,
+      "sha256": "7073bb2e31bce83d9bf713e5d0f1b44e141850e2f13b9abade9047ca37d95ee8"
+    },
+    {
+      "file": "diagnostic-engraving/skip-formed-rock/progress-0.2.png",
+      "bytes": 332497,
+      "sha256": "273a1065a3ee2038c1f19519a75a109f3cdd13a017b47a6fbb14c4500fc277af"
+    },
+    {
+      "file": "diagnostic-engraving/skip-formed-rock/progress-0.35.png",
+      "bytes": 253169,
+      "sha256": "f85ff6a57491b8a4b60a8554dd1b117cff9a410bc6b4fc261ce8a1b82765a61c"
+    },
+    {
+      "file": "diagnostic-engraving/skip-formed-rock/progress-0.67.png",
+      "bytes": 126387,
+      "sha256": "e9645b8f28747d11abe96764674ff04e380f6e51260f5be37b40c75c6831b42f"
+    },
+    {
+      "file": "diagnostic-engraving/skip-formed-rock/progress-0.png",
+      "bytes": 314992,
+      "sha256": "7c535d04cb1df9aa7f07d36be3d5538793ca3b39bd6a82c33cd14aabea8023d4"
+    },
+    {
+      "file": "diagnostic-engraving/sources/geological-scene.ts",
+      "bytes": 17038,
+      "sha256": "dad385018f3da9694a90080892618f08353303f65f0407ed36224899f79c67da"
+    },
+    {
+      "file": "diagnostic-engraving/sources/geological-specimen.ts",
+      "bytes": 1410,
+      "sha256": "2e808757ae5b6cad8cef65a3e978d8dc17975284ae2fd674c5e78d7e2859f778"
+    },
+    {
+      "file": "diagnostic-engraving/sources/gold-bar-3d.ts",
+      "bytes": 16917,
+      "sha256": "1701ed1ae0ff66923eb71e669583a7ad2ded83b59271a20b3a6ccf4c34859f2c"
+    },
+    {
+      "file": "diagnostic-engraving/sources/immersive-story.ts",
+      "bytes": 6982,
+      "sha256": "91468daf97f3b9fa70a57e12ba8949ea09cc06996e0ea4f244f44f5b55f81c37"
+    },
+    {
+      "file": "diagnostic-engraving/sources/metal-materials.ts",
+      "bytes": 1434,
+      "sha256": "d994b667e2abcb73f9cb2599d0994d365a12248ac1f3a4cc9b8dde4414926a81"
+    },
+    {
+      "file": "diagnostic-engraving/sources/scene-renderer.ts",
+      "bytes": 7422,
+      "sha256": "69a633010d62bd6942bba53c09fff421e867587ba02a031349c584d492c09250"
+    },
+    {
+      "file": "diagnostic-engraving/stable-030/progress-0.2.png",
+      "bytes": 295928,
+      "sha256": "bd424bcdc569a8cb73d7935247df0e4694a35abfc20c747b02a18a370a197cf8"
+    },
+    {
+      "file": "diagnostic-engraving/stable-030/progress-0.35.png",
+      "bytes": 206874,
+      "sha256": "aeffb999c79fccf9a5bd4e88390cf144d8ee1955d53c7672063d2c5b3cd42c71"
+    },
+    {
+      "file": "diagnostic-engraving/stable-030/progress-0.67.png",
+      "bytes": 129600,
+      "sha256": "4b77f438efb9a5a7c7563623b2a75a3b6660d39f4464a4c0fd076298874833f3"
+    },
+    {
+      "file": "diagnostic-engraving/stable-030/progress-0.png",
+      "bytes": 209049,
+      "sha256": "f1cf7c21a1396848fa30d7952a0d29c94208221b98622a73cfb6b3ed5a3e2d88"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import type {ExpoWebGLRenderingContext} from 'expo-gl';
 import {createGoldBarMesh,createStudioFloorMesh,goldBarMatrices,goldBarPose,GOLD_VERTEX_SHADER,GOLD_FRAGMENT_SHADER} from './gold-bar-3d.ts';
-import {immersivePose,immersiveMatrices,IMMERSIVE_VERTEX_SHADER,IMMERSIVE_FRAGMENT_SHADER} from './immersive-story.ts';
+import {immersivePose,immersiveMatrices,IMMERSIVE_VERTEX_SHADER,IMMERSIVE_FRAGMENT_SHADER,IMMERSIVE_FRAGMENT_SHADER_DERIVATIVES} from './immersive-story.ts';
 import {createMineSceneMesh,mineSceneCamera,mineSceneVisibility,MINE_VERTEX_SHADER,MINE_FRAGMENT_SHADER} from './geological-scene.ts';
 import {metalMaterial,type MetalCode} from './metal-materials.ts';
 import {subdivideSpecimen} from './geological-specimen.ts';
@@ -20,7 +20,11 @@ export function createStoryRenderer(gl:ExpoWebGLRenderingContext,cinematic=false
   };
   const attribute=(item:WebGLProgram,name:string,data:Float32Array,size=3)=>{const location=gl.getAttribLocation(item,name);if(location<0)throw Error('GL attribute unavailable: '+name);const buffer=gl.createBuffer();if(!buffer)throw Error('GL buffer unavailable');buffers.push(buffer);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);return()=>{gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,size,gl.FLOAT,false,0,0);};};
   const uniform=(item:WebGLProgram,name:string)=>{const location=gl.getUniformLocation(item,name);if(location===null)throw Error('GL uniform unavailable: '+name);return location;};
-  const bar=program(cinematic?IMMERSIVE_VERTEX_SHADER:GOLD_VERTEX_SHADER,cinematic?IMMERSIVE_FRAGMENT_SHADER:GOLD_FRAGMENT_SHADER);
+  // Enable the capability before compiling. Unsupported/older contexts keep
+  // the exact finite-difference shader; ordinary metal viewers are unchanged.
+  let derivativeEngraving=false;
+  if(cinematic)try{derivativeEngraving=!!gl.getExtension('OES_standard_derivatives');}catch{}
+  const bar=program(cinematic?IMMERSIVE_VERTEX_SHADER:GOLD_VERTEX_SHADER,cinematic?(derivativeEngraving?IMMERSIVE_FRAGMENT_SHADER_DERIVATIVES:IMMERSIVE_FRAGMENT_SHADER):GOLD_FRAGMENT_SHADER);
   const mesh=cinematic?subdivideSpecimen(createGoldBarMesh()):createGoldBarMesh(),floor=createStudioFloorMesh();
   const barAttributes=[attribute(bar,'a_position',new Float32Array([...mesh.positions,...floor.positions])),attribute(bar,'a_normal',new Float32Array([...mesh.normals,...floor.normals]))];
   const names=['u_model','u_mvp','u_camera','u_light','u_refinement','u_surface','u_shadowAngle','u_metalColor','u_roughness','u_metalKind'] as const;
@@ -31,6 +35,8 @@ export function createStoryRenderer(gl:ExpoWebGLRenderingContext,cinematic=false
   const mineAttributes=mine&&room?[attribute(mine,'a_position',room.positions),attribute(mine,'a_normal',room.normals),attribute(mine,'a_material',room.materials,1)]:[];
   const m=mine?{vp:uniform(mine,'u_vp'),progress:uniform(mine,'u_progress'),camera:uniform(mine,'u_camera'),opacity:uniform(mine,'u_opacity')}:null;
   gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);gl.frontFace(gl.CCW);gl.clearColor(10/255,13/255,16/255,1);gl.clearDepth(1);
+  // One static capability marker per native context, without account/error data.
+  if(cinematic&&typeof gl.flushEXP==='function')console.info('[Openminerals 3D] engraving-'+(derivativeEngraving?'derivatives':'finite-difference'));
   return {draw(progress,drag,metal='XAU',minePeek=drag){
    if(disposed)return;const width=gl.drawingBufferWidth,height=gl.drawingBufferHeight;if(width<=0||height<=0)throw Error('GL viewport unavailable');
    gl.viewport(0,0,width,height);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);

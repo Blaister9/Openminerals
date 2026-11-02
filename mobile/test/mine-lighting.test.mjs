@@ -8,8 +8,8 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {createMineSceneMesh,mineSceneCamera,MINE_VERTEX_SHADER,MINE_FRAGMENT_SHADER} from '../lib/geological-scene.ts';
 
-// A/B rasterize the actual shipping fragment shader against the same shader
-// with only its shadow multiplier disabled. This proves receiver pixels change;
+// A/B rasterize both actual shipping shaders against the same programs with
+// only the vertex and fragment shadow multipliers disabled. This proves receiver pixels change;
 // matching shader text alone would not prove a shadow reaches the image.
 test('luz minera real: sombras oscurecen receptores y BRDF GLSL permanece finita',{
  skip:!process.env.OPENMINERALS_WEBGL_BROWSER,timeout:90000,
@@ -18,8 +18,11 @@ test('luz minera real: sombras oscurecen receptores y BRDF GLSL permanece finita
  try{
   const mesh=createMineSceneMesh(),width=360,height=640;
   const enabled='float shadow=mineShadow(p+n*.025,lamp);';
-  assert.ok(MINE_FRAGMENT_SHADER.includes(enabled),'The A/B control must disable the actual shipped shadow call.');
+  const vertexShadow='*mineShadow(position+n*.025,lamp)';
+  assert.ok(MINE_FRAGMENT_SHADER.includes(enabled),'The A/B control must disable the actual shipped fragment shadow call.');
+  assert.ok(MINE_VERTEX_SHADER.includes(vertexShadow),'The A/B control must disable the actual shipped vertex shadow call.');
   const disabled=MINE_FRAGMENT_SHADER.replace(enabled,'float shadow=1.0;');
+  const disabledVertex=MINE_VERTEX_SHADER.replace(vertexShadow,'*1.0');
   const frames=[0,.10,.18,.24].flatMap(progress=>[0,-1.2,1.2].map(drag=>({progress,drag,...mineSceneCamera(progress,width/height,drag)}))).map(({vp,...pose})=>({...pose,vp:[...vp]}));
   // CPU normals are actual displaced receiver geometry, not duplicated BRDF
   // equations. Sampling GLSL below checks the shader's own numeric arithmetic.
@@ -34,13 +37,13 @@ test('luz minera real: sombras oscurecen receptores y BRDF GLSL permanece finita
   const probeFragment=preamble+`\nuniform vec3 u_probeLight;uniform vec3 u_probeView;uniform float u_probeRoughness;uniform float u_probeMetallic;
 void main(){vec3 result=mineBRDF(vec3(.42,.27,.08),vec3(.75,.49,.16),u_probeMetallic,u_probeRoughness,vec3(0.,0.,1.),normalize(u_probeView),normalize(u_probeLight));
  bool finite=all(equal(result,result))&&all(lessThan(abs(result),vec3(1.0e20)));bool positive=all(greaterThanEqual(result,vec3(0.)));gl_FragColor=vec4(finite?1.:0.,positive?1.:0.,1.,1.);}`;
-  const data={width,height,count:mesh.vertexCount,positions:[...mesh.positions],normals:[...mesh.normals],materials:[...mesh.materials],vertex:MINE_VERTEX_SHADER,enabled:MINE_FRAGMENT_SHADER,disabled,probeFragment,frames,probes};
+  const data={width,height,count:mesh.vertexCount,positions:[...mesh.positions],normals:[...mesh.normals],materials:[...mesh.materials],vertex:MINE_VERTEX_SHADER,disabledVertex,enabled:MINE_FRAGMENT_SHADER,disabled,probeFragment,frames,probes};
   const html=`<!doctype html><meta charset="utf-8"><pre id="result"></pre><script>
 try{const data=${JSON.stringify(data)};const canvas=document.createElement('canvas');canvas.width=data.width;canvas.height=data.height;
  const gl=canvas.getContext('webgl',{preserveDrawingBuffer:true,antialias:false});if(!gl)throw Error('WebGL unavailable');
  function program(vertex,fragment){const p=gl.createProgram();for(const [kind,source] of [[gl.VERTEX_SHADER,vertex],[gl.FRAGMENT_SHADER,fragment]]){const s=gl.createShader(kind);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));gl.attachShader(p,s);}gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));return p;}
  function draw(p,pose){gl.useProgram(p);for(const [name,values,size]of [['a_position',data.positions,3],['a_normal',data.normals,3],['a_material',data.materials,1]]){const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(values),gl.STATIC_DRAW);const at=gl.getAttribLocation(p,name);if(at<0)throw Error('Missing '+name);gl.enableVertexAttribArray(at);gl.vertexAttribPointer(at,size,gl.FLOAT,false,0,0);}gl.uniformMatrix4fv(gl.getUniformLocation(p,'u_vp'),false,new Float32Array(pose.vp));gl.uniform1f(gl.getUniformLocation(p,'u_progress'),pose.progress);gl.uniform1f(gl.getUniformLocation(p,'u_opacity'),1);gl.uniform3f(gl.getUniformLocation(p,'u_camera'),...pose.camera);gl.viewport(0,0,data.width,data.height);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);gl.frontFace(gl.CCW);gl.disable(gl.BLEND);gl.clearColor(10/255,13/255,16/255,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.drawArrays(gl.TRIANGLES,0,data.count);gl.finish();const pixels=new Uint8Array(data.width*data.height*4);gl.readPixels(0,0,data.width,data.height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);if(gl.getError()!==gl.NO_ERROR)throw Error('GL raster error');return pixels;}
- const withShadow=program(data.vertex,data.enabled),withoutShadow=program(data.vertex,data.disabled),frames=[];
+ const withShadow=program(data.vertex,data.enabled),withoutShadow=program(data.disabledVertex,data.disabled),frames=[];
  for(const pose of data.frames){const a=draw(withShadow,pose),b=draw(withoutShadow,pose);let darkened=0,brightened=0,totalDimming=0,maxDimming=0;for(let i=0;i<a.length;i+=4){let dim=0;for(let c=0;c<3;c++)dim+=b[i+c]-a[i+c];if(dim>1)darkened++;if(dim< -1)brightened++;totalDimming+=dim;maxDimming=Math.max(maxDimming,dim);}frames.push({progress:pose.progress,drag:pose.drag,darkened,brightened,totalDimming,maxDimming});}
  const probe=program('attribute vec2 a_probe;void main(){gl_Position=vec4(a_probe,0.,1.);}',data.probeFragment);gl.useProgram(probe);gl.disable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.disable(gl.BLEND);gl.viewport(0,0,1,1);
  for(let i=0;i<gl.getParameter(gl.MAX_VERTEX_ATTRIBS);i++)gl.disableVertexAttribArray(i);

@@ -19,8 +19,9 @@ await mkdir(output);await mkdir(path.join(output,'sources'));
 const sourceNames=['gold-bar-3d','immersive-story','geological-scene','geological-specimen','metal-materials','scene-renderer'];
 const sources={};
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
-for(const name of sourceNames){sources[name]=(await readFile(path.join(mobile,'lib',name+'.ts'),'utf8')).replaceAll('\r\n','\n');await writeFile(path.join(output,'sources',name+'.ts'),sources[name],{flag:'wx'});}
-const sourceCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:repo,encoding:'utf8',windowsHide:true}).trim();
+const sourceCommit=process.env.OPENMINERALS_GEOLOGY_COST_SOURCE_COMMIT||'ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14';
+for(const name of sourceNames){sources[name]=execFileSync('git',['show',sourceCommit+':mobile/lib/'+name+'.ts'],{cwd:repo,encoding:'utf8',windowsHide:true}).replaceAll('\r\n','\n');await writeFile(path.join(output,'sources',name+'.ts'),sources[name],{flag:'wx'});}
+const workspaceCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:repo,encoding:'utf8',windowsHide:true}).trim();
 const previousCommit='ed87d2ea233227437ab5f5cc2eb0900674e1231f';
 const previous={};
 const gitFile=file=>execFileSync('git',['show',previousCommit+':mobile/'+file],{cwd:repo,encoding:'utf8',windowsHide:true}).replaceAll('\r\n','\n');
@@ -46,6 +47,13 @@ const allConditions=[
  {id:'no-engraving',description:'Replace engraving distance with an outside constant (tiny metalKind dependence retains the uniform); omit gradient.',sources:{...sources,'gold-bar-3d':replace(replace(sources['gold-bar-3d'],'if(distance<.03) {','if(false) {'),'float distance=engravingDistance(p),top=','float distance=.1+u_metalKind*.0000001,top=')}},
  {id:'skip-formed-rock',description:'Skip fully invisible procedural rock/vein computations once formation is complete.',sources:{...sources,'immersive-story':replace(replace(sources['immersive-story'],'float formation=smoothstep(.26,.5,u_storyProgress);\n  float strata=','if(u_storyProgress<.5){\n  float formation=smoothstep(.26,.5,u_storyProgress);\n  float strata='),'color=mix(rock,color,formation)+vec3(.095,.021,.004)*heat;','color=mix(rock,color,formation)+vec3(.095,.021,.004)*heat;\n  }')}},
 ];
+if(process.env.OPENMINERALS_GEOLOGY_COST_CANDIDATE){
+ const candidate={...sources};await mkdir(path.join(output,'candidate-sources'));
+ const names=process.env.OPENMINERALS_GEOLOGY_COST_CANDIDATE==='engraving'?['immersive-story','scene-renderer']:sourceNames;
+ for(const name of names)candidate[name]=(await readFile(path.join(mobile,'lib',name+'.ts'),'utf8')).replaceAll('\r\n','\n');
+ for(const [name,source]of Object.entries(candidate))await writeFile(path.join(output,'candidate-sources',name+'.ts'),source,{flag:'wx'});
+ allConditions.push({id:'candidate',description:process.env.OPENMINERALS_GEOLOGY_COST_CANDIDATE==='engraving'?'Frozen r4 plus only the candidate immersive shader; no geological-lighting changes.':'Current workspace renderer and scene.',sources:candidate});
+}
 const selected=process.env.OPENMINERALS_GEOLOGY_COST_CONDITIONS?.split(',');
 const conditions=selected?allConditions.filter(c=>selected.includes(c.id)):allConditions;
 if(!conditions.length||selected?.some(id=>!allConditions.some(c=>c.id===id)))throw Error('Unknown or empty benchmark condition selection.');
@@ -102,6 +110,6 @@ for(const row of result.results){
  row.description=conditions.find(c=>c.id===row.id).description;
  row.sourceHashes=Object.fromEntries(Object.entries(conditions.find(c=>c.id===row.id).sources).map(([name,source])=>[name+'.ts',hash(source)]));
 }
-const report={demoOnly:true,environment:'desktop Chrome ANGLE SwiftShader',android:false,physicalDevice:false,displayFpsMeasured:false,gpuOnlyMeasured:false,memoryMeasured:false,sourceCommit,previousCommit,capturedAtUtc:new Date().toISOString(),host:{platform:platform(),availableLogicalCpus:availableParallelism(),totalMemoryMiB:Math.floor(totalmem()/1048576),nodeVersion:process.version},protocol,...result,limitations:['Software completion includes RGBA readback, not native GPU/display timings.','Shader/mesh construction and first readiness are single samples; no cold-browser cache control.','One host/run; alternating measured order reduces but does not eliminate host/cache effects.','Ablations deliberately degrade appearance to attribute costs; they are not proposed final visual quality.','No native UI, scroll, TextureView lifecycle, app memory or physical-device acceptance is measured.']};
+const report={demoOnly:true,environment:'desktop Chrome ANGLE SwiftShader',android:false,physicalDevice:false,displayFpsMeasured:false,gpuOnlyMeasured:false,memoryMeasured:false,sourceCommit,workspaceCommit,previousCommit,capturedAtUtc:new Date().toISOString(),host:{platform:platform(),availableLogicalCpus:availableParallelism(),totalMemoryMiB:Math.floor(totalmem()/1048576),nodeVersion:process.version},protocol,...result,limitations:['Software completion includes RGBA readback, not native GPU/display timings.','Shader/mesh construction and first readiness are single samples; no cold-browser cache control.','One host/run; alternating measured order reduces but does not eliminate host/cache effects.','Ablations deliberately degrade appearance to attribute costs; they are not proposed final visual quality.','No native UI, scroll, TextureView lifecycle, app memory or physical-device acceptance is measured.']};
 await writeFile(path.join(output,'report.json'),JSON.stringify(report,null,2)+'\n',{flag:'wx'});
 console.log(JSON.stringify({output:path.relative(repo,output),sourceCommit,environment:report.environment,results:report.results.map(({id,stats,createRendererMs,firstReadyMs,uploadBytes})=>({id,stats,createRendererMs,firstReadyMs,uploadBytes}))}));

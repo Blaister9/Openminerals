@@ -18,7 +18,7 @@ export const PRESENTED=Object.freeze({
   sha256:'d99e8af9617f56d7862a849ebd057025cb9d6adc164b97496a5532f7b29ad29e',
   certificate:BASELINE.certificate,
 });
-export const PREVIEW=Object.freeze({package:'com.openminerals.demo.minepreview',version:'0.4.0',code:4,runtime:'0.4.0',channel:'mine-realism'});
+export const PREVIEW=Object.freeze({package:'com.openminerals.demo.minepreview',version:'0.4.0',code:5,runtime:'0.4.0',channel:'mine-realism'});
 export function nativeValidationScope(value){requireSafe(value===undefined||['comparison','regression','commerce'].includes(value),'Expected comparison, regression or commerce validation scope.');return value??'comparison';}
 export function effectiveValidationScope(committed,override){return nativeValidationScope(override===undefined||override===''?committed:override);}
 export function selectedCiScopes(record={}){

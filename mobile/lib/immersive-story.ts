@@ -65,6 +65,25 @@ export const IMMERSIVE_FRAGMENT_SHADER=GOLD_FRAGMENT_SHADER.replace('uniform flo
   color=mix(rock,color,formation)+vec3(.095,.021,.004)*heat;
   gl_FragColor=vec4(displayColor(color),u_subjectOpacity);`);
 
+// Preview supports a one-evaluation SDF path when standard derivatives exist.
+// Derivatives are taken before the distance-dependent shoulder branch, then
+// transformed from screen coordinates into the local x/z mark coordinates.
+// The original scalar field, symbols, incision strengths and reflections stay
+// identical. The finite-difference shader above remains the capability fallback.
+export const IMMERSIVE_FRAGMENT_SHADER_DERIVATIVES='#extension GL_OES_standard_derivatives : enable\n'+IMMERSIVE_FRAGMENT_SHADER
+ .replace('    if(distance<.03) {',`    vec2 markDx=dFdx(p),markDy=dFdy(p);
+    vec2 fieldDelta=vec2(dFdx(distance),dFdy(distance));
+    float determinant=markDx.x*markDy.y-markDx.y*markDy.x;
+    vec2 markGradient=abs(determinant)>.0000000001?vec2(fieldDelta.x*markDy.y-fieldDelta.y*markDx.y,fieldDelta.y*markDx.x-fieldDelta.x*markDy.x)/determinant:vec2(0.0);
+    if(distance<.03) {`)
+ .replace('vec2 slope=vec2(engravingDistance(p+vec2(.003,0.0))-distance,engravingDistance(p+vec2(0.0,.003))-distance)/.003;',`vec2 slope=clamp(markGradient,vec2(-1.0),vec2(1.0));
+      // Preserve the fine continuous border highlight with two inexpensive
+      // rounded-box taps, rather than re-evaluating every symbol/DEMO segment.
+      float borderDistance=abs(boxDistance(p,vec2(1.04,.435),.07))+.006;
+      if(abs(distance-borderDistance)<.000001){
+        slope=vec2(abs(boxDistance(p+vec2(.003,0.0),vec2(1.04,.435),.07))+.006-distance,abs(boxDistance(p+vec2(0.0,.003),vec2(1.04,.435),.07))+.006-distance)/.003;
+      }`);
+
 export function renderBudget(samples:readonly number[]){
   const values=samples.filter(value=>Number.isFinite(value)&&value>=0);
   if(values.length<90)return false;

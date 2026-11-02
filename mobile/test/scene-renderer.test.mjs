@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createStoryRenderer} from '../lib/scene-renderer.ts';
 import {metalMaterial} from '../lib/metal-materials.ts';
+import {IMMERSIVE_FRAGMENT_SHADER,IMMERSIVE_FRAGMENT_SHADER_DERIVATIVES} from '../lib/immersive-story.ts';
 
 // This mock checks ownership, failure cleanup and submitted GL work. The
 // separate geological-render test compiles/rasterizes the actual shaders;
@@ -177,6 +178,23 @@ test('browser path retains flush/endFrame behavior and never invokes finish',()=
   const renderer=createStoryRenderer(mock.gl,true);
   try{renderer.draw(0,0);assert.deepEqual(events,['flush','endFrameEXP']);}
   finally{renderer.dispose();mock.assertReleased();}
+});
+
+for(const availability of ['supported','missing','throws'])test('grabado por derivadas selecciona capacidad antes de compilar: '+availability,()=>{
+  const mock=mockGL(),events=[],sources=[],setSource=mock.gl.shaderSource;
+  mock.gl.getExtension=name=>{events.push('extension');assert.equal(name,'OES_standard_derivatives');if(availability==='throws')throw Error('unsupported query');return availability==='supported'?{}:null;};
+  mock.gl.shaderSource=(shader,source)=>{events.push('source');sources.push(source);setSource(shader,source);};
+  const renderer=createStoryRenderer(mock.gl,true);
+  try{
+    assert.equal(events[0],'extension','Capability must be enabled before shader compilation.');
+    assert.ok(sources.includes(availability==='supported'?IMMERSIVE_FRAGMENT_SHADER_DERIVATIVES:IMMERSIVE_FRAGMENT_SHADER));
+    renderer.draw(.67,0,'XPD');assert.deepEqual(mock.created,{buffers:5,shaders:4,programs:2});
+  }finally{renderer.dispose();mock.assertReleased();}
+});
+
+test('visor normal no consulta ni incorpora la capacidad de grabado preview',()=>{
+  const mock=mockGL();mock.gl.getExtension=()=>assert.fail('Ordinary metal viewers retain their shader path.');
+  const renderer=createStoryRenderer(mock.gl,false);try{renderer.draw(.5,0,'XAU');}finally{renderer.dispose();mock.assertReleased();}
 });
 
 test('a failed native completion barrier propagates so the owning component can select its fallback',()=>{

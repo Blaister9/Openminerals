@@ -1,0 +1,427 @@
+{
+  "ok": true,
+  "environment": "desktop Chrome SwiftShader",
+  "android": false,
+  "width": 360,
+  "height": 480,
+  "results": [
+    {
+      "pitch": 0.1,
+      "yaw": -0.8,
+      "kind": 0,
+      "code": "XAU",
+      "meanAbsoluteRgb": 0.005327932098765432,
+      "changedPixels": 95,
+      "over16Pixels": 29,
+      "alphaMismatch": 0,
+      "max": 52
+    },
+    {
+      "pitch": 0.1,
+      "yaw": -0.8,
+      "kind": 1,
+      "code": "XAG",
+      "meanAbsoluteRgb": 0.007037037037037037,
+      "changedPixels": 114,
+      "over16Pixels": 33,
+      "alphaMismatch": 0,
+      "max": 47
+    },
+    {
+      "pitch": 0.1,
+      "yaw": -0.8,
+      "kind": 2,
+      "code": "XPT",
+      "meanAbsoluteRgb": 0.007270447530864197,
+      "changedPixels": 86,
+      "over16Pixels": 31,
+      "alphaMismatch": 0,
+      "max": 59
+    },
+    {
+      "pitch": 0.1,
+      "yaw": -0.8,
+      "kind": 3,
+      "code": "XPD",
+      "meanAbsoluteRgb": 0.007276234567901234,
+      "changedPixels": 94,
+      "over16Pixels": 33,
+      "alphaMismatch": 0,
+      "max": 58
+    },
+    {
+      "pitch": 0.1,
+      "yaw": 0.3,
+      "kind": 0,
+      "code": "XAU",
+      "meanAbsoluteRgb": 0.002471064814814815,
+      "changedPixels": 86,
+      "over16Pixels": 10,
+      "alphaMismatch": 0,
+      "max": 44
+    },
+    {
+      "pitch": 0.1,
+      "yaw": 0.3,
+      "kind": 1,
+      "code": "XAG",
+      "meanAbsoluteRgb": 0.0024305555555555556,
+      "changedPixels": 75,
+      "over16Pixels": 10,
+      "alphaMismatch": 0,
+      "max": 43
+    },
+    {
+      "pitch": 0.1,
+      "yaw": 0.3,
+      "kind": 2,
+      "code": "XPT",
+      "meanAbsoluteRgb": 0.005966435185185185,
+      "changedPixels": 91,
+      "over16Pixels": 19,
+      "alphaMismatch": 0,
+      "max": 74
+    },
+    {
+      "pitch": 0.1,
+      "yaw": 0.3,
+      "kind": 3,
+      "code": "XPD",
+      "meanAbsoluteRgb": 0.006105324074074074,
+      "changedPixels": 101,
+      "over16Pixels": 21,
+      "alphaMismatch": 0,
+      "max": 73
+    },
+    {
+      "pitch": 0.1,
+      "yaw": 1.2,
+      "kind": 0,
+      "code": "XAU",
+      "meanAbsoluteRgb": 0.0011496913580246913,
+      "changedPixels": 82,
+      "over16Pixels": 1,
+      "alphaMismatch": 0,
+      "max": 34
+    },
+    {
+      "pitch": 0.1,
+      "yaw": 1.2,
+      "kind": 1,
+      "code": "XAG",
+      "meanAbsoluteRgb": 0.0019772376543209878,
+      "changedPixels": 74,
+      "over16Pixels": 4,
+      "alphaMismatch": 0,
+      "max": 38
+    },
+    {
+      "pitch": 0.1,
+      "yaw": 1.2,
+      "kind": 2,
+      "code": "XPT",
+      "meanAbsoluteRgb": 0.002320601851851852,
+      "changedPixels": 67,
+      "over16Pixels": 6,
+      "alphaMismatch": 0,
+      "max": 70
+    },
+    {
+      "pitch": 0.1,
+      "yaw": 1.2,
+      "kind": 3,
+      "code": "XPD",
+      "meanAbsoluteRgb": 0.0027179783950617284,
+      "changedPixels": 93,
+      "over16Pixels": 7,
+      "alphaMismatch": 0,
+      "max": 70
+    },
+    {
+      "pitch": 0.6,
+      "yaw": -0.8,
+      "kind": 0,
+      "code": "XAU",
+      "meanAbsoluteRgb": 0.06240547839506173,
+      "changedPixels": 651,
+      "over16Pixels": 231,
+      "alphaMismatch": 0,
+      "max": 124
+    },
+    {
+      "pitch": 0.6,
+      "yaw": -0.8,
+      "kind": 1,
+      "code": "XAG",
+      "meanAbsoluteRgb": 0.06758487654320988,
+      "changedPixels": 726,
+      "over16Pixels": 211,
+      "alphaMismatch": 0,
+      "max": 96
+    },
+    {
+      "pitch": 0.6,
+      "yaw": -0.8,
+      "kind": 2,
+      "code": "XPT",
+      "meanAbsoluteRgb": 0.061535493827160496,
+      "changedPixels": 671,
+      "over16Pixels": 206,
+      "alphaMismatch": 0,
+      "max": 106
+    },
+    {
+      "pitch": 0.6,
+      "yaw": -0.8,
+      "kind": 3,
+      "code": "XPD",
+      "meanAbsoluteRgb": 0.06563657407407407,
+      "changedPixels": 791,
+      "over16Pixels": 212,
+      "alphaMismatch": 0,
+      "max": 102
+    },
+    {
+      "pitch": 0.6,
+      "yaw": 0.3,
+      "kind": 0,
+      "code": "XAU",
+      "meanAbsoluteRgb": 0.05149112654320988,
+      "changedPixels": 598,
+      "over16Pixels": 167,
+      "alphaMismatch": 0,
+      "max": 129
+    },
+    {
+      "pitch": 0.6,
+      "yaw": 0.3,
+      "kind": 1,
+      "code": "XAG",
+      "meanAbsoluteRgb": 0.05380787037037037,
+      "changedPixels": 671,
+      "over16Pixels": 162,
+      "alphaMismatch": 0,
+      "max": 120
+    },
+    {
+      "pitch": 0.6,
+      "yaw": 0.3,
+      "kind": 2,
+      "code": "XPT",
+      "meanAbsoluteRgb": 0.048740354938271606,
+      "changedPixels": 611,
+      "over16Pixels": 144,
+      "alphaMismatch": 0,
+      "max": 113
+    },
+    {
+      "pitch": 0.6,
+      "yaw": 0.3,
+      "kind": 3,
+      "code": "XPD",
+      "meanAbsoluteRgb": 0.05201388888888889,
+      "changedPixels": 719,
+      "over16Pixels": 152,
+      "alphaMismatch": 0,
+      "max": 122
+    },
+    {
+      "pitch": 0.6,
+      "yaw": 1.2,
+      "kind": 0,
+      "code": "XAU",
+      "meanAbsoluteRgb": 0.06669174382716049,
+      "changedPixels": 621,
+      "over16Pixels": 217,
+      "alphaMismatch": 0,
+      "max": 142
+    },
+    {
+      "pitch": 0.6,
+      "yaw": 1.2,
+      "kind": 1,
+      "code": "XAG",
+      "meanAbsoluteRgb": 0.0669116512345679,
+      "changedPixels": 677,
+      "over16Pixels": 194,
+      "alphaMismatch": 0,
+      "max": 133
+    },
+    {
+      "pitch": 0.6,
+      "yaw": 1.2,
+      "kind": 2,
+      "code": "XPT",
+      "meanAbsoluteRgb": 0.07405478395061728,
+      "changedPixels": 668,
+      "over16Pixels": 231,
+      "alphaMismatch": 0,
+      "max": 121
+    },
+    {
+      "pitch": 0.6,
+      "yaw": 1.2,
+      "kind": 3,
+      "code": "XPD",
+      "meanAbsoluteRgb": 0.07915702160493827,
+      "changedPixels": 766,
+      "over16Pixels": 243,
+      "alphaMismatch": 0,
+      "max": 119
+    },
+    {
+      "pitch": 1.3,
+      "yaw": -0.8,
+      "kind": 0,
+      "code": "XAU",
+      "meanAbsoluteRgb": 0.06710262345679012,
+      "changedPixels": 939,
+      "over16Pixels": 216,
+      "alphaMismatch": 0,
+      "max": 156
+    },
+    {
+      "pitch": 1.3,
+      "yaw": -0.8,
+      "kind": 1,
+      "code": "XAG",
+      "meanAbsoluteRgb": 0.06477623456790123,
+      "changedPixels": 999,
+      "over16Pixels": 178,
+      "alphaMismatch": 0,
+      "max": 152
+    },
+    {
+      "pitch": 1.3,
+      "yaw": -0.8,
+      "kind": 2,
+      "code": "XPT",
+      "meanAbsoluteRgb": 0.06708912037037038,
+      "changedPixels": 942,
+      "over16Pixels": 179,
+      "alphaMismatch": 0,
+      "max": 158
+    },
+    {
+      "pitch": 1.3,
+      "yaw": -0.8,
+      "kind": 3,
+      "code": "XPD",
+      "meanAbsoluteRgb": 0.07038001543209876,
+      "changedPixels": 1148,
+      "over16Pixels": 181,
+      "alphaMismatch": 0,
+      "max": 157
+    },
+    {
+      "pitch": 1.3,
+      "yaw": 0.3,
+      "kind": 0,
+      "code": "XAU",
+      "meanAbsoluteRgb": 0.0786670524691358,
+      "changedPixels": 910,
+      "over16Pixels": 269,
+      "alphaMismatch": 0,
+      "max": 165
+    },
+    {
+      "pitch": 1.3,
+      "yaw": 0.3,
+      "kind": 1,
+      "code": "XAG",
+      "meanAbsoluteRgb": 0.0787037037037037,
+      "changedPixels": 1009,
+      "over16Pixels": 219,
+      "alphaMismatch": 0,
+      "max": 161
+    },
+    {
+      "pitch": 1.3,
+      "yaw": 0.3,
+      "kind": 2,
+      "code": "XPT",
+      "meanAbsoluteRgb": 0.07706404320987655,
+      "changedPixels": 926,
+      "over16Pixels": 240,
+      "alphaMismatch": 0,
+      "max": 167
+    },
+    {
+      "pitch": 1.3,
+      "yaw": 0.3,
+      "kind": 3,
+      "code": "XPD",
+      "meanAbsoluteRgb": 0.08468364197530864,
+      "changedPixels": 1121,
+      "over16Pixels": 236,
+      "alphaMismatch": 0,
+      "max": 166
+    },
+    {
+      "pitch": 1.3,
+      "yaw": 1.2,
+      "kind": 0,
+      "code": "XAU",
+      "meanAbsoluteRgb": 0.07511381172839506,
+      "changedPixels": 877,
+      "over16Pixels": 265,
+      "alphaMismatch": 0,
+      "max": 161
+    },
+    {
+      "pitch": 1.3,
+      "yaw": 1.2,
+      "kind": 1,
+      "code": "XAG",
+      "meanAbsoluteRgb": 0.07379050925925926,
+      "changedPixels": 943,
+      "over16Pixels": 224,
+      "alphaMismatch": 0,
+      "max": 141
+    },
+    {
+      "pitch": 1.3,
+      "yaw": 1.2,
+      "kind": 2,
+      "code": "XPT",
+      "meanAbsoluteRgb": 0.07393518518518519,
+      "changedPixels": 904,
+      "over16Pixels": 221,
+      "alphaMismatch": 0,
+      "max": 155
+    },
+    {
+      "pitch": 1.3,
+      "yaw": 1.2,
+      "kind": 3,
+      "code": "XPD",
+      "meanAbsoluteRgb": 0.08511381172839506,
+      "changedPixels": 1096,
+      "over16Pixels": 242,
+      "alphaMismatch": 0,
+      "max": 152
+    }
+  ],
+  "images": [
+    {
+      "code": "XAU",
+      "before": "XAU-before.png",
+      "after": "XAU-after.png"
+    },
+    {
+      "code": "XAG",
+      "before": "XAG-before.png",
+      "after": "XAG-after.png"
+    },
+    {
+      "code": "XPT",
+      "before": "XPT-before.png",
+      "after": "XPT-after.png"
+    },
+    {
+      "code": "XPD",
+      "before": "XPD-before.png",
+      "after": "XPD-after.png"
+    }
+  ]
+}

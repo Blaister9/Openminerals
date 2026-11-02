@@ -33,9 +33,23 @@ export function parseSurfaceLatency(text){
   for(const line of lines){const row=line.trim().split(/\s+/);if(row.length!==3||!row.every(x=>/^\d+$/.test(x)))continue;const actual=BigInt(row[1]);if(actual>0n&&actual<9223372036854775807n)timestamps.push(actual.toString());}
   return {refreshNs:Number.isFinite(refreshNs)&&refreshNs>0?refreshNs:null,timestamps:[...new Set(timestamps)]};
 }
-export function presentationStats(timestamps,refreshNs){
+export function selectPresentationSurface(text,pkg){
+  requireSafe(typeof text==='string'&&[PRESENTED.package,R4.package].includes(pkg),'Invalid presentation surface target.');
+  const escaped=pkg.replaceAll('.','\\.'),activity=escaped+'/(?:'+escaped+'\\.MainActivity|\\.MainActivity)(?:#\\d+)?';
+  const windowPattern=new RegExp('^'+activity+'$'),viewPattern=new RegExp('^SurfaceView - '+activity+'$');
+  const names=[...new Set(text.split(/\r?\n/).map(name=>name.trim()).filter(name=>name&&!/Background for|StartingWindow|^Dim\b/i.test(name)))];
+  const views=names.filter(name=>viewPattern.test(name)),windows=names.filter(name=>windowPattern.test(name));
+  // ExpoGL currently extends TextureView: its frames share the Activity window.
+  // Never substitute the display, another app, a container or an ambiguous layer.
+  if(views.length===1)return {surface:views[0],kind:'surfaceview',reason:null,matchedSurfaceViews:1,matchedAppWindows:windows.length};
+  if(views.length>1)return {surface:null,kind:null,reason:'ambiguous-package-surfaceview',matchedSurfaceViews:views.length,matchedAppWindows:windows.length};
+  if(windows.length===1)return {surface:windows[0],kind:'app-window',reason:null,matchedSurfaceViews:0,matchedAppWindows:1};
+  return {surface:null,kind:null,reason:windows.length?'ambiguous-package-app-window':'package-mainactivity-layer-unavailable',matchedSurfaceViews:0,matchedAppWindows:windows.length};
+}
+export function presentationStats(timestamps,refreshNs,scope='surfaceview'){
+  requireSafe(['surfaceview','app-window'].includes(scope),'Invalid presentation metric scope.');
   const sorted=[...new Set(timestamps)].map(BigInt).sort((a,b)=>a<b?-1:a>b?1:0),intervals=sorted.slice(1).map((value,i)=>Number(value-sorted[i])/1e6),spanMs=sorted.length>1?Number(sorted.at(-1)-sorted[0])/1e6:0;
-  return {available:intervals.length>1,metric:'SurfaceFlinger actualPresentTime intervals for one package-matched SurfaceView',frames:sorted.length,observedFps:spanMs>0?(sorted.length-1)/(spanMs/1000):null,p50Ms:quantile(intervals,.5),p95Ms:quantile(intervals,.95),slowPercent:intervals.length&&refreshNs?100*intervals.filter(x=>x>refreshNs/1e6*1.5).length/intervals.length:null,slowThresholdMs:refreshNs?refreshNs/1e6*1.5:null,spanMs,interpretation:'Presentation intervals include intentional on-demand idle periods and are not GPU execution times. A retained but paused ExpoGL SurfaceView may present no frames in light mode.'};
+  return {available:intervals.length>1,scope,metric:scope==='app-window'?'SurfaceFlinger actualPresentTime intervals for MainActivity window (UI and TextureView composite)':'SurfaceFlinger actualPresentTime intervals for one package-matched SurfaceView',frames:sorted.length,observedFps:spanMs>0?(sorted.length-1)/(spanMs/1000):null,p50Ms:quantile(intervals,.5),p95Ms:quantile(intervals,.95),slowPercent:intervals.length&&refreshNs?100*intervals.filter(x=>x>refreshNs/1e6*1.5).length/intervals.length:null,slowThresholdMs:refreshNs?refreshNs/1e6*1.5:null,spanMs,expoGlFpsMeasured:false,gpuExecutionTimeMeasured:false,interpretation:scope==='app-window'?'App-window presentation FPS includes UI and the composited TextureView. It does not isolate ExpoGL frames or GPU execution; an updating UI may present while GL is paused. Intervals include intentional on-demand idle periods.':'Presentation intervals include intentional on-demand idle periods and are not GPU execution times or isolated ExpoGL FPS. A retained but paused surface may present no frames in light mode.'};
 }
 export function memoryStats(samples){
   const valid=samples.filter(x=>Number.isFinite(x.pssKiB)&&x.pssKiB>0),sustained=valid.slice(Math.floor(valid.length/2)).map(x=>x.pssKiB);
@@ -45,7 +59,8 @@ export function threadCpuTicks(text){
   return text.split(/\r?\n/).flatMap(line=>{
     const match=/^(\d+) \((.*)\) (.+)$/.exec(line);if(!match)return [];
     const fields=match[3].split(/\s+/),user=Number(fields[11]),system=Number(fields[12]);
-    const category=/^(?:mqt_js|js|JavaScript|hermes)$/i.test(match[2])?'javascript':/^RenderThread$/.test(match[2])?'hwui-render':/^(?:GLThread|GLThread .*|GLThread-.*)$/.test(match[2])?'gl':null;
+    // ReactInstance uses queue name v_js; MessageQueueThreadImpl prefixes mqt_.
+    const category=/^(?:mqt_v_js|mqt_js|js|JavaScript|hermes)$/i.test(match[2])?'javascript':/^RenderThread$/.test(match[2])?'hwui-render':/^(?:GLThread|GLThread .*|GLThread-.*)$/.test(match[2])?'gl':null;
     return category&&Number.isFinite(user)&&Number.isFinite(system)?[{tid:match[1],category,ticks:user+system}]:[];
   });
 }
@@ -53,6 +68,30 @@ export function threadCpuDelta(before,after){
   const result={javascript:0,'hwui-render':0,gl:0},observed=new Set();
   for(const entry of after){const previous=before.find(x=>x.tid===entry.tid&&x.category===entry.category);if(previous&&entry.ticks>=previous.ticks){result[entry.category]+=entry.ticks-previous.ticks;observed.add(entry.category);}}
   return {available:observed.size>0,threadCpuTicks:Object.fromEntries(Object.keys(result).map(key=>[key,observed.has(key)?result[key]:null])),interpretation:'Linux per-thread utime+stime tick deltas for recognized thread names only. CPU time excludes blocking, GPU execution and unnamed/recreated threads; tick rate is not assumed.'};
+}
+export function shaderMarkerCounts(log){
+  requireSafe(typeof log==='string','Expected bounded shader marker log.');
+  const counts={'engraving-derivatives':0,'engraving-finite-difference':0};
+  for(const line of log.slice(-1000000).split(/\r?\n/)){
+    const marker=/\[Openminerals 3D\] (engraving-derivatives|engraving-finite-difference)\s*$/.exec(line)?.[1];
+    if(marker)counts[marker]++;
+  }
+  return counts;
+}
+export async function collectShaderMarkers({packageName,expectedPid,readPid,readLog}){
+  requireSafe([PRESENTED.package,R4.package].includes(packageName)&&/^\d+$/.test(expectedPid),'Invalid owned shader-marker process.');
+  const empty=()=>({'engraving-derivatives':0,'engraving-finite-difference':0});
+  let counts=empty(),collectionAvailable=false;
+  try{
+    const current=String(await readPid()).trim();
+    if(current===expectedPid){counts=shaderMarkerCounts(await readLog(current));collectionAvailable=true;}
+  }catch{ /* Optional bounded diagnostics never substitute for frame metrics. */ }
+  return {collectionAvailable,counts,instrumentationObserved:Object.values(counts).some(count=>count>0),rawLogsPublished:false,scope:'At most 1000 ReactNativeJS info lines for the verified cold-launch PID, read after the input trace. Counts concern this process lifetime, not individual draw calls. Zero markers, including uninstrumented r4, do not identify the selected shader.'};
+}
+export function anonymousProfilePng(file,bytes){
+  requireSafe(/^trial-[0-3]-(?:light|3d)-(?:initial|final)\.png$/.test(file),'Invalid anonymous profile screenshot name.');
+  requireSafe(Buffer.isBuffer(bytes)&&bytes.length>500&&bytes.length<10000000&&bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),'Invalid anonymous profile PNG.');
+  return {file,sha256:hash(bytes),bytes:bytes.length,anonymous:true,measuredTraceExcluded:true};
 }
 function command(file,args,{timeout=180000,binary=false,allowAbsent=false}={}){
   const result=runBounded(file,args,{timeout,encoding:binary?null:'utf8',maxBuffer:32*1024*1024});
@@ -63,8 +102,9 @@ const shellQuote=value=>"'"+value.replaceAll("'","'\\''")+"'";
 async function sampler(serial,pkg,out){
   requireSafe(process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_OS==='Linux'&&/^emulator-\d+$/.test(serial)&&[PRESENTED.package,R4.package].includes(pkg),'Sampler requires disposable CI emulator.');
   const adb=(...args)=>command('adb',['-s',serial,...args],{timeout:10000});let stopped=false;process.on('message',message=>{if(message==='stop')stopped=true;});
-  let surfaces=[],surfaceAccessFailed=false;try{surfaces=adb('shell','dumpsys','SurfaceFlinger','--list').split(/\r?\n/).filter(name=>name.includes(pkg)&&name.includes('SurfaceView'));}catch{surfaceAccessFailed=true;}
-  const surface=surfaces.length===1?surfaces[0]:null,samples=[],timestamps=[];let initial={timestamps:[],refreshNs:null};
+  let selection={surface:null,kind:null,reason:'surfaceflinger-access-unavailable',matchedSurfaceViews:0,matchedAppWindows:0},surfaceAccessFailed=false;
+  try{selection=selectPresentationSurface(adb('shell','dumpsys','SurfaceFlinger','--list'),pkg);}catch{surfaceAccessFailed=true;}
+  const surface=selection.surface,samples=[],timestamps=[];let initial={timestamps:[],refreshNs:null};
   if(surface)try{initial=parseSurfaceLatency(adb('shell','dumpsys SurfaceFlinger --latency '+shellQuote(surface)));}catch{surfaceAccessFailed=true;}
   const baseline=initial.timestamps.length?initial.timestamps.map(BigInt).reduce((a,b)=>a>b?a:b):0n;let refreshNs=initial.refreshNs,errors=0;
   const started=performance.now();process.send?.({ready:true});
@@ -74,7 +114,7 @@ async function sampler(serial,pkg,out){
     if(surface)try{const result=parseSurfaceLatency(adb('shell','dumpsys SurfaceFlinger --latency '+shellQuote(surface)));refreshNs??=result.refreshNs;timestamps.push(...result.timestamps.filter(x=>BigInt(x)>baseline));}catch{errors++;}
     if(!stopped)await pause(Math.max(1,1000-(performance.now()-began)));
   }
-  await writeFile(out,JSON.stringify({samples,memory:memoryStats(samples),presentation:surface?{...presentationStats(timestamps,refreshNs),surfaceAccessFailed}:{available:false,reason:surfaceAccessFailed?'surfaceflinger-access-unavailable':surfaces.length?'ambiguous-package-surfaceview':'package-surfaceview-unavailable'},errors,targetIntervalMs:1000,actualDurationMs:performance.now()-started,surfaceSelection:surface?'unique package-matched SurfaceView':'unavailable',rawSurfaceNamesPublished:false},null,2)+'\n');process.disconnect?.();
+  await writeFile(out,JSON.stringify({samples,memory:memoryStats(samples),presentation:surface?{...presentationStats(timestamps,refreshNs,selection.kind),surfaceAccessFailed}:{available:false,scope:null,expoGlFpsMeasured:false,gpuExecutionTimeMeasured:false,reason:surfaceAccessFailed?'surfaceflinger-access-unavailable':selection.reason},errors,targetIntervalMs:1000,actualDurationMs:performance.now()-started,surfaceSelection:selection.kind??'unavailable',matchedSurfaceViews:selection.matchedSurfaceViews,matchedAppWindows:selection.matchedAppWindows,rawSurfaceNamesPublished:false},null,2)+'\n');process.disconnect?.();
 }
 export function verifyProfileArtifact({app,badging,files,xml,resources,bundle,signature}){
   const info=manifest(badging);requireSafe(info.package===app.package&&info.name===app.version&&info.code===app.code&&info.minSdk<=29&&!/^application-debuggable\b/m.test(badging),'Profile APK identity differs.');
@@ -92,7 +132,7 @@ async function main(){
   requireSafe(process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_OS==='Linux','Profiler restricted to disposable Linux GitHub runner.');
   const mode=process.argv[2],repo=resolve(dirname(fileURLToPath(import.meta.url)),'..'),root=join(process.env.RUNNER_TEMP,'openminerals-mine-profile'),published=join(root,'public'),priv=join(root,'private');
   requireSafe(['download','run'].includes(mode),'Expected download or run.');await mkdir(published,{recursive:true});await mkdir(priv,{recursive:true,mode:0o700});
-  const candidate=JSON.parse(await readFile(join(repo,'../docs/evidence/sprint-realism-20261101/candidate-build.json'),'utf8')),pairName=process.env.MINE_PROFILE_PAIR||'stable-r4',pair=profilePair(pairName,candidate);let serial='';
+  const candidate=JSON.parse(await readFile(join(repo,'../docs/evidence/sprint-realism-20261101/candidate-build.json'),'utf8')),pairName=process.env.MINE_PROFILE_PAIR||(candidate.revision==='r5'?'r4-candidate':'stable-r4'),pair=profilePair(pairName,candidate);let serial='';
   const adb=(...args)=>command('adb',serial?['-s',serial,...args]:args,{timeout:adbBudget(args)}),json=(name,value)=>writeFile(join(published,name),JSON.stringify(value,null,2)+'\n');
   if(mode==='download'){
     const sdk=process.env.ANDROID_HOME||process.env.ANDROID_SDK_ROOT;requireSafe(sdk,'Android SDK required.');const versions=(await readdir(join(sdk,'build-tools'))).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})),tools=join(sdk,'build-tools',versions.at(-1)),verification=[];
@@ -105,9 +145,13 @@ async function main(){
   const devices=adb('devices'),emulator=devices.split(/\r?\n/).find(x=>/^emulator-\d+\s+device$/.test(x.trim()))?.split(/\s/)[0];serial=emulatorGuard(process.env,devices,emulator?command('adb',['-s',emulator,'shell','getprop','ro.kernel.qemu']):'');requireSafe(adb('shell','getprop','ro.build.version.sdk')==='29','Profiler requires API29.');
   const packages=adb('shell','pm','list','packages');requireSafe(!packages.includes(PRESENTED.package)&&!packages.includes(R4.package),'Profiler requires initially absent demo packages.');
   const identity=app=>installedIdentity(adb('shell','dumpsys','package',app.package),app);adb('install',join(root,'2.apk'));const stable=identity(PRESENTED),trace=gestureTrace(adb('shell','wm','size'));
-  await json('protocol.json',{demoOnly:true,pair:pairName,order:['A','B','B','A'],modes:['light','3d'],trace,device:{api:29,abi:adb('shell','getprop','ro.product.cpu.abi'),renderer:'configured SwiftShader',physical:false},samplingOverhead:'One independent process samples dumpsys PSS and optional SurfaceFlinger during each trace; both APKs use the identical sampler. No video is recorded.'});
+  await json('protocol.json',{demoOnly:true,pair:pairName,order:['A','B','B','A'],modes:['light','3d'],trace,presentationSamplerVersion:'package-surfaceview-or-mainactivity-window-v2',presentationSelection:'Prefer one exact package MainActivity SurfaceView; otherwise require one exact MainActivity window. App-window FPS includes UI and TextureView composite, never isolated GL or GPU FPS.',device:{api:29,abi:adb('shell','getprop','ro.product.cpu.abi'),renderer:'configured SwiftShader',physical:false},samplingOverhead:'One independent process samples dumpsys PSS and optional SurfaceFlinger during each trace; both APKs use the identical sampler. No video is recorded.'});
   async function flow(app,name,source){const out=join(priv,name);await mkdir(out,{recursive:true,mode:0o700});await writeFile(join(out,'flow.yaml'),previewFlow(source,app.package));const result=runBounded('maestro',['--no-ansi','--device',serial,'test','--format','JUNIT','--output',join(out,'report.xml'),'--debug-output',join(out,'debug'),join(out,'flow.yaml')],{timeout:420000,encoding:'utf8',maxBuffer:4*1024*1024,env:{...process.env,MAESTRO_CLI_NO_ANALYTICS:'1'}});requireSafe(!result.error&&result.status===0,'Anonymous profiler flow failed.');}
   async function scene(){const remote='/sdcard/openminerals-profile-scene.xml';try{adb('shell','uiautomator','dump',remote);return anonymousSceneState(adb('exec-out','cat',remote));}finally{adb('shell','rm','-f',remote);}}
+  async function screenshot(file){
+    const bytes=command('adb',['-s',serial,'exec-out','screencap','-p'],{binary:true,timeout:20000}),metadata=anonymousProfilePng(file,bytes);
+    await writeFile(join(published,metadata.file),bytes);return metadata;
+  }
   function cpuSnapshot(app){try{const pid=command('adb',['-s',serial,'shell','pidof',app.package],{timeout:5000});requireSafe(/^\d+$/.test(pid),'Invalid CPU sample process.');return threadCpuTicks(adb('shell',`cat /proc/${pid}/task/*/stat`));}catch{return [];}}
   const results=[];let previewInstalled=false;
   try{
@@ -122,15 +166,18 @@ async function main(){
         const sceneObservedMs=observed?performance.now()-launchStarted:null;requireSafe(observed,'Initial scene readiness not observed.');
         await flow(app,name+'-embedded',embeddedFlow(app.version));await flow(app,name+'-prepare',await readFile(join(repo,'e2e/native',visualMode==='light'?'story-light-prepare.yaml':'story-video-prepare.yaml'),'utf8'));
         const initialScene=await scene();requireSafe(visualMode==='light'?initialScene.readiness==='light':initialScene.mode==='gl','Prepared scene mode differs.');
+        const initialScreenshot=await screenshot(name+'-initial.png');
         adb('shell','setprop','debug.hwui.profile','true');adb('shell','dumpsys','gfxinfo',app.package,'reset');
         const cpuBefore=cpuSnapshot(app),sampleFile=join(published,name+'-sampling.json'),worker=fork(fileURLToPath(import.meta.url),['sample',serial,app.package,sampleFile],{stdio:['ignore','ignore','ignore','ipc']});
         await new Promise((resolveReady,reject)=>{const timer=setTimeout(()=>{worker.kill('SIGKILL');reject(Error('Sampler startup failed.'));},20000);worker.once('message',message=>{if(message?.ready){clearTimeout(timer);resolveReady();}});worker.once('error',()=>{clearTimeout(timer);reject(Error('Sampler startup failed.'));});});
         let timing;try{timing=await executeTrace({trace,adb});}finally{worker.send('stop');await new Promise((done,reject)=>{const timer=setTimeout(()=>{worker.kill('SIGKILL');reject(Error('Sampler exit failed.'));},20000);worker.once('exit',code=>{clearTimeout(timer);code===0?done():reject(Error('Sampler failed.'));});});}
-        const cpu=threadCpuDelta(cpuBefore,cpuSnapshot(app)),gfx=adb('shell','dumpsys','gfxinfo',app.package,'framestats'),sampling=JSON.parse(await readFile(sampleFile,'utf8')),finalScene=await scene();
-        const report={demoOnly:true,trial:iteration,arm:index?'B':'A',app:{package:app.package,code:app.code,source:app.source,sha256:app.sha256},visualMode,coldLaunch:launch.evidence,activityTotalMs:Number(/TotalTime:\s*(\d+)/.exec(launch.start)?.[1])||null,firstUiObservedMs,firstSceneObservedMs:sceneObservedMs,readinessScope:'Observed host elapsed upper bound from before cold-launch command to UIAutomator observation. Includes polling overhead; excludes server-data readiness. A scene marker is not compositor presentation.',initialScene,finalScene,qualityEquivalentAtEndpoints:initialScene.mode===finalScene.mode&&initialScene.qualityTierObserved===finalScene.qualityTierObserved,hwui:hwuiFrameStats(gfx,timing.observedDurationMs),memory:sampling.memory,presentation:sampling.presentation,cpu,inputTrace:{protocol:trace.protocol,specificationSha256:trace.specificationSha256,compiledSha256:trace.compiledSha256,...timing},physicalDevice:false,gpuExecutionTimeMeasured:false,jsThreadWallTimeMeasured:false};results.push(report);await json(name+'.json',report);await json('summary.json',{demoOnly:true,complete:false,results});
+        const cpu=threadCpuDelta(cpuBefore,cpuSnapshot(app)),gfx=adb('shell','dumpsys','gfxinfo',app.package,'framestats'),sampling=JSON.parse(await readFile(sampleFile,'utf8'));
+        const finalScreenshot=await screenshot(name+'-final.png'),finalScene=await scene();
+        const shaderSelection=await collectShaderMarkers({packageName:app.package,expectedPid:launch.evidence.newPid,readPid:()=>command('adb',['-s',serial,'shell','pidof',app.package],{allowAbsent:true,timeout:5000}),readLog:pid=>adb('logcat','--pid',pid,'-d','-t','1000','-v','brief','-s','ReactNativeJS:I','*:S')});
+        const report={demoOnly:true,trial:iteration,arm:index?'B':'A',app:{package:app.package,code:app.code,source:app.source,sha256:app.sha256},visualMode,coldLaunch:launch.evidence,activityTotalMs:Number(/TotalTime:\s*(\d+)/.exec(launch.start)?.[1])||null,firstUiObservedMs,firstSceneObservedMs:sceneObservedMs,readinessScope:'Observed host elapsed upper bound from before cold-launch command to UIAutomator observation. Includes polling overhead; excludes server-data readiness. A scene marker is not compositor presentation.',initialScene,finalScene,anonymousScreenshots:{initial:initialScreenshot,final:finalScreenshot,scope:'Initial capture precedes gfxinfo reset and the input trace. Final capture follows the post-trace gfxinfo dump. Screenshots are outside all measured trace metrics; their pixels require visual review.'},qualityEquivalentAtEndpoints:initialScene.mode===finalScene.mode&&initialScene.qualityTierObserved===finalScene.qualityTierObserved,hwui:hwuiFrameStats(gfx,timing.observedDurationMs),memory:sampling.memory,presentation:sampling.presentation,cpu,shaderSelection,inputTrace:{protocol:trace.protocol,specificationSha256:trace.specificationSha256,compiledSha256:trace.compiledSha256,...timing},physicalDevice:false,gpuExecutionTimeMeasured:false,jsThreadWallTimeMeasured:false};results.push(report);await json(name+'.json',report);await json('summary.json',{demoOnly:true,complete:false,results});
       }
     }
-    assertStablePreserved(stable,identity(PRESENTED));await json('summary.json',{demoOnly:true,complete:true,pair:pairName,order:'ABBA',stableUidVersionPreserved:true,noStableUninstall:true,noStableDataClear:true,credentialsEntered:false,operationsPerformed:false,phonePerformanceAcceptance:false,results,limitations:['Two repetitions per APK and mode; no statistical confidence interval.','Adaptive GL-to-light changes invalidate an equal-quality 3D comparison. Endpoint state does not prove mode throughout trace.','HWUI is not ExpoGL; SurfaceFlinger presentation is optional and never GPU execution timing.','PSS sampled maximum is not the true continuous peak.','Light mode can retain a paused SurfaceView; missing presentations are expected.']});
+    assertStablePreserved(stable,identity(PRESENTED));await json('summary.json',{demoOnly:true,complete:true,pair:pairName,order:'ABBA',presentationSamplerVersion:'package-surfaceview-or-mainactivity-window-v2',stableUidVersionPreserved:true,noStableUninstall:true,noStableDataClear:true,credentialsEntered:false,operationsPerformed:false,phonePerformanceAcceptance:false,results,limitations:['Two repetitions per APK and mode; no statistical confidence interval.','Adaptive GL-to-light changes invalidate an equal-quality 3D comparison. Endpoint state does not prove mode throughout trace.','HWUI is not ExpoGL; SurfaceFlinger presentation is optional and never GPU execution timing.','App-window presentation includes UI and composited TextureView; its FPS cannot establish isolated GL FPS.','PSS sampled maximum is not the true continuous peak.','A paused GL surface need not present; its containing app window can keep presenting UI.']});
   }finally{await rm(priv,{recursive:true,force:true});}
 }
 if(process.argv[1]&&pathToFileURL(resolve(process.argv[1])).href===import.meta.url){if(process.argv[2]==='sample')await sampler(...process.argv.slice(3));else await main();}

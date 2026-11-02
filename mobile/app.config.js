@@ -36,7 +36,7 @@ module.exports = ({config = stable} = {}) => {
     platforms: ['android'],
     version: '0.4.0',
     runtimeVersion: '0.4.0',
-    android: {...config.android, package: 'com.openminerals.demo.minepreview', versionCode: 4},
+    android: {...config.android, package: 'com.openminerals.demo.minepreview', versionCode: 5},
     updates: {
       ...config.updates,
       enabled: true,
@@ -45,6 +45,6 @@ module.exports = ({config = stable} = {}) => {
       fallbackToCacheTimeout: 0,
       requestHeaders: {...config.updates?.requestHeaders, 'expo-channel-name': 'mine-realism'},
     },
-    extra: {...config.extra, demoOnly: true, minePreview: true},
+    extra: {...config.extra, demoOnly: true, minePreview: true, minePreviewRevision: 'r5'},
   };
 };

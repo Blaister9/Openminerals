@@ -163,6 +163,9 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
   const internalReason:FailureReason|null=!NativeGLView?'unavailable':failureReason;
   const diagnostic=failure||!NativeGLView?'Vista ligera por fallo 3D: '+internalReason:reducedMotion?'Vista ligera':ready?balanced?'Calidad 3D equilibrada':'Calidad 3D alta':internalReason==='context-timeout'?'Reintentando 3D: context-timeout':'Preparando 3D';
   const fallback=reducedMotion?'Movimiento reducido':failure||!NativeGLView?'3D no disponible · '+internalReason:!foreground?'Visor pausado':enabled?'Preparando 3D…':'Recorrido del metal';
+  // Fade the specimen inside a bounded strip instead of a full-screen alpha
+  // layer. Keep its center and contact shadow at the same screen coordinates.
+  const lightStageHeight=Math.max(220,height*.32);
   // The lightweight mine image stays still. Only narrative fades follow the user's
   // scroll, including reverse scroll; there is no timer, camera or idle loop.
   const fallbackFade=useMemo(()=>{
@@ -174,14 +177,15 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
   },[scrollY,startY,endY]);
   return <View collapsable={false} accessible={cinematic&&!(failure&&NativeGLView)} accessibilityRole={cinematic?'image':undefined} accessibilityLabel={cinematic?sceneDescription+(internalReason?' Estado 3D: '+internalReason+'.':''):undefined} accessibilityValue={cinematic?{text:diagnostic}:undefined} testID={cinematic?(enabled&&ready?'immersive-gl-ready':reducedMotion||failure||!NativeGLView?'immersive-scene-light':'immersive-scene-pending'):undefined} style={[styles.stage,cinematic&&styles.cinematicStage,{height}]} onLayout={event=>{const nextWidth=event.nativeEvent.layout.width;setWidth(previous=>Math.abs(previous-nextWidth)>.5?nextWidth:previous);}} {...responder.panHandlers}>
     {surfacePresent&&NativeGLView&&<GLBoundary key={`${retry}:${width}:${height}:${renderScale}:${cinematic}`} onFailure={()=>fail(session,'boundary')}>
-      {/* Keep TextureView drawable while its surface is being created. */}
-      <NativeGLView style={{position:'absolute',top:0,left:0,width:width*renderScale,height:height*renderScale,transformOrigin:'top left',transform:[{scale:1/renderScale}],opacity:1}} onContextCreate={gl=>createContext(gl,session)} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"/>
+      {/* Creation stays visible. A paused, retained TextureView is excluded
+          from composition beneath the opaque lightweight cover. */}
+      <NativeGLView style={{position:'absolute',top:0,left:0,width:width*renderScale,height:height*renderScale,transformOrigin:'top left',transform:[{scale:1/renderScale}],opacity:enabled?1:0}} onContextCreate={gl=>createContext(gl,session)} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"/>
     </GLBoundary>}
     {(!enabled||!ready)&&<View pointerEvents="none" style={styles.fallback} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       {cinematic&&<Animated.Image source={require('../assets/geology-light.png')} resizeMode="cover" style={[styles.lightMine,{opacity:fallbackFade.mine}]}/>}
       {!cinematic&&<><View style={styles.halo}/><View style={styles.floorLine}/></>}
-      <Animated.View pointerEvents="none" style={[styles.lightBarStage,{opacity:cinematic?fallbackFade.bar:1}]}>
-        <View style={styles.staticShadow}/>
+      <Animated.View pointerEvents="none" style={[styles.lightBarStage,cinematic?{top:(height-lightStageHeight)/2,left:'50%',width:340,height:lightStageHeight,marginLeft:-170}:StyleSheet.absoluteFill,{opacity:cinematic?fallbackFade.bar:1}]}>
+        <View style={[styles.staticShadow,cinematic&&{top:lightStageHeight/2+height*.12}]}/>
         <View style={[styles.staticBar,metal==='XAU'?styles.goldSurface:styles.whiteSurface,cinematic&&styles.cinematicStaticBar]}>
           <View style={[styles.staticFace,metal==='XAU'?styles.goldFace:styles.whiteFace]}>
             <Text style={[styles.maker,metal!=='XAU'&&styles.whiteEngraving]}>⌁</Text><Text style={[styles.symbol,metal!=='XAU'&&styles.whiteEngraving]}>{material.symbol}</Text><Text style={[styles.word,metal!=='XAU'&&styles.whiteEngraving]}>DEMO</Text>
@@ -200,7 +204,7 @@ export function GoldBar3D({scrollY,initialScrollY,startY,endY,active,reducedMoti
 
 const styles=StyleSheet.create({
   cinematicStage:{borderRadius:0},cinematicStaticBar:{width:280,height:150},
-  stage:{overflow:'hidden',backgroundColor:'#0A0D10',borderRadius:12},fallback:{position:'absolute',top:0,right:0,bottom:0,left:0,alignItems:'center',justifyContent:'center',backgroundColor:'#0A0D10'},lightBarStage:{position:'absolute',top:0,right:0,bottom:0,left:0,alignItems:'center',justifyContent:'center'},
+  stage:{overflow:'hidden',backgroundColor:'#0A0D10',borderRadius:12},fallback:{position:'absolute',top:0,right:0,bottom:0,left:0,alignItems:'center',justifyContent:'center',backgroundColor:'#0A0D10'},lightBarStage:{position:'absolute',alignItems:'center',justifyContent:'center'},
   lightMine:{position:'absolute',top:0,left:0,width:'100%',height:'100%'},
   halo:{position:'absolute',width:250,height:180,borderRadius:120,backgroundColor:'#141C21'},floorLine:{position:'absolute',left:22,right:22,bottom:'24%',height:1,backgroundColor:'#20282C'},staticShadow:{position:'absolute',width:205,height:33,borderRadius:30,backgroundColor:'#070C10',top:'62%',transform:[{rotate:'-8deg'}]},
   staticBar:{width:190,height:105,borderRadius:15,borderWidth:2,transform:[{perspective:700},{rotateX:'24deg'},{rotateZ:'-9deg'}],elevation:9,shadowColor:'#000',shadowOffset:{width:0,height:14},shadowOpacity:.4,shadowRadius:15},goldSurface:{borderTopColor:'#FAE6AA',borderLeftColor:'#CBA355',borderRightColor:'#AE7D30',borderBottomColor:'#715022',backgroundColor:'#C59A48'},whiteSurface:{borderTopColor:'#EFF1EF',borderLeftColor:'#B9BFBD',borderRightColor:'#848D8B',borderBottomColor:'#505B59',backgroundColor:'#A5ADAA'},staticFace:{flex:1,borderRadius:11,borderWidth:1,margin:6,alignItems:'center',justifyContent:'center'},goldFace:{borderColor:'#94713A'},whiteFace:{borderColor:'#6E7975'},staticEdge:{position:'absolute',left:3,right:3,bottom:-5,height:5,borderBottomLeftRadius:12,borderBottomRightRadius:12,backgroundColor:'#7C591F'},whiteEdge:{backgroundColor:'#606D68'},whiteEngraving:{color:'#3F4C47',textShadowColor:'#EBF0EB'},maker:{color:'#755018',fontSize:18,lineHeight:18},symbol:{fontSize:36,lineHeight:40,fontWeight:'600',letterSpacing:4,color:'#5D421D',textShadowColor:'#F9D88D',textShadowOffset:{width:0,height:1},textShadowRadius:1},word:{fontSize:8,fontWeight:'700',letterSpacing:4,color:'#765326'},

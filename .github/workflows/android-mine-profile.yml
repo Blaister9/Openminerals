@@ -24,7 +24,7 @@ jobs:
       group: openminerals-controlled-mine-profile
       cancel-in-progress: false
     env:
-      MINE_PROFILE_PAIR: ${{ inputs.pair || 'stable-r4' }}
+      MINE_PROFILE_PAIR: ${{ inputs.pair || '' }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
