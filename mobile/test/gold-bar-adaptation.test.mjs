@@ -123,6 +123,27 @@ test('el coste inclusivo observa la espera nativa aunque encolar el frame solo c
   }finally{view.stop();}
 });
 
+test('espera nativa activa protección equilibrada sin confundirse con fallo del renderer',()=>{
+  const view=mount({balanced:true});view.state.waitCost=40;view.create();
+  try{
+    view.render(23,1);assert.equal(view.state.limitedCalls,0,'The complete protection window is still required.');
+    view.render(1,1);assert.equal(view.state.limitedCalls,1);
+    assert.deepEqual([...view.state.refs.samples.current],Array(24).fill(41));
+    assert.deepEqual(view.state.failures,[]);assert.deepEqual(view.state.warnings,[]);
+    assert.equal(view.state.renderers[0].disposed,0,'Cost protection pauses through the parent without reporting a renderer exception.');
+  }finally{view.stop();}
+});
+
+test('excepción al dibujar usa la ruta de fallo y no el aviso de coste automático',()=>{
+  const view=mount({balanced:true});view.state.throwDraw=true;view.create();
+  try{
+    view.render(1,1);assert.equal(view.state.limitedCalls,0);
+    assert.deepEqual(view.state.failures,[true]);assert.equal(view.state.failureReasons.at(-1),'draw');
+    assert.deepEqual(view.state.warnings,['[Openminerals 3D] draw']);
+    assert.equal(view.state.renderers[0].disposed,1);
+  }finally{view.stop();}
+});
+
 test('umbrales reales son estrictos: 20ms conserva calidad y 40ms conserva modo equilibrado',()=>{
   const high=mount(),balanced=mount({balanced:true});high.create();balanced.create();
   try{
