@@ -34,13 +34,23 @@
   "previousRevision": "failed-r3-comparison/candidate-build.json",
   "validationScope": "comparison",
   "independentCiScopes": [
-    "comparison",
-    "commerce"
+    "comparison"
   ],
   "previousFailedComparison": {
     "run": 41384249997,
     "conclusion": "failure",
-    "failure": "Recorded candidate clip truncated/frozen in origin;7separateGLchaptercaptures succeeded.",
+    "failure": "Recorded candidate clip was truncated and frozen in origin; seven separate GL chapter captures succeeded.",
     "phonePerformanceAcceptance": false
+  },
+  "verifiedCommercialEvidence": {
+    "run": 41388807925,
+    "job": 125095475432,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41388807925/job/125095475432",
+    "harnessHeadCommit": "fa308d0bc9a183bee092fd910eca4dc911078642",
+    "apkSha256": "adfbf909f0cf0c924c7b8938a1a773c5c96b84f14f86ae0e8c0bf53b7e1b1bf5",
+    "conclusion": "success",
+    "completedNativeStages": 15,
+    "provenance": "android-r4-commerce/provenance.json",
+    "scope": "Owned legacy commerce and native account access; not authenticated trading or physical custody."
   }
 }

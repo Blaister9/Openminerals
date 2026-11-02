@@ -2,29 +2,29 @@
   "format": "openminerals-core-ci-evidence-v1",
   "demoOnly": true,
   "run": {
-    "id": 41385054870,
-    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41385054870",
+    "id": 41388807960,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41388807960",
     "event": "pull_request",
-    "headCommit": "a11bb2aef0621db8fe7e6f0c9cf849152c2bbb0c",
+    "headCommit": "fa308d0bc9a183bee092fd910eca4dc911078642",
     "status": "completed",
     "conclusion": "success",
-    "completedAtUtc": "2026-11-02T03:49:46Z"
+    "completedAtUtc": "2026-11-02T04:31:24Z"
   },
   "corroboratingPushRun": {
-    "id": 41385050057,
-    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41385050057",
-    "headCommit": "a11bb2aef0621db8fe7e6f0c9cf849152c2bbb0c",
+    "id": 41388802252,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41388802252",
+    "headCommit": "fa308d0bc9a183bee092fd910eca4dc911078642",
     "conclusion": "success",
-    "completedAtUtc": "2026-11-02T03:49:26Z",
+    "completedAtUtc": "2026-11-02T04:31:18Z",
     "counterAgreement": true
   },
   "jobs": {
     "mobile": {
-      "id": 125083937426,
-      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41385054870/job/125083937426",
+      "id": 125095474880,
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41388807960/job/125095474880",
       "conclusion": "success",
-      "tests": 342,
-      "passed": 336,
+      "tests": 349,
+      "passed": 343,
       "failed": 0,
       "skipped": 6,
       "optionalSkips": "Software-WebGL browser execution was not configured in this source-validation CI; Android native execution and local software-WebGL are separate evidence.",
@@ -35,8 +35,8 @@
       "expoDoctor": "21/21 checks passed"
     },
     "api": {
-      "id": 125083937555,
-      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41385054870/job/125083937555",
+      "id": 125095475123,
+      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41388807960/job/125095475123",
       "conclusion": "success",
       "memoryPhase": {
         "tests": 102,
@@ -71,34 +71,13 @@
     "corroboratingPushCountersReadFromCompletedJobLogs": true
   },
   "validationSource": {
-    "sprintApplicationCommit": "0d3fa50791a6e86d8944c2d07026fcc5bc5c6999",
-    "note": "Core CI validates this harness verification head. R3 Android APK application source remains 0d3fa50791a6e86d8944c2d07026fcc5bc5c6999. Native journey, metrics and physical acceptance are separate evidence.",
-    "verificationCommit": "a11bb2aef0621db8fe7e6f0c9cf849152c2bbb0c"
+    "revision": "r4",
+    "sprintApplicationCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+    "verificationCommit": "fa308d0bc9a183bee092fd910eca4dc911078642",
+    "note": "Core CI validates this harness verification head. R4 Android APK application source is recorded separately above. Native journeys, metrics and physical acceptance are separate evidence."
   },
-  "previousR3Context": {
-    "run": {
-      "id": 41384249995,
-      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41384249995",
-      "event": "pull_request",
-      "headCommit": "8b892afe4e3bdb05fcdab1af06c61a2c2f2a95aa",
-      "status": "completed",
-      "conclusion": "success",
-      "completedAtUtc": "2026-11-02T03:40:15Z"
-    },
-    "corroboratingPushRun": {
-      "id": 41384244856,
-      "url": "https://github.com/Blaister9/Openminerals/actions/runs/41384244856",
-      "headCommit": "8b892afe4e3bdb05fcdab1af06c61a2c2f2a95aa",
-      "conclusion": "success",
-      "completedAtUtc": "2026-11-02T03:40:13Z",
-      "counterAgreement": true
-    },
-    "mobile": {
-      "tests": 340,
-      "passed": 334,
-      "failed": 0,
-      "skipped": 6
-    },
-    "scope": "Prior R3 source-validation context before the anonymous-flow header parser correction; not an additional set of distinct cases."
+  "previousRevisionContext": {
+    "path": "failed-r3-comparison/core-ci.json",
+    "scope": "Archived R3 validation; not additional distinct cases or R4 native proof."
   }
 }

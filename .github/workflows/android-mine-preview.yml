@@ -19,7 +19,33 @@ on:
 permissions:
   contents: read
 jobs:
+  scopes:
+    if: >-
+      github.event.repository.private == false &&
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'codex/android-mine-realism-20261101'))
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.scopes.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - id: scopes
+        name: Validate explicit native QA scopes
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync,appendFileSync} from 'node:fs';
+          import {selectedCiScopes} from './mobile/e2e/mine-preview.mjs';
+          const record=JSON.parse(readFileSync('docs/evidence/sprint-realism-20261101/candidate-build.json','utf8'));
+          appendFileSync(process.env.GITHUB_OUTPUT,'matrix='+JSON.stringify(selectedCiScopes(record))+'\n');
+          NODE
   before-after:
+    needs: scopes
     if: >-
       github.event.repository.private == false &&
       (github.event_name == 'workflow_dispatch' ||
@@ -31,7 +57,7 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        validation_scope: [comparison, commerce]
+        validation_scope: ${{ fromJSON(needs.scopes.outputs.matrix) }}
     concurrency:
       group: openminerals-isolated-native-mine-preview-${{ matrix.validation_scope }}
       cancel-in-progress: false

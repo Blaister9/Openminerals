@@ -1,0 +1,20 @@
+{
+  "demoOnly": true,
+  "videoFile": "before-anonymous-scroll-incomplete.mp4",
+  "videoEvidenceValid": false,
+  "endpointScreenshotWritten": false,
+  "mediaInspectionComplete": false,
+  "coverage": {
+    "temporalCoverageValid": false,
+    "finalSamples": [],
+    "visualFinalStageVerified": false
+  },
+  "inputExecutionFailed": false,
+  "recorderAliveAtTraceEnd": true,
+  "inputTraceComplete": true,
+  "containerReadable": true,
+  "inspectionFailure": true,
+  "traceObservedDurationMs": 39724.32398300001,
+  "physicalDevice": false,
+  "gpuFpsMeasured": false
+}

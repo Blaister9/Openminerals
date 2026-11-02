@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Openminerals native Android" tests="5" failures="1">
+  <testcase classname="Openminerals.android" name="guard-disposable-api29-emulator" time="1.115"></testcase>
+  <testcase classname="Openminerals.android" name="install-presented-stable-separate-package" time="74.936"></testcase>
+  <testcase classname="Openminerals.android" name="presented-seven-chapters" time="153.944"></testcase>
+  <testcase classname="Openminerals.android" name="presented-light-unrecorded-fixed-trace" time="129.834"></testcase>
+  <testcase classname="Openminerals.android" name="presented-recorded-fixed-trace" time="139.874"><failure message="Native assertion or infrastructure failed. Private diagnostics were not published."/></testcase>
+</testsuite>

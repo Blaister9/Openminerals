@@ -1,5 +1,4 @@
 import {spawn} from 'node:child_process';
-import {once} from 'node:events';
 import {openSync,closeSync} from 'node:fs';
 import {readFile,writeFile,mkdir,readdir,copyFile,rm,rename,lstat} from 'node:fs/promises';
 import {fileURLToPath,pathToFileURL} from 'node:url';
@@ -22,6 +21,35 @@ export const PRESENTED=Object.freeze({
 export const PREVIEW=Object.freeze({package:'com.openminerals.demo.minepreview',version:'0.4.0',code:4,runtime:'0.4.0',channel:'mine-realism'});
 export function nativeValidationScope(value){requireSafe(value===undefined||['comparison','regression','commerce'].includes(value),'Expected comparison, regression or commerce validation scope.');return value??'comparison';}
 export function effectiveValidationScope(committed,override){return nativeValidationScope(override===undefined||override===''?committed:override);}
+export function selectedCiScopes(record={}){
+  requireSafe(record&&typeof record==='object'&&!Array.isArray(record),'Expected a native QA build record.');
+  const value=record.independentCiScopes===undefined?['comparison','commerce']:record.independentCiScopes;
+  requireSafe(Array.isArray(value)&&value.length>=1&&value.length<=2&&value.every(scope=>['comparison','commerce'].includes(scope))&&new Set(value).size===value.length,'Expected one or two unique independent CI scopes.');
+  return [...value];
+}
+export function strictRecorderPid(result){
+  const out=String(result?.stdout??'').trim(),err=String(result?.stderr??'').trim();
+  if(!result?.error&&!result?.signal&&result?.status===1&&!out&&!err)return '';
+  if(!result?.error&&!result?.signal&&result?.status===0&&/^\d+(?:\s+\d+)*$/.test(out))return out.split(/\s+/).join(' ');
+  throw new Error('Recorder process absence could not be verified.');
+}
+export async function finalizeOwnedRecorder({pid,probe,signal,hostClosed,wait:pause=ms=>new Promise(resolve=>setTimeout(resolve,ms)),now=()=>performance.now(),timeoutMs=30000}){
+  requireSafe(/^\d+$/.test(pid)&&Number.isInteger(timeoutMs)&&timeoutMs>0&&timeoutMs<=30000,'Invalid owned recorder finalization.');
+  const started=now(),state={stopSignalSent:false,remoteExitObserved:false,hostCloseObserved:false,unexpectedPidObserved:false,probeErrors:0,signalErrors:0,hostCheckErrors:0};
+  while(now()-started<timeoutMs){
+    if(!state.remoteExitObserved)try{
+      const current=await probe(Math.max(1,timeoutMs-(now()-started)));
+      if(current==='')state.remoteExitObserved=true;
+      else if(current===pid&&!state.stopSignalSent)try{await signal(pid,Math.max(1,timeoutMs-(now()-started)));state.stopSignalSent=true;}catch{state.signalErrors++;}
+      else if(current!==pid)state.unexpectedPidObserved=true;
+    }catch{state.probeErrors++;}
+    try{state.hostCloseObserved=!!hostClosed();}catch{state.hostCheckErrors++;}
+    if(state.remoteExitObserved&&state.hostCloseObserved&&!state.unexpectedPidObserved)break;
+    const remaining=timeoutMs-(now()-started);if(remaining<=0)break;await pause(Math.min(250,remaining));
+  }
+  const latencyMs=now()-started,finalized=state.remoteExitObserved&&state.hostCloseObserved&&!state.unexpectedPidObserved;
+  return {...state,finalized,latencyMs,timeoutMs,timedOut:!finalized&&latencyMs>=timeoutMs,hostForceTerminationRequested:false,stopWaitOutsideInputTrace:true};
+}
 export function previewInputs(env,manifest={}){
   requireSafe(manifest&&typeof manifest==='object'&&!Array.isArray(manifest),'Invalid preview build record.');
   const supplied=[env.APK_INPUT_URL,env.APK_INPUT_SHA256,env.APK_INPUT_CERT_SHA256].filter(value=>value!==undefined&&value!=='');
@@ -62,6 +90,7 @@ const PUBLIC_FAILURE_REASONS=new Set([
   'Candidate chapter reached a light scene without the explicit performance fallback reason.',
   'Candidate regression requires an actual GL-ready scene.',
   'Internal or pending GL state cannot satisfy the 3D trace.',
+  'Recorder process absence could not be verified.',
 ]);
 export function publicFailureReason(error){return PUBLIC_FAILURE_REASONS.has(error?.message)?error.message:'Unclassified assertion or infrastructure failure; raw diagnostics withheld.';}
 export function anonymousSceneFlags(xml){
@@ -358,13 +387,17 @@ async function main(){
   const repo=resolve(dirname(fileURLToPath(import.meta.url)),'..'),root=resolve(process.env.RUNNER_TEMP||'.','openminerals-mine-preview');
   const published=join(root,'public'),privateRoot=join(root,'private');
   const mode=process.argv[2];
-  function command(file,args,{timeout,output,binary=false,env=process.env,pidProbe=false}={}){
+  function command(file,args,{timeout,output,binary=false,env=process.env,pidProbe=false,recorderProbe=false}={}){
     timeout??=file==='adb'?adbBudget(args):180000;let fd;
     try{
       if(output)fd=openSync(output,'a',0o600);
       progress.commandStart(file,args,timeout);
       const result=runBounded(file,args,{encoding:binary?null:'utf8',timeout,maxBuffer:32*1024*1024,env:{...env,MAESTRO_CLI_NO_ANALYTICS:'1'},stdio:fd===undefined?['ignore','pipe','pipe']:['ignore',fd,fd]});
       const values=args[0]==='-s'?args.slice(2):args;
+      if(recorderProbe){
+        requireSafe(file==='adb'&&values.join(' ')==='shell pidof screenrecord','Unexpected recorder probe.');
+        try{const value=strictRecorderPid(result);progress.commandEnd({...result,status:0});return value;}catch(error){progress.commandEnd(result);throw error;}
+      }
       if(pidProbe)requireSafe(file==='adb'&&values.length===3&&values[0]==='shell'&&values[1]==='pidof'&&[PRESENTED.package,PREVIEW.package].includes(values[2]),'Unexpected process probe.');
       const absent=pidProbe&&!result.error&&result.status===1&&!String(result.stdout??'').trim()&&!String(result.stderr??'').trim();
       progress.commandEnd(absent?{...result,status:0}:result);requireSafe(absent||!result.error&&result.status===0,'A required preview command failed or timed out.');
@@ -464,10 +497,10 @@ async function main(){
   const copyScreenshots=(kind,requireReduced=false)=>publishAnonymousScreenshots({kind,privateRoot,published,requireReduced});
   async function recordTrace(kind,trace){
     const remote='/sdcard/openminerals-preview-'+randomUUID()+'.mp4';
-    const pids=()=>{try{return adb('shell','pidof','screenrecord');}catch{return '';}};
+    const pids=(budget=5000)=>command('adb',['-s',serial,'shell','pidof','screenrecord'],{recorderProbe:true,timeout:Math.max(1,Math.min(5000,Math.floor(budget)))});
     requireSafe(!pids(),'Another recorder is running.');
     const child=spawn('adb',['-s',serial,'shell','screenrecord','--bit-rate','2000000','--time-limit','180',remote],{stdio:'ignore',windowsHide:true});
-    child.on('error',()=>{});const closed=once(child,'close').catch(()=>[]);let pid='',timing=null,inputExecutionFailed=false,recorderAliveAtTraceEnd=false;
+    let hostHasClosed=false;child.on('error',()=>{});child.once('close',()=>{hostHasClosed=true;});let pid='',timing=null,inputExecutionFailed=false,recorderAliveAtTraceEnd=false;
     const capture={videoFile:null,videoEvidenceValid:false,endpointScreenshotWritten:false,mediaInspectionComplete:false,coverage:null};
     try{
       await new Promise(resolve=>setTimeout(resolve,1000));pid=pids();requireSafe(/^\d+$/.test(pid),'Owned screen recorder did not start.');
@@ -475,9 +508,9 @@ async function main(){
       try{timing=await executeTrace({trace,adb});}catch{inputExecutionFailed=true;timing={observedDurationMs:performance.now()-began,events:[]};}
       recorderAliveAtTraceEnd=child.exitCode===null&&pids()===pid;
     }finally{
-      if(pid&&pids()===pid)adb('shell','kill','-INT',pid);
-      await Promise.race([closed,new Promise(resolve=>setTimeout(resolve,8000))]);if(child.exitCode===null)child.kill('SIGKILL');
-      requireSafe(!pid||pids()!==pid,'Owned recorder must stop before commerce.');
+      const finalization=pid?await finalizeOwnedRecorder({pid,probe:pids,signal:(owned,budget)=>command('adb',['-s',serial,'shell','kill','-INT',owned],{timeout:Math.max(1,Math.min(5000,Math.floor(budget)))}),hostClosed:()=>hostHasClosed}):{finalized:false,remoteExitObserved:false,hostCloseObserved:hostHasClosed,latencyMs:0,hostForceTerminationRequested:false,stopWaitOutsideInputTrace:true};
+      if(!finalization.finalized&&!hostHasClosed){if(finalization.latencyMs<30000)await new Promise(resolve=>setTimeout(resolve,30000-finalization.latencyMs));child.kill('SIGKILL');finalization.hostForceTerminationRequested=true;}
+      capture.finalization=finalization;
       try{
         const local=join(published,kind+'-anonymous-scroll.mp4');adb('pull',remote,local);capture.videoFile=kind+'-anonymous-scroll.mp4';
         const bytes=await readFile(local),containerReadable=bytes.length>1000&&bytes.length<60_000_000&&bytes.subarray(4,8).toString()==='ftyp';
@@ -497,7 +530,7 @@ async function main(){
           if(endpoint.length<10_000_000&&endpoint.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))){await writeFile(join(published,kind+'-trace-end.png'),endpoint);capture.endpointScreenshotWritten=true;}
         }catch{}
         capture.coverage??={temporalCoverageValid:false,finalSamples:[],visualFinalStageVerified:false};
-        capture.videoEvidenceValid=containerReadable&&!inspectionFailure&&!inputExecutionFailed&&timing?.events.length===15&&recorderAliveAtTraceEnd&&capture.coverage.temporalCoverageValid&&capture.mediaInspectionComplete&&capture.endpointScreenshotWritten;
+        capture.videoEvidenceValid=finalization.finalized&&containerReadable&&!inspectionFailure&&!inputExecutionFailed&&timing?.events.length===15&&recorderAliveAtTraceEnd&&capture.coverage.temporalCoverageValid&&capture.mediaInspectionComplete&&capture.endpointScreenshotWritten;
         if(!capture.videoEvidenceValid){capture.videoFile=kind+'-anonymous-scroll-incomplete.mp4';await rename(local,join(published,capture.videoFile));}
         await json(kind+'-video-validation.json',{demoOnly:true,...capture,inputExecutionFailed,recorderAliveAtTraceEnd,inputTraceComplete:timing?.events.length===15,containerReadable,inspectionFailure,traceObservedDurationMs:timing?.observedDurationMs??null,physicalDevice:false,gpuFpsMeasured:false});
       }finally{adb('shell','rm','-f',remote);}
@@ -516,7 +549,7 @@ async function main(){
     const file=kind+'-performance-'+(light?'light-':'')+(record?'recorded':'unrecorded')+'.json';
     const report={
       demoOnly:true,environment:'disposable API 29 x86_64 emulator with SwiftShader',physicalDevice:false,package:app.package,version:app.version,
-      ...metrics,hwuiProfilingRequested,...sceneFlags,coldLaunch:launch.evidence,visualMode:light?'light':'3d',qualityTierScope:'Observed adaptive tier; GL resolution and GPU FPS are not inferred.',screenRecording:record,recordingEvidence:recording?{videoFile:recording.videoFile,videoEvidenceValid:recording.videoEvidenceValid,coverage:recording.coverage}:null,inputTrace:{protocol:trace.protocol,specificationSha256:trace.specificationSha256,compiledSha256:trace.compiledSha256,gestureCount:15,plannedDurationMs:trace.plannedDurationMs,...timing},
+      ...metrics,hwuiProfilingRequested,...sceneFlags,coldLaunch:launch.evidence,visualMode:light?'light':'3d',qualityTierScope:'Observed adaptive tier; GL resolution and GPU FPS are not inferred.',screenRecording:record,recordingEvidence:recording?{videoFile:recording.videoFile,videoEvidenceValid:recording.videoEvidenceValid,coverage:recording.coverage,finalization:recording.finalization}:null,inputTrace:{protocol:trace.protocol,specificationSha256:trace.specificationSha256,compiledSha256:trace.compiledSha256,gestureCount:15,plannedDurationMs:trace.plannedDurationMs,...timing},
       measurementValid:launch.evidence.valid&&timing.events.length===15&&(!record||recording.videoEvidenceValid)&&(light||['gl','automatic-light'].includes(sceneFlags.mode)),checks:{traceFinalAccessibility:false,embeddedAfterTrace:false},
       uiFrameStatisticsAvailable:metrics.uiFrames!==null&&metrics.uiFrames>0,phonePerformanceAcceptance:false,gpuFpsMeasured:false,
       interpretation:'gfxinfo reports Android UI frames, not ExpoGL GPU FPS. PSS samples are not peak memory. Input duration includes ADB overhead. Cold start is a process launch of an installed APK. Recorded and unrecorded traces are separate; menus, readiness checks and screenshots are outside the measured workload.',

@@ -7,7 +7,7 @@ import {tmpdir} from 'node:os';
 import {join,resolve,sep} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {seedState,applyCommand,availableHoldingMg} from '../../api/src/domain.js';
-import {PRESENTED,PREVIEW,previewInputs,previewFlow,gestureTrace,executeTrace,metadataValue,verifyArtifact,installedIdentity,assertStablePreserved,legacyCommerceFlow,publicFailureReason,anonymousSceneFlags,authorizedAuthFlow,authorizedPublicOperator,publicOperatorPreflight,observeColdLaunch,videoCoverage,publishAnonymousScreenshots,adaptiveCandidateStory,nativeValidationScope,effectiveValidationScope,anonymousSceneState,adaptiveCandidateResume,nativeGlDiagnostics,legacyReservationFlow,legacyHistoryFlow,staticFlowDiagnosticAllowed,authFailureMetadata} from '../e2e/mine-preview.mjs';
+import {PRESENTED,PREVIEW,previewInputs,previewFlow,gestureTrace,executeTrace,metadataValue,verifyArtifact,installedIdentity,assertStablePreserved,legacyCommerceFlow,publicFailureReason,anonymousSceneFlags,authorizedAuthFlow,authorizedPublicOperator,publicOperatorPreflight,observeColdLaunch,videoCoverage,publishAnonymousScreenshots,adaptiveCandidateStory,nativeValidationScope,effectiveValidationScope,anonymousSceneState,adaptiveCandidateResume,nativeGlDiagnostics,legacyReservationFlow,legacyHistoryFlow,staticFlowDiagnosticAllowed,authFailureMetadata,selectedCiScopes,strictRecorderPid,finalizeOwnedRecorder} from '../e2e/mine-preview.mjs';
 import {API,PACKAGE} from '../e2e/ci-safety.mjs';
 import {embeddedFlow} from '../e2e/release-contract.mjs';
 const yaml=createRequire(import.meta.url)('yaml');
@@ -220,6 +220,26 @@ test('native validation scope permits only closed comparison regression and inde
   for(const value of [null,'','all','../regression',0,{}])assert.throws(()=>nativeValidationScope(value));
 });
 
+test('independent CI scope selection defaults to both cases and never mutates an explicit selection',()=>{
+  assert.deepEqual(selectedCiScopes({}),['comparison','commerce']);const record={independentCiScopes:['comparison']},selected=selectedCiScopes(record);selected.push('commerce');assert.deepEqual(record.independentCiScopes,['comparison']);
+  for(const independentCiScopes of [null,[],['comparison','comparison'],['regression'],['commerce','comparison','commerce'],'comparison',['comparison; unsafe']])assert.throws(()=>selectedCiScopes({independentCiScopes}));assert.throws(()=>selectedCiScopes(null));
+});
+
+test('only an empty exit-one recorder probe proves absence; transport errors never do',()=>{
+  assert.equal(strictRecorderPid({status:1,stdout:'',stderr:''}),'');assert.equal(strictRecorderPid({status:0,stdout:'42\n',stderr:''}),'42');
+  for(const result of [{status:0,stdout:'',stderr:''},{status:1,stdout:'',stderr:'device offline'},{status:null,error:Error('timeout')},{status:1,stdout:'',stderr:'',signal:'SIGKILL'},{status:0,stdout:'unknown',stderr:''}])assert.throws(()=>strictRecorderPid(result),/absence could not be verified/);
+});
+
+test('recorder finalization waits beyond eight seconds for remote exit and host close',async()=>{
+  let time=0,signals=0;const report=await finalizeOwnedRecorder({pid:'42',probe:()=>time<10500?'42':'',signal:()=>{signals++;},hostClosed:()=>time>=12000,wait:ms=>{time+=ms;},now:()=>time});
+  assert.equal(report.finalized,true);assert.equal(report.latencyMs,12000);assert.equal(report.remoteExitObserved,true);assert.equal(report.hostCloseObserved,true);assert.equal(report.hostForceTerminationRequested,false);assert.equal(report.stopWaitOutsideInputTrace,true);assert.equal(signals,1);
+});
+
+test('a recorder probe outage or missing host close cannot certify finalization',async()=>{
+  let time=0;const outage=await finalizeOwnedRecorder({pid:'42',probe:()=>{throw Error('transport');},signal:()=>{},hostClosed:()=>true,wait:ms=>{time+=ms;},now:()=>time});assert.equal(outage.finalized,false);assert.equal(outage.remoteExitObserved,false);assert.equal(outage.latencyMs,30000);assert.ok(outage.probeErrors>0);
+  time=0;const host=await finalizeOwnedRecorder({pid:'42',probe:()=>'',signal:()=>{},hostClosed:()=>false,wait:ms=>{time+=ms;},now:()=>time});assert.equal(host.finalized,false);assert.equal(host.remoteExitObserved,true);assert.equal(host.hostCloseObserved,false);assert.equal(host.timedOut,true);
+});
+
 test('bounded anonymous scene snapshots distinguish explicit cost fallback from unexplained light or pending',()=>{
   assert.equal(anonymousSceneState('<node resource-id="immersive-gl-ready"/>').mode,'gl');
   const automatic=anonymousSceneState('<node resource-id="immersive-scene-light" content-desc="Vista ligera activada por coste de render."/>');assert.equal(automatic.mode,'automatic-light');assert.equal(automatic.automaticLightObserved,true);
@@ -296,7 +316,8 @@ test('preview workflow limits automatic runs to the trusted sprint PR and isolat
   assert.deepEqual(workflow.permissions,{contents:'read'});assert.equal(workflow.concurrency,undefined);
   const job=workflow.jobs['before-after'],runner=job.steps.find(step=>step.uses?.startsWith('ReactiveCircus/'));
   assert.equal(job.concurrency.group,'openminerals-isolated-native-mine-preview-${{ matrix.validation_scope }}');assert.equal(job.concurrency['cancel-in-progress'],false);
-  assert.deepEqual(job.strategy.matrix.validation_scope,['comparison','commerce']);assert.equal(job.strategy['fail-fast'],false);assert.equal(job.strategy['max-parallel'],2);assert.equal(job.env.MINE_PREVIEW_QA_SCOPE,'${{ matrix.validation_scope }}');
+  assert.equal(job.needs,'scopes');assert.equal(job.strategy.matrix.validation_scope,'${{ fromJSON(needs.scopes.outputs.matrix) }}');assert.equal(job.strategy['fail-fast'],false);assert.equal(job.strategy['max-parallel'],2);assert.equal(job.env.MINE_PREVIEW_QA_SCOPE,'${{ matrix.validation_scope }}');
+  const prepare=workflow.jobs.scopes;assert.equal(prepare.if,job.if);assert.ok(prepare.steps.some(step=>step.run?.includes('JSON.stringify(selectedCiScopes(record))')));for(const step of prepare.steps.filter(step=>step.uses))assert.match(step.uses,/@[a-f0-9]{40}$/);
   const mediaIndex=job.steps.findIndex(step=>step.run?.includes('apt-get install -y --no-install-recommends ffmpeg'));
   const verificationIndex=job.steps.findIndex(step=>step.run==='node mobile/e2e/mine-preview.mjs download');
   assert.ok(mediaIndex>=0&&mediaIndex<verificationIndex,'ffprobe/ffmpeg must be installed before host media verification.');

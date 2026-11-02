@@ -25,7 +25,7 @@
     "stableReleaseModified": false
   },
   "physicalPhoneAcceptance": false,
-  "scope": "R4 full local349/349 with actual Chrome SwiftShader. Android native performance/phone acceptance remain separate and unaccepted.",
+  "scope": "R4 full local suite: 349/349 with actual Chrome SwiftShader. Android native performance and phone acceptance remain separate and unaccepted.",
   "lifecycle": {
     "visibleNativeSurfaceBeforeReady": true,
     "opaqueCoverUntilCompletedFrame": true,
@@ -44,10 +44,10 @@
     "presentationTeardownRootCauseProven": false
   },
   "qaAfterApkSource": {
-    "tests": 32,
-    "passed": 32,
+    "tests": 36,
+    "passed": 36,
     "failed": 0,
-    "scope": "Included in the349 total: corrected quantity scroll direction, R4 APK identity and static authentication diagnostics. Not native execution."
+    "scope": "Native harness after the 349-test application suite: strict recorder PID/finalization and explicit independent CI scopes. Includes four additional cases; no Android execution is implied."
   },
   "verificationCommit": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14"
 }

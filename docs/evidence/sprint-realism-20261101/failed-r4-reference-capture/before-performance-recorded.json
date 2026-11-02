@@ -1,0 +1,199 @@
+{
+  "demoOnly": true,
+  "environment": "disposable API 29 x86_64 emulator with SwiftShader",
+  "physicalDevice": false,
+  "package": "com.openminerals.demo.mobile",
+  "version": "0.3.0",
+  "coldStartTotalMs": 1453,
+  "coldStartWaitMs": 1458,
+  "pssBeforeKiB": 118894,
+  "pssAfterKiB": 118944,
+  "uiFrames": 52,
+  "jankyUiFrames": 52,
+  "uiFrameP50Ms": 300,
+  "uiFrameP90Ms": 600,
+  "uiFrameP95Ms": 700,
+  "hwuiProfilingRequested": true,
+  "automaticLightObserved": false,
+  "qualityTierObserved": "unknown",
+  "knownIds": [
+    "immersive-gl-ready",
+    "home-cinematic-scroll"
+  ],
+  "readiness": "gl-ready",
+  "mode": "gl",
+  "stateReasonCode": null,
+  "internalFailureCode": null,
+  "internalFailureObserved": false,
+  "retryPendingObserved": false,
+  "manualRetryControlObserved": false,
+  "manualLightDescriptionObserved": false,
+  "reducedMotionDescriptionObserved": false,
+  "genericSimplifiedTextObserved": false,
+  "xmlTruncated": false,
+  "rawUiPublished": false,
+  "coldLaunch": {
+    "valid": true,
+    "oldPid": "7642",
+    "newPid": "8841",
+    "oldProcessExitObserved": true,
+    "newProcessObserved": true,
+    "pidChanged": true,
+    "status": "ok",
+    "reportedLaunchState": "COLD",
+    "intentReused": false,
+    "classification": "verified-cold-process-launch",
+    "appReadyLatencyMeasured": false
+  },
+  "visualMode": "3d",
+  "qualityTierScope": "Observed adaptive tier; GL resolution and GPU FPS are not inferred.",
+  "screenRecording": true,
+  "recordingEvidence": {
+    "videoFile": "before-anonymous-scroll-incomplete.mp4",
+    "videoEvidenceValid": false,
+    "coverage": {
+      "temporalCoverageValid": false,
+      "finalSamples": [],
+      "visualFinalStageVerified": false
+    }
+  },
+  "inputTrace": {
+    "protocol": "openminerals-native-gesture-trace-v1",
+    "specificationSha256": "1a48933715ea7e75cfb38bbd45807fd8350da58c3513d6d7666c4f170c85ac9a",
+    "compiledSha256": "0e30040ccbf227ed1328ee314a4968da933464450aaca3ce8021981db201c8b3",
+    "gestureCount": 15,
+    "plannedDurationMs": 30750,
+    "observedDurationMs": 39724.32398300001,
+    "events": [
+      {
+        "index": 0,
+        "segment": "advance",
+        "direction": "UP",
+        "startMs": 0.007984999974723905,
+        "inputCompletedMs": 2600.292040999979,
+        "completedMs": 2850.289359999995
+      },
+      {
+        "index": 1,
+        "segment": "advance",
+        "direction": "UP",
+        "startMs": 2850.3017830000026,
+        "inputCompletedMs": 6129.438472000009,
+        "completedMs": 6379.314943999983
+      },
+      {
+        "index": 2,
+        "segment": "advance",
+        "direction": "UP",
+        "startMs": 6379.319642999966,
+        "inputCompletedMs": 9098.229328999994,
+        "completedMs": 9348.265318999998
+      },
+      {
+        "index": 3,
+        "segment": "reverse",
+        "direction": "DOWN",
+        "startMs": 9348.269847999967,
+        "inputCompletedMs": 11309.981188000005,
+        "completedMs": 11560.442783000006
+      },
+      {
+        "index": 4,
+        "segment": "reverse",
+        "direction": "DOWN",
+        "startMs": 11560.448392999999,
+        "inputCompletedMs": 13856.103961999994,
+        "completedMs": 14108.960971999972
+      },
+      {
+        "index": 5,
+        "segment": "reverse",
+        "direction": "DOWN",
+        "startMs": 14108.966863000009,
+        "inputCompletedMs": 16314.755734000006,
+        "completedMs": 16566.95206899999
+      },
+      {
+        "index": 6,
+        "segment": "reverse",
+        "direction": "DOWN",
+        "startMs": 16566.95672799996,
+        "inputCompletedMs": 18717.341213999956,
+        "completedMs": 18967.235491
+      },
+      {
+        "index": 7,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 18967.24027999997,
+        "inputCompletedMs": 21209.69351099996,
+        "completedMs": 21461.949683999992
+      },
+      {
+        "index": 8,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 21461.954702999967,
+        "inputCompletedMs": 23736.76297099999,
+        "completedMs": 23986.298649999953
+      },
+      {
+        "index": 9,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 23986.30653499998,
+        "inputCompletedMs": 26251.635015000007,
+        "completedMs": 26501.471490999975
+      },
+      {
+        "index": 10,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 26501.47888499999,
+        "inputCompletedMs": 28733.900645999995,
+        "completedMs": 28988.95714700001
+      },
+      {
+        "index": 11,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 28988.965261999983,
+        "inputCompletedMs": 31286.973767999967,
+        "completedMs": 31539.967316999973
+      },
+      {
+        "index": 12,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 31539.976343999966,
+        "inputCompletedMs": 33884.714898000006,
+        "completedMs": 34135.94105199998
+      },
+      {
+        "index": 13,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 34135.94880700001,
+        "inputCompletedMs": 36821.76163799997,
+        "completedMs": 37071.27656500001
+      },
+      {
+        "index": 14,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 37071.28415899997,
+        "inputCompletedMs": 39474.36621899996,
+        "completedMs": 39724.30716199998
+      }
+    ]
+  },
+  "measurementValid": false,
+  "checks": {
+    "traceFinalAccessibility": false,
+    "embeddedAfterTrace": false
+  },
+  "uiFrameStatisticsAvailable": true,
+  "phonePerformanceAcceptance": false,
+  "gpuFpsMeasured": false,
+  "interpretation": "gfxinfo reports Android UI frames, not ExpoGL GPU FPS. PSS samples are not peak memory. Input duration includes ADB overhead. Cold start is a process launch of an installed APK. Recorded and unrecorded traces are separate; menus, readiness checks and screenshots are outside the measured workload."
+}
