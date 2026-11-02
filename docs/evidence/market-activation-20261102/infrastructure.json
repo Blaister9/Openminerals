@@ -1,0 +1,101 @@
+{
+  "observedAt": "2026-11-02T23:54:35.682Z",
+  "projectId": "1442be94-b13f-4067-9fee-ea99caf5715a",
+  "market": {
+    "environment": {
+      "id": "c4c1afd1-2ed7-40e1-8955-f173a6880518",
+      "isEphemeral": false,
+      "name": "market-reference"
+    },
+    "services": [
+      {
+        "id": "373995aa-3925-4e3e-a74b-7ca652bb713e",
+        "name": "openminerals-market-api",
+        "source": {
+          "branch": "codex/market-references-20261102",
+          "image": null,
+          "repo": "Blaister9/Openminerals"
+        },
+        "deployment": "eeb01607-0492-499c-85e0-c80b1ee5cd73",
+        "volumeIds": []
+      },
+      {
+        "id": "a8dec7f4-3921-4ff1-a504-ed08ba7bbd86",
+        "name": "Postgres-TXaY",
+        "source": {
+          "branch": null,
+          "image": "ghcr.io/railwayapp-templates/postgres-ssl:18",
+          "repo": null
+        },
+        "deployment": "241f748c-e7b5-4c8f-98ed-eb8d421330ae",
+        "volumeIds": [
+          "30b694a6-a17e-4657-9f38-755190e33ec0"
+        ]
+      }
+    ],
+    "volumeIds": [
+      "30b694a6-a17e-4657-9f38-755190e33ec0"
+    ],
+    "staged": null
+  },
+  "marketUrl": "https://openminerals-market-api-market-reference.up.railway.app",
+  "deployedSource": "07ac06d9412b23d29e3c003a41a0fd30b01eb8b7",
+  "apiDeployment": "eeb01607-0492-499c-85e0-c80b1ee5cd73",
+  "databaseName": "openminerals_market_reference",
+  "stable": {
+    "environment": {
+      "id": "1e835541-fd3a-49dd-8ae3-0315d4118940",
+      "isEphemeral": false,
+      "name": "demo"
+    },
+    "services": [
+      {
+        "id": "00e2d919-2cd1-4293-befd-d8af58df8069",
+        "name": "openminerals-api",
+        "source": {
+          "branch": "main",
+          "image": null,
+          "repo": "Blaister9/Openminerals"
+        },
+        "deployment": "3e03a496-5765-4ac3-a255-3c6f2439413a",
+        "volumeIds": []
+      },
+      {
+        "id": "4cedb5b6-dbf2-4a3c-8a97-4c11df009e44",
+        "name": "Postgres",
+        "source": {
+          "branch": null,
+          "image": "ghcr.io/railwayapp-templates/postgres-ssl:18",
+          "repo": null
+        },
+        "deployment": "3f688aed-0426-43d5-bc2b-c691c8d614cb",
+        "volumeIds": [
+          "1bb1da19-0d3e-41e6-8ebe-17805cf81fc8"
+        ]
+      }
+    ],
+    "volumeIds": [
+      "1bb1da19-0d3e-41e6-8ebe-17805cf81fc8"
+    ],
+    "staged": null
+  },
+  "stableBeforeAfterIdentical": true,
+  "apiRestart": {
+    "deploymentId": "eeb01607-0492-499c-85e0-c80b1ee5cd73",
+    "environmentId": "c4c1afd1-2ed7-40e1-8955-f173a6880518",
+    "service": {
+      "id": "373995aa-3925-4e3e-a74b-7ca652bb713e",
+      "name": "openminerals-market-api"
+    }
+  },
+  "metalsKey": "configured in Railway server only",
+  "licenses": {
+    "metalsDisplay": false,
+    "metalsStorage": false,
+    "usdtUse": false
+  },
+  "noAndroidBuild": true,
+  "noOta": true,
+  "noVideos": true,
+  "noScreenshots": true
+}
