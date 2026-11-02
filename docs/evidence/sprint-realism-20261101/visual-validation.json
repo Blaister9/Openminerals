@@ -1,0 +1,27 @@
+{
+  "demoOnly": true,
+  "date": "2026-11-01",
+  "visualSourceCommit": "31e62ae4e3073d643b9901543808539573bea484",
+  "mobile": {
+    "command": "OPENMINERALS_WEBGL_BROWSER=<Chrome> node --experimental-strip-types --test --test-concurrency=2 test/*.test.mjs",
+    "tests": 317,
+    "passed": 317,
+    "failed": 0,
+    "skipped": 0,
+    "environment": "Windows Node22.22.3; actual Chrome SwiftShader shader execution",
+    "androidPerformance": false
+  },
+  "export": {
+    "platform": "android",
+    "hermes": true,
+    "httpsApi": "https://openminerals-api-demo.up.railway.app",
+    "success": true
+  },
+  "preservation": {
+    "apiTree": "12eb7c4fdf83cefc96e5df70fa5d656e67ff353a",
+    "apiAndAppBusinessDiff": "",
+    "stableReleaseModified": false
+  },
+  "physicalPhoneAcceptance": false,
+  "scope": "Final local suite including cadence, binary guards, quality-tier parsing and private authentication harness. Native executions are recorded separately."
+}

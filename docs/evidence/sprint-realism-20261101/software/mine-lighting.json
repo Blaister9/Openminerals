@@ -1,0 +1,109 @@
+{
+  "environment": "desktop SwiftShader",
+  "android": false,
+  "phonePerformanceAcceptance": false,
+  "maxNormalLengthError": 4.137646114621418e-8,
+  "ok": true,
+  "frames": [
+    {
+      "progress": 0,
+      "drag": 0,
+      "darkened": 8733,
+      "brightened": 0,
+      "totalDimming": 36188,
+      "maxDimming": 130
+    },
+    {
+      "progress": 0,
+      "drag": -1.2,
+      "darkened": 19585,
+      "brightened": 0,
+      "totalDimming": 75296,
+      "maxDimming": 102
+    },
+    {
+      "progress": 0,
+      "drag": 1.2,
+      "darkened": 2813,
+      "brightened": 0,
+      "totalDimming": 18842,
+      "maxDimming": 37
+    },
+    {
+      "progress": 0.1,
+      "drag": 0,
+      "darkened": 8205,
+      "brightened": 0,
+      "totalDimming": 36762,
+      "maxDimming": 139
+    },
+    {
+      "progress": 0.1,
+      "drag": -1.2,
+      "darkened": 22692,
+      "brightened": 0,
+      "totalDimming": 85056,
+      "maxDimming": 137
+    },
+    {
+      "progress": 0.1,
+      "drag": 1.2,
+      "darkened": 1,
+      "brightened": 0,
+      "totalDimming": 10,
+      "maxDimming": 2
+    },
+    {
+      "progress": 0.18,
+      "drag": 0,
+      "darkened": 1775,
+      "brightened": 0,
+      "totalDimming": 6054,
+      "maxDimming": 8
+    },
+    {
+      "progress": 0.18,
+      "drag": -1.2,
+      "darkened": 19668,
+      "brightened": 0,
+      "totalDimming": 100792,
+      "maxDimming": 142
+    },
+    {
+      "progress": 0.18,
+      "drag": 1.2,
+      "darkened": 0,
+      "brightened": 0,
+      "totalDimming": 0,
+      "maxDimming": 0
+    },
+    {
+      "progress": 0.24,
+      "drag": 0,
+      "darkened": 3343,
+      "brightened": 0,
+      "totalDimming": 12002,
+      "maxDimming": 11
+    },
+    {
+      "progress": 0.24,
+      "drag": -1.2,
+      "darkened": 5760,
+      "brightened": 0,
+      "totalDimming": 34991,
+      "maxDimming": 62
+    },
+    {
+      "progress": 0.24,
+      "drag": 1.2,
+      "darkened": 0,
+      "brightened": 0,
+      "totalDimming": 0,
+      "maxDimming": 0
+    }
+  ],
+  "probes": 288,
+  "finiteProbes": 288,
+  "nonnegativeProbes": 288,
+  "invalid": []
+}
