@@ -24,6 +24,7 @@ import {MetalEmblem,PortfolioComposition} from './components/PortfolioCompositio
 import {IntakePanel} from './components/IntakePanel';
 import {PositionRail} from './components/PositionRail';
 import {parseMineInventory} from './lib/mine-inventory';
+import {MarketReferencesPanel} from './components/MarketReferencesPanel';
 
 // DEMO: todas las cifras, inventarios y solicitudes son simulados.
 // Cuentas de demostración; no hay KYC, pagos, exchange ni bóveda real.
@@ -48,6 +49,7 @@ type State = {
 type Summary = {transactionCount:number;demoFeesCollectedMinor:number;offersOpen:number;deliveriesPending:number;inventoryMg:Record<Metal,number>;holdingsMg:Record<Metal,number>};
 type Confirmation={action:string;body:Record<string,string>;title:string;detail:string};
 const API=(process.env.EXPO_PUBLIC_API_URL||'').replace(/\/$/,'');
+const MARKET_REFERENCES=process.env.EXPO_PUBLIC_MARKET_REFERENCE==='1';
 const MAX_BALANCE_MINOR=10_000_000_000;
 const metals: {code:Metal;name:string;symbol:string;tagline:string;color:string}[]=[
   {code:'XAU',name:'Oro',symbol:'Au',tagline:'Reserva de valor',color:'#D8B676'},
@@ -372,6 +374,7 @@ export default function App(){
   const unavailable=!!quote&&quote.milligrams>(state?.inventoryMg[currentMetal]||0);
   return <><Text style={styles.eyebrow}>COMPRAVENTA DE METALES</Text><Text style={styles.pageTitle}>Mercado</Text><Text style={styles.copy}>Compra fracciones de oro, plata, platino o paladio. La liquidación simulada se realiza en USDT.</Text>
    {account&&marketNavigation()}
+   {MARKET_REFERENCES&&<MarketReferencesPanel key={account?.id??'public'} api={API} metal={currentMetal} accountId={account?.id} active={tab==='Mercado'&&!storyVisible} quoteTrade={client.quoteTrade} submit={perform} disabled={tradingBlocked} refreshKey={String(operationRevision)}/>}
    {account&&<Card><Text style={styles.cardTitle}>Inventario compartido</Text><Text style={styles.copy}>{mineIdentity?.name||'Mina de demostración'}. Las compras de otras cuentas reducen la misma disponibilidad.</Text><Row left={`${m.name} disponible en la mina`} right={gram(state?.inventoryMg[currentMetal]||0)}/><Button label="Actualizar mercado" secondary disabled={busy} onPress={refresh}/></Card>}
    <ScrollView horizontal directionalLockEnabled nestedScrollEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:6,paddingVertical:14}}>{metals.map(v=><Pressable key={v.code} testID={`market-metal-${v.code}`} accessibilityRole="button" accessibilityLabel={`Seleccionar ${v.name}`} accessibilityState={{selected:currentMetal===v.code}} onPress={()=>setCurrentMetal(v.code)} style={[styles.metalChoice,{width:72,flexGrow:0,padding:9},currentMetal===v.code&&styles.metalChoiceOn]}>
     <MetalEmblem symbol={v.symbol} color={v.color} small/><Text style={[styles.choiceName,{fontSize:12}]}>{v.name}</Text>

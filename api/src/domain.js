@@ -87,7 +87,7 @@ export function operatorSummary(s) {
     deliveriesPending: s.custodyRequests.filter(x=>deliveryIsActive(x.status)).length,
   };
 }
-export function applyCommand(current, cmd, now=new Date().toISOString()) {
+export function applyCommand(current, cmd, now=new Date().toISOString(), pricing=null) {
   const { action, requestId } = cmd;
   checkRequestId(requestId);
   assert(['deposit','withdraw','convert','buy','sell','offer','cancel_offer','delivery','cancel_delivery'].includes(action),'Acción no permitida');
@@ -97,6 +97,8 @@ export function applyCommand(current, cmd, now=new Date().toISOString()) {
     return {state: current, receipt: {...clone(current.receipts[requestId]), replayed: true},changed: false};
   }
   const s=clone(current);
+  // Pricing is a server-only argument. Payload fields cannot override demo prices.
+  if(pricing)assert(['buy','sell'].includes(action)&&pricing.action===action&&pricing.metal===cmd.metal&&pricing.grams===cmd.grams&&Number.isSafeInteger(pricing.priceCentsPerGram)&&pricing.priceCentsPerGram>0&&Number.isSafeInteger(pricing.feeBps)&&pricing.feeBps>=0&&pricing.feeBps<=5000,'Cotización DEMO inválida');
   let receipt = {id:requestId, action, status:'COMPLETED', at:now, demoOnly:true};
   if(action==='deposit'||action==='withdraw') {
     validCurrency(cmd.currency);
@@ -124,29 +126,31 @@ export function applyCommand(current, cmd, now=new Date().toISOString()) {
   if(action==='buy') {
     validMetal(cmd.metal);
     const mg=parseGrams(cmd.grams);
-    const baseMinor=quoteBase(mg,s.priceCentsPerGram[cmd.metal]);
-    const feeMinor=bpsFee(baseMinor,s.feesBps.buy);
+    const price=pricing?.priceCentsPerGram??s.priceCentsPerGram[cmd.metal];
+    const baseMinor=quoteBase(mg,price);
+    const feeMinor=bpsFee(baseMinor,pricing?.feeBps??s.feesBps.buy);
     const totalMinor=baseMinor+feeMinor;
     assert(s.walletMinor.USDT>=totalMinor,'USDT insuficiente','INSUFFICIENT_BALANCE');
     assert(s.inventoryMg[cmd.metal]>=mg,'Inventario simulado insuficiente','INSUFFICIENT_INVENTORY');
     s.walletMinor.USDT-=totalMinor;
     s.holdingsMg[cmd.metal]+=mg;
     s.inventoryMg[cmd.metal]-=mg;
-    receipt={...receipt,metal:cmd.metal,mg,priceCentsPerGram:s.priceCentsPerGram[cmd.metal],baseMinor,feeMinor,totalMinor};
+    receipt={...receipt,metal:cmd.metal,mg,priceCentsPerGram:price,baseMinor,feeMinor,totalMinor};
     move(s,'BUY',`Compra de ${METALS[cmd.metal].name}`,{metal:cmd.metal,mg,feeMinor,totalMinor},now);
   }
   if(action==='sell') {
     validMetal(cmd.metal);
     const mg=parseGrams(cmd.grams);
     assert(availableHoldingMg(s,cmd.metal)>=mg,'Posición disponible insuficiente','INSUFFICIENT_HOLDING');
-    const baseMinor=quoteBase(mg,s.priceCentsPerGram[cmd.metal]);
-    const feeMinor=bpsFee(baseMinor,s.feesBps.sell);
+    const price=pricing?.priceCentsPerGram??s.priceCentsPerGram[cmd.metal];
+    const baseMinor=quoteBase(mg,price);
+    const feeMinor=bpsFee(baseMinor,pricing?.feeBps??s.feesBps.sell);
     const outputMinor=baseMinor-feeMinor;
     assert(outputMinor>0,'La operación no alcanza el mínimo');
     assert(s.walletMinor.USDT+outputMinor<=MAX_MINOR,'Saldo de destino fuera de límites');
     s.holdingsMg[cmd.metal]-=mg; s.inventoryMg[cmd.metal]+=mg;
     s.walletMinor.USDT+=outputMinor;
-    receipt={...receipt,metal:cmd.metal,mg,priceCentsPerGram:s.priceCentsPerGram[cmd.metal],baseMinor,feeMinor,outputMinor};
+    receipt={...receipt,metal:cmd.metal,mg,priceCentsPerGram:price,baseMinor,feeMinor,outputMinor};
     move(s,'SELL',`Venta de ${METALS[cmd.metal].name}`,{metal:cmd.metal,mg,feeMinor,outputMinor},now);
   }
   if(action==='offer') {
@@ -190,6 +194,7 @@ export function applyCommand(current, cmd, now=new Date().toISOString()) {
     receipt={...receipt,deliveryId:delivery.id,metal:delivery.metal,mg:delivery.mg};
     move(s,'CANCEL_DELIVERY','Solicitud de entrega cancelada',{metal:delivery.metal,mg:delivery.mg},now);
   }
+  if(pricing)receipt.marketQuote=clone(pricing);
   receipt={...receipt,receiptVersion:2,label:s.movements[0].label,
     balancesAfter:{
       walletMinor:{...s.walletMinor},

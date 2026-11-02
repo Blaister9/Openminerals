@@ -1,0 +1,47 @@
+{
+  "demoOnly": true,
+  "androidBuild": false,
+  "fxLiveProbe": "public-fx-probe.json",
+  "typecheck": "pass",
+  "date": "2026-11-02",
+  "nativeUiExecuted": false,
+  "branch": "codex/market-references-20261102",
+  "apiGeneral": {
+    "fail": 0,
+    "laterAdditionalCasesPassed": 2,
+    "pass": 102,
+    "skip": 12
+  },
+  "apiFocused": {
+    "fail": 0,
+    "pass": 13,
+    "skip": 0
+  },
+  "base": "ed87d2ea233227437ab5f5cc2eb0900674e1231f",
+  "metalsLiveVerified": false,
+  "mobileGeneral": {
+    "fail": 0,
+    "pass": 257,
+    "skip": 2,
+    "skipReason": "optional WebGL"
+  },
+  "frequencyVerified": false,
+  "pr11Changed": false,
+  "video": false,
+  "screenshots": false,
+  "railwayDeploymentChanged": false,
+  "postgresRequired": {
+    "scope": "isolated local PostgreSQL; schemas per test; no Railway mutations",
+    "fail": 0,
+    "version": 17,
+    "pass": 85,
+    "skip": 0
+  },
+  "postgresCommerceSmoke": "pass",
+  "mobileFocused": {
+    "fail": 0,
+    "scope": "includes authenticated quote issuance and lost response after server commit",
+    "pass": 5,
+    "skip": 0
+  }
+}

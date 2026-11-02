@@ -1,4 +1,5 @@
 import {createDemoClient,RequestError,type Storage,type PendingOperation} from './demo-client.ts';
+import {parseCommercialQuote,type MetalCode} from './market-reference.ts';
 
 export type PublicAccount={id:string;alias:string;role:'buyer'|'operator';mineId:string};
 export type PublicMine={id:string;name:string};
@@ -312,6 +313,10 @@ export function createAccountClient({api,storage,authStorage,uuid,fetchImpl=fetc
   }
   return {
     initialize,get,register,login,logout,getProfile,updateProfile,setupRecovery,startRecovery,completeRecovery,cancelRecovery,
+    quoteTrade:(body:{action:'buy'|'sell';metal:MetalCode;grams:string})=>withAccountSettings(async(account,token)=>{
+      if(account.role!=='buyer')throw new Error('Requiere comprador DEMO.');
+      const result=await request<{quote:unknown}>('/api/demo/reference-quotes',{token,body});return parseCommercialQuote(result.quote);
+    }),
     submit:(action:string,body:Record<string,string>,title:string)=>mutate(client=>client.submit(action,body,title)),
     retry:()=>mutate(client=>client.retry()),
     getPending:()=>current.getPending(),

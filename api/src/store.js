@@ -12,6 +12,8 @@ import {lotHistoryView,parseLotHistoryQuery} from './custody-history.js';
 import {syncReservations} from './custody-reservations.js';
 import {intakeView,applyIntake,validateIntake} from './intake.js';
 import {publicBuyerState,publicBuyerReceipt,publicMine} from './public-custody.js';
+import {memoryMarketRepository,postgresMarketRepository} from './market/repository.js';
+import {resolveCommercialQuote} from './market/quotes.js';
 
 const ID_PATTERN=/^[A-Za-z0-9_-]{16,100}$/;
 const clone=value=>structuredClone(value);
@@ -95,6 +97,7 @@ function makeStore(adapter){
   return {
     ...accountServices(adapter),
     mode:adapter.mode,
+    marketRepository:()=>adapter.marketRepository(),
     ping:()=>adapter.ping(),
     async get(id){
       validateSessionId(id);
@@ -178,9 +181,23 @@ function makeStore(adapter){
         return {...publicBuyerState(accountStateForMine(account.state,mine)),account:publicAccount(account)};
       });
     },
-    async mutateAccount(accountId,command){
+    async rememberMarketQuote(accountId,quote){
+      return adapter.tx(async tx=>{
+        const {account}=await authenticatedContext(tx,accountId,'buyer');
+        const active=(account.state.marketQuotes??[]).filter(row=>Date.parse(row.expiresAt)>Date.now());
+        if(active.length>=20)throw accountError(429,'Demasiadas cotizaciones pendientes. Espera su vencimiento.','QUOTE_LIMIT');
+        account.state.marketQuotes=[...active,clone(quote)];await tx.saveAccountState(account.id,account.state);
+        return clone(quote);
+      });
+    },
+    async mutateAccount(accountId,command,{marketEnabled=true}={}){
       return adapter.tx(async tx=>{
         const {account,mine}=await authenticatedContext(tx,accountId,'buyer');
+        let pricing;
+        if(command.action==='reference_trade'){
+          if(!marketEnabled&&!Object.hasOwn(account.state.receipts,command.requestId))throw accountError(503,'Referencias de mercado desactivadas.','MARKET_DISABLED');
+          ({command,pricing}=resolveCommercialQuote(account.state,command));
+        }
         if(['delivery_accept','delivery_reject'].includes(command.action)){
           const result=applyBuyerDelivery(mine,{...account,state:accountStateForMine(account.state,mine)},command);
           if(result.changed){
@@ -206,8 +223,9 @@ function makeStore(adapter){
           await tx.saveMine(trade.mine);await tx.saveAccountState(account.id,trade.buyerState);await tx.saveAccountState(seller.id,trade.sellerState);
           return {receipt:clone(trade.buyerReceipt),state:{...publicBuyerState(accountStateForMine(trade.buyerState,trade.mine)),account:publicAccount(account)},changed:true};
         }
-        const result=applyAccountCommand(account.state,mine,command,{accountId:account.id});
+        const result=applyAccountCommand(account.state,mine,command,{accountId:account.id,pricing});
         if(result.changed){
+          if(pricing)result.state.marketQuotes=(result.state.marketQuotes??[]).filter(row=>row.id!==pricing.id);
           if(command.action==='buy'){
             const allocation=allocateCustody(result.mine,account,command.metal,result.receipt.mg,`buy:${command.requestId}`,result.receipt.at,{referenceId:command.requestId});
             result.mine=allocation.mine;
@@ -348,10 +366,11 @@ function makeStore(adapter){
 }
 
 function memoryAdapter(){
+  const marketRepository=memoryMarketRepository();
   let database={legacy:new Map(),accounts:new Map(),mines:new Map([[DEFAULT_MINE_ID,seedMine(DEFAULT_MINE_ID,'Openminerals · Mina demo')]]),auth:new Map(),profiles:new Map(),recoveryKeys:new Map(),recoveryChallenges:new Map(),recoveryAttempts:new Map()};
   let queue=Promise.resolve();
   return {
-    mode:'memory-demo',async ping(){return true;},async close(){},
+    mode:'memory-demo',marketRepository:async()=>marketRepository,async ping(){return true;},async close(){},
     async tx(work){
       let release;const previous=queue;queue=new Promise(resolve=>{release=resolve;});await previous;
       const db=clone(database);
@@ -383,6 +402,7 @@ function memoryAdapter(){
 async function postgresAdapter(databaseUrl){
   const {default:pg}=await import('pg');
   const pool=new pg.Pool({connectionString:databaseUrl,max:8,connectionTimeoutMillis:8000});
+  let marketRepository;
   let startup;
   try{
     startup=await pool.connect();
@@ -408,7 +428,7 @@ async function postgresAdapter(databaseUrl){
   }finally{startup?.release();}
   const accountRow=row=>row?{id:row.id,alias:row.alias,role:row.role,mineId:row.mine_id,passwordSalt:row.password_salt,passwordHash:row.password_hash,state:row.state,legacySessionId:row.legacy_session_id,createdAt:row.created_at.toISOString()}:undefined;
   return {
-    mode:'postgres-demo',async ping(){await pool.query('SELECT 1');return true;},async close(){await pool.end();},
+    mode:'postgres-demo',marketRepository:()=>marketRepository??=postgresMarketRepository(pool),async ping(){await pool.query('SELECT 1');return true;},async close(){await pool.end();},
     async tx(work){
       const client=await pool.connect();
       const one=async(sql,args)=>(await client.query(sql,args)).rows[0];

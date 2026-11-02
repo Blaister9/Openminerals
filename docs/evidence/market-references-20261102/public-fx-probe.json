@@ -1,0 +1,65 @@
+{
+  "observedAt": "2026-11-02T19:17:32.702Z",
+  "metalsCredentialSupplied": false,
+  "frequencyVerified": false,
+  "result": {
+    "demoOnly": true,
+    "fiat": {
+      "status": "current",
+      "data": [
+        {
+          "base": "USD",
+          "quote": "EUR",
+          "rate": 0.89395,
+          "asOf": "2026-11-02T00:00:00.000Z",
+          "timestampPrecision": "date",
+          "provider": "frankfurter-v2-blended",
+          "sourceUrl": "https://frankfurter.dev/",
+          "frequency": "daily",
+          "marketState": "unknown",
+          "id": "c670b31bce2bc8080e9efccef737d88f"
+        },
+        {
+          "base": "USD",
+          "quote": "COP",
+          "rate": 3186.84,
+          "asOf": "2026-11-02T00:00:00.000Z",
+          "timestampPrecision": "date",
+          "provider": "frankfurter-v2-blended",
+          "sourceUrl": "https://frankfurter.dev/",
+          "frequency": "daily",
+          "marketState": "unknown",
+          "id": "9a47d799f4e87f97c41dd317dd947519"
+        }
+      ],
+      "retrievedAt": "2026-11-02T19:17:32.702Z",
+      "cacheUntil": "2026-11-02T20:17:32.702Z",
+      "errorCode": null,
+      "timestampPrecision": "date",
+      "demoOnly": true
+    },
+    "usdt": {
+      "status": "current",
+      "data": {
+        "base": "USDT",
+        "quote": "USD",
+        "rate": 0.99846,
+        "bid": 0.99845,
+        "ask": 0.99846,
+        "asOf": "2026-11-02T19:17:04.861Z",
+        "timestampPrecision": "trade-time",
+        "provider": "coinbase-exchange",
+        "sourceUrl": "https://api.exchange.coinbase.com/products/USDT-USD/ticker",
+        "frequencyVerified": false,
+        "marketState": "unknown",
+        "id": "3715c4d715328d2401ddf672cdf0d2b5"
+      },
+      "retrievedAt": "2026-11-02T19:17:32.486Z",
+      "cacheUntil": "2026-11-02T19:18:32.486Z",
+      "errorCode": null,
+      "timestampPrecision": "timestamp",
+      "demoOnly": true
+    },
+    "walletRates": "separate-simulated-rates"
+  }
+}

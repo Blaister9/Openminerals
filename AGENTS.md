@@ -69,6 +69,8 @@ Hay un importador multiplataforma `tools/import_to_github.py` que evita sobrescr
 
 ## Actualizaciones compatibles de Android
 
+Preferencia permanente del propietario: no grabar vídeos ni generar capturas automáticamente por prompt, commit o PR. Grabar únicamente cuando lo pida expresamente para esa ejecución. El perfilado ordinario usa métricas sin vídeo; conservar la evidencia existente.
+
 Android 0.2.0 usa EAS Update, canal `demo`, entorno `preview` y runtime derivado de `app.json.version`. Los cambios compatibles de JavaScript/estilos/recursos pueden publicarse sin reinstalar mediante `eas update --channel demo --platform android --environment preview`. Cambiar módulos nativos, permisos, SDK o configuración nativa requiere incrementar la versión y el código Android y generar otro APK con la firma existente. No forzar una recarga durante operaciones pendientes; conservar embedded/anti-bricking. Registrar ID real y evidencia de aplicación de cada revisión. El alcance de finalización actual es Android; no invertir trabajo en iOS sin un nuevo encargo.
 
 Blockchain, documentos jurídicos y custodia física son planificación futura: ver `docs/15-custodia-documental-y-web3-colombia.md`. El modo legacy sin cuenta y el operador público siguen siendo exclusivos de la demo.

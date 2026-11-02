@@ -5,6 +5,8 @@ import {createStore,validateSessionId} from './store.js';
 import {DomainError,METALS,operatorSummary} from './domain.js';
 import {historyPage,parseHistoryQuery,readReceipt} from './receipt-history.js';
 import {accountError,bearerToken,adminMatches,createAuthLimiter} from './account-auth.js';
+import {createMarketService} from './market/service.js';
+import {buildCommercialQuote} from './market/quotes.js';
 
 const API_VERSION=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8')).version;
 const ACTIONS=new Set(['deposit','withdraw','convert','buy','sell','offer','cancel_offer','delivery','cancel_delivery']);
@@ -24,6 +26,8 @@ function requireIdentity(identity){if(!identity)throw accountError(401,'Inicia s
 export function createApiServer(store,config={}){
   const adminToken=config.adminToken ?? process.env.DEMO_ADMIN_TOKEN;
   const allowAuth=createAuthLimiter(config.authRateLimit);
+  const allowMarket=createAuthLimiter(config.marketRateLimit);
+  const market=config.market??createMarketService({repository:()=>store.marketRepository()});
   return http.createServer(async (req,res)=>{
     try {
       let url;
@@ -73,6 +77,26 @@ export function createApiServer(store,config={}){
       // A supplied bearer is always checked, never downgraded to the legacy header.
       const token=bearerToken(req.headers.authorization);
       const identity=token?await store.authenticate(token):null;
+      if(req.method==='GET'&&path.startsWith('/api/demo/market/')){
+        allowMarket(req.socket.remoteAddress||'unknown');
+        const parts=path.slice('/api/demo/market/'.length).split('/');
+        if(parts.length===1&&parts[0]==='exchange'&&url.search==='')return send(res,200,await market.exchange());
+        if(parts.length===2&&parts[0]==='metals'&&url.search==='')return send(res,200,await market.spot(parts[1]));
+        if(parts.length===3&&parts[0]==='metals'&&parts[2]==='history'&&[...url.searchParams.keys()].every(key=>key==='period')&&url.searchParams.getAll('period').length===1)return send(res,200,await market.history(parts[1],url.searchParams.get('period')));
+        throw accountError(400,'Consulta de mercado inválida.','INVALID_MARKET_QUERY');
+      }
+      if(req.method==='POST'&&path==='/api/demo/reference-quotes'){
+        const {account}=requireIdentity(identity);if(account.role!=='buyer')throw accountError(403,'Requiere comprador DEMO.','FORBIDDEN');
+        allowMarket(req.socket.remoteAddress||'unknown');
+        const body=await readJson(req);onlyKeys(body,['action','metal','grams']);
+        const quote=await buildCommercialQuote(market,body);
+        return send(res,201,{quote:await store.rememberMarketQuote(account.id,quote),demoOnly:true});
+      }
+      if(req.method==='POST'&&path==='/api/demo/reference_trade'){
+        const {account}=requireIdentity(identity);const body=await readJson(req);onlyKeys(body,['quoteId']);
+        const result=await store.mutateAccount(account.id,{...body,action:'reference_trade',requestId:req.headers['idempotency-key']},{marketEnabled:market.enabled});
+        return send(res,200,{receipt:result.receipt,state:{...result.state,metals:METALS}});
+      }
       if(req.method==='GET'&&path==='/api/demo/accounts/me')return send(res,200,requireIdentity(identity));
       if(req.method==='GET'&&path==='/api/demo/accounts/profile'){
         const {account}=requireIdentity(identity);return send(res,200,await store.getProfile(account.id));

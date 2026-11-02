@@ -63,10 +63,10 @@ export function importLegacyState(legacy,mine){
   return {state:accountStateForMine(legacy,next),mine:next};
 }
 
-export function applyAccountCommand(state,mine,command,{accountId}={}){
+export function applyAccountCommand(state,mine,command,{accountId,pricing,now}={}){
   validateMine(mine);
   fail(typeof accountId==='string'&&accountId.length>0,'Cuenta de demostración inválida');
-  const result=applyCommand(accountStateForMine(state,mine),command);
+  const result=applyCommand(accountStateForMine(state,mine),command,now,pricing);
   const nextMine=copy(mine);
   if(!result.changed)return {...result,mine:nextMine};
   nextMine.inventoryMg=copy(result.state.inventoryMg);
