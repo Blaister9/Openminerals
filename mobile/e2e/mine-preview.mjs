@@ -19,7 +19,7 @@ export const PRESENTED=Object.freeze({
   sha256:'d99e8af9617f56d7862a849ebd057025cb9d6adc164b97496a5532f7b29ad29e',
   certificate:BASELINE.certificate,
 });
-export const PREVIEW=Object.freeze({package:'com.openminerals.demo.minepreview',version:'0.4.0',code:2,runtime:'0.4.0',channel:'mine-realism'});
+export const PREVIEW=Object.freeze({package:'com.openminerals.demo.minepreview',version:'0.4.0',code:3,runtime:'0.4.0',channel:'mine-realism'});
 export function nativeValidationScope(value){requireSafe(value===undefined||['comparison','regression'].includes(value),'Expected comparison or regression validation scope.');return value??'comparison';}
 export function previewInputs(env,manifest={}){
   requireSafe(manifest&&typeof manifest==='object'&&!Array.isArray(manifest),'Invalid preview build record.');
@@ -58,6 +58,7 @@ const PUBLIC_FAILURE_REASONS=new Set([
   'Required host media inspection tools are unavailable.',
   'Candidate chapter reached a light scene without the explicit performance fallback reason.',
   'Candidate regression requires an actual GL-ready scene.',
+  'Internal or pending GL state cannot satisfy the 3D trace.',
 ]);
 export function publicFailureReason(error){return PUBLIC_FAILURE_REASONS.has(error?.message)?error.message:'Unclassified assertion or infrastructure failure; raw diagnostics withheld.';}
 export function anonymousSceneFlags(xml){
@@ -69,7 +70,19 @@ export function anonymousSceneState(xml){
   requireSafe(typeof xml==='string','Expected anonymous Android XML.');const bounded=xml.slice(0,1_000_000),flags=anonymousSceneFlags(bounded);
   const knownIds=['immersive-gl-ready','immersive-scene-light','immersive-scene-pending','home-cinematic-scroll','operations-scroll'].filter(id=>bounded.includes(id));
   const readiness=knownIds.includes('immersive-gl-ready')?'gl-ready':knownIds.includes('immersive-scene-light')?'light':knownIds.includes('immersive-scene-pending')?'pending':'absent';
-  return {...flags,knownIds,readiness,mode:readiness==='gl-ready'?'gl':readiness==='light'?(flags.automaticLightObserved?'automatic-light':'light'):'unknown',manualLightDescriptionObserved:bounded.includes('Materia virtual DEMO en modo ligero.'),reducedMotionDescriptionObserved:bounded.includes('Materia virtual DEMO con movimiento reducido.'),genericSimplifiedTextObserved:bounded.includes('Vista simplificada'),xmlTruncated:xml.length>bounded.length,rawUiPublished:false};
+  const stateReasonCode=/Estado 3D: (context-timeout|create|draw|boundary|unavailable)\./.exec(bounded)?.[1]??null;
+  const internalFailureCode=/(?:Vista ligera por fallo 3D: |3D no disponible · )(context-timeout|create|draw|boundary|unavailable)\b/.exec(bounded)?.[1]??null;
+  const retryPendingObserved=bounded.includes('Reintentando 3D: context-timeout'),internalFailureLabelObserved=bounded.includes('Vista ligera por fallo 3D:')||bounded.includes('3D no disponible ·');
+  const internalFailureObserved=internalFailureLabelObserved||stateReasonCode!==null&&!retryPendingObserved;
+  const mode=internalFailureObserved?'internal-failure':retryPendingObserved?'retrying':readiness==='gl-ready'?'gl':readiness==='light'?(flags.automaticLightObserved?'automatic-light':'light'):'unknown';
+  return {...flags,knownIds,readiness,mode,stateReasonCode,internalFailureCode,internalFailureObserved,retryPendingObserved,manualRetryControlObserved:bounded.includes('Reintentar 3D'),manualLightDescriptionObserved:bounded.includes('Materia virtual DEMO en modo ligero.'),reducedMotionDescriptionObserved:bounded.includes('Materia virtual DEMO con movimiento reducido.'),genericSimplifiedTextObserved:bounded.includes('Vista simplificada'),xmlTruncated:xml.length>bounded.length,rawUiPublished:false};
+}
+export function nativeGlDiagnostics(log){
+  requireSafe(typeof log==='string','Expected bounded native GL diagnostics.');const bounded=log.slice(-1_000_000),counts={'context-timeout':0,create:0,draw:0,boundary:0};let unknownCodeLines=0;
+  for(const line of bounded.split(/\r?\n/))if(line.includes('[Openminerals 3D]')){
+    const code=/\[Openminerals 3D\] (context-timeout|create|draw|boundary)\s*$/.exec(line)?.[1];if(code)counts[code]++;else unknownCodeLines++;
+  }
+  return {nativeGlFailureCounts:counts,unknownNativeGlDiagnosticLines:unknownCodeLines,diagnosticLogTruncated:log.length>bounded.length,rawLogsPublished:false,diagnosticInterpretation:'Static warning counts only; a timeout warning may precede a successful bounded retry. Current scene state determines internal failure, not warning history.'};
 }
 export async function observeColdLaunch({packageName,adb,readPid,wait:pause=ms=>new Promise(resolve=>setTimeout(resolve,ms))}){
   requireSafe([PRESENTED.package,PREVIEW.package].includes(packageName),'Unexpected cold-launch application.');
@@ -406,7 +419,8 @@ async function main(){
     requireSafe(adb('shell','pidof',app.package)===pid,'The original Android process did not survive resume.');
     await maestro(kind,'story-resume-check',kind==='after'?{source:adaptiveCandidateResume(await readFile(join(repo,'e2e/native/story-resume-check.yaml'),'utf8'))}:{});requireSafe(adb('shell','pidof',app.package)===pid,'The original Android process did not survive resume.');
     const finalScene=await sampleScene();
-    await json(kind+'-resume.json',{demoOnly:true,physicalDevice:false,sameProcess:true,backgroundObserved:true,stagePreserved:true,glReadyBeforeHome:true,glReadyAfterResumeBeforeGestures:true,reversibleGesturesAfterResume:true,noForceStopDuringResume:true,finalScene});
+    await json(kind+'-resume.json',{demoOnly:true,physicalDevice:false,sameProcess:true,backgroundObserved:true,stagePreserved:true,glReadyBeforeHome:true,glReadyAfterResumeBeforeGestures:true,reversibleGesturesAfterResume:true,noForceStopDuringResume:true,final3dStateAccepted:kind==='before'||['gl','automatic-light'].includes(finalScene.mode),finalScene});
+    requireSafe(kind==='before'||['gl','automatic-light'].includes(finalScene.mode),'Internal or pending GL state cannot satisfy the 3D trace.');
     await embedded(kind);
   }
   const copyScreenshots=(kind,requireReduced=false)=>publishAnonymousScreenshots({kind,privateRoot,published,requireReduced});
@@ -465,12 +479,13 @@ async function main(){
     const report={
       demoOnly:true,environment:'disposable API 29 x86_64 emulator with SwiftShader',physicalDevice:false,package:app.package,version:app.version,
       ...metrics,hwuiProfilingRequested,...sceneFlags,coldLaunch:launch.evidence,visualMode:light?'light':'3d',qualityTierScope:'Observed adaptive tier; GL resolution and GPU FPS are not inferred.',screenRecording:record,recordingEvidence:recording?{videoFile:recording.videoFile,videoEvidenceValid:recording.videoEvidenceValid,coverage:recording.coverage}:null,inputTrace:{protocol:trace.protocol,specificationSha256:trace.specificationSha256,compiledSha256:trace.compiledSha256,gestureCount:15,plannedDurationMs:trace.plannedDurationMs,...timing},
-      measurementValid:launch.evidence.valid&&timing.events.length===15&&(!record||recording.videoEvidenceValid),checks:{traceFinalAccessibility:false,embeddedAfterTrace:false},
+      measurementValid:launch.evidence.valid&&timing.events.length===15&&(!record||recording.videoEvidenceValid)&&(light||['gl','automatic-light'].includes(sceneFlags.mode)),checks:{traceFinalAccessibility:false,embeddedAfterTrace:false},
       uiFrameStatisticsAvailable:metrics.uiFrames!==null&&metrics.uiFrames>0,phonePerformanceAcceptance:false,gpuFpsMeasured:false,
       interpretation:'gfxinfo reports Android UI frames, not ExpoGL GPU FPS. PSS samples are not peak memory. Input duration includes ADB overhead. Cold start is a process launch of an installed APK. Recorded and unrecorded traces are separate; menus, readiness checks and screenshots are outside the measured workload.',
     };await json(file,report);
     requireSafe(!record||recording.videoEvidenceValid,'Anonymous video does not cover the measured trace; incomplete evidence retained.');
-    await maestro(kind,'trace-final',{source:document('Final stage after fixed reversible gesture trace',[wait('Etapa 7 de 7: PORTAFOLIO'),wait({id:light||sceneFlags.automaticLightObserved?'immersive-scene-light':'immersive-gl-ready'})])});
+    requireSafe(light||['gl','automatic-light'].includes(sceneFlags.mode),'Internal or pending GL state cannot satisfy the 3D trace.');
+    await maestro(kind,'trace-final',{source:document('Final stage after fixed reversible gesture trace',[wait('Etapa 7 de 7: PORTAFOLIO'),wait({id:light||sceneFlags.mode==='automatic-light'?'immersive-scene-light':'immersive-gl-ready'})])});
     report.checks.traceFinalAccessibility=true;await json(file,report);
     await embedded(kind);report.checks.embeddedAfterTrace=true;await json(file,report);
   }
@@ -556,8 +571,8 @@ async function main(){
         if(bytes.length<10_000_000&&bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])))await writeFile(join(published,'anonymous-failure.png'),bytes);
       }catch{}
       try{
-        const logs=adb('logcat','-d','-t','500','-v','brief','ReactNativeJS:E','AndroidRuntime:E','ExpoGL:E','*:S');
-        await json('anonymous-failure-flags.json',{demoOnly:true,credentialsEntered:false,rawLogsPublished:false,reactNativeJsError:/ReactNativeJS/.test(logs),javaScriptTypeError:/TypeError/.test(logs),nativeFatalException:/FATAL EXCEPTION/.test(logs),glContextFailure:/CONTEXT_LOST|context lost/i.test(logs),shaderFailure:/shader.*(?:error|fail)|GL_INVALID/i.test(logs)});
+        const logs=adb('logcat','-d','-t','500','-v','brief','ReactNativeJS:W','AndroidRuntime:E','ExpoGL:E','*:S');
+        await json('anonymous-failure-flags.json',{demoOnly:true,credentialsEntered:false,...nativeGlDiagnostics(logs),reactNativeJsError:/\bE\/ReactNativeJS|\bE ReactNativeJS|ReactNativeJS[^\r\n]*(?:Error|Exception)/.test(logs),javaScriptTypeError:/TypeError/.test(logs),nativeFatalException:/FATAL EXCEPTION/.test(logs),glContextFailure:/CONTEXT_LOST|context lost/i.test(logs),shaderFailure:/shader.*(?:error|fail)|GL_INVALID/i.test(logs)});
       }catch{}
     }
   }

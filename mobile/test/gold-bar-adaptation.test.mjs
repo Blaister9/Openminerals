@@ -12,10 +12,11 @@ import {isSoftwareSceneContext,sceneCostExceeded,SCENE_COST_HISTORY} from '../li
 // Android GPU timings, physical FPS nor the React/native lifecycle as a whole.
 const source=await readFile(new URL('../components/GoldBar3D.tsx',import.meta.url),'utf8');
 const ast=ts.createSourceFile('GoldBar3D.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
-const declarations=new Map();let materialEffect;
+const declarations=new Map();let materialEffect,sessionEffect;
 function visit(node){
   if(ts.isVariableDeclaration(node)&&ts.isIdentifier(node.name))declarations.set(node.name.text,node.initializer);
   if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useLayoutEffect'&&node.arguments[1]?.getText(ast)==='[metal]')materialEffect=node.arguments[0];
+  if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useLayoutEffect'&&node.arguments[1]?.getText(ast)==='[enabled,session,fail,stop]')sessionEffect=node.arguments[0];
   ts.forEachChild(node,visit);
 }
 visit(ast);
@@ -27,22 +28,24 @@ const executable=ts.transpileModule([
   'this.createContext='+declarations.get('createContext').getText(ast)+';',
   'this.renderScale='+declarations.get('renderScale').getText(ast)+';',
   'this.materialEffect='+materialEffect.getText(ast)+';',
+  'this.sessionEffect='+sessionEffect.getText(ast)+';',
+  'this.retry3D='+declarations.get('retry3D').getText(ast)+';',
 ].join('\n'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None},fileName:'GoldBar3D-policy.ts'}).outputText;
 
 const ref=current=>({current});
 function fixture(){
   return {
-    clock:0,cost:5,waitCost:0,nextId:0,frames:new Map(),timers:new Map(),events:[],renderers:[],balancedChanges:[],softwareChanges:[],readyChanges:[],failures:[],limitedCalls:0,
+    clock:0,cost:5,waitCost:0,nextId:0,frames:new Map(),timers:new Map(),events:[],renderers:[],balancedChanges:[],softwareChanges:[],readyChanges:[],failures:[],failureReasons:[],retries:[],warnings:[],limitedCalls:0,
     throwCreate:false,throwDraw:false,
     refs:{renderer:ref(null),scheduler:ref(null),timeout:ref(null),currentSession:ref(null),latest:ref({startY:100,endY:1100,enabled:true}),
-      lastScroll:ref(350),drag:ref(.3),minePeek:ref(.2),metalRef:ref('XAU'),readyRef:ref(false),samples:ref([]),limited:ref(false),limitCallback:ref(null)},
+      lastScroll:ref(350),drag:ref(.3),minePeek:ref(.2),metalRef:ref('XAU'),readyRef:ref(false),samples:ref([]),limited:ref(false),limitCallback:ref(null),resourceSession:ref(null),timeoutRetries:ref(0)},
   };
 }
 function mount({balanced=false,software=false,cinematic=true,state=fixture(),gl={}}={}){
   const expected=Symbol('test GL session'),schedulerOptions=[];state.refs.currentSession.current=expected;
   state.refs.limitCallback.current=()=>{state.limitedCalls++;state.events.push('limited');};
   const context=vm.createContext({
-    ...state.refs,balanced,software,cinematic,width:360,height:640,PixelRatio:{get:()=>3},goldRenderScale,scrollProgress,isSoftwareSceneContext,sceneCostExceeded,SCENE_COST_HISTORY,
+    ...state.refs,balanced,software,cinematic,session:expected,enabled:true,width:360,height:640,PixelRatio:{get:()=>3},goldRenderScale,scrollProgress,isSoftwareSceneContext,sceneCostExceeded,SCENE_COST_HISTORY,
     useCallback:callback=>callback,
     performance:{now:()=>state.clock},
     requestAnimationFrame:callback=>{const id=++state.nextId;state.frames.set(id,callback);return id;},
@@ -63,6 +66,9 @@ function mount({balanced=false,software=false,cinematic=true,state=fixture(),gl=
     setSoftware:value=>{state.softwareChanges.push(value);state.events.push('software');},
     setReady:value=>{state.readyChanges.push(value);state.events.push('ready '+value);},
     setFailure:value=>{state.failures.push(value);state.events.push('failure '+value);},
+    setFailureReason:value=>state.failureReasons.push(value),
+    setRetry:update=>state.retries.push(typeof update==='function'?update(state.retries.at(-1)??0):update),
+    console:{warn:value=>state.warnings.push(value)},
   });
   vm.runInContext(executable,context,{filename:'GoldBar3D-policy-extracted.js'});
   return {
@@ -175,10 +181,65 @@ test('error de draw activo usa el onError real, libera scheduler/renderer y nunc
   assert.equal(view.state.renderers[0].disposed,1);assert.equal(view.state.refs.renderer.current,null);assert.equal(view.state.refs.scheduler.current,null);
   assert.equal(view.state.frames.size,0);assert.equal(view.state.timers.size,0);assert.deepEqual(view.state.failures,[true]);assert.deepEqual(view.state.readyChanges,[false]);
   assert.equal(view.state.limitedCalls,0);assert.equal(view.state.refs.readyRef.current,false);
+  assert.deepEqual(view.state.failureReasons,['draw']);assert.deepEqual(view.state.warnings,['[Openminerals 3D] draw']);
 });
 
 test('error al crear renderer falla de forma controlada antes de programar un frame',()=>{
   const view=mount();view.state.throwCreate=true;view.create();
   assert.equal(view.state.renderers.length,0);assert.equal(view.state.frames.size,0);assert.equal(view.state.timers.size,0);
   assert.equal(view.state.refs.renderer.current,null);assert.equal(view.state.refs.scheduler.current,null);assert.deepEqual(view.state.failures,[true]);assert.deepEqual(view.state.readyChanges,[false]);
+  assert.deepEqual(view.state.failureReasons,['create']);
+});
+
+test('context timeout retries once, then keeps a reason and permits explicit manual recovery',()=>{
+  const first=mount(),cleanupFirst=first.context.sessionEffect(),oldTimeout=[...first.state.timers.values()][0];
+  oldTimeout();assert.deepEqual(first.state.retries,[1]);assert.equal(first.state.refs.timeoutRetries.current,1);assert.deepEqual(first.state.failures,[false]);
+  assert.deepEqual(first.state.failureReasons,['context-timeout']);assert.equal(first.state.frames.size,0);
+  const retry=mount({state:first.state}),cleanupRetry=retry.context.sessionEffect(),secondTimeout=[...first.state.timers.values()][0];
+  cleanupFirst();assert.equal(first.state.timers.size,1,'Old cleanup must not clear the new watchdog.');
+  oldTimeout();assert.deepEqual(first.state.retries,[1],'A stale timeout cannot consume another attempt.');
+  secondTimeout();assert.deepEqual(first.state.retries,[1]);assert.deepEqual(first.state.failures,[false,true]);assert.equal(first.state.timers.size,0);
+  retry.context.retry3D();assert.deepEqual(first.state.retries,[1,2]);assert.equal(first.state.refs.timeoutRetries.current,0);assert.equal(first.state.failureReasons.at(-1),null);
+  const manual=mount({state:first.state});manual.context.sessionEffect();manual.create();cleanupRetry();manual.frame();
+  assert.equal(first.state.renderers.at(-1).disposed,0);assert.equal(first.state.readyChanges.at(-1),true);assert.equal(first.state.failureReasons.at(-1),null);
+  assert.ok(first.state.warnings.every(value=>value==='[Openminerals 3D] context-timeout'));manual.stop();
+});
+
+test('old layout cleanup and boundary errors cannot dispose a newly owned renderer',()=>{
+  const first=mount(),cleanupFirst=first.context.sessionEffect();first.create();
+  const next=mount({state:first.state});next.context.sessionEffect();next.create();
+  const active=first.state.renderers.at(-1),watchdog=first.state.refs.timeout.current;
+  cleanupFirst();first.context.fail(first.expected,'boundary');
+  assert.equal(active.disposed,0);assert.equal(first.state.refs.timeout.current,watchdog);assert.ok(first.state.timers.has(watchdog));
+  next.frame();assert.equal(first.state.readyChanges.at(-1),true);next.stop();
+});
+
+test('native view stays drawable below the opaque preparation cover until first completed frame',()=>{
+  let native,cover,styles;
+  const attribute=(opening,name)=>opening.attributes.properties.find(value=>ts.isJsxAttribute(value)&&value.name.getText(ast)===name);
+  function inspect(node){
+    if(ts.isJsxSelfClosingElement(node)&&node.tagName.getText(ast)==='NativeGLView')native=node;
+    if(ts.isJsxElement(node)&&node.openingElement.tagName.getText(ast)==='View'&&attribute(node.openingElement,'style')?.initializer?.expression?.getText(ast)==='styles.fallback')cover=node;
+    if(ts.isVariableDeclaration(node)&&node.name.getText(ast)==='styles')styles=node.initializer.arguments[0];
+    ts.forEachChild(node,inspect);
+  }
+  inspect(ast);assert.ok(native&&cover&&styles);
+  const nativeStyle=attribute(native,'style').initializer.expression;
+  assert.equal(nativeStyle.properties.find(prop=>prop.name?.getText(ast)==='opacity').initializer.getText(ast),'1');
+  assert.ok(native.end<cover.pos,'Native GL must precede its cover in JSX drawing order.');
+  assert.match(cover.parent.getText(ast),/^\(!enabled\|\|!ready\)&&/);
+  const fallbackStyle=styles.properties.find(prop=>prop.name.getText(ast)==='fallback').initializer;
+  assert.equal(fallbackStyle.properties.find(prop=>prop.name.getText(ast)==='backgroundColor').initializer.text,'#0A0D10');
+});
+
+test('accessible values distinguish internal failure reasons from requested lightweight mode',()=>{
+  const code='this.diagnostic=()=>'+declarations.get('diagnostic').getText(ast)+';';
+  for(const reason of ['context-timeout','create','draw','boundary','unavailable']){
+    const context=vm.createContext({failure:true,NativeGLView:true,internalReason:reason,reducedMotion:false,ready:false,balanced:false});
+    vm.runInContext(ts.transpileModule(code,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText,context);
+    assert.equal(context.diagnostic(),'Vista ligera por fallo 3D: '+reason);
+  }
+  const context=vm.createContext({failure:false,NativeGLView:true,internalReason:null,reducedMotion:true,ready:false,balanced:false});
+  vm.runInContext(ts.transpileModule(code,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText,context);assert.equal(context.diagnostic(),'Vista ligera');
+  assert.match(source,/cinematic&&failure&&NativeGLView&&!reducedMotion&&<View/);assert.match(source,/accessibilityLabel="Reintentar 3D"/);
 });

@@ -1,6 +1,6 @@
 # Comparación Android de la mina experimental
 
-El workflow nuevo `.github/workflows/android-mine-preview.yml` compara dos APK en un mismo emulador desechable de GitHub: la entrega `0.3.0` y la aplicación independiente `com.openminerals.demo.minepreview`, versión/runtime `0.4.0`, código Android `2` para la revisión R2, canal `mine-realism`. La revisión R1 usó código `1` y conserva su evidencia fallida por separado. No modifica los workflows, el paquete, los datos o el canal de la entrega estable. Todo el recorrido y sus operaciones son DEMO.
+El workflow nuevo `.github/workflows/android-mine-preview.yml` compara dos APK en un mismo emulador desechable de GitHub: la entrega `0.3.0` y la aplicación independiente `com.openminerals.demo.minepreview`, versión/runtime `0.4.0`, código Android `3` para la revisión R3, canal `mine-realism`. Las revisiones R1/R2 usaron códigos `1`/`2` y conservan su evidencia fallida por separado. No modifica los workflows, el paquete, los datos o el canal de la entrega estable. Todo el recorrido y sus operaciones son DEMO.
 
 ## Preparación y ejecución
 
@@ -36,6 +36,8 @@ Los tres parámetros manuales deben proporcionarse juntos. La referencia estable
 El registro admite `validationScope`, con dos valores cerrados: `comparison` por defecto y `regression`. El segundo ejecuta un caso nuevo y desechable para completar modos, navegación, reanudación, comercio legacy, autenticación y preservación sin repetir benchmarks o vídeos ya medidos. Instala ambos APK y comprueba fuente embebida/identidad; exige una primera escena GL real del candidato y registra su estado antes de continuar. Su resumen declara `benchmarksIncluded:false` y referencia la comparación [41377075737](https://github.com/Blaister9/Openminerals/actions/runs/41377075737), cuyo resultado general fue fallido tras completar los perfiles comparativos. El caso de regresión no sustituye ese resultado ni atribuye nuevas métricas.
 
 Para activar movimiento reducido se abre Inicio y sus opciones directamente: no se exige volver a preparar 3D antes de ofrecer esa alternativa. La reanudación sigue exigiendo GL antes de HOME y antes del primer gesto al volver; después de los gestos solo admite degradación ligera con el motivo exacto de coste de render. Una escena ligera genérica no satisface esas pruebas GL. Los fallos previos a credenciales incluyen un snapshot acotado de IDs conocidos, estado pendiente/GL/ligero y señales de motivos manuales/automáticos, sin XML completo ni inferir una causa cuando no está demostrada.
+
+R3 distingue además los motivos internos estáticos `context-timeout`, `create`, `draw`, `boundary` y `unavailable`, así como el estado de reintento. Un fallo interno o un reintento pendiente nunca satisfacen el fallback autorizado por coste, aunque la descripción contenga ambos textos. Se leen advertencias ReactNativeJS con el prefijo fijo `[Openminerals 3D]`; solo se publican contadores de los cuatro códigos que se registran, no líneas completas ni errores nativos. Una advertencia de timeout puede preceder un reintento exitoso: el estado actual de la escena, no el historial de advertencias, decide si existe un fallo presente. Estos diagnósticos identifican el punto observado de fallo y no prueban su causa; las nuevas medidas de montaje/reintento de R3 requieren ejecución real del nuevo APK.
 
 ## Protocolo y evidencia
 

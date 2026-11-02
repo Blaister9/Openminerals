@@ -5,7 +5,7 @@ import {createRequire} from 'node:module';
 import {mkdtemp,mkdir,writeFile,readdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve,sep} from 'node:path';
-import {PRESENTED,PREVIEW,previewInputs,previewFlow,gestureTrace,executeTrace,metadataValue,verifyArtifact,installedIdentity,assertStablePreserved,legacyCommerceFlow,publicFailureReason,anonymousSceneFlags,authorizedAuthFlow,authorizedPublicOperator,publicOperatorPreflight,observeColdLaunch,videoCoverage,publishAnonymousScreenshots,adaptiveCandidateStory,nativeValidationScope,anonymousSceneState,adaptiveCandidateResume} from '../e2e/mine-preview.mjs';
+import {PRESENTED,PREVIEW,previewInputs,previewFlow,gestureTrace,executeTrace,metadataValue,verifyArtifact,installedIdentity,assertStablePreserved,legacyCommerceFlow,publicFailureReason,anonymousSceneFlags,authorizedAuthFlow,authorizedPublicOperator,publicOperatorPreflight,observeColdLaunch,videoCoverage,publishAnonymousScreenshots,adaptiveCandidateStory,nativeValidationScope,anonymousSceneState,adaptiveCandidateResume,nativeGlDiagnostics} from '../e2e/mine-preview.mjs';
 import {API,PACKAGE} from '../e2e/ci-safety.mjs';
 import {embeddedFlow} from '../e2e/release-contract.mjs';
 const yaml=createRequire(import.meta.url)('yaml');
@@ -21,7 +21,7 @@ test('preview QA pins the presented 0.3.0 bytes and separates Android package/ru
   assert.equal(PRESENTED.sha256,'d99e8af9617f56d7862a849ebd057025cb9d6adc164b97496a5532f7b29ad29e');
   assert.equal(PRESENTED.source,'eae7f6ad57f5a667c2bf40775a4cb30f1c0dd8b6');
   assert.equal(PRESENTED.package,PACKAGE);assert.equal(PRESENTED.version,'0.3.0');assert.equal(PRESENTED.code,6);
-  assert.equal(PREVIEW.package,'com.openminerals.demo.minepreview');assert.equal(PREVIEW.version,'0.4.0');assert.equal(PREVIEW.code,2);
+  assert.equal(PREVIEW.package,'com.openminerals.demo.minepreview');assert.equal(PREVIEW.version,'0.4.0');assert.equal(PREVIEW.code,3);
   assert.notEqual(PREVIEW.runtime,PRESENTED.runtime);assert.notEqual(PREVIEW.channel,PRESENTED.channel);
 });
 
@@ -172,6 +172,22 @@ test('bounded anonymous scene snapshots distinguish explicit cost fallback from 
   const generic=anonymousSceneState('<node resource-id="immersive-scene-light" content-desc="Vista simplificada private_unit_canary"/>');assert.equal(generic.mode,'light');assert.equal(generic.automaticLightObserved,false);assert.equal(generic.genericSimplifiedTextObserved,true);assert.ok(!JSON.stringify(generic).includes('private_unit_canary'));
   const pending=anonymousSceneState('<node resource-id="immersive-scene-pending"/>');assert.equal(pending.readiness,'pending');assert.equal(pending.mode,'unknown');assert.equal(pending.rawUiPublished,false);
   const bounded=anonymousSceneState('x'.repeat(1_000_001)+'immersive-gl-ready');assert.equal(bounded.xmlTruncated,true);assert.equal(bounded.readiness,'absent');
+});
+
+test('explicit R3 internal failures and bounded retry are never accepted as automatic performance fallback',()=>{
+  for(const code of ['context-timeout','create','draw','boundary','unavailable']){
+    const state=anonymousSceneState('<node resource-id="immersive-scene-light" content-desc="Vista ligera activada por coste de render. Estado 3D: '+code+'. Vista ligera por fallo 3D: '+code+'"/>');
+    assert.equal(state.mode,'internal-failure');assert.equal(state.internalFailureObserved,true);assert.equal(state.internalFailureCode,code);assert.equal(state.automaticLightObserved,true,'The reason text is observed but cannot override a diagnosed failure.');
+  }
+  const retry=anonymousSceneState('<node resource-id="immersive-scene-pending" content-desc="Estado 3D: context-timeout. Reintentando 3D: context-timeout"/>');assert.equal(retry.mode,'retrying');assert.equal(retry.retryPendingObserved,true);assert.equal(retry.internalFailureObserved,false);
+  const visibleFailure=anonymousSceneState('<node text="3D no disponible · draw"/><node content-desc="Reintentar 3D"/>');assert.equal(visibleFailure.mode,'internal-failure');assert.equal(visibleFailure.internalFailureCode,'draw');assert.equal(visibleFailure.manualRetryControlObserved,true);
+  const unknown=anonymousSceneState('<node resource-id="immersive-scene-light" text="Vista ligera por fallo 3D: private_unit_canary"/>');assert.equal(unknown.mode,'internal-failure');assert.equal(unknown.internalFailureCode,null);assert.ok(!JSON.stringify(unknown).includes('private_unit_canary'));
+});
+
+test('native GL diagnostics publish only fixed enum counters and never raw log suffixes or unknown values',()=>{
+  const source='W/ReactNativeJS(42): [Openminerals 3D] context-timeout\nW/ReactNativeJS(42): [Openminerals 3D] create\nW/ReactNativeJS(42): [Openminerals 3D] draw\nW/ReactNativeJS(42): [Openminerals 3D] boundary\nW/ReactNativeJS(42): [Openminerals 3D] private_unit_canary\nW/ReactNativeJS(42): [Openminerals 3D] create private_unit_canary\n';
+  const result=nativeGlDiagnostics(source);assert.deepEqual(result.nativeGlFailureCounts,{'context-timeout':1,create:1,draw:1,boundary:1});assert.equal(result.unknownNativeGlDiagnosticLines,2);assert.equal(result.rawLogsPublished,false);assert.ok(!JSON.stringify(result).includes('private_unit_canary'));
+  assert.equal(nativeGlDiagnostics('x'.repeat(1_000_001)).diagnosticLogTruncated,true);assert.throws(()=>nativeGlDiagnostics(null));
 });
 
 test('candidate resume keeps its first post-HOME GL proof and allows only explicit cost fallback after gestures',async()=>{
