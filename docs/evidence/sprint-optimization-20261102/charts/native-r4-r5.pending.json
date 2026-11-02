@@ -1,0 +1,6 @@
+{
+  "status": "pending-native-r5-no-values-invented",
+  "acceptedInput": "A complete original mine-profile summary.json, or its analysis.json projection, with two measured light-mode trials each for versionCode 4 and 5.",
+  "command": "python tools/plot_mine_optimization.py --native-comparison PATH/summary.json --output artifacts/charts-with-native-r5",
+  "safety": "Unavailable or incomplete inputs fail validation. No synthetic points, substitution of software timings or unmeasured r5 native data."
+}

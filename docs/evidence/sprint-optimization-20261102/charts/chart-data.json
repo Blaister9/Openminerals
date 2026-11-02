@@ -1,0 +1,317 @@
+{
+  "demoOnly": true,
+  "plottingLibrary": "Matplotlib 3.11.2",
+  "nativeR5Included": false,
+  "sources": [
+    {
+      "file": "docs/evidence/sprint-optimization-20261102/android-baseline-controlled/analysis.json",
+      "sha256": "6f8141a563345c03c115f520f1d8a4703f651c08a82ee8d825a1e26e689367c2"
+    },
+    {
+      "file": "docs/evidence/sprint-optimization-20261102/software-combined-a/report.json",
+      "sha256": "9759b42ff38abc21a13d4e606a1675f18eab68c37cfc561700345c1fb9cd557d"
+    },
+    {
+      "file": "docs/evidence/sprint-optimization-20261102/software-combined-b/report.json",
+      "sha256": "dd7f1b896828941f724bad1d12317cd6e11bea71db72d78bdc2f6f6562f99ed3"
+    }
+  ],
+  "baselineLightRows": {
+    "6": [
+      {
+        "trial": 0,
+        "arm": "A",
+        "visualMode": "light",
+        "package": "com.openminerals.demo.mobile",
+        "versionCode": 6,
+        "uiP50Ms": 102.006921,
+        "uiP95Ms": 127.810343,
+        "uiCapturedFrames": 120,
+        "uiTailSpanMs": 5913.731212,
+        "uiJankyPercent": 99.30675909878683,
+        "uiThroughputFramesPerSecond": 16.748889717131124,
+        "sampledPeakPssKiB": 120249,
+        "sustainedMedianPssKiB": 113770,
+        "sustainedP95PssKiB": 114194,
+        "pssSamples": 35,
+        "activityTotalMs": 1831,
+        "firstUiObservedMs": 7108.779000000002,
+        "firstSceneObservedMs": 7108.786270000004,
+        "renderThreadCpuTicks": 1542,
+        "javascriptCpuTicks": null,
+        "glCpuTicks": null,
+        "initialMode": "light",
+        "initialQuality": "light",
+        "finalMode": "light",
+        "finalQuality": "light",
+        "qualityEquivalentAtEndpoints": true,
+        "traceObservedDurationMs": 34450.04473400001,
+        "presentationAvailable": false
+      },
+      {
+        "trial": 3,
+        "arm": "A",
+        "visualMode": "light",
+        "package": "com.openminerals.demo.mobile",
+        "versionCode": 6,
+        "uiP50Ms": 105.125992,
+        "uiP95Ms": 126.440755,
+        "uiCapturedFrames": 120,
+        "uiTailSpanMs": 6142.552442,
+        "uiJankyPercent": 99.28571428571429,
+        "uiThroughputFramesPerSecond": 16.265124029767332,
+        "sampledPeakPssKiB": 117619,
+        "sustainedMedianPssKiB": 110505,
+        "sustainedP95PssKiB": 111006,
+        "pssSamples": 35,
+        "activityTotalMs": 1240,
+        "firstUiObservedMs": 4747.471922000055,
+        "firstSceneObservedMs": 4747.476399000036,
+        "renderThreadCpuTicks": 1583,
+        "javascriptCpuTicks": null,
+        "glCpuTicks": null,
+        "initialMode": "light",
+        "initialQuality": "light",
+        "finalMode": "light",
+        "finalQuality": "light",
+        "qualityEquivalentAtEndpoints": true,
+        "traceObservedDurationMs": 34429.494603,
+        "presentationAvailable": false
+      }
+    ],
+    "4": [
+      {
+        "trial": 1,
+        "arm": "B",
+        "visualMode": "light",
+        "package": "com.openminerals.demo.minepreview",
+        "versionCode": 4,
+        "uiP50Ms": 151.699456,
+        "uiP95Ms": 175.051538,
+        "uiCapturedFrames": 120,
+        "uiTailSpanMs": 8195.688533,
+        "uiJankyPercent": 100,
+        "uiThroughputFramesPerSecond": 10.130192509387728,
+        "sampledPeakPssKiB": 134797,
+        "sustainedMedianPssKiB": 128912,
+        "sustainedP95PssKiB": 130141,
+        "pssSamples": 35,
+        "activityTotalMs": 1467,
+        "firstUiObservedMs": 5303.4606360000325,
+        "firstSceneObservedMs": 5303.465423000045,
+        "renderThreadCpuTicks": 1809,
+        "javascriptCpuTicks": null,
+        "glCpuTicks": null,
+        "initialMode": "light",
+        "initialQuality": "light",
+        "finalMode": "light",
+        "finalQuality": "light",
+        "qualityEquivalentAtEndpoints": true,
+        "traceObservedDurationMs": 34550.182504000026,
+        "presentationAvailable": false
+      },
+      {
+        "trial": 2,
+        "arm": "B",
+        "visualMode": "light",
+        "package": "com.openminerals.demo.minepreview",
+        "versionCode": 4,
+        "uiP50Ms": 146.611456,
+        "uiP95Ms": 172.639965,
+        "uiCapturedFrames": 120,
+        "uiTailSpanMs": 8303.893825,
+        "uiJankyPercent": 100,
+        "uiThroughputFramesPerSecond": 10.348057212171641,
+        "sampledPeakPssKiB": 139695,
+        "sustainedMedianPssKiB": 131217,
+        "sustainedP95PssKiB": 131564,
+        "pssSamples": 35,
+        "activityTotalMs": 1264,
+        "firstUiObservedMs": 5249.12257300003,
+        "firstSceneObservedMs": 5249.12659900001,
+        "renderThreadCpuTicks": 1823,
+        "javascriptCpuTicks": null,
+        "glCpuTicks": null,
+        "initialMode": "light",
+        "initialQuality": "light",
+        "finalMode": "light",
+        "finalQuality": "light",
+        "qualityEquivalentAtEndpoints": true,
+        "traceObservedDurationMs": 34595.86593500001,
+        "presentationAvailable": false
+      }
+    ]
+  },
+  "softwarePoints": [
+    {
+      "run": "A",
+      "condition": "r4-full",
+      "phase": "all",
+      "metric": "p50Ms",
+      "valueMs": 13.0
+    },
+    {
+      "run": "B",
+      "condition": "r4-full",
+      "phase": "all",
+      "metric": "p50Ms",
+      "valueMs": 12.899999999906868
+    },
+    {
+      "run": "A",
+      "condition": "candidate",
+      "phase": "all",
+      "metric": "p50Ms",
+      "valueMs": 9.5
+    },
+    {
+      "run": "B",
+      "condition": "candidate",
+      "phase": "all",
+      "metric": "p50Ms",
+      "valueMs": 9.399999999906868
+    },
+    {
+      "run": "A",
+      "condition": "r4-full",
+      "phase": "mine",
+      "metric": "p50Ms",
+      "valueMs": 14.400000000139698
+    },
+    {
+      "run": "B",
+      "condition": "r4-full",
+      "phase": "mine",
+      "metric": "p50Ms",
+      "valueMs": 14.700000000186265
+    },
+    {
+      "run": "A",
+      "condition": "candidate",
+      "phase": "mine",
+      "metric": "p50Ms",
+      "valueMs": 9.800000000046566
+    },
+    {
+      "run": "B",
+      "condition": "candidate",
+      "phase": "mine",
+      "metric": "p50Ms",
+      "valueMs": 10.100000000093132
+    },
+    {
+      "run": "A",
+      "condition": "r4-full",
+      "phase": "subject",
+      "metric": "p50Ms",
+      "valueMs": 12.699999999953434
+    },
+    {
+      "run": "B",
+      "condition": "r4-full",
+      "phase": "subject",
+      "metric": "p50Ms",
+      "valueMs": 12.5
+    },
+    {
+      "run": "A",
+      "condition": "candidate",
+      "phase": "subject",
+      "metric": "p50Ms",
+      "valueMs": 9.5
+    },
+    {
+      "run": "B",
+      "condition": "candidate",
+      "phase": "subject",
+      "metric": "p50Ms",
+      "valueMs": 9.300000000046566
+    },
+    {
+      "run": "A",
+      "condition": "r4-full",
+      "phase": "all",
+      "metric": "p95Ms",
+      "valueMs": 23.100000000093132
+    },
+    {
+      "run": "B",
+      "condition": "r4-full",
+      "phase": "all",
+      "metric": "p95Ms",
+      "valueMs": 23.899999999906868
+    },
+    {
+      "run": "A",
+      "condition": "candidate",
+      "phase": "all",
+      "metric": "p95Ms",
+      "valueMs": 16.399999999906868
+    },
+    {
+      "run": "B",
+      "condition": "candidate",
+      "phase": "all",
+      "metric": "p95Ms",
+      "valueMs": 17.0
+    },
+    {
+      "run": "A",
+      "condition": "r4-full",
+      "phase": "mine",
+      "metric": "p95Ms",
+      "valueMs": 23.5999999998603
+    },
+    {
+      "run": "B",
+      "condition": "r4-full",
+      "phase": "mine",
+      "metric": "p95Ms",
+      "valueMs": 24.5
+    },
+    {
+      "run": "A",
+      "condition": "candidate",
+      "phase": "mine",
+      "metric": "p95Ms",
+      "valueMs": 16.399999999906868
+    },
+    {
+      "run": "B",
+      "condition": "candidate",
+      "phase": "mine",
+      "metric": "p95Ms",
+      "valueMs": 17.199999999953434
+    },
+    {
+      "run": "A",
+      "condition": "r4-full",
+      "phase": "subject",
+      "metric": "p95Ms",
+      "valueMs": 13.900000000139698
+    },
+    {
+      "run": "B",
+      "condition": "r4-full",
+      "phase": "subject",
+      "metric": "p95Ms",
+      "valueMs": 13.800000000046566
+    },
+    {
+      "run": "A",
+      "condition": "candidate",
+      "phase": "subject",
+      "metric": "p95Ms",
+      "valueMs": 10.600000000093132
+    },
+    {
+      "run": "B",
+      "condition": "candidate",
+      "phase": "subject",
+      "metric": "p95Ms",
+      "valueMs": 11.399999999906868
+    }
+  ],
+  "nativeR4R5LightRows": null,
+  "scope": "HWUI and PSS native panels are separate from software completion/readback. No GPU or ExpoGL FPS is inferred."
+}

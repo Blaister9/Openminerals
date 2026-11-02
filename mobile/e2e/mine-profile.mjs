@@ -18,15 +18,24 @@ export function profilePair(value='stable-r4',candidate={}){
 }
 export function hwuiFrameStats(text,elapsedMs){
   const values=[],starts=[],ends=[];let header=null,rejected=0;
+  const definitions={uiWork:['HandleInputStart','SyncQueued'],renderThreadQueue:['SyncQueued','SyncStart'],renderSubmission:['IssueDrawCommandsStart','SwapBuffers'],postSwap:['SwapBuffers','FrameCompleted']};
+  const segments=Object.fromEntries(Object.keys(definitions).map(name=>[name,[]]));
   for(const line of text.split(/\r?\n/)){
     if(line.startsWith('Flags,IntendedVsync,')){header=line.trim().split(',');continue;}
     if(!header||!/^\d+,/.test(line))continue;
     const row=line.trim().split(','),get=name=>Number(row[header.indexOf(name)]),start=get('IntendedVsync'),end=get('FrameCompleted');
     if(get('Flags')!==0||!Number.isFinite(start)||!Number.isFinite(end)||start<=0||end<=start||end>=9e18){rejected++;continue;}
     values.push((end-start)/1e6);starts.push(start);ends.push(end);
+    for(const [name,columns] of Object.entries(definitions)){
+      const [from,to]=columns.map(column=>{const at=header.indexOf(column);return at<0||header.lastIndexOf(column)!==at?NaN:Number(row[at]);});
+      // Validate each segment independently; absent platform columns must not
+      // invalidate total-frame statistics or other available segments.
+      if(Number.isFinite(from)&&Number.isFinite(to)&&from>0&&to>0&&from<9e18&&to<9e18&&from>=start&&to<=end&&to>=from)segments[name].push((to-from)/1e6);
+    }
   }
   const count=Number(/Total frames rendered:\s*(\d+)/.exec(text)?.[1]),janky=Number(/Janky frames:\s*(\d+)/.exec(text)?.[1]);
-  return {metric:'Android HWUI FrameCompleted minus IntendedVsync',p50Ms:quantile(values,.5),p95Ms:quantile(values,.95),capturedFrames:values.length,rejectedRows:rejected,capturedSlowFramesOver16_667Ms:values.filter(x=>x>1000/60).length,capturedSlowPercent:values.length?100*values.filter(x=>x>1000/60).length/values.length:null,capturedSpanMs:starts.length?(Math.max(...ends)-Math.min(...starts))/1e6:null,totalUiFrames:Number.isFinite(count)?count:null,totalJankyUiFrames:Number.isFinite(janky)?janky:null,totalJankyUiPercent:count>0&&Number.isFinite(janky)?100*janky/count:null,uiFramesPerTraceSecond:count>=0&&elapsedMs>0?count/(elapsedMs/1000):null,interpretation:'Exact durations of available HWUI framestats rows; Android retains a bounded tail, not necessarily the entire trace. UI throughput is not display or ExpoGL FPS.'};
+  const wallClockSegments=Object.fromEntries(Object.entries(definitions).map(([name,[from,to]])=>[name,{metric:'HWUI wall-clock '+to+' minus '+from,available:segments[name].length>0,capturedSamples:segments[name].length,missingOrInvalidRows:values.length-segments[name].length,p50Ms:quantile(segments[name],.5),p95Ms:quantile(segments[name],.95)}]));
+  return {metric:'Android HWUI FrameCompleted minus IntendedVsync',p50Ms:quantile(values,.5),p95Ms:quantile(values,.95),capturedFrames:values.length,rejectedRows:rejected,capturedSlowFramesOver16_667Ms:values.filter(x=>x>1000/60).length,capturedSlowPercent:values.length?100*values.filter(x=>x>1000/60).length/values.length:null,capturedSpanMs:starts.length?(Math.max(...ends)-Math.min(...starts))/1e6:null,totalUiFrames:Number.isFinite(count)?count:null,totalJankyUiFrames:Number.isFinite(janky)?janky:null,totalJankyUiPercent:count>0&&Number.isFinite(janky)?100*janky/count:null,uiFramesPerTraceSecond:count>=0&&elapsedMs>0?count/(elapsedMs/1000):null,wallClockSegments,segmentParserVersion:'hwui-wall-clock-segments-v1',segmentInterpretation:'Aggregated segments of accepted HWUI tail rows only, with ordered timestamps inside each frame. These are wall-clock intervals including waits and scheduling, not pure thread CPU or isolated GPU execution times. Missing or invalid segments remain unavailable; no raw timestamp rows are published.',interpretation:'Exact durations of available HWUI framestats rows; Android retains a bounded tail, not necessarily the entire trace. UI throughput is not display or ExpoGL FPS.'};
 }
 export function parseSurfaceLatency(text){
   const lines=text.trim().split(/\r?\n/),refreshNs=Number(lines.shift()),timestamps=[];
@@ -126,7 +135,7 @@ export function verifyProfileArtifact({app,badging,files,xml,resources,bundle,si
   const headers=JSON.parse(meta('UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY'));requireSafe(Object.keys(headers).length===1&&headers['expo-channel-name']===app.channel,'Profile APK channel differs.');
   requireSafe(Buffer.isBuffer(bundle)&&bundle.length>1000&&bundle.length<15000000&&bundle.includes(Buffer.from(API)),'Profile APK embedded HTTPS API missing.');
   for(const local of ['http://localhost:3000','http://127.0.0.1:3000','http://10.0.2.2:3000'])requireSafe(!bundle.includes(Buffer.from(local)),'Profile APK contains local API.');
-  return {package:app.package,version:app.version,code:app.code,sha256:app.sha256,sourceCommit:app.source,sourceScope:'Independently pinned build record; APK source must also be linked to EAS metadata.',certificate:app.certificate,embeddedHttpsApi:true};
+  return {package:app.package,version:app.version,code:app.code,sha256:app.sha256,sourceCommit:app.source,sourceScope:'Independently pinned build record; APK source must also be linked to its build provenance.',certificate:app.certificate,embeddedHttpsApi:true};
 }
 async function main(){
   requireSafe(process.env.GITHUB_ACTIONS==='true'&&process.env.RUNNER_OS==='Linux','Profiler restricted to disposable Linux GitHub runner.');

@@ -20,6 +20,8 @@ const record=()=>({demoOnly:true,revision:'r5',status:'FINISHED',versionCode:5,p
 
 test('R5 accepts only its exact finished preview APK and consistent source/hash record',()=>{
   assert.equal(r5BuildRecord(record()).digest,'b'.repeat(64));
+  for(const buildProvider of ['eas','github-actions-local-signing'])assert.equal(r5BuildRecord({...record(),buildProvider}).digest,'b'.repeat(64));
+  assert.throws(()=>r5BuildRecord({...record(),buildProvider:'unknown'}));
   for(const patch of [{revision:'r4'},{versionCode:4},{status:'IN_PROGRESS'},{package:PACKAGE},{channel:'demo'},{runtime:'0.3.0'},{sourceCommit:'unknown'},{sha256:'d'.repeat(64)},{certificate:'e'.repeat(64)},{apkUrl:'https://foreign.example/app.apk'}])assert.throws(()=>r5BuildRecord({...record(),...patch}));
 });
 test('R5 never falls back to the six stable QA secrets',()=>{

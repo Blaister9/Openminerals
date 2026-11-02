@@ -17,6 +17,8 @@
 **/google-services.json
 **/GoogleService-Info.plist
 **/credentials.json
+**/*.jks
+**/__pycache__/
 **/.gradle/
 **/build/
 **/ios/Pods/

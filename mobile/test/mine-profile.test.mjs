@@ -12,6 +12,26 @@ test('HWUI reports exact captured durations and summary jank independently',()=>
   const result=hwuiFrameStats(text,1000);assert.equal(result.p50Ms,10);assert.equal(result.p95Ms,30);assert.equal(result.capturedFrames,2);assert.equal(result.rejectedRows,2);assert.equal(result.capturedSlowPercent,50);assert.equal(result.totalJankyUiPercent,40);assert.equal(result.uiFramesPerTraceSecond,10);
   assert.equal(hwuiFrameStats('',1000).p95Ms,null);assert.equal(hwuiFrameStats('',1000).totalUiFrames,null);
 });
+test('HWUI aggregates ordered wall-clock segments without changing total-frame percentiles',()=>{
+  const text='Flags,IntendedVsync,HandleInputStart,SyncQueued,SyncStart,IssueDrawCommandsStart,SwapBuffers,FrameCompleted,\n0,1000000,2000000,5000000,7000000,9000000,13000000,20000000,\n0,21000000,22000000,30000000,31000000,33000000,39000000,45000000,\n';
+  const result=hwuiFrameStats(text,1000),s=result.wallClockSegments;
+  assert.equal(result.p50Ms,19);assert.equal(result.p95Ms,24);assert.equal(result.capturedFrames,2);
+  assert.deepEqual(Object.fromEntries(Object.entries(s).map(([name,value])=>[name,[value.p50Ms,value.p95Ms,value.capturedSamples,value.missingOrInvalidRows]])),{uiWork:[3,8,2,0],renderThreadQueue:[1,2,2,0],renderSubmission:[4,6,2,0],postSwap:[6,7,2,0]});
+  assert.ok(Object.values(s).every(segment=>segment.available&&segment.metric.startsWith('HWUI wall-clock')));assert.match(result.segmentInterpretation,/not pure thread CPU or isolated GPU/);
+  assert.ok(Object.values(s).every(segment=>!Object.hasOwn(segment,'timestamps')&&!Object.hasOwn(segment,'durations')),'Publish only aggregate counts and percentiles.');
+});
+test('HWUI missing platform columns leave segments unavailable while totals remain valid',()=>{
+  const result=hwuiFrameStats('Flags,IntendedVsync,SwapBuffers,FrameCompleted,\n0,1000000,16000000,20000000,\n',1000);
+  assert.equal(result.p95Ms,19);assert.equal(result.capturedFrames,1);assert.equal(result.wallClockSegments.postSwap.p95Ms,4);
+  for(const name of ['uiWork','renderThreadQueue','renderSubmission']){assert.equal(result.wallClockSegments[name].available,false);assert.equal(result.wallClockSegments[name].capturedSamples,0);assert.equal(result.wallClockSegments[name].missingOrInvalidRows,1);assert.equal(result.wallClockSegments[name].p95Ms,null);}
+});
+test('HWUI rejects reversed zero sentinel and out-of-frame segment timestamps independently',()=>{
+  const header='Flags,IntendedVsync,HandleInputStart,SyncQueued,SyncStart,IssueDrawCommandsStart,SwapBuffers,FrameCompleted,\n';
+  const result=hwuiFrameStats(header+'0,1000000,0,5000000,4000000,9000000,8000000,20000000,\n0,21000000,22000000,50000000,9223372036854775807,33000000,NaN,45000000,\n1,1000000,2000000,3000000,4000000,5000000,6000000,20000000,\n',1000);
+  assert.equal(result.capturedFrames,2);assert.equal(result.rejectedRows,1);assert.equal(result.p50Ms,19);assert.equal(result.p95Ms,24);
+  assert.equal(result.wallClockSegments.uiWork.capturedSamples,0);assert.equal(result.wallClockSegments.renderThreadQueue.capturedSamples,0);assert.equal(result.wallClockSegments.renderSubmission.capturedSamples,0);assert.equal(result.wallClockSegments.postSwap.capturedSamples,1);assert.equal(result.wallClockSegments.postSwap.p95Ms,12);
+  const zero=hwuiFrameStats(header+'0,1000000,2000000,2000000,2000000,2000000,2000000,20000000,\n',1000);assert.equal(zero.wallClockSegments.uiWork.p95Ms,0);assert.equal(zero.wallClockSegments.renderThreadQueue.p95Ms,0);assert.equal(zero.wallClockSegments.renderSubmission.p95Ms,0);
+});
 test('surface parser excludes zero and pending timestamps and deduplicates presentations',()=>{
   const parsed=parseSurfaceLatency('16666667\n1 100000000000 2\n1 100016666667 2\n1 100016666667 2\n1 9223372036854775807 2\n0 0 0\n');assert.equal(parsed.timestamps.length,2);
   const stats=presentationStats([...parsed.timestamps,'100033333334'],parsed.refreshNs);assert.equal(stats.available,true);assert.ok(Math.abs(stats.observedFps-60)<.001);assert.equal(stats.slowPercent,0);

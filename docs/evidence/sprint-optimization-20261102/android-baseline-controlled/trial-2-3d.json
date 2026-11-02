@@ -1,0 +1,236 @@
+{
+  "demoOnly": true,
+  "trial": 2,
+  "arm": "B",
+  "app": {
+    "package": "com.openminerals.demo.minepreview",
+    "code": 4,
+    "source": "ce9b79b5abbe0389e5f2661dda0d7abc6b53bc14",
+    "sha256": "adfbf909f0cf0c924c7b8938a1a773c5c96b84f14f86ae0e8c0bf53b7e1b1bf5"
+  },
+  "visualMode": "3d",
+  "coldLaunch": {
+    "valid": true,
+    "oldPid": "10935",
+    "newPid": "11897",
+    "oldProcessExitObserved": true,
+    "newProcessObserved": true,
+    "pidChanged": true,
+    "status": "ok",
+    "reportedLaunchState": "COLD",
+    "intentReused": false,
+    "classification": "verified-cold-process-launch",
+    "appReadyLatencyMeasured": false
+  },
+  "activityTotalMs": 1376,
+  "firstUiObservedMs": 5524.233787000063,
+  "firstSceneObservedMs": 5524.238374000066,
+  "readinessScope": "Observed host elapsed upper bound from before cold-launch command to UIAutomator observation. Includes polling overhead; excludes server-data readiness. A scene marker is not compositor presentation.",
+  "initialScene": {
+    "automaticLightObserved": false,
+    "qualityTierObserved": "balanced",
+    "knownIds": [
+      "immersive-gl-ready",
+      "home-cinematic-scroll"
+    ],
+    "readiness": "gl-ready",
+    "mode": "gl",
+    "stateReasonCode": null,
+    "internalFailureCode": null,
+    "internalFailureObserved": false,
+    "retryPendingObserved": false,
+    "manualRetryControlObserved": false,
+    "manualLightDescriptionObserved": false,
+    "reducedMotionDescriptionObserved": false,
+    "genericSimplifiedTextObserved": false,
+    "xmlTruncated": false,
+    "rawUiPublished": false
+  },
+  "finalScene": {
+    "automaticLightObserved": true,
+    "qualityTierObserved": "light",
+    "knownIds": [
+      "immersive-scene-light",
+      "home-cinematic-scroll"
+    ],
+    "readiness": "light",
+    "mode": "automatic-light",
+    "stateReasonCode": null,
+    "internalFailureCode": null,
+    "internalFailureObserved": false,
+    "retryPendingObserved": false,
+    "manualRetryControlObserved": false,
+    "manualLightDescriptionObserved": false,
+    "reducedMotionDescriptionObserved": false,
+    "genericSimplifiedTextObserved": false,
+    "xmlTruncated": false,
+    "rawUiPublished": false
+  },
+  "qualityEquivalentAtEndpoints": false,
+  "hwui": {
+    "metric": "Android HWUI FrameCompleted minus IntendedVsync",
+    "p50Ms": 142.189946,
+    "p95Ms": 178.137541,
+    "capturedFrames": 120,
+    "rejectedRows": 0,
+    "capturedSlowFramesOver16_667Ms": 120,
+    "capturedSlowPercent": 100,
+    "capturedSpanMs": 8193.175428,
+    "totalUiFrames": 343,
+    "totalJankyUiFrames": 343,
+    "totalJankyUiPercent": 100,
+    "uiFramesPerTraceSecond": 9.73177353618262,
+    "interpretation": "Exact durations of available HWUI framestats rows; Android retains a bounded tail, not necessarily the entire trace. UI throughput is not display or ExpoGL FPS."
+  },
+  "memory": {
+    "samples": 36,
+    "sampledPeakPssKiB": 132163,
+    "sustainedMedianPssKiB": 129656,
+    "sustainedP95PssKiB": 130202,
+    "interpretation": "Process PSS sampled roughly once per second, including dumpsys overhead. The sampled maximum is a lower bound on the true continuous peak; sustained uses the final half of valid samples."
+  },
+  "presentation": {
+    "available": false,
+    "reason": "package-surfaceview-unavailable"
+  },
+  "cpu": {
+    "available": true,
+    "threadCpuTicks": {
+      "javascript": null,
+      "hwui-render": 1837,
+      "gl": null
+    },
+    "interpretation": "Linux per-thread utime+stime tick deltas for recognized thread names only. CPU time excludes blocking, GPU execution and unnamed/recreated threads; tick rate is not assumed."
+  },
+  "inputTrace": {
+    "protocol": "openminerals-native-gesture-trace-v1",
+    "specificationSha256": "1a48933715ea7e75cfb38bbd45807fd8350da58c3513d6d7666c4f170c85ac9a",
+    "compiledSha256": "0e30040ccbf227ed1328ee314a4968da933464450aaca3ce8021981db201c8b3",
+    "observedDurationMs": 35245.37420900003,
+    "events": [
+      {
+        "index": 0,
+        "segment": "advance",
+        "direction": "UP",
+        "startMs": 0.003456000005826354,
+        "inputCompletedMs": 2950.3339880000567,
+        "completedMs": 3200.4019809999736
+      },
+      {
+        "index": 1,
+        "segment": "advance",
+        "direction": "UP",
+        "startMs": 3200.407099000062,
+        "inputCompletedMs": 5263.282323000021,
+        "completedMs": 5513.410859000054
+      },
+      {
+        "index": 2,
+        "segment": "advance",
+        "direction": "UP",
+        "startMs": 5513.41700799996,
+        "inputCompletedMs": 7734.7974750000285,
+        "completedMs": 7984.381761000026
+      },
+      {
+        "index": 3,
+        "segment": "reverse",
+        "direction": "DOWN",
+        "startMs": 7984.386157999979,
+        "inputCompletedMs": 10094.130421999958,
+        "completedMs": 10344.372720999992
+      },
+      {
+        "index": 4,
+        "segment": "reverse",
+        "direction": "DOWN",
+        "startMs": 10344.377016999992,
+        "inputCompletedMs": 12424.617283000029,
+        "completedMs": 12674.404772000038
+      },
+      {
+        "index": 5,
+        "segment": "reverse",
+        "direction": "DOWN",
+        "startMs": 12674.41126199998,
+        "inputCompletedMs": 14627.534489999991,
+        "completedMs": 14877.36427400005
+      },
+      {
+        "index": 6,
+        "segment": "reverse",
+        "direction": "DOWN",
+        "startMs": 14877.368669999996,
+        "inputCompletedMs": 16825.64803000004,
+        "completedMs": 17075.348308000015
+      },
+      {
+        "index": 7,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 17075.352673999965,
+        "inputCompletedMs": 19097.382660000003,
+        "completedMs": 19347.38798999996
+      },
+      {
+        "index": 8,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 19347.393467999995,
+        "inputCompletedMs": 21378.86098800006,
+        "completedMs": 21628.39323200006
+      },
+      {
+        "index": 9,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 21628.39890999999,
+        "inputCompletedMs": 23664.085473999963,
+        "completedMs": 23914.435773000005
+      },
+      {
+        "index": 10,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 23914.440659999964,
+        "inputCompletedMs": 25972.057922999957,
+        "completedMs": 26222.412092000013
+      },
+      {
+        "index": 11,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 26222.416349000065,
+        "inputCompletedMs": 28358.581958999974,
+        "completedMs": 28608.351762000006
+      },
+      {
+        "index": 12,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 28608.356550000026,
+        "inputCompletedMs": 30563.441229999997,
+        "completedMs": 30813.39828600001
+      },
+      {
+        "index": 13,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 30813.404745999957,
+        "inputCompletedMs": 32752.870278000017,
+        "completedMs": 33002.43314099999
+      },
+      {
+        "index": 14,
+        "segment": "complete",
+        "direction": "UP",
+        "startMs": 33002.44274500001,
+        "inputCompletedMs": 34995.37316700001,
+        "completedMs": 35245.36832000001
+      }
+    ]
+  },
+  "physicalDevice": false,
+  "gpuExecutionTimeMeasured": false,
+  "jsThreadWallTimeMeasured": false
+}

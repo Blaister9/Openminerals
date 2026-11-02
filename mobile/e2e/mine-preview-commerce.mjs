@@ -36,7 +36,8 @@ export function r5Fixtures(env){
 export function r5BuildRecord(record){
   requireSafe(record?.demoOnly===true&&record.revision==='r5'&&record.versionCode===5&&record.status==='FINISHED','A finished R5 APK record is required.');
   requireSafe(record.package==='com.openminerals.demo.minepreview'&&record.version==='0.4.0'&&record.runtime==='0.4.0'&&record.channel==='mine-realism','R5 must retain its independent native identity.');
-  requireSafe(typeof record.sourceCommit==='string'&&/^[a-f0-9]{40}$/.test(record.sourceCommit),'R5 requires its independently checked EAS source commit.');
+  requireSafe(typeof record.sourceCommit==='string'&&/^[a-f0-9]{40}$/.test(record.sourceCommit),'R5 requires its independently checked build source commit.');
+  requireSafe(record.buildProvider===undefined||['eas','github-actions-local-signing'].includes(record.buildProvider),'Unknown R5 build provenance provider.');
   const value={url:apkUrl(record.apkUrl),digest:sha(record.apkSha256),certificate:sha(record.certificateSha256),sourceCommit:record.sourceCommit};
   requireSafe(record.sha256===value.digest&&record.certificate===value.certificate,'R5 evidence fields must agree with the pinned APK.');
   return value;
@@ -152,7 +153,7 @@ async function main(){
       const sdk=process.env.ANDROID_HOME||process.env.ANDROID_SDK_ROOT;requireSafe(sdk,'Android SDK required.');const versions=(await readdir(join(sdk,'build-tools'))).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})),tools=join(sdk,'build-tools',versions.at(-1));
       const badging=command(join(tools,'aapt'),['dump','badging',file]);
       const verified=verifyArtifact({kind:'after',info:manifest(badging),badging,files:command('unzip',['-Z1',file]),xml:command(join(tools,'aapt'),['dump','xmltree',file,'AndroidManifest.xml']),resources:command(join(tools,'aapt'),['dump','--values','resources',file]),bundle:command('unzip',['-p',file,'assets/index.android.bundle'],{binary:true}),signature:command(join(tools,'apksigner'),['verify','--verbose','--print-certs',file]),expectedCertificate:build.certificate});
-      await json('apk-verification.json',{demoOnly:true,sha256:build.digest,sourceCommit:build.sourceCommit,sourceBinding:'Independently checked EAS build record; workflow SHA alone does not prove APK source.',verificationCommit:process.env.GITHUB_SHA,...verified});
+      await json('apk-verification.json',{demoOnly:true,sha256:build.digest,sourceCommit:build.sourceCommit,sourceBinding:'Independently checked build provenance; verification workflow SHA alone does not prove APK source.',verificationCommit:process.env.GITHUB_SHA,...verified});
     });
     else if(mode==='preflight')await runStage('require-new-r5-private-fixtures-without-operations',connectFresh);
     else{

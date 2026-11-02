@@ -1,0 +1,274 @@
+{
+  "demoOnly": true,
+  "pair": "stable-r4",
+  "order": [
+    "A",
+    "B",
+    "B",
+    "A"
+  ],
+  "modes": [
+    "light",
+    "3d"
+  ],
+  "trace": {
+    "protocol": "openminerals-native-gesture-trace-v1",
+    "specificationSha256": "1a48933715ea7e75cfb38bbd45807fd8350da58c3513d6d7666c4f170c85ac9a",
+    "compiledSha256": "0e30040ccbf227ed1328ee314a4968da933464450aaca3ce8021981db201c8b3",
+    "display": {
+      "width": 1080,
+      "height": 1920
+    },
+    "gestures": [
+      {
+        "segment": "advance",
+        "direction": "UP",
+        "args": [
+          "shell",
+          "input",
+          "touchscreen",
+          "swipe",
+          "864",
+          "1536",
+          "864",
+          "346",
+          "1800"
+        ],
+        "settleMs": 250
+      },
+      {
+        "segment": "advance",
+        "direction": "UP",
+        "args": [
+          "shell",
+          "input",
+          "touchscreen",
+          "swipe",
+          "864",
+          "1536",
+          "864",
+          "346",
+          "1800"
+        ],
+        "settleMs": 250
+      },
+      {
+        "segment": "advance",
+        "direction": "UP",
+        "args": [
+          "shell",
+          "input",
+          "touchscreen",
+          "swipe",
+          "864",
+          "1536",
+          "864",
+          "346",
+          "1800"
+        ],
+        "settleMs": 250
+      },
+      {
+        "segment": "reverse",
+        "direction": "DOWN",
+        "args": [
+          "shell",
+          "input",
+          "touchscreen",
+          "swipe",
+          "864",
+          "346",
+          "864",
+          "1536",
+          "1800"
+        ],
+        "settleMs": 250
+      },
+      {
+        "segment": "reverse",
+        "direction": "DOWN",
+        "args": [
+          "shell",
+          "input",
+          "touchscreen",
+          "swipe",
+          "864",
+          "346",
+          "864",
+          "1536",
+          "1800"
+        ],
+        "settleMs": 250
+      },
+      {
+        "segment": "reverse",
+        "direction": "DOWN",
+        "args": [
+          "shell",
+          "input",
+          "touchscreen",
+          "swipe",
+          "864",
+          "346",
+          "864",
+          "1536",
+          "1800"
+        ],
+        "settleMs": 250
+      },
+      {
+        "segment": "reverse",
+        "direction": "DOWN",
+        "args": [
+          "shell",
+          "input",
+          "touchscreen",
+          "swipe",
+          "864",
+          "346",
+          "864",
+          "1536",
+          "1800"
+        ],
+        "settleMs": 250
+      },
+      {
+        "segment": "complete",
+        "direction": "UP",
+        "args": [
+          "shell",
+          "input",
+          "touchscreen",
+          "swipe",
+          "864",
+          "1536",
+          "864",
+          "346",
+          "1800"
+        ],
+        "settleMs": 250
+      },
+      {
+        "segment": "complete",
+        "direction": "UP",
+        "args": [
+          "shell",
+          "input",
+          "touchscreen",
+          "swipe",
+          "864",
+          "1536",
+          "864",
+          "346",
+          "1800"
+        ],
+        "settleMs": 250
+      },
+      {
+        "segment": "complete",
+        "direction": "UP",
+        "args": [
+          "shell",
+          "input",
+          "touchscreen",
+          "swipe",
+          "864",
+          "1536",
+          "864",
+          "346",
+          "1800"
+        ],
+        "settleMs": 250
+      },
+      {
+        "segment": "complete",
+        "direction": "UP",
+        "args": [
+          "shell",
+          "input",
+          "touchscreen",
+          "swipe",
+          "864",
+          "1536",
+          "864",
+          "346",
+          "1800"
+        ],
+        "settleMs": 250
+      },
+      {
+        "segment": "complete",
+        "direction": "UP",
+        "args": [
+          "shell",
+          "input",
+          "touchscreen",
+          "swipe",
+          "864",
+          "1536",
+          "864",
+          "346",
+          "1800"
+        ],
+        "settleMs": 250
+      },
+      {
+        "segment": "complete",
+        "direction": "UP",
+        "args": [
+          "shell",
+          "input",
+          "touchscreen",
+          "swipe",
+          "864",
+          "1536",
+          "864",
+          "346",
+          "1800"
+        ],
+        "settleMs": 250
+      },
+      {
+        "segment": "complete",
+        "direction": "UP",
+        "args": [
+          "shell",
+          "input",
+          "touchscreen",
+          "swipe",
+          "864",
+          "1536",
+          "864",
+          "346",
+          "1800"
+        ],
+        "settleMs": 250
+      },
+      {
+        "segment": "complete",
+        "direction": "UP",
+        "args": [
+          "shell",
+          "input",
+          "touchscreen",
+          "swipe",
+          "864",
+          "1536",
+          "864",
+          "346",
+          "1800"
+        ],
+        "settleMs": 250
+      }
+    ],
+    "gestureCount": 15,
+    "plannedDurationMs": 30750
+  },
+  "device": {
+    "api": 29,
+    "abi": "x86_64",
+    "renderer": "configured SwiftShader",
+    "physical": false
+  },
+  "samplingOverhead": "One independent process samples dumpsys PSS and optional SurfaceFlinger during each trace; both APKs use the identical sampler. No video is recorded."
+}

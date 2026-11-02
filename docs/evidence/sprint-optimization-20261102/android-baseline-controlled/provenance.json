@@ -1,0 +1,27 @@
+{
+  "demoOnly": true,
+  "run": 41466137890,
+  "job": 125347425152,
+  "url": "https://github.com/Blaister9/Openminerals/actions/runs/41466137890",
+  "jobUrl": "https://github.com/Blaister9/Openminerals/actions/runs/41466137890/job/125347425152",
+  "status": "completed",
+  "conclusion": "success",
+  "headCommit": "0c613cf6fcd9ec110b2d39effb189ed3fb9a01c6",
+  "event": "pull_request",
+  "runStartedAt": "2026-11-02T14:52:48Z",
+  "runUpdatedAt": "2026-11-02T15:09:12Z",
+  "copiedAtUtc": "2026-11-02T15:12:14.996Z",
+  "artifact": {
+    "id": 13154491653,
+    "name": "android-mine-controlled-profile-41466137890",
+    "digest": "sha256:025d15d0c1c12af40568730968d87b55a94bc6ec15773849b8056cb8660852f0",
+    "sizeBytes": 36868,
+    "expired": false,
+    "expiresAt": "2026-11-09T15:08:59Z"
+  },
+  "filesAreUnmodifiedPublicArtifactJson": true,
+  "privateDirectoriesCopied": false,
+  "physicalDevice": false,
+  "apkSourceScope": "apk-verification.json and r4-build-record.json pin distinct binary sources; workflow HEAD identifies the profiling harness only.",
+  "samplerScope": "Original checkout predates MainActivity app-window fallback, mqt_v_js recognition, shader markers and anonymous PNG capture. Those later capabilities were not exercised in this run."
+}

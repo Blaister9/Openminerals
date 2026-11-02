@@ -48,10 +48,31 @@ El sello conserva su campo de distancia, símbolos y relieve. Si está disponibl
 
 Mismo procedimiento de software, 360×640 y once poses; 66 muestras por condición. Construcción/primera finalización A: 70,3/125,0 → 63,3/128,3 ms; B: 64,2/111,0 → 57,6/107,3 ms. Son muestras únicas, no carga Android ni garantía de mejora de arranque. Recursos idénticos: hasta tres draws, 7.528 triángulos y 613.128 bytes de atributos. [Originales, fuentes, PNG y hashes seleccionados](evidence/sprint-optimization-20261102/software-provenance.json). No son FPS Android y no eliminan por sí solos la regresión nativa.
 
+Se comprobó también la resolución de software nativa prevista: a 216×384, p50/p95 completo 5,3/9,8 → 3,9/7,1 ms. A 576×1024: 30,4/54,7 → 22,4/38,4 ms. En ambos casos permanecen los mismos recursos. El software de escritorio a 1024 sigue siendo costoso. Construcción/primera finalización a 384: 52,9/88,3 → 60,7/104,9 ms; no hay mejora universal de carga inicial. [Originales y hashes por resolución](evidence/sprint-optimization-20261102/software-resolution-provenance.json).
+
 El bitmap ligero se volvió a generar desde el renderer actual: 360×640, 310.167 bytes, sin descarga externa. Para contrastar el coste UI se excluye de composición la superficie retenida cuando está pausada y se acota la capa alfa del lingote ligero manteniendo las mismas coordenadas de centro y sombra. El contexto permanece retenido para reanudar sin destruir una presentación pendiente. La eficacia y memoria de estos cambios necesitan el comparativo nativo; no se atribuyen a la causa de r4 solo por estar implementados.
+
+## Reproducción
+
+Desde la raíz, con dependencias móviles instaladas y Chrome en la ruta indicada:
+
+```powershell
+$env:OPENMINERALS_WEBGL_BROWSER='C:\Program Files\Google\Chrome\Application\chrome.exe'
+$env:OPENMINERALS_GEOLOGY_COST_CONDITIONS='r4-full,candidate'
+$env:OPENMINERALS_GEOLOGY_COST_CANDIDATE='all'
+node mobile/scripts/benchmark-geology-cost.mjs
+```
+
+El script extrae r4 de su SHA congelado y compara el código actual; crea un directorio nuevo en `artifacts/` y nunca reemplaza evidencia. Para otras resoluciones establecer juntos `OPENMINERALS_GEOLOGY_COST_WIDTH` y `OPENMINERALS_GEOLOGY_COST_HEIGHT`. La comparación de software excluye UI, desplazamiento Android, cola ExpoGL nativa y memoria de proceso.
+
+Los workflows `android-mine-profile.yml`, `android-mine-preview.yml` y `android-mine-preview-commerce.yml` operan exclusivamente en emuladores desechables de GitHub. El primero compara APK firmadas con la misma traza; el segundo conserva siete capítulos, modos, vídeo y reanudación; el tercero usa las seis credenciales privadas R5. Para repetir comercio se deben provisionar cuentas/mina nuevas y actualizar esos secretos: los fixtures usados fallan el preflight, no se reinician. Los observadores leen la API; las operaciones comerciales nacen en la UI.
 
 ## Estado de ejecución
 
-El perfil nativo controlado 0.3.0/r4 está en ejecución: [41466137890](https://github.com/Blaister9/Openminerals/actions/runs/41466137890), fuente del arnés `0c613cf`. Utiliza orden ABBA, dos repeticiones por APK/modo, la misma traza y un muestreador independiente para PSS/presentación. Los resultados todavía no se atribuyen a la app. Pico de PSS significa máximo **muestreado**, no máximo continuo. HWUI, presentación opcional, deltas CPU y disponibilidad observada se reportan con sus propios alcances.
+El perfil nativo controlado 0.3.0/r4 **aprobó ocho trazas**: [41466137890](https://github.com/Blaister9/Openminerals/actions/runs/41466137890), arnés `0c613cf`, API29/x86_64/SwiftShader, orden ABBA y dos repeticiones por APK/modo. La regresión ligera se reproduce 2/2: p95 HWUI 127,8/126,4 → 175,1/172,6 ms; throughput UI 16,75/16,27 → 10,13/10,35 frames/s; mediana PSS sostenida 113.770/110.505 → 128.912/131.217 KiB. Los picos muestreados son 120.249/117.619 → 134.797/139.695 KiB. RenderThread usa aproximadamente un 16 % más de ticks en r4. Son medias/comparaciones de dos resultados, sin afirmación de significancia estadística.
 
-APK r5, evidencia comparativa nativa y aceptación comercial autenticada: pendientes de construcción/ejecución. No fusionar en `main` ni declarar 60 FPS. La aceptación física continúa pendiente por decisión del propietario.
+Ambas trazas r4 iniciadas en 3D terminan en ligero automático; 0.3.0 conserva GL. No acreditan una mejora 3D sostenida. Los percentiles exactos provienen de las 120 filas HWUI finales (aproximadamente 6–8 s en ligero), no de todas las presentaciones. Todos los frames capturados superan 16,67 ms. Throughput UI no equivale a FPS de la app/GPU. Pico de PSS significa máximo **muestreado**, no máximo continuo. El profiler anterior no identificó los hilos JS/GL y buscó solo SurfaceView: sus campos nulos significan no medidos. El profiler r5 reconoce `mqt_v_js` y puede medir presentación de una única ventana MainActivity (UI más TextureView compuesto), siempre diferenciada de FPS de ExpoGL. [Resultados completos, límites y originales verificados](evidence/sprint-optimization-20261102/android-baseline-controlled/review.md).
+
+[APK r5 publicada](https://github.com/Blaister9/Openminerals/releases/download/android-mine-preview-0.4.0-r5-20261102/Openminerals-Mina-Preview-0.4.0-r5-android.apk): [EAS `41aae522-abab-44f6-b8c4-e89b99dc1aa8`](https://expo.dev/accounts/chipirips-team/projects/openminerals-demo/builds/41aae522-abab-44f6-b8c4-e89b99dc1aa8) **FINISHED**, fuente `a43345e9dee49cebd077b7520c79b7fc2b49be03`, versión 0.4.0/código 5. Se verificaron firma preview, runtime/canal, ABI para teléfono/emulador, API HTTPS, ausencia de debuggable y protecciones Updates. Bytes: 77.360.408; SHA-256 `7a3608be4a29996bb7d1713706669fd5acab12d73286f3931c1b45226145f4ec`. El digest de GitHub coincide con los bytes descargados e inspeccionados de EAS. [Registro público](evidence/sprint-optimization-20261102/r5-build.json). Se conservó el [registro original r4](evidence/sprint-optimization-20261102/r4-reference-build.json) antes de fijar el candidato nuevo.
+
+EAS estuvo en cola desde las 10:09 hasta las 10:51 de Bogotá y terminó a las 10:58. Se preparó una contingencia de compilación sin firma, pero no se ejecutó ni se recuperó material de firma; el APK publicado proviene de EAS y su firma remota existente. El SHA de fuente se publicó sin activar QA antes de disponer del binario. Ahora los tres workflows ejecutarán comparación r4/r5, visual/vídeo y comercio autenticado sobre exactamente este SHA-256. Evidencia comparativa nativa y aceptación comercial autenticada r5 pendientes de ejecución. No fusionar en `main` ni declarar 60 FPS. La aceptación física continúa pendiente por decisión del propietario.

@@ -1,0 +1,133 @@
+{
+  "format": "openminerals-evidence-manifest",
+  "version": 1,
+  "run": 41466137890,
+  "files": [
+    {
+      "file": "analysis.json",
+      "bytes": 11072,
+      "sha256": "6f8141a563345c03c115f520f1d8a4703f651c08a82ee8d825a1e26e689367c2"
+    },
+    {
+      "file": "apk-verification.json",
+      "bytes": 1577,
+      "sha256": "f4ff50eb7275ab46945f6dbefa269c774e6329331231eff67b2ba27735d77efb"
+    },
+    {
+      "file": "host-resources.json",
+      "bytes": 96,
+      "sha256": "be482ed6fe5df0a24a226a6d13718756ac100cc60143dfb0189d5d776144ed97"
+    },
+    {
+      "file": "protocol.json",
+      "bytes": 5278,
+      "sha256": "9438e46866d13f25533c9dd39bf9a98fc11974080976ba2f2bf0f831f4c1d49a"
+    },
+    {
+      "file": "provenance.json",
+      "bytes": 1259,
+      "sha256": "f9ea1c23175d16d375e87bf61d527c22208b5e2ba719d382e3a1d8a7e638c70d"
+    },
+    {
+      "file": "r4-build-record.json",
+      "bytes": 3466,
+      "sha256": "b93a05678e88a5f669e1459cffe3a118cbe30fc4a5cb31e81f290f95f16659fe"
+    },
+    {
+      "file": "review.md",
+      "bytes": 3440,
+      "sha256": "c7d16d4b76839292b09ee12ab49f775cb14a0c5e1ea775ff3a0dee3f81e2e0f0"
+    },
+    {
+      "file": "source-files.json",
+      "bytes": 4426,
+      "sha256": "7b7ed020c3584bbd6378024a9a87e87b556baaa41fae8ccd80cbbcd69727ce76"
+    },
+    {
+      "file": "summary.json",
+      "bytes": 67472,
+      "sha256": "4d25f2a57187ce49d61cc4b8aae2dedd16b0be3972d9431455bbd6bf6c1c8c9f"
+    },
+    {
+      "file": "trial-0-3d-sampling.json",
+      "bytes": 3075,
+      "sha256": "63c779662ceb86ebb95d4c19d648b69b0c0565f815bfcca2d22ab8c3e605dbb1"
+    },
+    {
+      "file": "trial-0-3d.json",
+      "bytes": 7385,
+      "sha256": "31a74e3d5a8c349ff3097025f6005067de68ca959f3e6a2d4ec7e8af7d2ac41e"
+    },
+    {
+      "file": "trial-0-light-sampling.json",
+      "bytes": 2957,
+      "sha256": "ad63b0c851b52b1ae26b75dc1e8168bd5a091f90d42bd225c49079f6b6b55461"
+    },
+    {
+      "file": "trial-0-light.json",
+      "bytes": 7373,
+      "sha256": "a8d0d1049b15d989bfefdcfa02d7c99eb279aa128277a1dfaa7eee0f61cf8476"
+    },
+    {
+      "file": "trial-1-3d-sampling.json",
+      "bytes": 2979,
+      "sha256": "c1f304cc447efde51169e034d6d144812037b6f1b90f7e0c4e89be30755a9248"
+    },
+    {
+      "file": "trial-1-3d.json",
+      "bytes": 7390,
+      "sha256": "3a66ada4b4fedb18e7bb58acc2da4c167af8c34d3a84650b296e8cd3e42f3d25"
+    },
+    {
+      "file": "trial-1-light-sampling.json",
+      "bytes": 2923,
+      "sha256": "60f3f409d833fc16bebef106af77a15d74d1e16cb90cf4980a7465509ffd091f"
+    },
+    {
+      "file": "trial-1-light.json",
+      "bytes": 7404,
+      "sha256": "03a9d1585ddb8662f50a087ea9dac15521a95d434ed94220b25e72704b4f17ed"
+    },
+    {
+      "file": "trial-2-3d-sampling.json",
+      "bytes": 2963,
+      "sha256": "981c186496f3cc60c4bfbe79928257e9a07fb03a5790f250c89646c2d8894dcf"
+    },
+    {
+      "file": "trial-2-3d.json",
+      "bytes": 7411,
+      "sha256": "f2ffff6694c1fe34dcb7d54af897e5f87d10719a51a1e6e64ac9dcb55cc39a64"
+    },
+    {
+      "file": "trial-2-light-sampling.json",
+      "bytes": 2935,
+      "sha256": "a2bbe25fc94a9e7d4e545afede7be51f34c8fad886e4ad3c4fde868cac280299"
+    },
+    {
+      "file": "trial-2-light.json",
+      "bytes": 7382,
+      "sha256": "546544003e8cbdd69fd63efb29a12cf15dd76e4869b9acfad899d9a1c47669d1"
+    },
+    {
+      "file": "trial-3-3d-sampling.json",
+      "bytes": 3029,
+      "sha256": "e9e1efb70c3f2e1ae62ad41424168d57d1c2f251bbd640383016ca5841373909"
+    },
+    {
+      "file": "trial-3-3d.json",
+      "bytes": 7393,
+      "sha256": "4c26e8c0857b120d959fdd8ce0ee4b2d0fb49e7771052358d6a6f1b24a9691a9"
+    },
+    {
+      "file": "trial-3-light-sampling.json",
+      "bytes": 2907,
+      "sha256": "723c4894a107e6702dbdb8f696c6b94eaa4a5cdaa1aa55b799f1e5811b51b4e2"
+    },
+    {
+      "file": "trial-3-light.json",
+      "bytes": 7395,
+      "sha256": "63f10745c7b5acf034519e699131c9018d3f3030d01aa0d8ff4f937a80f1b93d"
+    }
+  ],
+  "manifestExcludedFromOwnHashes": true
+}

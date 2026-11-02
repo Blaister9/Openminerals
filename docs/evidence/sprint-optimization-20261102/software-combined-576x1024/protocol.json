@@ -1,0 +1,24 @@
+{
+  "extractedFrom": "report.json#protocol",
+  "width": 576,
+  "height": 1024,
+  "poses": [
+    0,
+    0.08,
+    0.12,
+    0.2,
+    0.3,
+    0.35,
+    0.4,
+    0.5,
+    0.67,
+    0.83,
+    1
+  ],
+  "warmupRounds": 2,
+  "measuredRounds": 6,
+  "conditionOrder": "Forward on even rounds, reverse on odd rounds; one independent GL context per condition.",
+  "completionFence": "One gl.finish plus full-viewport RGBA readPixels per measured draw; transfer overhead included.",
+  "compilationExcludedFromFrameSamples": true,
+  "frameMetric": "Wall-clock renderer submission, software completion and full RGBA readback, not GPU-only or display frame time."
+}

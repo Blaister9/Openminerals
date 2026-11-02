@@ -1,5 +1,7 @@
 # Comparación Android de la mina experimental
 
+**Revisión actual: r5, 2 de noviembre de 2026.** El código espera versión/runtime 0.4.0, código Android **5**, paquete `com.openminerals.demo.minepreview` y canal `mine-realism`. La fuente de la app es `a43345e9dee49cebd077b7520c79b7fc2b49be03`; la construcción y resultados actuales se registran en [el informe de optimización](25-optimizacion-mina-r5.md). Las evidencias r4 y anteriores que siguen abajo son históricas y no se atribuyen a r5. El registro del candidato se actualiza solo al disponer de los bytes de la nueva APK y comprobar su firma; cambiar una expectativa del arnés no acredita una construcción.
+
 El workflow nuevo `.github/workflows/android-mine-preview.yml` compara dos APK en un mismo emulador desechable de GitHub: la entrega `0.3.0` y la aplicación independiente `com.openminerals.demo.minepreview`, versión/runtime `0.4.0`, código Android `4` para la revisión R4, canal `mine-realism`. Las revisiones R1/R2/R3 usaron códigos `1`/`2`/`3` y conservan su evidencia por separado. La expectativa de código del harness no acredita que el APK nuevo ya esté compilado o probado. No modifica los workflows, el paquete, los datos o el canal de la entrega estable. Todo el recorrido y sus operaciones son DEMO.
 
 ## Preparación y ejecución
@@ -96,4 +98,26 @@ Validación local del nuevo harness, sin utilizar dispositivos:
 ```powershell
 cd mobile
 node --test test/mine-preview-native.test.mjs
+```
+
+## R5: perfil controlado y aceptación autenticada
+
+`android-mine-profile.yml` compara la referencia congelada 0.3.0 con r4 si el manifiesto conserva r4; al fijar una APK r5 compara r4 con esos bytes. Cada par corre en orden ABBA, dos repeticiones por APK y modo, con las mismas coordenadas/15 gestos. Los dos APK preview comparten identificador: solo se reinstala ese paquete dentro del emulador desechable, sin credenciales, conservando UID/versión de la app estable. Nunca ejecutar esta limpieza en teléfono o un AVD personal.
+
+Los p50/p95 exactos proceden de la cola acotada de `gfxinfo framestats`: FrameCompleted menos IntendedVsync es latencia de la tubería HWUI, no FPS de ExpoGL. Se añaden segmentos de reloj cuando las columnas existen y son válidas: trabajo UI, espera de RenderThread, envío y tramo posterior a SwapBuffers. Incluyen esperas y planificación; no son CPU puro ni GPU aislada. El baseline `41466137890` usó el parser anterior, por lo que sus segmentos ausentes no se reconstruyen ni inventan.
+
+Un proceso independiente toma PSS aproximadamente cada segundo durante la misma traza. Pico significa máximo muestreado; sostenido usa la mediana y p95 de la última mitad de muestras. El muestreo tiene coste y es idéntico dentro de cada par. La presentación SurfaceFlinger se obtiene únicamente de una superficie exacta o una única ventana MainActivity; el segundo caso incluye UI más TextureView y nunca se etiqueta FPS de GL/GPU. Ambigüedad o falta de acceso devuelven no disponible. Los deltas CPU reconocen nombres reales de hilos y omiten los no identificados.
+
+Las capturas inicial/final están fuera del intervalo de gestos y del reset/lectura de métricas; son anónimas, con hashes y requieren revisión visual. Se proyectan únicamente contadores de dos marcas estáticas del shader, leídas para el PID propio después de la traza. Cero marcas no identifica una capacidad ausente: r4 no tiene esa instrumentación. Estados inicial/final equivalentes no prueban calidad constante durante toda la traza. El vídeo completo sigue perteneciendo al caso independiente `android-mine-preview.yml`.
+
+`android-mine-preview-commerce.yml` usa solo seis secretos **nuevos** `OPENMINERALS_MINE_R5_QA_*`, dos compradores y un operador de una mina llamada `Native QA DEMO r5-native-...`, con 5 g DEMO explícitos por metal, sin operaciones previas. No utiliza los secretos de QA anteriores ni el operador público para operaciones. Ejecuta 26 fases: pendiente offline de un centavo, reapertura y reintento sin duplicar; compra/venta autenticadas; oferta y liquidación entre compradores; certificados/procedencia; cotización, aceptación y tres estados de entrega; producción/verificación/recepción; panel Mina, perfil y persistencia. Producir/verificar no crea disponibilidad; solo la recepción DEMO aumenta el inventario.
+
+Los comandos comerciales nacen en la UI; el observador HTTP admite lecturas y login/logout. Verifica wallets, lotes, fees, historial y conservación de inventario antes y después de reabrir. El reintento offline antes de llegar al servidor no acredita pérdida de respuesta después de un commit; ese caso permanece identificado como no probado nativamente. Tampoco se atribuye reinicio del servicio PostgreSQL a la reapertura de la app.
+
+Maestro conserva sus salidas/capturas automáticas en directorios privados eliminados por fase y al finalizar. El artifact público contiene solo proyecciones cerradas, fases y resultados; nunca UI autenticada, alias, claves, tokens o dumps. Para repetir el caso comercial se deben provisionar fixtures nuevas y actualizar únicamente esos seis secretos: el preflight rechaza cuentas usadas y no borra/reset datos.
+
+Pruebas locales de estos arneses, sin acreditar ejecución Android:
+
+```powershell
+node --test mobile/test/mine-profile.test.mjs mobile/test/mine-preview-commerce.test.mjs
 ```

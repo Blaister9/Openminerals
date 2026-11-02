@@ -1,6 +1,7 @@
 // Causal renderer ablations in desktop SwiftShader only. No Android FPS claim.
 // OPENMINERALS_WEBGL_BROWSER=/path/to/chrome node mobile/scripts/benchmark-geology-cost.mjs
 // Optional OPENMINERALS_GEOLOGY_COST_DIR selects a NEW repo-relative output.
+// Optional OPENMINERALS_GEOLOGY_COST_WIDTH/HEIGHT must be set together, 64..2048.
 import {execFile,execFileSync} from 'node:child_process';
 import {promisify} from 'node:util';
 import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
@@ -13,6 +14,10 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 const mobile=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),repo=path.dirname(mobile);
 const browser=process.env.OPENMINERALS_WEBGL_BROWSER;
 if(!browser)throw Error('Set OPENMINERALS_WEBGL_BROWSER. This script only benchmarks desktop SwiftShader.');
+const widthInput=process.env.OPENMINERALS_GEOLOGY_COST_WIDTH,heightInput=process.env.OPENMINERALS_GEOLOGY_COST_HEIGHT;
+if((widthInput===undefined)!==(heightInput===undefined))throw Error('Set benchmark WIDTH and HEIGHT together.');
+const dimension=(input,fallback)=>{if(input===undefined)return fallback;if(!/^[1-9]\d{1,3}$/.test(input))throw Error('Benchmark dimensions must be decimal integers, 64..2048.');const value=Number(input);if(value<64||value>2048)throw Error('Benchmark dimensions must be decimal integers, 64..2048.');return value;};
+const width=dimension(widthInput,360),height=dimension(heightInput,640);
 const stamp=new Date().toISOString().replaceAll(/[:.]/g,'-');
 const output=path.resolve(repo,process.env.OPENMINERALS_GEOLOGY_COST_DIR||'artifacts/geology-cost-'+stamp);
 await mkdir(output);await mkdir(path.join(output,'sources'));
@@ -62,7 +67,7 @@ const compile=items=>'{'+Object.entries(items).map(([name,source])=>{
  const code=transformSync(source,{filename:name+'.ts',babelrc:false,configFile:false,plugins:[require.resolve('@babel/plugin-transform-typescript'),require.resolve('@babel/plugin-transform-modules-commonjs')]}).code;
  return JSON.stringify('./'+name+'.ts')+':function(require,module,exports){'+code+'}';
 }).join(',')+'}';
-const protocol={width:360,height:640,poses:[0,.08,.12,.2,.3,.35,.4,.5,.67,.83,1],warmupRounds:2,measuredRounds:6,conditionOrder:'Forward on even rounds, reverse on odd rounds; one independent GL context per condition.',completionFence:'One gl.finish plus full-viewport RGBA readPixels per measured draw; transfer overhead included.',compilationExcludedFromFrameSamples:true,frameMetric:'Wall-clock renderer submission, software completion and full RGBA readback, not GPU-only or display frame time.'};
+const protocol={width,height,poses:[0,.08,.12,.2,.3,.35,.4,.5,.67,.83,1],warmupRounds:2,measuredRounds:6,conditionOrder:'Forward on even rounds, reverse on odd rounds; one independent GL context per condition.',completionFence:'One gl.finish plus full-viewport RGBA readPixels per measured draw; transfer overhead included.',compilationExcludedFromFrameSamples:true,frameMetric:'Wall-clock renderer submission, software completion and full RGBA readback, not GPU-only or display frame time.'};
 const script=`const definitions=[${conditions.map(item=>`{id:${JSON.stringify(item.id)},modules:${compile(item.sources)}}`).join(',')}];
 const protocol=${JSON.stringify(protocol)},contexts=[];
 const complete=context=>{context.gl.finish();context.gl.readPixels(0,0,protocol.width,protocol.height,context.gl.RGBA,context.gl.UNSIGNED_BYTE,context.pixels);};
