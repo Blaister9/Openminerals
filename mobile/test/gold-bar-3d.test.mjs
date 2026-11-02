@@ -142,6 +142,7 @@ try{
   attribute('a_position',data.positions);attribute('a_normal',data.normals);
   const at=name=>{const result=gl.getUniformLocation(program,name);if(result===null)throw Error('Missing uniform');return result;};
   const uniforms={model:at('u_model'),mvp:at('u_mvp'),camera:at('u_camera'),light:at('u_light'),refinement:at('u_refinement'),surface:at('u_surface'),shadowAngle:at('u_shadowAngle')};
+  gl.uniform3f(at('u_metalColor'),.98,.77,.35);gl.uniform1f(at('u_roughness'),.24);gl.uniform1f(at('u_metalKind'),0);
   gl.viewport(0,0,data.width,data.height);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);gl.frontFace(gl.CCW);gl.clearColor(10/255,13/255,16/255,1);gl.clearDepth(1);
   const results=[];
   for(const frame of data.frames){

@@ -1,0 +1,51 @@
+{
+  "demoOnly": true,
+  "physicalDevice": false,
+  "attemptedAt": "2026-11-02T01:04:40.095Z",
+  "environment": "local Windows existing AVD",
+  "avd": "Medium_Phone_API_36.0",
+  "androidApi": 36,
+  "emulatorVersion": "35.5.10.0",
+  "display": {
+    "width": 1080,
+    "height": 2400,
+    "dpi": 420
+  },
+  "memoryMiB": 2048,
+  "guestCpus": 6,
+  "hypervisor": "WHPX available",
+  "renderer": "swiftshader_indirect",
+  "attempts": [
+    {
+      "options": [
+        "-no-window",
+        "-no-audio",
+        "-no-boot-anim"
+      ],
+      "result": "offline; VulkanVirtualQueue unsupported warning"
+    },
+    {
+      "options": [
+        "-no-window",
+        "-no-audio",
+        "-no-boot-anim",
+        "-no-snapshot-load",
+        "-feature",
+        "-Vulkan",
+        "-gpu",
+        "swiftshader_indirect"
+      ],
+      "result": "unauthorized; ADB RSA authorization required"
+    }
+  ],
+  "appInstalledByAgent": false,
+  "appLaunchedByAgent": false,
+  "dataCleared": false,
+  "deviceWiped": false,
+  "securityPromptAutomated": false,
+  "freshBaselineAvailable": false,
+  "phonePerformanceAcceptance": false,
+  "nextAction": "Use disposable GitHub emulator for fresh baseline and candidate with identical hardware/toolchain; local authorization must be handled manually.",
+  "localEmulatorOwnedProcessesStopped": true,
+  "localAvdDataPreserved": true
+}

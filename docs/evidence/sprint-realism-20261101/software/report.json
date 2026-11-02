@@ -1,0 +1,138 @@
+{
+  "environment": "desktop SwiftShader",
+  "android": false,
+  "ok": true,
+  "frames": [
+    {
+      "progress": 0,
+      "metal": "XAU",
+      "hash": 2164022114,
+      "colored": 230400,
+      "warm": 20021
+    },
+    {
+      "progress": 0.08333333333333333,
+      "metal": "XAU",
+      "hash": 1685501476,
+      "colored": 230400,
+      "warm": 15372
+    },
+    {
+      "progress": 0.16666666666666666,
+      "metal": "XAU",
+      "hash": 43179707,
+      "colored": 230400,
+      "warm": 46473
+    },
+    {
+      "progress": 0.25,
+      "metal": "XAU",
+      "hash": 1214174455,
+      "colored": 230400,
+      "warm": 37840
+    },
+    {
+      "progress": 0.3333333333333333,
+      "metal": "XAU",
+      "hash": 2133769933,
+      "colored": 230400,
+      "warm": 63706
+    },
+    {
+      "progress": 0.4166666666666667,
+      "metal": "XAU",
+      "hash": 588059864,
+      "colored": 89163,
+      "warm": 44104
+    },
+    {
+      "progress": 0.5,
+      "metal": "XAU",
+      "hash": 1564169678,
+      "colored": 148173,
+      "warm": 34492
+    },
+    {
+      "progress": 0.5833333333333334,
+      "metal": "XAU",
+      "hash": 3919186198,
+      "colored": 116677,
+      "warm": 27391
+    },
+    {
+      "progress": 0.6666666666666666,
+      "metal": "XAU",
+      "hash": 2823968313,
+      "colored": 83351,
+      "warm": 23622
+    },
+    {
+      "progress": 0.75,
+      "metal": "XAU",
+      "hash": 1212217414,
+      "colored": 148872,
+      "warm": 27500
+    },
+    {
+      "progress": 0.8333333333333334,
+      "metal": "XAU",
+      "hash": 4121300106,
+      "colored": 199188,
+      "warm": 28658
+    },
+    {
+      "progress": 0.9166666666666666,
+      "metal": "XAU",
+      "hash": 748526509,
+      "colored": 187941,
+      "warm": 33699
+    },
+    {
+      "progress": 1,
+      "metal": "XAU",
+      "hash": 3016505112,
+      "colored": 151989,
+      "warm": 35155
+    },
+    {
+      "progress": 0.5,
+      "metal": "XAU",
+      "hash": 1564169678,
+      "colored": 148173,
+      "warm": 34492
+    },
+    {
+      "progress": 0,
+      "metal": "XAU",
+      "hash": 2164022114,
+      "colored": 230400,
+      "warm": 20021
+    },
+    {
+      "progress": 0.8333333333333334,
+      "metal": "XAG",
+      "hash": 3192027130,
+      "colored": 199188,
+      "warm": 0
+    },
+    {
+      "progress": 0.8333333333333334,
+      "metal": "XPT",
+      "hash": 2203526655,
+      "colored": 199188,
+      "warm": 0
+    },
+    {
+      "progress": 0.8333333333333334,
+      "metal": "XPD",
+      "hash": 1911236149,
+      "colored": 199188,
+      "warm": 0
+    }
+  ],
+  "resources": {
+    "buffers": 0,
+    "shaders": 0,
+    "programs": 0
+  }
+}

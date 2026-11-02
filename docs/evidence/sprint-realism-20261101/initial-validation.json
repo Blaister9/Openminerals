@@ -1,0 +1,69 @@
+{
+  "testedAt": "2026-11-01 America/Bogota",
+  "sourceSha": "ed87d2ea233227437ab5f5cc2eb0900674e1231f",
+  "phase": "initial stable baseline before visual source edits",
+  "node": "22.22.3",
+  "npm": "10.9.8",
+  "dependencies": {
+    "api": "npm ci --no-audit --no-fund PASS",
+    "mobile": "npm ci --no-audit --no-fund PASS; postinstall toolchain patch applied only to ignored node_modules",
+    "packageLocksChanged": false
+  },
+  "api": {
+    "command": "npm test",
+    "total": 102,
+    "passed": 91,
+    "failed": 0,
+    "skipped": 11,
+    "skippedReason": "PostgreSQL suites require TEST_DATABASE_URL and ran separately below",
+    "durationMs": 19817.304
+  },
+  "postgres": {
+    "command": "npm run test:postgres",
+    "mode": "disposable local PostgreSQL 17.4, trust auth, loopback 127.0.0.1:5549",
+    "total": 80,
+    "passed": 80,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 14657.939,
+    "isolatedServerStopped": true,
+    "noRailwayAccess": true
+  },
+  "apiSmoke": {
+    "command": "npm start (PORT=3117, DATABASE_URL empty, REQUIRE_DATABASE=false); npm run smoke -- http://localhost:3117",
+    "mode": "local memory-demo",
+    "result": "PASS",
+    "checks": [
+      "health",
+      "USD to USDT",
+      "buy 2g and idempotency",
+      "sell 0.5g",
+      "offer and delivery quote",
+      "session state and operator summary"
+    ],
+    "serverStopped": true
+  },
+  "mobile": {
+    "command": "npm test",
+    "total": 254,
+    "passed": 252,
+    "failed": 0,
+    "skipped": 2,
+    "skippedReason": "Optional software-WebGL tests require OPENMINERALS_WEBGL_BROWSER; not configured for this initial run",
+    "durationMs": 29446.7681,
+    "typecheck": "npm run check PASS",
+    "expoCompatibility": "npx expo install --check PASS",
+    "expoDoctor": "npx expo-doctor PASS 21/21",
+    "toolchain": "npm run check:toolchain PASS, 3 verified entries, 0 additional changes"
+  },
+  "audits": {
+    "api": "npm audit --audit-level=high PASS: 0 vulnerabilities",
+    "mobile": "npm audit --audit-level=high PASS: 13 findings (2 low,11 moderate), 0 high/critical; no audit fix run"
+  },
+  "limitations": [
+    "No physical Android performance or visual acceptance in these checks",
+    "No Railway restart, deployment or mutation",
+    "No iOS work",
+    "Raw output .log files exist locally and are ignored by repository *.log rule"
+  ]
+}
