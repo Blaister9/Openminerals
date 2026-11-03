@@ -1,5 +1,7 @@
 # Activación aislada de Mercado · Android DEMO
 
+**Cierre técnico de permisos:** [preguntas preparadas para Metals.Dev, ruta de autorización Coinbase y configuración pendiente](28-permisos-proveedores-mercado.md). Las guardas permanecen activas; no se repiten consultas aprobadas ni se amplía el módulo.
+
 Continuación de PR #12, base `2a54f672845e9f24c5bf9f998c602ee761851e14`. La CI anterior queda conservada: [104 API, 85 PostgreSQL y 257 móviles aprobadas](https://github.com/Blaister9/Openminerals/actions/runs/41510125815), dos GL opcionales omitidas. No se modifican `main`, PR #11 ni los datos de la demo comercial. No se genera APK, OTA, vídeo o captura durante esta activación.
 
 **Clave disponible y verificada:** el propietario suministró acceso Metals.Dev, configurado únicamente como secreto del servidor aislado. La sonda interna acotada aprobó cuatro spots y cuatro series diarias usando cinco consultas de datos y una lectura de cuota. El proveedor informó plan Free, **6/100 usadas, 94 restantes** a `2026-11-02T23:40:46.740Z`. No se repite la sonda: queda un marcador persistente con el resumen, sin archivo numérico de precios. Los derechos de publicación móvil/archivo y los de USDT siguen pendientes; no se declara aceptación Android ni tiempo real.
