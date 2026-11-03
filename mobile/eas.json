@@ -1,6 +1,13 @@
 {
   "cli": { "version": ">= 18.0.0", "appVersionSource": "local" },
   "build": {
+    "notifications-preview": {
+      "environment": "development",
+      "channel": "notifications-demo",
+      "distribution": "internal",
+      "env": {"OPENMINERALS_NOTIFICATIONS_PREVIEW":"1","EXPO_PUBLIC_NOTIFICATIONS":"1"},
+      "android": {"buildType":"apk"}
+    },
     "development": { "developmentClient": true, "distribution": "internal" },
     "preview": {
       "environment": "preview",

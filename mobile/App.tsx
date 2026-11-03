@@ -19,6 +19,7 @@ import {MarketplacePanel} from './components/MarketplacePanel';
 import {DeliveryPanel} from './components/DeliveryPanel';
 import {ManagementPanel} from './components/ManagementPanel';
 import {AccountSettings} from './components/AccountSettings';
+import {NotificationCenter} from './components/NotificationCenter';
 import {DemoUpdates} from './components/DemoUpdates';
 import {MetalEmblem,PortfolioComposition} from './components/PortfolioComposition';
 import {IntakePanel} from './components/IntakePanel';
@@ -83,6 +84,7 @@ function Card({children}:{children:React.ReactNode}){return <View style={styles.
 function Sub({children}:{children:React.ReactNode}){return <Text style={styles.subhead}>{children}</Text>}
 function Row({left,right}:{left:string;right:string}){return <View style={styles.row}><Text style={styles.muted}>{left}</Text><Text style={styles.rowValue}>{right}</Text></View>}
 export default function App(){
+ const [notificationsVisible,setNotificationsVisible]=useState(false);
  const [session,setSession]=useState('');
  const [state,setState]=useState<State|null>(null);
  const [summary,setSummary]=useState<Summary|null>(null);
@@ -355,6 +357,7 @@ export default function App(){
    <Text style={styles.copy}>{state?.legacyReadOnly?'Esta sesión permanece en consulta. Entra en la cuenta vinculada para continuar con sus saldos e historial.':'Crea una cuenta para recuperar tus datos en otro dispositivo y operar con el inventario compartido de la mina. Puedes conservar esta sesión al crearla.'}</Text>
    <View style={styles.hRow}>{!state?.legacyReadOnly&&<Button label="Crear cuenta demo" disabled={busy||authBusy||!!pending} onPress={()=>openAccount('register')}/>}<Button label="Entrar en una cuenta" secondary disabled={busy||authBusy} onPress={()=>openAccount('login')}/></View>
   </>}
+ {account&&process.env.EXPO_PUBLIC_NOTIFICATIONS==='1'&&<Button label="Notificaciones y alertas DEMO" secondary disabled={tradingBlocked} onPress={()=>setNotificationsVisible(true)}/>}
  </Card>}
  function accountPage(){return <><Text style={styles.eyebrow}>ACCESO A LA DEMOSTRACIÓN</Text><Text style={styles.pageTitle}>Cuenta</Text>{accountCard()}<Text style={styles.copy}>Los roles y el inventario son de prueba. No hay verificación de identidad, pagos, reservas físicas ni custodio conectado.</Text><Text style={styles.copy}>Para usar la misma cuenta en otro dispositivo, entra con el mismo alias y su clave exclusiva de demostración.</Text><DemoUpdates disabled={busy||authBusy||!!pending||authExpired||!!accountRecovery}/></>}
  function openHomeAction(target:HomeDestination){
@@ -539,6 +542,7 @@ export default function App(){
    onClose={closeReceipt} onRetry={()=>{if(receiptToFetch.current)void openReceipt(receiptToFetch.current,undefined,receiptOwner.current??undefined);}}
    onHistory={()=>{closeReceipt();setTab(isOperator?'Mina':'Más');}}/>
   <StockReceiptDetails receipt={stockReceipt} onClose={()=>setStockReceipt(null)}/>
+  {process.env.EXPO_PUBLIC_NOTIFICATIONS==='1'&&account&&<NotificationCenter key={account.id} api={API} accountId={account.id} client={client} visible={notificationsVisible} disabled={tradingBlocked} onOpen={()=>setNotificationsVisible(true)} onClose={()=>setNotificationsVisible(false)}/>}
   {settingsVisible&&account&&<Modal visible onRequestClose={()=>setSettingsVisible(false)} animationType="none" presentationStyle="pageSheet"><SafeAreaProvider><SafeAreaView style={styles.screen}><View style={styles.identityBar}><Text style={[styles.cardTitle,{flex:1}]}>Perfil de demostración</Text><Pressable accessibilityRole="button" style={styles.accountLink} onPress={()=>setSettingsVisible(false)}><Text style={styles.accountLinkText}>Cerrar</Text></Pressable></View><ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled"><AccountSettings key={account.id} identityKey={account.id} account={account} disabled={busy||authBusy||!!pending||authExpired} getProfile={client.getProfile} saveProfile={client.updateProfile} setupRecovery={client.setupRecovery} onAuthExpired={()=>{setSettingsVisible(false);setAuthExpired(true);}}/></ScrollView></SafeAreaView></SafeAreaProvider></Modal>}
   {storyVisible&&<Modal visible onRequestClose={()=>setStoryVisible(false)} animationType="none"><SafeAreaProvider><SafeAreaView style={styles.screen}><View style={styles.identityBar}><Text style={[styles.cardTitle,{flex:1}]}>OPENMINERALS · DEMO</Text><Pressable accessibilityRole="button" style={styles.accountLink} onPress={()=>setStoryVisible(false)}><Text style={styles.accountLinkText}>Cerrar presentación</Text></Pressable></View><Animated.ScrollView ref={presentationRef} removeClippedSubviews={false} style={{flex:1}} contentContainerStyle={styles.cinematicBody} contentInsetAdjustmentBehavior="never" onLayout={event=>setPresentationHeight(event.nativeEvent.layout.height)} onScroll={Animated.event([{nativeEvent:{contentOffset:{y:presentationScrollY}}}],{useNativeDriver:true})} scrollEventThrottle={16}><MetalStory scrollY={presentationScrollY} viewportHeight={presentationHeight} onSeek={y=>presentationRef.current?.scrollTo({y,animated:false})} onSkip={()=>{setStoryVisible(false);if(!isOperator)openHomeAction('Mercado');}} onAction={target=>{setStoryVisible(false);if(!isOperator)openHomeAction(target);}}/></Animated.ScrollView></SafeAreaView></SafeAreaProvider></Modal>}
   <AccountAccess visible={authVisible} initialMode={authMode} account={account} mineName={mineIdentity?.name} recoveryAlias={recoveryAlias} expired={authExpired} busy={authBusy} pending={!!pending} canImportLegacy={!account&&!!state&&!state.legacyReadOnly} legacyReadOnly={!!state?.legacyReadOnly}
