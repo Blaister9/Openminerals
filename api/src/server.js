@@ -73,6 +73,10 @@ export function createApiServer(store,config={}){
       // A supplied bearer is always checked, never downgraded to the legacy header.
       const token=bearerToken(req.headers.authorization);
       const identity=token?await store.authenticate(token):null;
+      if(req.method==='GET'&&path==='/api/demo/digital-units'){
+        const {account}=requireIdentity(identity);
+        return send(res,200,await store.getDigitalUnits(account.id,url.searchParams));
+      }
       if(req.method==='GET'&&path==='/api/demo/accounts/me')return send(res,200,requireIdentity(identity));
       if(req.method==='GET'&&path==='/api/demo/accounts/profile'){
         const {account}=requireIdentity(identity);return send(res,200,await store.getProfile(account.id));
@@ -120,6 +124,11 @@ export function createApiServer(store,config={}){
       }
       if(path.startsWith('/api/demo/mine/')){
         const {account}=requireIdentity(identity);
+        if(req.method==='GET'&&path==='/api/demo/mine/digital-units'){
+          if(account.role!=='operator')throw accountError(403,'Requiere operador DEMO.','FORBIDDEN');
+          return send(res,200,await store.getDigitalUnits(account.id,url.searchParams));
+        }
+        if(req.method==='GET'&&path==='/api/demo/mine/digital-units/intents')return send(res,200,await store.getDigitalUnits(account.id,url.searchParams,{exportIntents:true}));
         if(req.method==='GET'&&path==='/api/demo/mine/summary')return send(res,200,await store.getMineSummary(account.id));
         if(req.method==='GET'&&path==='/api/demo/mine/intake')return send(res,200,await store.getIntake(account.id));
         if(req.method==='POST'&&['intake_produce','intake_verify','intake_receive'].some(action=>path==='/api/demo/mine/'+action)){
