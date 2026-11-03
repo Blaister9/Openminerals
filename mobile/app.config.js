@@ -13,5 +13,20 @@ module.exports = ({config}) => {
       throw new Error('EXPO_PUBLIC_API_URL debe apuntar a la API pública HTTPS, sin credenciales, consulta ni fragmento.');
     }
   }
-  return {...config, extra: {...config.extra, demoOnly: true}};
+  const preview=process.env.OPENMINERALS_NOTIFICATIONS_PREVIEW==='1';
+  if(process.env.EXPO_PUBLIC_NOTIFICATIONS==='1'&&!preview)throw new Error('Notifications require the independent preview app.');
+  if(!preview)return {...config, extra: {...config.extra, demoOnly: true}};
+  if(process.env.EXPO_PUBLIC_NOTIFICATIONS!=='1')throw new Error('Notifications preview screen flag is required.');
+  const isolated=process.env.NOTIFICATIONS_API_URL?.trim();
+  let previewUrl;try{previewUrl=new URL(api);}catch{}
+  if(!api||api!==isolated||previewUrl?.protocol!=='https:'||previewUrl.username||previewUrl.password||previewUrl.search||previewUrl.hash||['localhost','127.0.0.1','openminerals-api-demo.up.railway.app','openminerals-market-api-market-reference.up.railway.app'].includes(previewUrl.hostname))throw new Error('Configure an isolated notifications HTTPS API; existing demos are forbidden.');
+  const projectId=process.env.EXPO_PUBLIC_NOTIFICATIONS_PROJECT_ID;
+  if(projectId&&(!/^[a-f0-9-]{36}$/.test(projectId)||projectId===config.extra?.eas?.projectId))throw new Error('Use a separate Expo project for notifications.');
+  if(isEasBuild&&!projectId)throw new Error('Configure the separate Expo/Firebase project before an Android build.');
+  const extra={...config.extra,demoOnly:true,notificationsPreview:true,notificationsProjectId:projectId};delete extra.eas;
+  if(projectId)extra.eas={projectId};
+  return {...config,name:'Openminerals Alertas Preview',slug:'openminerals-alerts-preview',scheme:'openminerals-alerts-preview',runtimeVersion:'notifications-demo-0.3.0-v1',
+    updates:projectId?{...config.updates,url:'https://u.expo.dev/'+projectId}:{...config.updates,enabled:false},
+    android:{...config.android,package:'com.openminerals.demo.notificationspreview',versionCode:1,...(process.env.NOTIFICATIONS_GOOGLE_SERVICES_FILE?{googleServicesFile:process.env.NOTIFICATIONS_GOOGLE_SERVICES_FILE}:{})},
+    plugins:[...(config.plugins??[]),'expo-notifications'],extra};
 };

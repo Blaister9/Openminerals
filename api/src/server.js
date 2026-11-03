@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {createStore,validateSessionId} from './store.js';
 import {DomainError,METALS,operatorSummary} from './domain.js';
 import {historyPage,parseHistoryQuery,readReceipt} from './receipt-history.js';
-import {accountError,bearerToken,adminMatches,createAuthLimiter} from './account-auth.js';
+import {accountError,bearerToken,adminMatches,createAuthLimiter,tokenHash} from './account-auth.js';
 
 const API_VERSION=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8')).version;
 const ACTIONS=new Set(['deposit','withdraw','convert','buy','sell','offer','cancel_offer','delivery','cancel_delivery']);
@@ -73,6 +73,19 @@ export function createApiServer(store,config={}){
       // A supplied bearer is always checked, never downgraded to the legacy header.
       const token=bearerToken(req.headers.authorization);
       const identity=token?await store.authenticate(token):null;
+      if(path==='/api/demo/notifications'&&req.method==='GET')return send(res,200,await store.getNotifications(requireIdentity(identity).account.id,url.searchParams));
+      if(path.startsWith('/api/demo/notifications/')&&req.method==='POST'){
+        const {account}=requireIdentity(identity),body=await readJson(req),action=path.slice('/api/demo/notifications/'.length);
+        if(action==='preferences'){onlyKeys(body,['enabled','push','purchases','sales','offers','deliveries','priceAlerts']);return send(res,200,await store.notificationPreferences(account.id,body));}
+        if(action==='read'){onlyKeys(body,['id','all']);return send(res,200,await store.readNotifications(account.id,body));}
+        if(action==='devices'){onlyKeys(body,['installationId','installationKey','platform','permission','consent','token','reactivate']);return send(res,200,await store.registerPushDevice(account.id,tokenHash(token),body));}
+        if(action==='devices/revoke'){onlyKeys(body,['id']);return send(res,200,await store.revokePushDevice(account.id,body.id));}
+        if(action==='devices/release'){onlyKeys(body,['installationId','installationKey']);return send(res,200,await store.releasePushInstallation(account.id,body));}
+        if(action==='alerts'){onlyKeys(body,['id','metal','direction','threshold','enabled','source','cooldownSeconds']);return send(res,200,await store.savePriceAlert(account.id,body));}
+        if(action==='alerts/delete'){onlyKeys(body,['id']);return send(res,200,await store.deletePriceAlert(account.id,body.id));}
+        if(action==='demo-price'){onlyKeys(body,['sampleId','metal','price','source']);return send(res,200,await store.demoPriceSample(account.id,body));}
+        return send(res,404,{error:'Acción de notificación no disponible.'});
+      }
       if(req.method==='GET'&&path==='/api/demo/accounts/me')return send(res,200,requireIdentity(identity));
       if(req.method==='GET'&&path==='/api/demo/accounts/profile'){
         const {account}=requireIdentity(identity);return send(res,200,await store.getProfile(account.id));
@@ -200,6 +213,10 @@ export async function start(){
   const server=createApiServer(store);
   const port=Number(process.env.PORT||3000);
   server.listen(port,'0.0.0.0',()=>console.log(`Openminerals DEMO API ${port} (${store.mode})`));
+  if(process.env.DEMO_NOTIFICATIONS_ENABLED==='true'&&process.env.DEMO_PUSH_SEND_ENABLED==='true'){
+    let running=false;const timer=setInterval(async()=>{if(running)return;running=true;try{await store.dispatchNotifications();}catch{console.error('DEMO notification dispatch failed');}finally{running=false;}},30000);
+    timer.unref();server.once('close',()=>clearInterval(timer));
+  }
   return {server,store};
 }
 if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]){

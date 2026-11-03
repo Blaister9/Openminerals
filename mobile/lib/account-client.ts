@@ -1,4 +1,5 @@
 import {createDemoClient,RequestError,type Storage,type PendingOperation} from './demo-client.ts';
+import {parseNotificationCenter,type NotificationPreferences,type PriceAlert} from './notifications.ts';
 
 export type PublicAccount={id:string;alias:string;role:'buyer'|'operator';mineId:string};
 export type PublicMine={id:string;name:string};
@@ -312,6 +313,15 @@ export function createAccountClient({api,storage,authStorage,uuid,fetchImpl=fetc
   }
   return {
     initialize,get,register,login,logout,getProfile,updateProfile,setupRecovery,startRecovery,completeRecovery,cancelRecovery,
+    getNotifications:async(before?:string)=>parseNotificationCenter(await get('/api/demo/notifications'+(before?'?before='+encodeURIComponent(before):''))),
+    notificationPreferences:(patch:Partial<NotificationPreferences>)=>withAccountSettings((account,token)=>request('/api/demo/notifications/preferences',{token,body:patch})),
+    readNotifications:(body:{id?:string;all?:boolean})=>withAccountSettings((account,token)=>request('/api/demo/notifications/read',{token,body})),
+    registerPushDevice:(body:Record<string,unknown>)=>withAccountSettings((account,token)=>request('/api/demo/notifications/devices',{token,body})),
+    releasePushInstallation:(body:{installationId:string;installationKey:string})=>withAccountSettings((account,token)=>request('/api/demo/notifications/devices/release',{token,body})),
+    revokePushDevice:(id:string)=>withAccountSettings((account,token)=>request('/api/demo/notifications/devices/revoke',{token,body:{id}})),
+    savePriceAlert:(body:{id:string;metal:PriceAlert['metal'];direction:PriceAlert['direction'];threshold:string;enabled:boolean;source:'demo';cooldownSeconds?:number})=>withAccountSettings((account,token)=>request('/api/demo/notifications/alerts',{token,body})),
+    deletePriceAlert:(id:string)=>withAccountSettings((account,token)=>request('/api/demo/notifications/alerts/delete',{token,body:{id}})),
+    demoPriceSample:(body:{sampleId:string;metal:PriceAlert['metal'];price:string;source:'demo'})=>withAccountSettings((account,token)=>request('/api/demo/notifications/demo-price',{token,body})),
     submit:(action:string,body:Record<string,string>,title:string)=>mutate(client=>client.submit(action,body,title)),
     retry:()=>mutate(client=>client.retry()),
     getPending:()=>current.getPending(),
