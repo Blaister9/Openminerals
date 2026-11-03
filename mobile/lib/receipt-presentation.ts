@@ -1,4 +1,5 @@
 import {deliveryStatuses,deliveryStatusLabel,type DeliveryPolicy,type DeliveryQuote,type DeliveryStatus} from './delivery.ts';
+import type {CommercialQuote} from './market-reference.ts';
 export type ReceiptCurrency='COP'|'EUR'|'USD'|'USDT';
 export type ReceiptMetal='XAU'|'XAG'|'XPT'|'XPD';
 type Reservation={id:string;metal:ReceiptMetal;mg:number;status:string;createdAt?:string;priceMinorPerGram?:number};
@@ -21,6 +22,7 @@ export type Receipt={
   outputMinor?:number;
   rateDemo?:number;
   priceCentsPerGram?:number;
+  marketQuote?:CommercialQuote;
   priceMinorPerGram?:number;
   baseMinor?:number;
   feeMinor?:number;
@@ -132,6 +134,10 @@ export function receiptDetails(receipt:Receipt):ReceiptDetail[] {
   const mg=receiptMg(receipt);
   if(metal)rows.push({label:'Metal',value:metals[metal]??metal});
   if(amountRecorded(mg))rows.push({label:'Cantidad',value:grams(mg)});
+  if(receipt.marketQuote){
+    const quote=receipt.marketQuote;
+    rows.push({label:'Cotización comercial DEMO',value:quote.id},{label:'Referencia externa',value:`${quote.reference.provider} · ${quote.reference.asOf}`},{label:'Referencia USDT/USD',value:`${quote.exchange.provider} · ${quote.exchange.asOf}`},{label:'Vigencia acordada',value:`${quote.issuedAt} — ${quote.expiresAt}`},{label:'Diferencial / comisión DEMO',value:`${percent(quote.spreadBps)} / ${percent(quote.feeBps)}`});
+  }
   if(receipt.action.startsWith('intake_')){
     rows.push({label:'Producción DEMO',value:receipt.batchId??missing});
     rows.push({label:'Etapa simulada',value:({PRODUCED_DEMO:'Producido, sin verificar',VERIFYING_DEMO:'En verificación',RECEIVED_DEMO:'Recibido en custodia DEMO'} as Record<string,string>)[receipt.stage??'']??missing});

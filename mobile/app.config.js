@@ -1,5 +1,5 @@
 // Expo replaces EXPO_PUBLIC_API_URL in the JavaScript bundle at build time.
-// Refuse an installable EAS build that cannot reach the HTTPS demo backend.
+// Keep the existing EAS HTTPS protection for every profile.
 module.exports = ({config}) => {
   const api = process.env.EXPO_PUBLIC_API_URL?.trim();
   const isEasBuild = process.env.EAS_BUILD === 'true' || Boolean(process.env.EAS_BUILD_PROFILE);
@@ -13,5 +13,11 @@ module.exports = ({config}) => {
       throw new Error('EXPO_PUBLIC_API_URL debe apuntar a la API pública HTTPS, sin credenciales, consulta ni fragmento.');
     }
   }
-  return {...config, extra: {...config.extra, demoOnly: true}};
+  if(process.env.EXPO_PUBLIC_MARKET_REFERENCE==='1'&&process.env.OPENMINERALS_MARKET_PREVIEW!=='1')throw new Error('Market screen requires the separate market preview app.');
+  if(process.env.OPENMINERALS_MARKET_PREVIEW!=='1')return {...config, extra: {...config.extra, demoOnly: true}};
+  if(process.env.EXPO_PUBLIC_MARKET_REFERENCE!=='1')throw new Error('Market preview requires its reference screen flag.');
+  if(api!=='https://openminerals-market-api-market-reference.up.railway.app')throw new Error('Market preview must use its isolated HTTPS API.');
+  return {...config,name:'Openminerals Mercado Preview',scheme:'openminerals-market-preview',runtimeVersion:'market-reference-0.3.0-v1',
+    android:{...config.android,package:'com.openminerals.demo.marketpreview',versionCode:1},
+    extra:{...config.extra,demoOnly:true,marketPreview:true,marketApi:api}};
 };

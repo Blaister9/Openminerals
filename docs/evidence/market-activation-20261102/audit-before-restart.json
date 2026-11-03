@@ -1,0 +1,49 @@
+{
+  "observedAt": "2026-11-02T23:51:22.405Z",
+  "demoOnly": true,
+  "readOnly": true,
+  "database": "openminerals_market_reference",
+  "environmentId": "c4c1afd1-2ed7-40e1-8955-f173a6880518",
+  "apiServiceId": "373995aa-3925-4e3e-a74b-7ca652bb713e",
+  "deploymentId": "eeb01607-0492-499c-85e0-c80b1ee5cd73",
+  "configured": {
+    "metalsKey": true,
+    "metalsDisplay": false,
+    "metalsStorage": false,
+    "usdtUse": false
+  },
+  "cache": [
+    {
+      "key": "fx:fiat",
+      "retrieved_at": "2026-11-02T23:42:19.820Z",
+      "cache_until": "1793666539820"
+    },
+    {
+      "key": "qa:metal-probe:20261102-v1",
+      "retrieved_at": null,
+      "cache_until": null
+    }
+  ],
+  "usage": [
+    {
+      "provider": "frankfurter",
+      "day": "2026-11-02",
+      "count": 1
+    },
+    {
+      "provider": "frankfurter:month",
+      "day": "2026-11-01",
+      "count": 1
+    },
+    {
+      "provider": "metals.dev",
+      "day": "2026-11-02",
+      "count": 6
+    },
+    {
+      "provider": "metals.dev:month",
+      "day": "2026-11-01",
+      "count": 6
+    }
+  ]
+}

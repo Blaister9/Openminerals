@@ -1,0 +1,188 @@
+{
+  "observedAt": "2026-11-02T23:51:16.210Z",
+  "base": "https://openminerals-market-api-market-reference.up.railway.app",
+  "phase": "before",
+  "demoOnly": true,
+  "metalsProviderRequestsInitiated": 0,
+  "endpoints": [
+    {
+      "path": "/api/demo/market/metals/XAU",
+      "status": 200,
+      "data": {
+        "status": "permission-required",
+        "data": null,
+        "demoOnly": true,
+        "errorCode": "METALS_DISPLAY_PERMISSION_REQUIRED"
+      }
+    },
+    {
+      "path": "/api/demo/market/metals/XAU/history?period=7d",
+      "status": 200,
+      "data": {
+        "status": "permission-required",
+        "data": null,
+        "demoOnly": true,
+        "errorCode": "METALS_DISPLAY_PERMISSION_REQUIRED",
+        "points": []
+      }
+    },
+    {
+      "path": "/api/demo/market/metals/XAG",
+      "status": 200,
+      "data": {
+        "status": "permission-required",
+        "data": null,
+        "demoOnly": true,
+        "errorCode": "METALS_DISPLAY_PERMISSION_REQUIRED"
+      }
+    },
+    {
+      "path": "/api/demo/market/metals/XAG/history?period=7d",
+      "status": 200,
+      "data": {
+        "status": "permission-required",
+        "data": null,
+        "demoOnly": true,
+        "errorCode": "METALS_DISPLAY_PERMISSION_REQUIRED",
+        "points": []
+      }
+    },
+    {
+      "path": "/api/demo/market/metals/XPT",
+      "status": 200,
+      "data": {
+        "status": "permission-required",
+        "data": null,
+        "demoOnly": true,
+        "errorCode": "METALS_DISPLAY_PERMISSION_REQUIRED"
+      }
+    },
+    {
+      "path": "/api/demo/market/metals/XPT/history?period=7d",
+      "status": 200,
+      "data": {
+        "status": "permission-required",
+        "data": null,
+        "demoOnly": true,
+        "errorCode": "METALS_DISPLAY_PERMISSION_REQUIRED",
+        "points": []
+      }
+    },
+    {
+      "path": "/api/demo/market/metals/XPD",
+      "status": 200,
+      "data": {
+        "status": "permission-required",
+        "data": null,
+        "demoOnly": true,
+        "errorCode": "METALS_DISPLAY_PERMISSION_REQUIRED"
+      }
+    },
+    {
+      "path": "/api/demo/market/metals/XPD/history?period=7d",
+      "status": 200,
+      "data": {
+        "status": "permission-required",
+        "data": null,
+        "demoOnly": true,
+        "errorCode": "METALS_DISPLAY_PERMISSION_REQUIRED",
+        "points": []
+      }
+    },
+    {
+      "path": "/api/demo/market/exchange",
+      "status": 200,
+      "data": {
+        "demoOnly": true,
+        "fiat": {
+          "status": "current",
+          "data": [
+            {
+              "id": "55646453a84bed668816097731531f22",
+              "asOf": "2026-11-02T00:00:00.000Z",
+              "base": "USD",
+              "rate": 0.89394,
+              "quote": "EUR",
+              "provider": "frankfurter-v2-blended",
+              "frequency": "daily",
+              "sourceUrl": "https://frankfurter.dev/",
+              "marketState": "unknown",
+              "timestampPrecision": "date"
+            },
+            {
+              "id": "9a47d799f4e87f97c41dd317dd947519",
+              "asOf": "2026-11-02T00:00:00.000Z",
+              "base": "USD",
+              "rate": 3186.84,
+              "quote": "COP",
+              "provider": "frankfurter-v2-blended",
+              "frequency": "daily",
+              "sourceUrl": "https://frankfurter.dev/",
+              "marketState": "unknown",
+              "timestampPrecision": "date"
+            }
+          ],
+          "retrievedAt": "2026-11-02T23:42:19.820Z",
+          "cacheUntil": "2026-11-03T00:42:19.820Z",
+          "errorCode": null,
+          "timestampPrecision": "date",
+          "demoOnly": true
+        },
+        "usdt": {
+          "status": "permission-required",
+          "data": null,
+          "demoOnly": true,
+          "errorCode": "USDT_USE_PERMISSION_REQUIRED"
+        },
+        "walletRates": "separate-simulated-rates"
+      }
+    },
+    {
+      "path": "/api/demo/reference-quotes",
+      "status": 503,
+      "data": {
+        "error": "Referencias pendientes de habilitación contractual.",
+        "code": "MARKET_STORAGE_PERMISSION_REQUIRED"
+      }
+    },
+    {
+      "path": "/api/demo/reference_trade",
+      "status": 404,
+      "data": {
+        "error": "Cotización no disponible. Solicita una nueva.",
+        "code": "QUOTE_NOT_AVAILABLE"
+      }
+    }
+  ],
+  "blockedChecks": [
+    "Public/mobile metal spot/history delivery requires confirmed display rights.",
+    "Successful reference quote/trade and native expiry checks require authorized metal and USDT sources.",
+    "USDT/USD external display/use requires provider permission."
+  ],
+  "lastRequest": {
+    "path": "/api/demo/market/metals/INVALID",
+    "status": 429,
+    "code": "RATE_LIMITED",
+    "referenceState": null,
+    "fiatState": null
+  },
+  "health": {
+    "status": 200,
+    "data": {
+      "ok": true,
+      "mode": "postgres-demo",
+      "demoOnly": true,
+      "apiVersion": "0.2.0"
+    }
+  },
+  "buyerStateSha256": "b286127984b20a18c3d7382f639027952d99c61130ba04063ecbe93b0d1a2239",
+  "sameProcessCacheHit": true,
+  "unauthenticatedQuoteRejected": true,
+  "rejectedRequestsPreservedBalances": true,
+  "httpRateLimit": {
+    "observed429": true,
+    "boundedInvalidSymbolRequests": 10,
+    "upstreamMetalCalls": 0
+  },
+  "passed": true
+}

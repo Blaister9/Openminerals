@@ -1,5 +1,6 @@
 import type {Receipt} from './receipt-presentation';
 import {parseMineInventory} from './mine-inventory.ts';
+import {parseCommercialQuote} from './market-reference.ts';
 
 export type Storage = {
   getItem(key:string):Promise<string|null>;
@@ -58,6 +59,12 @@ function completeOperatorResult(data:OperationResult,operation:PendingOperation)
     ['accountCount','transactionCount','demoFeesCollectedMinor','offersOpen','deliveriesPending'].every(key=>nonnegative(mine[key]))&&
     ['operations','pendingOffers','pendingDeliveries','stockAdjustments'].every(key=>Array.isArray(mine[key]))&&completeMineInventory(mine);
 }
+function completeReferenceTrade(data:OperationResult,operation:PendingOperation):boolean{
+  try{
+    const quote=parseCommercialQuote(data.receipt?.marketQuote),receipt=data.receipt;
+    return !!data.state&&receipt.status==='COMPLETED'&&receipt.demoOnly===true&&quote.id===operation.body.quoteId&&receipt.action===quote.action&&receipt.metal===quote.metal&&receipt.mg===quote.mg&&receipt.baseMinor===quote.baseMinor&&receipt.feeMinor===quote.feeMinor&&(quote.action==='buy'?receipt.totalMinor===quote.totalMinor:receipt.outputMinor===quote.outputMinor);
+  }catch{return false;}
+}
 
 // No operation is sent before its original key and payload are stored durably.
 // An uncertain response must be replayed with that same key, including after restart.
@@ -65,7 +72,7 @@ export function createDemoClient({api,storage,uuid,fetchImpl=fetch,timeoutMs=12_
   const sessionKey='openminerals-demo-session';
   const pendingKey=`openminerals-demo-pending:${api}${accountId?`:account:${accountId}`:''}`;
   const actions=new Set(['deposit','withdraw','convert','buy','sell','offer','cancel_offer','delivery','cancel_delivery']);
-  if(accountId)for(const action of ['mine/stock','market_buy','delivery_accept','delivery_reject','mine/delivery_quote','mine/delivery_transition','mine/delivery_config','mine/intake_produce','mine/intake_verify','mine/intake_receive'])actions.add(action);
+  if(accountId)for(const action of ['mine/stock','market_buy','reference_trade','delivery_accept','delivery_reject','mine/delivery_quote','mine/delivery_transition','mine/delivery_config','mine/intake_produce','mine/intake_verify','mine/intake_receive'])actions.add(action);
   let session='';
   let pending:PendingOperation|null=null;
   let initialized=false;
@@ -126,7 +133,7 @@ export function createDemoClient({api,storage,uuid,fetchImpl=fetch,timeoutMs=12_
         method:'POST',headers:{'Content-Type':'application/json',...identityHeaders(),'Idempotency-Key':operation.requestId},
         body:JSON.stringify(operation.body),
       });
-      const complete=operation.action==='mine/stock'?completeStockResult(data,operation):operation.action.startsWith('mine/')?completeOperatorResult(data,operation):data.state;
+      const complete=operation.action==='reference_trade'?completeReferenceTrade(data,operation):operation.action==='mine/stock'?completeStockResult(data,operation):operation.action.startsWith('mine/')?completeOperatorResult(data,operation):data.state;
       if(!complete||!data.receipt||typeof data.receipt.id!=='string'||
         (accountId&&data.receipt.id!==operation.requestId)){
         throw new RequestError('Respuesta incompleta. Conservamos la operación para reintentar sin duplicarla.');

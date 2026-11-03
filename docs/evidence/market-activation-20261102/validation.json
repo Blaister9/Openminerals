@@ -1,0 +1,55 @@
+{
+  "providerCallsDuringEndpointTests": 0,
+  "otaPublished": false,
+  "focused": {
+    "api": 17,
+    "mobile": 9
+  },
+  "rateLimitFixVerified": true,
+  "pr11Unchanged": true,
+  "nativeUiAccepted": false,
+  "usdtUseAllowed": false,
+  "codeCi": {
+    "apiPass": 108,
+    "url": "https://github.com/Blaister9/Openminerals/actions/runs/41548091059",
+    "mobilePass": 261,
+    "postgresSkip": 0,
+    "postgresPass": 85,
+    "apiSkip": 12,
+    "doctorPass": 21,
+    "mobileSkip": 2
+  },
+  "metalsStorageAllowed": false,
+  "deployedSource": "07ac06d9412b23d29e3c003a41a0fd30b01eb8b7",
+  "androidJsExport": true,
+  "observedAt": "2026-11-02T23:56:28.8397856Z",
+  "endpointsBefore": "endpoints-before.json",
+  "apiRestartPersistence": true,
+  "endpointsAfter": "endpoints-after.json",
+  "apkBuilt": false,
+  "realMetals": {
+    "maximumRequests": 6,
+    "reportedRemaining": 94,
+    "reportedPlan": "Free",
+    "numericPricesArchived": false,
+    "probeDeployment": "85d08b4c-d60e-49ec-bcc7-f1883e2ddd99",
+    "history": 4,
+    "probeSource": "31904bfa8b7d7e24ab7b4f1fc29e65da25386ca9",
+    "dataRequests": 5,
+    "pointsPerMetal": 7,
+    "usageRequests": 1,
+    "spot": 4,
+    "reportedUsed": 6
+  },
+  "acceptanceComplete": false,
+  "video": false,
+  "screenshots": false,
+  "blockers": [
+    "Metals mobile display/archive rights not confirmed",
+    "USDT provider external/derived-use permission missing",
+    "Positive quoted native Android journey pending authorized sources"
+  ],
+  "metalsDisplayAllowed": false,
+  "apiDeployment": "eeb01607-0492-499c-85e0-c80b1ee5cd73",
+  "stableInfrastructureUnchanged": true
+}
