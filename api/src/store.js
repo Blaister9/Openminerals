@@ -12,6 +12,8 @@ import {lotHistoryView,parseLotHistoryQuery} from './custody-history.js';
 import {syncReservations} from './custody-reservations.js';
 import {intakeView,applyIntake,validateIntake} from './intake.js';
 import {publicBuyerState,publicBuyerReceipt,publicMine} from './public-custody.js';
+import {syncDigitalUnits,validateDigitalUnits,digitalUnitsView,parseDigitalQuery} from './digital-units.js';
+import {demoBlockchainIntent} from './blockchain-port.js';
 
 const ID_PATTERN=/^[A-Za-z0-9_-]{16,100}$/;
 const clone=value=>structuredClone(value);
@@ -32,14 +34,22 @@ function validateMineInput({name,initialInventoryMg}={}){
   return {name:name.trim(),initialInventoryMg};
 }
 function requireRole(account,role){if(!account)throw unauthorized();if(account.role!==role)throw forbidden();}
-function makeStore(adapter){
+function makeStore(adapter,{digitalUnitsEnabled=false}={}){
+  function reconcileMine(mine,accounts,context){
+    validateCustody(mine,accounts);validateIntake(mine);
+    // Once initialized, reconciliation remains mandatory even if a process
+    // starts with the opt-in flag off. Never allow an existing ledger to drift.
+    return digitalUnitsEnabled||Object.hasOwn(mine,'digitalUnits')?syncDigitalUnits(mine,accounts,context).mine:mine;
+  }
   async function custodyMine(tx,mine){
-    const result=ensureCustody(mine,await tx.accountsForMine(mine.id));
+    const accounts=await tx.accountsForMine(mine.id);
+    const result=ensureCustody(mine,accounts);
     const delivery=ensureDelivery(result.mine);
-    const reservations=syncReservations(delivery.mine,await tx.accountsForMine(mine.id));
-    validateIntake(reservations.mine);
-    if(result.changed||delivery.changed||reservations.changed)await tx.saveMine(reservations.mine);
-    return reservations.mine;
+    const reservations=syncReservations(delivery.mine,accounts);
+    if(Object.hasOwn(mine,'digitalUnits'))validateDigitalUnits(reservations.mine,accounts);
+    const reconciled=reconcileMine(reservations.mine,accounts);
+    if(result.changed||delivery.changed||reservations.changed||!mine.digitalUnits&&reconciled.digitalUnits)await tx.saveMine(reconciled);
+    return reconciled;
   }
   async function authenticatedContext(tx,accountId,role){
     const first=await tx.account(accountId);
@@ -74,7 +84,7 @@ function makeStore(adapter){
       if(legacySessionId!==undefined){
         for(const metal of Object.keys(METALS))if(state.holdingsMg[metal])({mine}=allocateCustody(mine,result,metal,state.holdingsMg[metal],`import:${result.id}`));
         ({mine}=syncReservations(mine,await tx.accountsForMine(mine.id)));
-        validateCustody(mine,await tx.accountsForMine(mine.id));
+        mine=reconcileMine(mine,await tx.accountsForMine(mine.id),{actorId:result.id,requestId:`import:${result.id}`,action:'IMPORT'});
         await tx.saveMine(mine);
       }
       return result;
@@ -141,6 +151,7 @@ function makeStore(adapter){
       }
       ({mine}=ensureCustody(mine,[]));
       ({mine}=ensureDelivery(mine));
+      if(digitalUnitsEnabled){({mine}=syncReservations(mine,[]));mine=reconcileMine(mine,[]);}
       await adapter.tx(tx=>tx.insertMine(mine));
       return {id:mine.id,name:mine.name,demoOnly:true};
     },
@@ -186,7 +197,7 @@ function makeStore(adapter){
           if(result.changed){
             const accounts=(await tx.accountsForMine(account.mineId)).map(item=>item.id===account.id?{...item,state:result.state}:item);
             result.mine=syncReservations(result.mine,accounts,{at:result.receipt.at,referenceId:command.requestId}).mine;
-            validateCustody(result.mine,accounts);await tx.saveMine(result.mine);
+            result.mine=reconcileMine(result.mine,accounts,{actorId:account.id,requestId:command.requestId,action:command.action});await tx.saveMine(result.mine);
             await tx.saveAccountState(account.id,result.state);
           }
           return {receipt:publicBuyerReceipt(result.receipt),state:{...publicBuyerState(accountStateForMine(result.state,result.mine)),account:publicAccount(account)},changed:result.changed};
@@ -202,7 +213,7 @@ function makeStore(adapter){
           const trade=settleMarketplace(mine,{...account,state:accountStateForMine(account.state,mine)},{...seller,state:accountStateForMine(seller.state,mine)},command);
           const accounts=(await tx.accountsForMine(account.mineId)).map(item=>item.id===account.id?{...item,state:trade.buyerState}:item.id===seller.id?{...item,state:trade.sellerState}:item);
           trade.mine=syncReservations(trade.mine,accounts,{at:trade.buyerReceipt.at,referenceId:command.requestId}).mine;
-          validateCustody(trade.mine,accounts);
+          trade.mine=reconcileMine(trade.mine,accounts,{actorId:account.id,requestId:command.requestId,action:command.action});
           await tx.saveMine(trade.mine);await tx.saveAccountState(account.id,trade.buyerState);await tx.saveAccountState(seller.id,trade.sellerState);
           return {receipt:clone(trade.buyerReceipt),state:{...publicBuyerState(accountStateForMine(trade.buyerState,trade.mine)),account:publicAccount(account)},changed:true};
         }
@@ -217,7 +228,7 @@ function makeStore(adapter){
           if(command.action==='sell')result.mine=releaseCustody(result.mine,account.id,command.metal,result.receipt.mg,{referenceId:command.requestId,at:result.receipt.at});
           const accounts=(await tx.accountsForMine(account.mineId)).map(item=>item.id===account.id?{...item,state:result.state}:item);
           result.mine=syncReservations(result.mine,accounts,{at:result.receipt.at,referenceId:command.requestId}).mine;
-          validateCustody(result.mine,accounts);
+          result.mine=reconcileMine(result.mine,accounts,{actorId:account.id,requestId:command.requestId,action:command.action});
           await tx.saveMine(result.mine);await tx.saveAccountState(account.id,result.state);
         }
         return {receipt:publicBuyerReceipt(result.receipt),state:{...publicBuyerState(accountStateForMine(result.state,result.mine)),account:publicAccount(account)},changed:result.changed};
@@ -239,7 +250,7 @@ function makeStore(adapter){
       return adapter.tx(async tx=>{
         const {account,mine}=await authenticatedContext(tx,accountId,'operator');
         const result=applyIntake(mine,account,command);
-        validateCustody(result.mine,await tx.accountsForMine(account.mineId));
+        result.mine=reconcileMine(result.mine,await tx.accountsForMine(account.mineId),{actorId:account.id,requestId:command.requestId,action:command.action});
         if(result.changed)await tx.saveMine(result.mine);
         return {receipt:clone(result.receipt),mine:summarizeMine(result.mine,await tx.accountsForMine(account.mineId)),changed:result.changed,demoOnly:true};
       });
@@ -251,7 +262,7 @@ function makeStore(adapter){
         if(result.changed){
           const addition=addStockLot(result.mine,command,result.receipt.at);result.mine=addition.mine;
           result.receipt.lotId=addition.lot.id;result.mine.stockReceipts[command.requestId]=clone(result.receipt);
-          validateCustody(result.mine,await tx.accountsForMine(account.mineId));
+          result.mine=reconcileMine(result.mine,await tx.accountsForMine(account.mineId),{actorId:account.id,requestId:command.requestId,action:'stock'});
           await tx.saveMine(result.mine);
         }
         return {receipt:clone(result.receipt),mine:summarizeMine(result.mine,await tx.accountsForMine(account.mineId)),changed:result.changed,demoOnly:true};
@@ -267,6 +278,19 @@ function makeStore(adapter){
       return adapter.tx(async tx=>{
         const {account,mine}=await authenticatedContext(tx,accountId,'buyer');
         return marketplaceCatalog(mine,await tx.accountsForMine(account.mineId),account);
+      });
+    },
+    async getDigitalUnits(accountId,params=new URLSearchParams(),{exportIntents=false}={}){
+      const query=parseDigitalQuery(params);
+      return adapter.tx(async tx=>{
+        const first=await tx.account(accountId);if(!first)throw unauthorized();
+        if(exportIntents)requireRole(first,'operator');
+        const {account,mine}=await authenticatedContext(tx,accountId,first.role);
+        if(!mine.digitalUnits)throw accountError(503,'Unidades digitales DEMO desactivadas.','DIGITAL_UNITS_DISABLED');
+        const view=digitalUnitsView(mine,await tx.accountsForMine(mine.id),account,query);
+        if(!exportIntents)return view;
+        return {demoOnly:true,status:'NOT_SUBMITTED',network:'unconfigured-testnet',nextAfter:view.nextAfter,hasMore:view.hasMore,
+          intents:view.events.map(event=>demoBlockchainIntent(event,mine.digitalUnits.series.find(series=>series.id===event.seriesId)))};
       });
     },
     async getLotHistory(accountId,lotId,params=new URLSearchParams()){
@@ -305,7 +329,7 @@ function makeStore(adapter){
         const result=applyOperatorDelivery(mine,account,buyer,command);
         const accounts=(await tx.accountsForMine(account.mineId)).map(item=>buyer&&item.id===buyer.id?{...item,state:result.state}:item);
         result.mine=syncReservations(result.mine,accounts,{at:result.receipt.at,referenceId:command.requestId}).mine;
-        validateCustody(result.mine,accounts);await tx.saveMine(result.mine);
+        result.mine=reconcileMine(result.mine,accounts,{actorId:account.id,requestId:command.requestId,action:command.action});await tx.saveMine(result.mine);
         if(buyer)await tx.saveAccountState(buyer.id,result.state);
         return {receipt:clone(result.receipt),mine:summarizeMine(result.mine,accounts),changed:true,demoOnly:true};
       });
@@ -453,10 +477,10 @@ async function postgresAdapter(databaseUrl){
 
 // Additive tables leave original sessions and receipts intact. Mine -> account locks
 // serialize buyers across processes; the memory adapter is only a local demo.
-export async function createStore(databaseUrl=process.env.DATABASE_URL){
+export async function createStore(databaseUrl=process.env.DATABASE_URL,options={digitalUnitsEnabled:process.env.DEMO_DIGITAL_UNITS_ENABLED==='true'}){
   if(!databaseUrl){
     if(process.env.REQUIRE_DATABASE==='true')throw new Error('REQUIRE_DATABASE activo pero no hay DATABASE_URL');
-    return makeStore(memoryAdapter());
+    return makeStore(memoryAdapter(),options);
   }
-  return makeStore(await postgresAdapter(databaseUrl));
+  return makeStore(await postgresAdapter(databaseUrl),options);
 }
