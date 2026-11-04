@@ -1,0 +1,19 @@
+import type {Storage} from './demo-client';
+import {requireSepolia,validateWalletTransaction,type WalletProvider,type ChainOperation} from './testnet.ts';
+type Pending={requestId:string;body:Record<string,string>;operation:ChainOperation|null;phase:'PREPARING'|'AWAITING_SIGNATURE'|'SIGNING_UNKNOWN'|'HASH_KNOWN';hash:string|null};
+export function createTestnetController({api,accountId,storage,uuid,prepare,submitted}:{api:string;accountId:string;storage:Storage;uuid:()=>string;prepare:(body:Record<string,string>,requestId:string)=>Promise<{operation:ChainOperation}>;submitted:(id:string,hash:string)=>Promise<unknown>}){
+ const key='om-testnet:'+api+':'+accountId;let running=false;
+ const bodyKey=(value:Record<string,string>)=>JSON.stringify(Object.keys(value).sort().map(key=>[key,value[key]]));
+ async function read(){const saved=await storage.getItem(key);if(!saved)return null;const result=JSON.parse(saved) as Pending;if(!result.requestId||!result.body||!['PREPARING','AWAITING_SIGNATURE','SIGNING_UNKNOWN','HASH_KNOWN'].includes(result.phase))throw new Error('Intento de testnet guardado inválido; no se reenvió.');return result;}
+ const save=(value:Pending)=>storage.setItem(key,JSON.stringify(value));
+ return {
+  read,
+  async prepare(body:Record<string,string>){if(running)throw new Error('Hay una solicitud de testnet en curso.');running=true;try{let pending=await read();if(pending&&bodyKey(pending.body)!==bodyKey(body))throw new Error('Resuelve primero el intento de testnet pendiente.');if(pending&&['SIGNING_UNKNOWN','HASH_KNOWN'].includes(pending.phase))throw new Error('Concilia o recupera el hash del intento incierto; no se prepara otra firma.');if(!pending){pending={requestId:uuid(),body,operation:null,phase:'PREPARING',hash:null};await save(pending);}const response=await prepare(pending.body,pending.requestId);pending.operation=response.operation;pending.phase=response.operation.status==='AWAITING_SIGNATURE'?'AWAITING_SIGNATURE':response.operation.hash?'HASH_KNOWN':'SIGNING_UNKNOWN';pending.hash=response.operation.hash;await save(pending);return response.operation;}finally{running=false;}},
+  async send(provider:WalletProvider,connected:string){if(running)throw new Error('Hay una firma pendiente.');running=true;try{const pending=await read();if(!pending?.operation||pending.phase!=='AWAITING_SIGNATURE')throw new Error('Actualiza el intento; una firma incierta no se reenvía automáticamente.');await requireSepolia(provider);validateWalletTransaction(pending.operation,connected);await provider.request({method:'eth_estimateGas',params:[pending.operation.unsigned]});pending.phase='SIGNING_UNKNOWN';await save(pending);
+   let hash:unknown;try{hash=await provider.request({method:'eth_sendTransaction',params:[pending.operation.unsigned]});}catch(error){if((error as {code?:number}).code===4001){pending.phase='AWAITING_SIGNATURE';await save(pending);}throw error;}
+   if(typeof hash!=='string'||!/^0x[a-fA-F0-9]{64}$/.test(hash))throw new Error('MetaMask no devolvió un hash válido. Concilia antes de reintentar.');pending.hash=hash;pending.phase='HASH_KNOWN';await save(pending);await submitted(pending.operation.id,hash);return hash;
+  }finally{running=false;}},
+  async recoverHash(hash?:string){const pending=await read();if(!pending?.operation)throw new Error('No hay intento preparado.');const chosen=hash??pending.hash;if(!chosen||!/^0x[a-fA-F0-9]{64}$/.test(chosen))throw new Error('Introduce el hash de Base Sepolia.');pending.hash=chosen;pending.phase='HASH_KNOWN';await save(pending);await submitted(pending.operation.id,chosen);},
+  async refresh(operations:ChainOperation[]){const pending=await read();if(!pending?.operation)return pending;const op=operations.find(value=>value.id===pending.operation!.id);if(op&&['CONFIRMED','FAILED','EXPIRED'].includes(op.status)){await storage.removeItem(key);return null;}return pending;},
+ };
+}

@@ -1,4 +1,5 @@
 import {createDemoClient,RequestError,type Storage,type PendingOperation} from './demo-client.ts';
+import {parseTestnetState,type ChainOperation} from './testnet.ts';
 
 export type PublicAccount={id:string;alias:string;role:'buyer'|'operator';mineId:string};
 export type PublicMine={id:string;name:string};
@@ -77,7 +78,7 @@ export function createAccountClient({api,storage,authStorage,uuid,fetchImpl=fetc
   let recovery:{alias:string;token:string;expiresAt:string}|null=null;
   let recoveryRevision=0;
 
-  async function request<T>(path:string,{body,token,legacySession}: {body?:unknown;token?:string;legacySession?:string}={}):Promise<T>{
+  async function request<T>(path:string,{body,token,legacySession,requestId}: {body?:unknown;token?:string;legacySession?:string;requestId?:string}={}):Promise<T>{
     if(!api)throw new Error('Falta EXPO_PUBLIC_API_URL. Conecta primero la API de demostración.');
     const controller=new AbortController();let timer:ReturnType<typeof setTimeout>|undefined;
     try{
@@ -87,7 +88,7 @@ export function createAccountClient({api,storage,authStorage,uuid,fetchImpl=fetc
       const work=(async()=>{
         const response=await fetchImpl(api+path,{
           method:body===undefined?'GET':'POST',signal:controller.signal,
-          headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`}:{ }),...(legacySession?{'x-demo-session':legacySession}:{})},
+          headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`}:{ }),...(legacySession?{'x-demo-session':legacySession}:{}),...(requestId?{'Idempotency-Key':requestId}:{})},
           body:body===undefined?undefined:JSON.stringify(body),
         });
         const data=response.status===204?{}:await response.json();
@@ -312,6 +313,13 @@ export function createAccountClient({api,storage,authStorage,uuid,fetchImpl=fetc
   }
   return {
     initialize,get,register,login,logout,getProfile,updateProfile,setupRecovery,startRecovery,completeRecovery,cancelRecovery,
+    getTestnetState:async()=>parseTestnetState(await get('/api/demo/testnet/state')),
+    testnetChallenge:(address:string)=>withAccountSettings((account,token)=>request<{challengeId:string;message:string;expiresAt:string;chainId:84532;demoOnly:true}>('/api/demo/testnet/wallet/challenge',{token,body:{address}})),
+    testnetVerify:(challengeId:string,signature:string)=>withAccountSettings((account,token)=>request('/api/demo/testnet/wallet/verify',{token,body:{challengeId,signature}})),
+    testnetFreeze:()=>withAccountSettings((account,token)=>request('/api/demo/testnet/freeze',{token,body:{acknowledgement:'DEMO_ONLY_ISOLATED_MINE'}})),
+    testnetPrepare:(body:Record<string,string>,requestId:string)=>withAccountSettings((account,token)=>request<{operation:ChainOperation}>('/api/demo/testnet/operations',{token,body,requestId})),
+    testnetSubmit:(id:string,hash:string)=>withAccountSettings((account,token)=>request('/api/demo/testnet/operations/'+encodeURIComponent(id)+'/submitted',{token,body:{hash}})),
+    testnetReconcile:()=>withAccountSettings((account,token)=>request('/api/demo/testnet/reconcile',{token,body:{}})),
     submit:(action:string,body:Record<string,string>,title:string)=>mutate(client=>client.submit(action,body,title)),
     retry:()=>mutate(client=>client.retry()),
     getPending:()=>current.getPending(),

@@ -32,7 +32,10 @@ function validateMineInput({name,initialInventoryMg}={}){
   return {name:name.trim(),initialInventoryMg};
 }
 function requireRole(account,role){if(!account)throw unauthorized();if(account.role!==role)throw forbidden();}
-function makeStore(adapter){
+function makeStore(adapter,options={},testnetFactory){
+  const disabled=async()=>{throw accountError(503,'Blockchain DEMO desactivada.','TESTNET_DISABLED');};
+  const testnet=testnetFactory?testnetFactory(adapter,options,custodyMine):Object.fromEntries(['testnetChallenge','testnetVerifyWallet','freezeTestnetPool','getTestnetState','prepareTestnetOperation','submitTestnetOperation','testnetReconcile'].map(name=>[name,disabled]));
+  function unlocked(mine){if(mine.testnetBackingLock)throw accountError(409,'Pool DEMO reservado exclusivamente para Base Sepolia; operaciones comerciales bloqueadas.','TESTNET_POOL_LOCKED');}
   async function custodyMine(tx,mine){
     const result=ensureCustody(mine,await tx.accountsForMine(mine.id));
     const delivery=ensureDelivery(result.mine);
@@ -64,6 +67,7 @@ function makeStore(adapter){
       if(await tx.alias(alias))throw accountError(409,'Ese alias demo ya existe.','ALIAS_TAKEN');
       let state=seedState();
       if(legacySessionId!==undefined){
+        unlocked(mine);
         await tx.ensureLegacy(legacySessionId);
         const legacy=await tx.legacy(legacySessionId,true);
         if(await tx.claim(legacySessionId))throw claimed();
@@ -94,6 +98,7 @@ function makeStore(adapter){
   }
   return {
     ...accountServices(adapter),
+    ...testnet,
     mode:adapter.mode,
     ping:()=>adapter.ping(),
     async get(id){
@@ -181,6 +186,7 @@ function makeStore(adapter){
     async mutateAccount(accountId,command){
       return adapter.tx(async tx=>{
         const {account,mine}=await authenticatedContext(tx,accountId,'buyer');
+        unlocked(mine);
         if(['delivery_accept','delivery_reject'].includes(command.action)){
           const result=applyBuyerDelivery(mine,{...account,state:accountStateForMine(account.state,mine)},command);
           if(result.changed){
@@ -238,6 +244,7 @@ function makeStore(adapter){
     async mutateIntake(accountId,command){
       return adapter.tx(async tx=>{
         const {account,mine}=await authenticatedContext(tx,accountId,'operator');
+        unlocked(mine);
         const result=applyIntake(mine,account,command);
         validateCustody(result.mine,await tx.accountsForMine(account.mineId));
         if(result.changed)await tx.saveMine(result.mine);
@@ -247,6 +254,7 @@ function makeStore(adapter){
     async mutateStock(accountId,command){
       return adapter.tx(async tx=>{
         const {account,mine}=await authenticatedContext(tx,accountId,'operator');
+        unlocked(mine);
         const result=applyStockCommand(mine,command,{accountId:account.id,alias:account.alias});
         if(result.changed){
           const addition=addStockLot(result.mine,command,result.receipt.at);result.mine=addition.mine;
@@ -293,6 +301,7 @@ function makeStore(adapter){
     async mutateDelivery(accountId,command){
       return adapter.tx(async tx=>{
         const {account,mine}=await authenticatedContext(tx,accountId,'operator');
+        unlocked(mine);
         const replay=operatorDeliveryReplay(mine,account,command);
         if(replay)return {receipt:replay,mine:summarizeMine(mine,await tx.accountsForMine(account.mineId)),changed:false,demoOnly:true};
         let buyer;
@@ -348,7 +357,7 @@ function makeStore(adapter){
 }
 
 function memoryAdapter(){
-  let database={legacy:new Map(),accounts:new Map(),mines:new Map([[DEFAULT_MINE_ID,seedMine(DEFAULT_MINE_ID,'Openminerals · Mina demo')]]),auth:new Map(),profiles:new Map(),recoveryKeys:new Map(),recoveryChallenges:new Map(),recoveryAttempts:new Map()};
+  let database={chainRecords:new Map(),legacy:new Map(),accounts:new Map(),mines:new Map([[DEFAULT_MINE_ID,seedMine(DEFAULT_MINE_ID,'Openminerals · Mina demo')]]),auth:new Map(),profiles:new Map(),recoveryKeys:new Map(),recoveryChallenges:new Map(),recoveryAttempts:new Map()};
   let queue=Promise.resolve();
   return {
     mode:'memory-demo',async ping(){return true;},async close(){},
@@ -356,6 +365,7 @@ function memoryAdapter(){
       let release;const previous=queue;queue=new Promise(resolve=>{release=resolve;});await previous;
       const db=clone(database);
       const tx={
+        async chainLock(){},async chainGet(key){return clone(db.chainRecords.get(key));},async chainPut(key,value){db.chainRecords.set(key,clone(value));},async chainScan(prefix){return clone([...db.chainRecords.entries()].filter(([key])=>key.startsWith(prefix)).map(([,value])=>value));},
         async mine(id){return clone(db.mines.get(id));},async insertMine(mine){if(db.mines.has(mine.id))throw accountError(409,'La mina demo ya existe.');db.mines.set(mine.id,clone(mine));},async saveMine(mine){db.mines.set(mine.id,clone(mine));},
         async ensureLegacy(id){if(!db.legacy.has(id))db.legacy.set(id,seedState());},async legacy(id){return clone(db.legacy.get(id));},async saveLegacy(id,state){db.legacy.set(id,clone(state));},
         async account(id){return clone(db.accounts.get(id));},async alias(alias){return clone([...db.accounts.values()].find(account=>account.alias===alias));},
@@ -380,7 +390,7 @@ function memoryAdapter(){
   };
 }
 
-async function postgresAdapter(databaseUrl){
+async function postgresAdapter(databaseUrl,options){
   const {default:pg}=await import('pg');
   const pool=new pg.Pool({connectionString:databaseUrl,max:8,connectionTimeoutMillis:8000});
   let startup;
@@ -399,6 +409,7 @@ async function postgresAdapter(databaseUrl){
       CREATE INDEX IF NOT EXISTS demo_accounts_mine_idx ON demo_accounts(mine_id);
       CREATE INDEX IF NOT EXISTS demo_auth_sessions_account_idx ON demo_auth_sessions(account_id);
       CREATE INDEX IF NOT EXISTS demo_recovery_challenges_account_idx ON demo_recovery_challenges(account_id);`);
+    if(options.testnetEnabled)await startup.query('CREATE TABLE IF NOT EXISTS demo_chain_records(key TEXT PRIMARY KEY,value JSONB NOT NULL)');
     await startup.query('INSERT INTO demo_mines(id,state) VALUES($1,$2::jsonb) ON CONFLICT(id) DO NOTHING',[DEFAULT_MINE_ID,JSON.stringify(seedMine(DEFAULT_MINE_ID,'Openminerals · Mina demo'))]);
     await startup.query('COMMIT');
   }catch(error){
@@ -413,6 +424,10 @@ async function postgresAdapter(databaseUrl){
       const client=await pool.connect();
       const one=async(sql,args)=>(await client.query(sql,args)).rows[0];
       const tx={
+        async chainLock(){await client.query("SELECT pg_advisory_xact_lock(hashtext('openminerals-base-sepolia-demo-v1'))");},
+        async chainGet(key){return (await one('SELECT value FROM demo_chain_records WHERE key=$1',[key]))?.value;},
+        async chainPut(key,value){await client.query('INSERT INTO demo_chain_records(key,value) VALUES($1,$2::jsonb) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value',[key,JSON.stringify(value)]);},
+        async chainScan(prefix){return (await client.query('SELECT value FROM demo_chain_records WHERE starts_with(key,$1) ORDER BY key',[prefix])).rows.map(row=>row.value);},
         async mine(id,lock=false){return (await one(`SELECT state FROM demo_mines WHERE id=$1${lock?' FOR UPDATE':''}`,[id]))?.state;},
         async insertMine(mine){await client.query('INSERT INTO demo_mines(id,state) VALUES($1,$2::jsonb)',[mine.id,JSON.stringify(mine)]);},
         async saveMine(mine){await client.query('UPDATE demo_mines SET state=$2::jsonb,updated_at=NOW() WHERE id=$1',[mine.id,JSON.stringify(mine)]);},
@@ -453,10 +468,12 @@ async function postgresAdapter(databaseUrl){
 
 // Additive tables leave original sessions and receipts intact. Mine -> account locks
 // serialize buyers across processes; the memory adapter is only a local demo.
-export async function createStore(databaseUrl=process.env.DATABASE_URL){
+export async function createStore(databaseUrl=process.env.DATABASE_URL,options={testnetEnabled:process.env.DEMO_BASE_SEPOLIA_ENABLED==='true',testnetOrigin:process.env.TESTNET_ORIGIN, testnetConfirmations:Number(process.env.TESTNET_CONFIRMATIONS??3)}){
+  if(options.testnetEnabled&&process.env.NODE_ENV==='production'&&(!databaseUrl||new URL(databaseUrl).pathname!=='/openminerals_testnet_demo'))throw new Error('Testnet requires its separate openminerals_testnet_demo database in production');
+  const factory=options.testnetEnabled?(await import('./testnet/service.js')).testnetServices:undefined;
   if(!databaseUrl){
     if(process.env.REQUIRE_DATABASE==='true')throw new Error('REQUIRE_DATABASE activo pero no hay DATABASE_URL');
-    return makeStore(memoryAdapter());
+    return makeStore(memoryAdapter(),options,factory);
   }
-  return makeStore(await postgresAdapter(databaseUrl));
+  return makeStore(await postgresAdapter(databaseUrl,options),options,factory);
 }

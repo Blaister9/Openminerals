@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {createStore,validateSessionId} from './store.js';
 import {DomainError,METALS,operatorSummary} from './domain.js';
 import {historyPage,parseHistoryQuery,readReceipt} from './receipt-history.js';
-import {accountError,bearerToken,adminMatches,createAuthLimiter} from './account-auth.js';
+import {accountError,bearerToken,adminMatches,createAuthLimiter,tokenHash} from './account-auth.js';
 
 const API_VERSION=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8')).version;
 const ACTIONS=new Set(['deposit','withdraw','convert','buy','sell','offer','cancel_offer','delivery','cancel_delivery']);
@@ -24,6 +24,7 @@ function requireIdentity(identity){if(!identity)throw accountError(401,'Inicia s
 export function createApiServer(store,config={}){
   const adminToken=config.adminToken ?? process.env.DEMO_ADMIN_TOKEN;
   const allowAuth=createAuthLimiter(config.authRateLimit);
+  const allowTestnet=createAuthLimiter({limit:40,windowMs:60000});
   return http.createServer(async (req,res)=>{
     try {
       let url;
@@ -73,6 +74,21 @@ export function createApiServer(store,config={}){
       // A supplied bearer is always checked, never downgraded to the legacy header.
       const token=bearerToken(req.headers.authorization);
       const identity=token?await store.authenticate(token):null;
+      if(path.startsWith('/api/demo/testnet/')){
+        const {account}=requireIdentity(identity),sessionHash=tokenHash(token);allowTestnet(account.id);
+        if(req.method==='GET'&&path==='/api/demo/testnet/state'){if(url.search)throw accountError(400,'Consulta inválida.');return send(res,200,await store.getTestnetState(account.id,sessionHash));}
+        if(req.method==='POST'){
+          const body=await readJson(req);
+          if(path==='/api/demo/testnet/wallet/challenge'){onlyKeys(body,['address']);return send(res,200,await store.testnetChallenge(account.id,sessionHash,body));}
+          if(path==='/api/demo/testnet/wallet/verify'){onlyKeys(body,['challengeId','signature']);return send(res,200,await store.testnetVerifyWallet(account.id,sessionHash,body));}
+          if(path==='/api/demo/testnet/freeze'){onlyKeys(body,['acknowledgement']);return send(res,200,await store.freezeTestnetPool(account.id,sessionHash,body));}
+          if(path==='/api/demo/testnet/operations'){onlyKeys(body,['kind','lotId','toAccountId','units']);return send(res,200,await store.prepareTestnetOperation(account.id,sessionHash,body,req.headers['idempotency-key']));}
+          if(path==='/api/demo/testnet/reconcile'){onlyKeys(body,[]);return send(res,200,await store.testnetReconcile(account.id,sessionHash));}
+          const submitted=path.match(/^\/api\/demo\/testnet\/operations\/([a-f0-9-]{36})\/submitted$/);
+          if(submitted){onlyKeys(body,['hash']);return send(res,200,await store.submitTestnetOperation(account.id,sessionHash,submitted[1],body));}
+        }
+        return send(res,404,{error:'Ruta de testnet DEMO no disponible.'});
+      }
       if(req.method==='GET'&&path==='/api/demo/accounts/me')return send(res,200,requireIdentity(identity));
       if(req.method==='GET'&&path==='/api/demo/accounts/profile'){
         const {account}=requireIdentity(identity);return send(res,200,await store.getProfile(account.id));

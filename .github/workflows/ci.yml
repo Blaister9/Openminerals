@@ -71,3 +71,60 @@ jobs:
       - name: Expo Doctor
         working-directory: mobile
         run: npx expo-doctor
+      - name: Bundle isolated MetaMask Android JavaScript (no APK)
+        working-directory: mobile
+        env:
+          OPENMINERALS_TESTNET_PREVIEW: '1'
+          EXPO_PUBLIC_TESTNET: '1'
+          EXPO_PUBLIC_API_URL: https://testnet.example.invalid
+          TESTNET_API_URL: https://testnet.example.invalid
+        run: npx expo export --platform android --output-dir ../artifacts/ci-testnet-js
+      - name: Bundle default Android JavaScript without MetaMask graph (no APK)
+        working-directory: mobile
+        run: npx expo export --platform android --output-dir ../artifacts/ci-default-js
+      - name: Assert SDK is absent from the default graph
+        working-directory: mobile
+        run: node scripts/check-testnet-bundles.mjs ../artifacts/ci-default-js ../artifacts/ci-testnet-js
+  testnet-contracts:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: openminerals_test
+          POSTGRES_PASSWORD: test-only-ci-password
+          POSTGRES_DB: openminerals_testnet_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openminerals_test -d openminerals_testnet_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            contracts/package-lock.json
+            api/package-lock.json
+      - name: Install backend dependencies
+        working-directory: api
+        run: npm ci --no-audit --no-fund
+      - name: Install pinned Solidity/local EVM toolchain
+        working-directory: contracts
+        run: npm ci --no-audit --no-fund
+      - name: Audit contract toolchain
+        working-directory: contracts
+        run: npm audit --audit-level=high
+      - name: Verify bytecode matches source and pinned compiler
+        working-directory: contracts
+        run: node scripts/compile.mjs --check
+      - name: Local EVM and mandatory PostgreSQL tokenization integration
+        working-directory: contracts
+        env:
+          TEST_DATABASE_URL: postgresql://openminerals_test:test-only-ci-password@localhost:5432/openminerals_testnet_test
+          REQUIRE_TESTNET_POSTGRES: 'true'
+        run: npm test
