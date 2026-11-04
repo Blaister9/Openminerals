@@ -1,0 +1,94 @@
+{
+  "schema": "openminerals-base-sepolia-preflight/v1",
+  "date": "2026-11-03",
+  "timezone": "America/Bogota",
+  "sourceCommit": "6bb78da022b6935ab05149565dc698b26fcf2ac7",
+  "pullRequest": "https://github.com/Blaister9/Openminerals/pull/15",
+  "railway": {
+    "database": "openminerals_testnet_demo",
+    "projectId": "fb032a9c-5770-40bf-bd03-ff450b34b223",
+    "postgresServiceId": "e13a0591-a765-4a8e-babb-851696dffced",
+    "environmentName": "base-sepolia",
+    "environmentId": "d750ac32-e469-4b4a-bf94-447d75b3852b",
+    "deploymentId": "10e5d9f6-926f-42d6-a47a-e34b1ab11f0d",
+    "postgresMajor": 18,
+    "commercialProjectModified": false,
+    "apiServiceId": "9ed9885a-1aac-4bc6-800a-c6c421992ea2"
+  },
+  "remote": {
+    "api": "https://testnet-api-base-sepolia.up.railway.app",
+    "capacityGrossMg": 1000,
+    "contract": null,
+    "health": {
+      "ok": true,
+      "mode": "postgres-demo",
+      "demoOnly": true,
+      "apiVersion": "0.2.0"
+    },
+    "at": "2026-11-04T03:00:20.0351243Z",
+    "accounts": {
+      "operatorId": "account-1a4a2652-2539-4da6-bd19-a868218d30f0",
+      "buyerId": "account-04ff3c4f-b65a-4fb6-b8b1-d5587e98db88"
+    },
+    "mineId": "mine-2da1a49e-c1fd-4f2a-877c-4cfcda2d77ef",
+    "backingRoot": "0x3d57f20a1b2bf9450977967bd6c7aa27d17de131f017a2ca65d21780c6962246",
+    "publicTransactions": [],
+    "lotId": "lot-968624531a7677085c3c89f1cf4b2885",
+    "tests": {
+      "freezeReplay": "PASS",
+      "isolatedPool": "PASS",
+      "commercialBuy409": "PASS",
+      "buyerFreeze403": "PASS",
+      "postgresHealth": "PASS",
+      "apiRestartPersistence": "PASS"
+    },
+    "persistenceAt": "2026-11-04T03:01:09.9870913Z"
+  },
+  "compatibility": {
+    "reference": "61211eeaa044d15ebab63eea18c23bb1f8114836",
+    "execution": "local-simulated",
+    "metals": 4,
+    "unit": "mg",
+    "massBasis": "gross-lot-mass",
+    "issuedPerMetal": "800",
+    "result": "PASS",
+    "automaticLedgerBridge": false,
+    "publicTransactions": 0
+  },
+  "local": {
+    "api": {
+      "fail": 0,
+      "pass": 4
+    },
+    "contracts": {
+      "fail": 0,
+      "publicChain": false,
+      "skip": 0,
+      "postgresMajor": 17,
+      "pass": 23
+    },
+    "mobile": {
+      "fail": 0,
+      "androidExecution": false,
+      "pass": 5,
+      "typecheck": "PASS"
+    }
+  },
+  "rpc": {
+    "transactionsSent": 0,
+    "chainId": 84532,
+    "url": "https://sepolia.base.org",
+    "observedBlock": 54197001
+  },
+  "native": {
+    "apk": null,
+    "wallets": "PENDING",
+    "contract": null,
+    "metamaskAndroid": "PENDING",
+    "faucet": "PENDING",
+    "transactionHashes": [],
+    "expoTestnetProject": null
+  },
+  "mediaCreated": [],
+  "complete": false
+}

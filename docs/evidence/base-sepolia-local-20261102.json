@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-03",
+  "scope": "LOCAL_SIMULATION_ONLY_NOT_PUBLIC_BASE_SEPOLIA",
+  "publicTestnetTransactionsVerified": false,
+  "nativeMetaMaskAndroidVerified": false,
+  "apkGenerated": false,
+  "walletPrivateKeysPersisted": false,
+  "compiler": "0.8.38+commit.1835d247.Emscripten.clang",
+  "contractSourceSha256": "1a59670acdc97e7eb230a597beb49dd26288132ffa0148c5d8c002c6d9bed2e4",
+  "bytecodeSha256": "a57cff0d0fc0c35cf638a8c8464782a033e18b864568507002c90c0beabe0246",
+  "unit": "mg",
+  "massBasis": "gross-lot-mass",
+  "rpcUsedForContractTests": "IN_PROCESS_EVM_ONLY",
+  "contractTestsChainId": 84532,
+  "publicTransactionEvidence": [],
+  "checks": {
+    "api": {
+      "tests": 106,
+      "pass": 95,
+      "fail": 0,
+      "skipped": 11
+    },
+    "postgres_regression": {
+      "tests": 80,
+      "pass": 80,
+      "fail": 0,
+      "skipped": 0
+    },
+    "mobile": {
+      "tests": 259,
+      "pass": 257,
+      "fail": 0,
+      "skipped": 2
+    },
+    "contracts_memory_postgres": {
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    }
+  },
+  "notes": [
+    "No public explorer hashes or deployed addresses are claimed.",
+    "Commercial smoke passed against isolated local PostgreSQL with testnet disabled.",
+    "Contract integration covers memory and isolated local PostgreSQL, concurrent intents, restart, root proofs, expiry and reorg.",
+    "Native acceptance and real testnet receipts intentionally pending at owner request."
+  ]
+}
