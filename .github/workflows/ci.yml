@@ -133,3 +133,7 @@ jobs:
           TEST_DATABASE_URL: postgresql://openminerals_test:test-only-ci-password@localhost:5432/openminerals_testnet_test
           REQUIRE_TESTNET_POSTGRES: 'true'
         run: npm test
+      - name: Compare exact PR 13 unit semantics without merging it
+        run: |
+          git fetch --no-tags origin 61211eeaa044d15ebab63eea18c23bb1f8114836
+          node contracts/scripts/check-pr13-compatibility.mjs

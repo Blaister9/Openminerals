@@ -1,6 +1,6 @@
 # MetaMask + Base Sepolia · implementación DEMO
 
-3 de noviembre de 2026 · Rama `codex/metamask-base-sepolia-20261102`, desde `main@ed87d2e`. PR #13 se usó como referencia de unidades/custodia; no se fusionó ni se modificó. PR #11/#12/#14 y Railway permanecen intactos. **El propietario aplazó la preparación de billeteras: se entrega código preparado y pruebas locales, no aceptación Android ni transacciones públicas.** Sin APK, OTA, capturas o vídeos.
+Entrega inicial del 3 de noviembre de 2026 · Rama `codex/metamask-base-sepolia-20261102`, desde `main@ed87d2e`, hasta `6bb78da`. PR #13 se usó como referencia de unidades/custodia; no se fusionó ni se modificó. En esa entrega PR #11/#12/#14 y Railway permanecieron intactos. El propietario aplazó entonces la preparación de billeteras: se entregó código preparado y pruebas locales, sin aceptación Android ni transacciones públicas. Sin APK, OTA, capturas o vídeos. La continuación autorizada con Railway aislado se registra en [la prueba funcional](32-prueba-funcional-base-sepolia-android.md); los límites de este informe inicial no describen ese avance posterior.
 
 ## Cliente Android
 
