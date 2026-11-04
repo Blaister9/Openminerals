@@ -50,7 +50,12 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: mobile/package-lock.json
+          cache-dependency-path: |
+            mobile/package-lock.json
+            api/package-lock.json
+      - name: Install backend dependencies for authenticated client integration
+        working-directory: api
+        run: npm ci --no-audit --no-fund
       - name: Install Expo dependencies
         working-directory: mobile
         run: npm ci --no-audit --no-fund
